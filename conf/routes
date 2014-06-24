@@ -5,8 +5,16 @@
 # Home page
 GET     /                           controllers.Application.index
 
+#Distributor
+#GET		/v1/distributors/:id 	controllers.Distributor.show(id: Long)
+
+#Properties
+#GET		/v1/distributors/:id/properties
+#GET		/v1/properties/:id
+
 # Waterfalls
-GET		/v1/waterfalls/:id 			controllers.WaterfallController.show(id: Long)
+GET		/v1/properties/:property_id/waterfalls   controllers.WaterfallController.list(property_id: Long)
+GET		/v1/waterfalls/:id 				controllers.WaterfallController.show(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

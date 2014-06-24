@@ -18,13 +18,19 @@ object WaterfallController extends Controller {
     		NotFound("No such waterfall")
     	} else {
     		val (waterfall, list) = result.head
-    		Ok(Json.obj(
-    				"waterfall" -> Json.toJson(waterfall),
-    				"waterfall_ad_providers" -> Json.arr(list.map { i => Json.toJson(i)})
-    			)
-    		)
+    		val res: JsValue = Json.toJson(waterfall).as[JsObject] ++ Json.obj("waterfall_ad_providers" -> list)
+    		Ok(res)
     	}
     }
+  }
+
+  def list(property_id: Long) = Action {
+  	DB.withConnection { implicit connection =>
+  		val query = SQL("SELECT * FROM Waterfall where property_id = {property_id}").on("property_id" -> property_id)
+  		val waterfalls = query.as(Waterfall.waterfallParser*)
+
+  		Ok(Json.toJson(waterfalls))
+  	}
   }
 
 }
