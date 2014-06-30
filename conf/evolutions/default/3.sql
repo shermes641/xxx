@@ -1,8 +1,6 @@
 
-# Users schema
- 
 # --- !Ups
- 
+
 CREATE TABLE WaterfallAdProvider (
 	id bigint(20) NOT NULL AUTO_INCREMENT,
 	waterfall_id bigint(20) NOT NULL,

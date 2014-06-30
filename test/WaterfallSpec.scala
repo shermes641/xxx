@@ -30,7 +30,7 @@ class WaterfallSpec extends Specification {
     	Waterfall.withWaterfallAdProviders(1) must
     		equalTo(Map(Waterfall(Id(1),"TestWaterfall") ->
     			List(WaterfallAdProvider(Id(1),1,1,None,None,None,None),
-    				 WaterfallAdProvider(Id(2),1,2,None,None,None,None)))
+    				 WaterfallAdProvider(Id(2),1,2,Some(0),None,None,None)))
 )
     }
 

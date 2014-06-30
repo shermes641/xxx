@@ -13,3 +13,5 @@ libraryDependencies ++= Seq(
   ws,
   "mysql" % "mysql-connector-java" % "5.1.18"
 )
+
+libraryDependencies += "com.github.t3hnar" %% "scala-bcrypt" % "2.4"

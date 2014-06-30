@@ -1,0 +1,20 @@
+@(form: Form[(String, String)])
+
+@if(form.hasErrors) {
+    <h3>Oops</h3>
+
+    <ul>
+        @for(error <- form.errors) {
+            <li>@error.message</li>
+        }
+    </ul>
+}
+
+@main("Log In") {
+    @helper.form(action = routes.Authentication.authenticate) {
+        @helper.inputText(form("email"),'_showConstraints -> true)
+        @helper.inputPassword(form("password"),'_showConstraints -> true)
+        <button type="submit" name="submit">Log In</button>
+    }
+
+}

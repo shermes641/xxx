@@ -40,7 +40,7 @@ object Waterfall {
 
     val waterfallParser: RowParser[Waterfall] = {
     	get[Pk[Long]]("Waterfall.id") ~
-      	get[String]("name") map {
+      get[String]("name") map {
         case id ~ name => Waterfall(id, name)
       }
     }
