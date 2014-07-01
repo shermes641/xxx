@@ -10,7 +10,15 @@ import play.api.db.DB
 /**
  * Created by jeremy on 6/30/14.
  */
-case class DistributorUser (id:Pk[Long], email:String, hashed_password:String, salt:String)
+case class DistributorUser (id:Pk[Long], email:String, hashed_password:String) {
+
+  def setPassword(password: String) {
+    val salt = generateSalt
+    SQL("UPDATE DistributorUser SET ('hashed_password') VALUE ('{hash}') WHERE id = {id}")
+      .on("hash" -> password.bcrypt(salt), "id" -> this.id.get)
+  }
+
+}
 
 object DistributorUser {
 
@@ -26,9 +34,8 @@ object DistributorUser {
   val userParser: RowParser[DistributorUser] = {
     get[Pk[Long]]("DistributorUser.id") ~
     get[String]("DistributorUser.email") ~
-    get[String]("DistributorUser.hashed_password") ~
-    get[String]("DistributorUser.salt") map {
-      case id ~ email ~ hashed_password ~ salt => DistributorUser(id, email, hashed_password, salt)
+    get[String]("DistributorUser.hashed_password") map {
+      case id ~ email ~ hashed_password => DistributorUser(id, email, hashed_password)
     }
   }
 

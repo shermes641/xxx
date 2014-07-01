@@ -30,7 +30,7 @@ object Waterfall {
         	}
         }
  
- 		// Convert to Watferfall object form JSON (serializing from JSON)
+ 		// Convert to Waterfall object form JSON (serializing from JSON)
  		// TODO: Currently mocked out.
         def reads(json: JsValue): JsResult[Waterfall] = {
             JsError()

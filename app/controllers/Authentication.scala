@@ -56,7 +56,11 @@ trait Secured {
     }
   }
 
-  def withUser(f: DistributorUser => Request[AnyContent] => Result ) = withAuth { username => implicit request =>
-    f(DistributorUser(NotAssigned, username, "hashed_password", "Salt"))(request)
+  def withUser(f: DistributorUser => Request[AnyContent] => Result ) = withAuth { email => implicit request =>
+    val optionalUser = DistributorUser.findByEmail(email)
+    optionalUser match {
+      case Some(user) => f(user)(request)
+      case None => onUnauthorized(request)
+    }
   }
 }
