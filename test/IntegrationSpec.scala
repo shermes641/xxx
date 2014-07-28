@@ -1,11 +1,7 @@
-import org.fluentlenium.core.action.FillConstructor
+import models.SpecificationWithFixtures
 import org.specs2.runner._
 import org.junit.runner._
-import org.fluentlenium.core.action.FillConstructor._
-/**
- * add your integration spec here.
- * An integration test will fire up a whole play application in a real (or headless) browser
- */
+
 @RunWith(classOf[JUnitRunner])
 class IntegrationSpec extends SpecificationWithFixtures {
 

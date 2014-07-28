@@ -1,18 +1,20 @@
+package models
+
 import anorm._
+import com.github.t3hnar.bcrypt._
+import org.specs2.execute.{AsResult, Result}
 import org.specs2.mutable._
-import org.specs2.execute.{Result, AsResult}
+import play.api.Play.current
 import play.api.db.DB
 import play.api.test.Helpers._
 import play.api.test._
-import com.github.t3hnar.bcrypt._
-import play.api.Play.current
 
 /**
  * Created by jeremy on 7/1/14.
  */
 abstract class SpecificationWithFixtures extends Specification {
 
-  val email = "jellison@jungroup.com"
+  val email = "tdepplito@jungroup.com"
   val password = "password"
 
   def insertData =
@@ -42,10 +44,24 @@ abstract class SpecificationWithFixtures extends Specification {
     }
   }
 
+  abstract class WithFakeDB extends WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+
+    override def around[T: AsResult](t: => T): Result = super.around {
+      t
+    }
+  }
+
   abstract class WithBrowserAndFixtures extends WithBrowser(app = FakeApplication(additionalConfiguration = inMemoryDatabase())) { //, webDriver = WebDriverFactory(Helpers.FIREFOX)
 
     override def around[T: AsResult](t: => T): Result = super.around {
       insertData
+      t
+    }
+  }
+
+  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = inMemoryDatabase())) { //, webDriver = WebDriverFactory(Helpers.FIREFOX)
+
+    override def around[T: AsResult](t: => T): Result = super.around {
       t
     }
   }

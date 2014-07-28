@@ -10,6 +10,10 @@ GET         /login                                        controllers.Authentica
 POST        /authenticate                                 controllers.Authentication.authenticate
 GET         /logout                                       controllers.Authentication.logout
 
+#Sign up
+GET         /signup                                       controllers.DistributorUsers.signup
+POST        /distributor_users                            controllers.DistributorUsers.create
+
 #Distributor
 #GET		/v1/distributors/:id 	controllers.Distributor.show(id: Long)
 
