@@ -11,7 +11,7 @@
 }
 
 @main("Log In") {
-    @helper.form(action = routes.Authentication.authenticate) {
+    @helper.form(action = routes.DistributorUsersController.authenticate) {
         @helper.inputText(form("email"),'_showConstraints -> true)
         @helper.inputPassword(form("password"),'_showConstraints -> true)
         <button type="submit" name="submit">Log In</button>
