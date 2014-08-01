@@ -1,20 +1,22 @@
 @(form: Form[(String, String)])
-
-@if(form.hasErrors) {
-    <h3>Oops</h3>
-
-    <ul>
-        @for(error <- form.errors) {
-            <li>@error.message</li>
-        }
-    </ul>
-}
-
-@main("Log In") {
-    @helper.form(action = routes.DistributorUsersController.authenticate) {
-        @helper.inputText(form("email"),'_showConstraints -> true)
-        @helper.inputPassword(form("password"),'_showConstraints -> true)
-        <button type="submit" name="submit">Log In</button>
+<div class="content registration">
+    <h1>Sign In</h1>
+    @if(form.hasErrors) {
+        <h3>Oops</h3>
+    
+        <ul>
+            @for(error <- form.errors) {
+                <li>@error.message</li>
+            }
+        </ul>
     }
-
-}
+    
+    @main("Log In") {
+        @helper.form(action = routes.DistributorUsersController.authenticate) {
+            @helper.inputText(form("email"),'_showConstraints -> true, 'placeholder -> "Email", '_label -> null)
+            @helper.inputPassword(form("password"),'_showConstraints -> true, 'placeholder -> "Password", '_label -> null)
+            <button type="submit" name="submit">Log In</button>
+        }
+    
+    }
+</div>

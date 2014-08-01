@@ -1,9 +1,11 @@
 @(message: String, user: DistributorUser)
+<div class="content app_list">
+	<h1>My Apps</h1>	
+	@main("Welcome to Play") {
 
-@main("Welcome to Play") {
+	    message
 
-    message
+	    @user.email
 
-    @user.email
-
-}
+	}
+</div>
