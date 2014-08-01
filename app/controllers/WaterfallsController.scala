@@ -8,7 +8,7 @@ import play.api.db.DB
 import models._
 import play.api.libs.json._
 
-object WaterfallController extends Controller {
+object WaterfallsController extends Controller {
 
   def show(id: Long) = Action {
   	DB.withConnection { implicit c =>

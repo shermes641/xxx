@@ -1,9 +1,9 @@
-import org.specs2.runner._
-import org.junit.runner._
-import play.api.db.DB
+package models
 
 import anorm._
-import models._
+import org.junit.runner._
+import org.specs2.runner._
+import play.api.db.DB
 import play.api.libs.json._
 
 /**

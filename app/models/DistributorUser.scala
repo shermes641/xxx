@@ -1,15 +1,11 @@
 package models
 
-import anorm.SqlParser._
 import anorm._
-import play.api.Play.current
-
+import anorm.SqlParser._
 import com.github.t3hnar.bcrypt._
 import play.api.db.DB
+import play.api.Play.current
 
-/**
- * Created by jeremy on 6/30/14.
- */
 case class DistributorUser (id:Pk[Long], email:String, hashed_password:String) {
 
   def setPassword(password: String) {
@@ -43,10 +39,10 @@ object DistributorUser {
     DB.withConnection { implicit c =>
       val query = SQL(
         """
-					SELECT DistributorUser.*
-					FROM DistributorUser
-					WHERE DistributorUser.email = {email}
-       """
+          SELECT DistributorUser.*
+          FROM DistributorUser
+          WHERE DistributorUser.email = {email}
+        """
       ).on("email" -> email)
       query.as(userParser*) match {
         case List(user) => Some(user)
@@ -55,6 +51,21 @@ object DistributorUser {
     }
   }
 
+  def create(email: String, password: String) = {
+    val salt = generateSalt
+    val hashedPassword = password.bcrypt(salt)
+    findByEmail(email) match {
+      case Some(user) => false
+      case _          => {
+        DB.withConnection { implicit c =>
+          SQL(
+            """
+              INSERT INTO DistributorUser (email, hashed_password)
+              VALUES ({email}, {hashed_password});
+            """
+          ).on("email" -> email, "hashed_password" -> hashedPassword).executeInsert()
+        }
+      }
+    }
+  }
 }
-
-
