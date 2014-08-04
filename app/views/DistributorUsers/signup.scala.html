@@ -1,21 +1,23 @@
 @(form: Form[Signup])
+<div class="content registration">
+    <h1>Sign Up</h1>
+    @if(form.hasErrors) {
+        <h3>Oops</h3>
 
-@if(form.hasErrors) {
-    <h3>Oops</h3>
-
-    <ul>
-        @form.errors.map { error =>
-            <li>@error.message</li>
-        }
-    </ul>
-}
-
-@main("Sign up") {
-    @helper.form(action = routes.DistributorUsersController.create) {
-        @helper.inputText(form("email"),'_showConstraints -> false)
-        @helper.inputPassword(form("password"),'_showConstraints -> false)
-        @helper.inputPassword(form("confirmation"),'_showConstraints -> false)
-        @helper.checkbox(form("terms"), '_label -> "By checking this box, you agree to our terms and conditions", '_help -> "")
-        <button type="submit" name="submit">Sign up</button>
+        <ul>
+            @form.errors.map { error =>
+                <li>@error.message</li>
+            }
+        </ul>
     }
-}
+
+    @main("Sign up") {
+        @helper.form(action = routes.DistributorUsersController.create) {
+            @helper.inputText(form("email"),'_showConstraints -> false, 'placeholder -> "Email", '_label -> null)
+            @helper.inputPassword(form("password"),'_showConstraints -> false, 'placeholder -> "Password", '_label -> null)
+            @helper.inputPassword(form("confirmation"),'_showConstraints -> false, 'placeholder -> "Password (confirm)", '_label -> null)
+            @helper.checkbox(form("terms"), '_label -> "By checking this box, you agree to our terms and conditions", '_help -> "")
+            <button type="submit" name="submit">Sign up</button>
+        }
+    }
+</div>

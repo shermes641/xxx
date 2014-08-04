@@ -1,0 +1,252 @@
+@import url('fonts.css');
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: #efefef;
+	font-size: 14px;
+	font-family: "Avenir Book", "Helvetica", sans-serif;
+	font-weight: 400;
+	color: #222;
+}
+
+a {
+	color: #4285f4;
+	text-decoration: none;
+}
+
+h1 {
+	font-size: 30px;
+	font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
+	font-weight: 400;
+	
+	color: #4285f4;
+}
+
+h2 {
+	font-size: 20px;
+	font-family: "Avenir Black", "Arial", sans-serif;
+	font-weight: 400;
+}
+
+input[type="text"], input[type="password"], button[type="submit"] {
+	padding: 10px;
+	border: 1px solid #eee;
+	-webkit-appearance: none;
+
+	font-size: 20px;
+	font-family: "Avenir Book", "Helvetica", sans-serif;
+}
+
+button[type="submit"] {
+	background: #4285f4;
+	color: #fff;
+
+	font-size: 20px;
+	font-family: "Avenir Book", "Helvetica", sans-serif;
+	font-weight: 400;
+	margin-top: 20px;
+}
+
+header {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+
+	height: 30px;
+	background: #fff;
+	padding: 20px;
+
+	font-size: 20px;
+	font-family: "Avenir Black", "Arial", sans-serif;
+	font-weight: 400;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+}
+
+header .user_info {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+
+	width: 150px;
+	padding: 22px 22px 0 22px;
+
+	background: #F8F8F8;
+	font-size: 20px;
+	font-family: "Avenir Book", "Helvetica", sans-serif;
+	font-weight: 400;
+	text-align: center;
+}
+
+header .actions {
+	position: absolute;
+	top: 0px;
+	right: 200px;
+	bottom: 0px;
+	padding: 22px 22px 0 22px;
+
+	font-size: 20px;
+	font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
+	font-weight: 400;
+}
+
+.sub_header {
+	position: fixed;
+	top: 70px;
+	right: 0;
+	left: 0;
+
+	height: 50px;
+
+	background: #222;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+}
+
+.sub_header .menu {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 50%;
+	bottom: 0;
+
+	width: 600px;
+	margin-left: -300px;
+
+	list-style: none;
+}
+
+.sub_header .menu li {
+	margin: 0;
+	float: left;
+	width: 200px;
+	padding-top: 16px;
+	height: 34px;
+
+	-webkit-transition: 400ms ease all;
+
+	font-family: "Avenir Black", "Arial",sans-serif;
+	font-size: 14px;
+	font-weight: 400;
+	color: #fff;
+	text-align: center
+}
+
+.sub_header .menu li.active {
+	background: #4285f4;
+}
+
+.sub_header .menu li.active:hover {
+	background: #689ef8;
+}
+
+.sub_header .menu li:hover {
+	background: #444;
+}
+
+.content {
+	margin: 100px auto;
+	padding: 20px;
+
+	background: #fff;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+}
+
+.registration {
+	width: 600px;
+}
+
+.registration input[type="text"], .registration input[type="password"], .registration button[type="submit"] {
+	width: 600px;
+}
+
+.registration dl {
+	margin-top: 20px;
+}
+
+.registration input[type="checkbox"] {
+	margin: 10px;
+	display: block;
+}
+
+.registration h2 {
+	text-align: center;
+	padding: 20px;
+	font-size: 30px;
+}
+
+.app_list ul {
+	list-style: none;
+	width: 100%;
+}
+
+.app_list ul li {
+	position: relative;
+	margin: 0;
+	padding: 10px;
+	border: 1px solid #eee;
+	margin-top: 10px;
+}
+
+.app_list ul li .actions {
+	position: absolute;
+	top: 21px;
+	right: 21px;
+}
+
+
+.app_list ul li .actions a {
+	color: #4285f4;
+
+	font-size: 14px;
+	font-family: "Avenir Book", "Helvetica", sans-serif;
+	font-weight: 400;
+	text-decoration: none;
+}
+
+.content.dashboard, .content.waterfall, .content.settings {
+	margin: 140px auto;
+}
+
+.dashboard div {
+	margin-top: 20px;
+}
+
+.waterfall ul {
+	list-style: none;
+	width: 100%;
+}
+
+.waterfall ul li {
+	position: relative;
+	margin: 0;
+	padding: 10px;
+	border: 1px solid #eee;
+	margin-top: 10px;
+}
+
+.waterfall ul li b {
+	font-size: 12px;
+	font-family: "Avenir Black", "Arial", sans-serif;
+	font-weight: 400;
+}
+
+.waterfall ul li .actions {
+	position: absolute;
+	top: 21px;
+	right: 21px;
+	color: #4285f4;
+
+	font-size: 14px;
+	font-family: "Avenir Book", "Helvetica", sans-serif;
+	font-weight: 400;
+	cursor: pointer;
+}
+
+
+
+
