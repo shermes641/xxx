@@ -2,6 +2,7 @@ package controllers
 
 import play.api.mvc._
 import views.html
+import models.Distributor
 
 
 object Application extends Controller with Secured {

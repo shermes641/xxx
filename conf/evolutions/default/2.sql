@@ -13,7 +13,7 @@ CREATE TABLE Waterfall (
 	property_id bigint(20) NOT NULL,
 	name varchar(255),
 	PRIMARY KEY (id),
-	FOREIGN KEY (property_id) REFERENCES Property(id)
+	FOREIGN KEY (property_id) REFERENCES App(id)
 );
  
 # --- !Downs

@@ -1,0 +1,10 @@
+@(form: Form[tempDistributorApp], distributorID: Long, appID: Long)
+<div class="content app_list">
+    <h1>Edit App</h1>
+    @main("Edit App") {
+        @helper.form(action = routes.AppsController.update(distributorID, appID)) {
+            @helper.inputText(form("name"), '_showConstraints -> true, 'placeholder -> "name", '_label -> null)
+            <button type="submit" name="submit">Save Changes</button>
+        }
+    }
+</div>
