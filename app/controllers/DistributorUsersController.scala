@@ -9,6 +9,7 @@ import play.api.mvc._
 object DistributorUsersController extends Controller with Secured {
   val signupForm = Form[Signup](
       mapping(
+      "company" -> nonEmptyText,
       "email" -> nonEmptyText,
       "password" -> text.verifying("Password must be at least 8 characters",
       result => result match {
@@ -30,14 +31,14 @@ object DistributorUsersController extends Controller with Secured {
     signupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.signup(formWithErrors)),
       signup => {
-        DistributorUser.create(signup.email, signup.password) match {
+        DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id) => {
             // Email credentials need to be configured
             // signup.sendWelcomeEmail()
-            Redirect(routes.Application.index).flashing("success" -> "Your confirmation email will arrive shortly.")
+            Created(views.html.index(message = "New user created!", user = DistributorUser.findByEmail(signup.email).get)).flashing("success" -> "Your confirmation email will arrive shortly.")
           }
-          case _        => {
-            Redirect(routes.DistributorUsersController.signup).flashing("error" -> "This email has been registered already. Try logging in.")
+          case _ => {
+            Redirect(routes.DistributorUsersController.login).flashing("error" -> "This email has been registered already. Try logging in.")
           }
         }
       }
@@ -79,7 +80,7 @@ object DistributorUsersController extends Controller with Secured {
   }
 }
 
-case class Signup(email: String, password: String, confirmation: String, agreeToTerms: Boolean) extends Mailer {
+case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean) extends Mailer {
   def sendWelcomeEmail(): Unit = {
     val subject = "Welcome to HyprMediation"
     val body = "Welcome to HyprMediation!"

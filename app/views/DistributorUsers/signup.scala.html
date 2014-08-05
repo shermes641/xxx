@@ -13,6 +13,7 @@
 
     @main("Sign up") {
         @helper.form(action = routes.DistributorUsersController.create) {
+            @helper.inputText(form("company"),'_showConstraints -> false, 'placeholder -> "Company Name", '_label -> null)
             @helper.inputText(form("email"),'_showConstraints -> false, 'placeholder -> "Email", '_label -> null)
             @helper.inputPassword(form("password"),'_showConstraints -> false, 'placeholder -> "Password", '_label -> null)
             @helper.inputPassword(form("confirmation"),'_showConstraints -> false, 'placeholder -> "Password (confirm)", '_label -> null)
