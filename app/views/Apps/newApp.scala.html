@@ -1,0 +1,10 @@
+@(form: Form[tempDistributorApp], distributorID: Long)
+<div class="content app_list">
+    <h1>New App</h1>
+    @main("New App") {
+        @helper.form(action = routes.AppsController.create(distributorID)) {
+            @helper.inputText(form("name"), '_showConstraints -> true, 'placeholder -> "name", '_label -> null)
+            <button type="submit" name="submit">Create App</button>
+        }
+    }
+</div>

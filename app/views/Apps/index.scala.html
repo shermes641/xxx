@@ -1,0 +1,19 @@
+@(apps: List[App], distributorID: Long)
+<div class="content app_list">
+  <h1>My Apps</h1>
+  @main("Welcome to Play") {
+  }
+  <ul>
+    @for(app <- apps) {
+      <li>
+          @app.name
+          <form action='@routes.AppsController.edit(distributorID, app.id)'>
+              <button type="submit" name="submit">Edit</button>
+          </form>
+          <form action='@routes.AppsController.destroy(distributorID, app.id)' method="POST">
+              <button type="submit" name="submit">Delete</button>
+          </form>
+      </li>
+    }
+  </ul>
+</div>

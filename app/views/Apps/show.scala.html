@@ -1,0 +1,10 @@
+@(app: App, distributorID: Long, appID: Long)
+<div class="content app_list">
+    <h1>New App</h1>
+    @main("New App") {
+        @app.name
+        <form action='@routes.AppsController.edit(distributorID, app.id)'>
+            <button type="submit" name="submit">Edit</button>
+        </form>
+    }
+</div>
