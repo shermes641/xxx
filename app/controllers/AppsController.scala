@@ -5,12 +5,13 @@ import play.api.data.Forms._
 import play.api.mvc._
 import models.App
 
+/** Controller for models.App instances. */
 object AppsController extends Controller with Secured {
   // Form mapping used in create and edit actions
-  val appForm = Form[tempDistributorApp](
+  val appForm = Form[AppMapping](
     mapping(
       "name" -> nonEmptyText
-    )(tempDistributorApp.apply)(tempDistributorApp.unapply)
+    )(AppMapping.apply)(AppMapping.unapply)
   )
 
   /**
@@ -73,7 +74,7 @@ object AppsController extends Controller with Secured {
    */
   def edit(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
     val app = App.find(appID).get
-    val form = appForm.fill(new tempDistributorApp(app.name))
+    val form = appForm.fill(new AppMapping(app.name))
     Ok(views.html.Apps.edit(form, distributorID, appID))
   }
 
@@ -123,4 +124,4 @@ object AppsController extends Controller with Secured {
  * Used for mapping App attributes in forms.
  * @param name Maps to the name field in the App table
  */
-case class tempDistributorApp(name: String) {}
+case class AppMapping(name: String) {}
