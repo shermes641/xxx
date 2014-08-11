@@ -6,7 +6,18 @@ import com.github.t3hnar.bcrypt._
 import play.api.db.DB
 import play.api.Play.current
 
+/**
+ * Encapsulates information for DistributorUsers.
+ * @param id DistributorUser ID stored in database
+ * @param email Email for DistributorUser
+ * @param hashedPassword Hashed password for DistributorUser
+ * @param distributorID Foreign key to maintain relationship with Distributor (Distributor has many DistributorUsers).
+ */
 case class DistributorUser (id: Option[Long], email: String, hashedPassword: String, distributorID: Option[Long]) {
+  /**
+   * Stores hashed password in database for DistributorUser.
+   * @param password Password for current DistributorUser
+   */
   def setPassword(password: String) {
     val salt = generateSalt
     SQL("UPDATE DistributorUser SET ('hashed_password') VALUE ('{hash}') WHERE id = {id}")
@@ -14,8 +25,15 @@ case class DistributorUser (id: Option[Long], email: String, hashedPassword: Str
   }
 }
 
+/** Encapsulates methods for DistributorUser class */
 object DistributorUser {
 
+  /**
+   * Checks DistributorUser log in credentials against what is stored in the database.
+   * @param email Email of DistributorUser attempting to log in
+   * @param password Password of DistributorUser attempting to log in
+   * @return If log in credentials are valid, returns a DistributorUser instance.  Otherwise, returns false.
+   */
   def checkPassword(email: String, password: String): Boolean = {
     DistributorUser.findByEmail(email) match {
       case Some(user) =>
@@ -25,6 +43,7 @@ object DistributorUser {
     }
   }
 
+  // Used to convert SQL row into an instance of DistributorUser class.
   val userParser: RowParser[DistributorUser] = {
     get[Option[Long]]("DistributorUser.id") ~
     get[String]("DistributorUser.email") ~
@@ -34,6 +53,11 @@ object DistributorUser {
     }
   }
 
+  /**
+   * Finds DistributorUser in database using email.
+   * @param email Email to be used in SQL query
+   * @return List of DistributorUsers if query is successful.  Otherwise, returns an empty list.
+   */
   def findByEmail(email: String): Option[DistributorUser] = {
     DB.withConnection { implicit c =>
       val query = SQL(
@@ -50,6 +74,13 @@ object DistributorUser {
     }
   }
 
+  /**
+   * Creates a new record in the database for a DistributorUser.
+   * @param email Email to be stored for DistributorUser
+   * @param password Password to be hashed and stored for DistributorUser
+   * @param company Company name to be used for creation of Distributor.
+   * @return ID of the new record if the insert is successful.  Otherwise, returns false.
+   */
   def create(email: String, password: String, company: String) = {
     val salt = generateSalt
     val hashedPassword = password.bcrypt(salt)
@@ -73,6 +104,11 @@ object DistributorUser {
     }
   }
 
+  /**
+   * Updates fields for a particular DistributorUser instance.
+   * @param user Instance of DistributorUser class.
+   * @return Number of rows successfully updated.
+   */
   def update(user: DistributorUser) = {
     DB.withConnection { implicit c =>
       SQL(
