@@ -31,7 +31,7 @@ object App {
    * @return List of App instances
    */
   def findAll(distributorID: Long): List[App] = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*
@@ -49,7 +49,7 @@ object App {
    * @return App instance
    */
   def find(appID: Long): Option[App] = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*
@@ -70,7 +70,7 @@ object App {
    * @return Number of rows updated
    */
   def update(app: App): Int = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       SQL(
         """
           UPDATE apps
@@ -88,7 +88,7 @@ object App {
    * @return ID of newly created record
    */
   def create(distributorID: Long, name: String): Option[Long] = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       SQL(
         """
           INSERT INTO apps (name, distributor_id)

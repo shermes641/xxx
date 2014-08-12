@@ -23,7 +23,7 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
 trait cleanDB {
   def clean = {
     running(FakeApplication(additionalConfiguration = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test"))) {
-      DB.withConnection { implicit c =>
+      DB.withConnection { implicit connection =>
         SQL("DROP SCHEMA PUBLIC CASCADE;").execute()
         SQL("CREATE SCHEMA PUBLIC;").execute()
       }

@@ -7,7 +7,7 @@ CREATE TABLE waterfall_ad_providers (
   ad_provider_id bigint,
   waterfall_order int,
   cpm float,
-  active bit(1),
+  active BOOL NOT NULL DEFAULT TRUE,
   fill_rate float,
   PRIMARY KEY (id),
   FOREIGN KEY (waterfall_id) REFERENCES waterfalls(id),

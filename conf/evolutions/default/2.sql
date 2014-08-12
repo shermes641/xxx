@@ -11,7 +11,7 @@ CREATE TABLE ad_providers (
 CREATE TABLE waterfalls (
   id bigserial,
   app_id bigint NOT NULL,
-  name varchar(255),
+  name varchar(255) NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (app_id) REFERENCES apps(id)
 );

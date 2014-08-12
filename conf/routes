@@ -3,35 +3,32 @@
 # ~~~~
 
 # Home page
-GET         /                                                  controllers.Application.index
+GET         /                                                                  controllers.Application.index
 
-#Login
-GET         /login                                             controllers.DistributorUsersController.login
-POST        /authenticate                                      controllers.DistributorUsersController.authenticate
-GET         /logout                                            controllers.DistributorUsersController.logout
+# Login
+GET         /login                                                             controllers.DistributorUsersController.login
+POST        /authenticate                                                      controllers.DistributorUsersController.authenticate
+GET         /logout                                                            controllers.DistributorUsersController.logout
 
-#Sign up
-GET         /signup                                            controllers.DistributorUsersController.signup
-POST        /distributor_users                                 controllers.DistributorUsersController.create
+# Sign up
+GET         /signup                                                            controllers.DistributorUsersController.signup
+POST        /distributor_users                                                 controllers.DistributorUsersController.create
 
-GET         /distributors/:distributor_id/apps                 controllers.AppsController.index(distributor_id: Long)
-GET         /distributors/:distributor_id/apps/new             controllers.AppsController.newApp(distributor_id: Long)
-POST        /distributors/:distributor_id/apps                 controllers.AppsController.create(distributor_id: Long)
-GET         /distributors/:distributor_id/apps/:app_id         controllers.AppsController.show(distributor_id: Long, app_id: Long)
-GET         /distributors/:distributor_id/apps/:app_id/edit    controllers.AppsController.edit(distributor_id: Long, app_id: Long)
-POST        /distributors/:distributor_id/apps/:app_id         controllers.AppsController.update(distributor_id: Long, app_id: Long)
-
-#Distributor
-#GET		/v1/distributors/:id 	controllers.Distributor.show(id: Long)
-
-#Properties
-#GET		/v1/distributors/:id/properties
-#GET		/v1/properties/:id
+# Apps
+GET         /distributors/:distributor_id/apps                                 controllers.AppsController.index(distributor_id: Long)
+GET         /distributors/:distributor_id/apps/new                             controllers.AppsController.newApp(distributor_id: Long)
+POST        /distributors/:distributor_id/apps                                 controllers.AppsController.create(distributor_id: Long)
+GET         /distributors/:distributor_id/apps/:app_id                         controllers.AppsController.show(distributor_id: Long, app_id: Long)
+GET         /distributors/:distributor_id/apps/:app_id/edit                    controllers.AppsController.edit(distributor_id: Long, app_id: Long)
+POST        /distributors/:distributor_id/apps/:app_id                         controllers.AppsController.update(distributor_id: Long, app_id: Long)
 
 # Waterfalls
-GET         /v1/properties/:property_id/waterfalls             controllers.WaterfallsController.list(property_id: Long)
-GET         /v1/waterfalls/:id                                 controllers.WaterfallsController.show(id: Long)
+GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit        controllers.WaterfallsController.edit(distributor_id: Long, waterfall_id: Long)
+POST        /distributors/:distributor_id/waterfalls/:waterfall_id             controllers.WaterfallsController.update(distributor_id: Long, waterfall_id: Long)
 
-# Map static resources from the /public folder to the /ass     ets URL path
-GET         /assets/*file                                      controllers.Assets.at(path="/public", file)
+#GET         /v1/properties/:property_id/waterfalls                             controllers.WaterfallsController.list(property_id: Long)
+#GET         /v1/waterfalls/:id                                                 controllers.WaterfallsController.show(id: Long)
+
+# Map static resources from the /public folder to the /assets URL path
+GET         /assets/*file                                                      controllers.Assets.at(path="/public", file)
 

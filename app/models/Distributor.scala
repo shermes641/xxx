@@ -16,7 +16,7 @@ object Distributor {
   }
 
   def find(id: Long): Option[Distributor] = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT distributors.*
@@ -32,7 +32,7 @@ object Distributor {
   }
 
   def create(name: String) = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       SQL(
         """
           INSERT INTO distributors (name)
