@@ -41,17 +41,11 @@ class AppSpec extends SpecificationWithFixtures {
     "update the field(s) for a given App" in new WithFakeDB{
       withApp()(app => {
         val newAppName = "New App Name"
-        val updatedApp = new App(app.id, app.distributorID, newAppName)
-        App.update(updatedApp)
-        App.find(app.id).get.name must beEqualTo(newAppName)
-      })
-    }
-  }
-
-  "App.destroy" should {
-    "remove the App from the database" in new WithFakeDB {
-      withApp()(app => {
-        App.destroy(app.id) must beEqualTo(1)
+        val updatedAppClass = new App(app.id, false, app.distributorID, newAppName)
+        App.update(updatedAppClass)
+        val updatedApp = App.find(app.id).get
+        updatedApp.name must beEqualTo(newAppName)
+        updatedApp.active must beEqualTo(false)
       })
     }
   }

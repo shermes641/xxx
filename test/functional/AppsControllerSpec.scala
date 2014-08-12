@@ -47,17 +47,6 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     }
   }
 
-  "App destroy action" should {
-    "respond with a 200 when an app is deleted successfully" in new WithFakeBrowser {
-      withUser(user => {
-        val appID = App.create(user.distributorID.get, "App 1")
-        val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID.get + "/delete"
-        val result = route(FakeRequest(POST, url)).get
-        status(result) must equalTo(OK)
-      })
-    }
-  }
-
   "App update action" should {
     "update the app record in the database" in new WithFakeBrowser {
       withUser(user => {

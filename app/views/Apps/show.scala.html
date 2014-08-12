@@ -2,7 +2,8 @@
 <div class="content app_list">
     <h1>New App</h1>
     @main("New App") {
-        @app.name
+        @app.name -
+        @if(app.active) { Active } else { Deactivated }
         <form action='@routes.AppsController.edit(distributorID, app.id)'>
             <button type="submit" name="submit">Edit</button>
         </form>

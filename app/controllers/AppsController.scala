@@ -7,11 +7,19 @@ import models.App
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured {
-  // Form mapping used in create and edit actions
+  // Form mapping used in edit action
   val appForm = Form[AppMapping](
     mapping(
-      "name" -> nonEmptyText
+      "name" -> nonEmptyText,
+      "active" -> text
     )(AppMapping.apply)(AppMapping.unapply)
+  )
+
+  // Form mapping used in create action
+  val newAppForm = Form[NewAppMapping](
+    mapping(
+      "name" -> nonEmptyText
+    )(NewAppMapping.apply)(NewAppMapping.unapply)
   )
 
   /**
@@ -30,7 +38,7 @@ object AppsController extends Controller with Secured {
    * @return Form for creating a new App
    */
   def newApp(distributorID: Long) = withAuth { username => implicit request =>
-    Ok(views.html.Apps.newApp(appForm, distributorID))
+    Ok(views.html.Apps.newApp(newAppForm, distributorID))
   }
 
   /**
@@ -39,7 +47,7 @@ object AppsController extends Controller with Secured {
    * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
    */
   def create(distributorID: Long) = withAuth { username => implicit request =>
-    appForm.bindFromRequest.fold(
+    newAppForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.Apps.newApp(formWithErrors, distributorID)),
       app => {
         App.create(distributorID, app.name) match {
@@ -74,7 +82,8 @@ object AppsController extends Controller with Secured {
    */
   def edit(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
     val app = App.find(appID).get
-    val form = appForm.fill(new AppMapping(app.name))
+    val active = if(app.active) "1" else "0"
+    val form = appForm.fill(new AppMapping(app.name, active))
     Ok(views.html.Apps.edit(form, distributorID, appID))
   }
 
@@ -86,9 +95,12 @@ object AppsController extends Controller with Secured {
    */
   def update(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
     appForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID)),
+      formWithErrors => {
+        BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID))
+      },
       app => {
-        val newAppValues = new App(appID, distributorID, app.name)
+        val active = if(app.active == "1") true else false
+        val newAppValues = new App(appID, active, distributorID, app.name)
         App.update(newAppValues) match {
           case 1 => {
             Ok(views.html.Apps.show(newAppValues, distributorID, appID))
@@ -121,7 +133,14 @@ object AppsController extends Controller with Secured {
 }
 
 /**
- * Used for mapping App attributes in forms.
+ * Used for mapping App attributes in appForm.
+ * @param name Maps to the name field in the App table
+ * @param active Maps to the active field in the App table
+ */
+case class AppMapping(name: String, active: String) {}
+
+/**
+ * Used for mapping App attributes in newAppForm.
  * @param name Maps to the name field in the App table
  */
-case class AppMapping(name: String) {}
+case class NewAppMapping(name: String) {}

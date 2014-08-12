@@ -6,12 +6,10 @@
   <ul>
     @for(app <- apps) {
       <li>
-          @app.name
+          @app.name -
+          @if(app.active) { Active } else { Deactivated }
           <form action='@routes.AppsController.edit(distributorID, app.id)'>
               <button type="submit" name="submit">Edit</button>
-          </form>
-          <form action='@routes.AppsController.destroy(distributorID, app.id)' method="POST">
-              <button type="submit" name="submit">Delete</button>
           </form>
       </li>
     }

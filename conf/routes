@@ -20,7 +20,6 @@ POST        /distributors/:distributor_id/apps                 controllers.AppsC
 GET         /distributors/:distributor_id/apps/:app_id         controllers.AppsController.show(distributor_id: Long, app_id: Long)
 GET         /distributors/:distributor_id/apps/:app_id/edit    controllers.AppsController.edit(distributor_id: Long, app_id: Long)
 POST        /distributors/:distributor_id/apps/:app_id         controllers.AppsController.update(distributor_id: Long, app_id: Long)
-POST        /distributors/:distributor_id/apps/:app_id/delete  controllers.AppsController.destroy(distributor_id: Long, app_id: Long)
 
 #Distributor
 #GET		/v1/distributors/:id 	controllers.Distributor.show(id: Long)

@@ -8,18 +8,20 @@ import play.api.Play.current
 /**
  * Maps to App table in the database.
  * @param id Maps to id column in App table
+ * @param active Maps to the active column in App table
  * @param distributorID Maps to distributor_id column in App table
  * @param name Maps to name column in App table
  */
-case class App(id: Long, distributorID: Long, name: String) {}
+case class App(id: Long, active: Boolean, distributorID: Long, name: String) {}
 
 object App {
   // Used to convert SQL row into an instance of the App class.
   val AppParser: RowParser[App] = {
       get[Long]("App.id") ~
+      get[Boolean]("App.active") ~
       get[Long]("App.distributor_id") ~
       get[String]("App.name") map {
-      case id ~ distributor_id ~ name => App(id, distributor_id, name)
+      case id ~ active ~ distributor_id ~ name => App(id, active, distributor_id, name)
     }
   }
 
@@ -72,10 +74,10 @@ object App {
       SQL(
         """
           UPDATE App
-          SET name={name}
+          SET name={name}, active={active}
           WHERE id={id};
         """
-      ).on("name" -> app.name, "id" -> app.id).executeUpdate()
+      ).on("name" -> app.name, "active" -> app.active, "id" -> app.id).executeUpdate()
     }
   }
 
