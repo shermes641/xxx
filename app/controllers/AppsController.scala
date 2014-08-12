@@ -4,6 +4,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
 import models.App
+import models.Waterfall
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with customFormValidation {
