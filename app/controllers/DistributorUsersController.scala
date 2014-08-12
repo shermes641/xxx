@@ -145,24 +145,24 @@ trait Secured {
 
   /**
    * Authenticates DistributorUser for controller actions.
-   * @param f DistributorUser username.
+   * @param controllerAction Function corresponding to a controller action which returns DistributorUser username.
    * @return Continue request if DistributorUser is logged in.  Otherwise, redirect to log in page.
    */
-  def withAuth(f: => String => Request[AnyContent] => Result): EssentialAction = {
+  def withAuth(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
     Security.Authenticated(username, onUnauthorized) { user =>
-      Action(request => f(user)(request))
+      Action(request => controllerAction(user)(request))
     }
   }
 
   /**
    * Finds DistributorUser by email during controller actions.
-   * @param f Current DistributorUser
+   * @param controllerAction Function corresponding to a controller action which returns the current DistributorUser.
    * @return If DistributorUser is found, continue request.  Otherwise, redirect to log in page.
    */
-  def withUser(f: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth { email => implicit request =>
+  def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth { email => implicit request =>
     val optionalUser = DistributorUser.findByEmail(email)
     optionalUser match {
-      case Some(user) => f(user)(request)
+      case Some(user) => controllerAction(user)(request)
       case None => onUnauthorized(request)
     }
   }
