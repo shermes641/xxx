@@ -112,24 +112,6 @@ object AppsController extends Controller with Secured {
       }
     )
   }
-
-  /**
-   * Deletes App record from the database.
-   * @param distributorID ID associated with current DistributorUser
-   * @param appID ID associated with current App
-   * @return Responds with 200 if App is deleted successfully.  Otherwise, flash error and respond with 304.
-   */
-  def destroy(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
-    App.destroy(appID) match {
-      case 1 => {
-        val apps = App.findAll(distributorID)
-        Ok(views.html.Apps.index(apps, distributorID)).flashing("success" -> "App deleted.")
-      }
-      case _ => {
-        NotModified.flashing("error" -> "App was not deleted.")
-      }
-    }
-  }
 }
 
 /**
