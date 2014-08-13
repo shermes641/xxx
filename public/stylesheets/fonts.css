@@ -1,10 +1,6 @@
 @font-face {
   font-family: 'Avenir Book';
-  src: url('fonts/Avenir.eot'); /* IE9 Compat Modes */
-  src: url('fonts/Avenir.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('fonts/Avenir.woff') format('woff'), /* Modern Browsers */
-       url('fonts/Avenir.ttf')  format('truetype'), /* Safari, Android, iOS */
-       url('fonts/Avenir.svg#589202c858e9ee116eab4a8685515b5e') format('svg'); /* Legacy iOS */
+  src: url('fonts/Avenir.ttf')  format('truetype');
        
   font-style:   normal;
   font-weight:  400;
@@ -12,11 +8,7 @@
 
 @font-face {
   font-family: 'Avenir Black';
-  src: url('fonts/AvenirBlack.eot'); /* IE9 Compat Modes */
-  src: url('fonts/AvenirBlack.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('fonts/AvenirBlack.woff') format('woff'), /* Modern Browsers */
-       url('fonts/AvenirBlack.ttf')  format('truetype'), /* Safari, Android, iOS */
-       url('fonts/AvenirBlack.svg#3f32b7b0e932d6bbe85d14c9bded23e3') format('svg'); /* Legacy iOS */
+  src: url('fonts/AvenirBlack.ttf')  format('truetype');
        
   font-style:   normal;
   font-weight:  400;
@@ -24,11 +16,7 @@
 
 @font-face {
   font-family: 'Avenir Medium';
-  src: url('fonts/AvenirMedium.eot'); /* IE9 Compat Modes */
-  src: url('fonts/AvenirMedium.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('fonts/AvenirMedium.woff') format('woff'), /* Modern Browsers */
-       url('fonts/AvenirMedium.ttf')  format('truetype'), /* Safari, Android, iOS */
-       url('fonts/AvenirMedium.svg#0882291fef93bcd06d472e1ee8939c3e') format('svg'); /* Legacy iOS */
+  src: url('fonts/AvenirMedium.ttf')  format('truetype');
        
   font-style:   normal;
   font-weight:  400;
@@ -36,11 +24,7 @@
 
 @font-face {
   font-family: 'Avenir Light';
-  src: url('fonts/AvenirLight.eot'); /* IE9 Compat Modes */
-  src: url('fonts/AvenirLight.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('fonts/AvenirLight.woff') format('woff'), /* Modern Browsers */
-       url('fonts/AvenirLight.ttf')  format('truetype'), /* Safari, Android, iOS */
-       url('fonts/AvenirLight.svg#78de6cebc05d0d6b5836c87138de5726') format('svg'); /* Legacy iOS */
+  src: url('fonts/AvenirLight.ttf')  format('truetype');
        
   font-style:   normal;
   font-weight:  100;
@@ -48,11 +32,7 @@
 
 @font-face {
   font-family: 'Avenir Next Ultra Light';
-  src: url('fonts/AvenirUltra.eot'); /* IE9 Compat Modes */
-  src: url('fonts/AvenirUltra.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
-       url('fonts/AvenirUltra.woff') format('woff'), /* Modern Browsers */
-       url('fonts/AvenirUltra.ttf')  format('truetype'), /* Safari, Android, iOS */
-       url('fonts/AvenirUltra.svg#bdda6bf0cbb2275362361ca24e93166f') format('svg'); /* Legacy iOS */
+  src: url('fonts/AvenirUltra.ttf')  format('truetype');
        
   font-style:   normal;
   font-weight:  200;

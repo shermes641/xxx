@@ -95,7 +95,7 @@ object DistributorUsersController extends Controller with Secured {
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
-      user => Redirect(routes.Application.index).withSession(Security.username -> user._1)
+      user => Redirect(routes.AppsController.index(DistributorUser.findByEmail(user._1).get.id.get)).withSession(Security.username -> user._1)
     )
   }
 

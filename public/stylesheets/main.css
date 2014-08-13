@@ -95,6 +95,10 @@ header .actions {
 	font-weight: 400;
 }
 
+header .actions a {
+    padding-left: 20px;
+}
+
 .sub_header {
 	position: fixed;
 	top: 70px;
@@ -149,11 +153,26 @@ header .actions {
 }
 
 .content {
+    position: relative;
 	margin: 100px auto;
 	padding: 20px;
 
 	background: #fff;
 	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+}
+
+.content_actions {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.content_actions a {
+    display: block;
+    padding: 10px;
+
+    color: #4285f4;
+    background: #efefef;
 }
 
 .registration {
@@ -179,12 +198,12 @@ header .actions {
 	font-size: 30px;
 }
 
-.app_list ul {
+.app_list ul.full_list  {
 	list-style: none;
 	width: 100%;
 }
 
-.app_list ul li {
+.app_list ul.full_list li {
 	position: relative;
 	margin: 0;
 	padding: 10px;
@@ -192,14 +211,14 @@ header .actions {
 	margin-top: 10px;
 }
 
-.app_list ul li .actions {
+.app_list ul.full_list li .actions {
 	position: absolute;
 	top: 21px;
 	right: 21px;
 }
 
 
-.app_list ul li .actions a {
+.app_list ul.full_list li .actions a {
 	color: #4285f4;
 
 	font-size: 14px;
@@ -212,8 +231,48 @@ header .actions {
 	margin: 140px auto;
 }
 
+.content.dashboard {
+    padding-top: 70px;
+}
+
+.dashboard .dashboard_box {
+    float: left;
+    width: 43%;
+    padding: 20px;
+    margin: 20px;
+    text-align: center;
+}
+
+.dashboard .dashboard_numbers {
+    color: #4285f4;
+
+    font-size: 40px;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-weight: 400;
+}
+
 .dashboard div {
 	margin-top: 20px;
+}
+
+#prev_app {
+    position: absolute;
+    top: 0px;
+    left: 20px;
+    color: #4285f4;
+    background: #efefef;
+    padding: 10px;
+    cursor: pointer;
+}
+
+#next_app {
+    position: absolute;
+    top: 0px;
+    right: 20px;
+    color: #4285f4;
+    background: #efefef;
+    padding: 10px;
+    cursor: pointer;
 }
 
 .waterfall ul {

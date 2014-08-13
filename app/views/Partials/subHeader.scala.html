@@ -1,0 +1,8 @@
+@(page: String = "dashboard", distributorID: Long, appID: Long)
+<div class="sub_header">
+    <ul class="menu">
+        <a href="@routes.AppsController.show(distributorID, appID)"><li @if(page == "dashboard") { class="active" }>DASHBOARD</li></a>
+        <a href="/waterfalls/"><li @if(page == "waterfall") { class="active" }>WATERFALL</li></a>
+        <a href="@routes.AppsController.edit(distributorID, appID)"><li @if(page == "settings") { class="active" }>SETTINGS</li></a>
+    </ul>
+</div>

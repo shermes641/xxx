@@ -1,11 +1,12 @@
 @(form: Form[AppMapping], distributorID: Long, appID: Long)
-<div class="content app_list">
-    <h1>Edit App</h1>
-    @main("Edit App") {
+@main("Modify App Configuration") {
+    @views.html.Partials.subHeader("settings", distributorID, appID)
+    <div class="content settings">
+        <h1>Modify App Configuration</h1>
         @helper.form(action = routes.AppsController.update(distributorID, appID)) {
             @helper.inputText(form("name"), 'placeholder -> "name", '_label -> null, '_showConstraints -> false)
             @helper.inputRadioGroup(form("active"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "", '_showConstraints -> false)
             <button type="submit" name="submit">Save Changes</button>
         }
-    }
-</div>
+    </div>
+}
