@@ -1,11 +1,11 @@
 
 # --- !Ups
 
-ALTER TABLE DistributorUser DROP COLUMN salt;
+ALTER TABLE distributor_users DROP COLUMN salt;
 
 # --- !Downs
 
-ALTER TABLE DistributorUser ADD COLUMN salt varchar(255) NOT NULL,
+ALTER TABLE distributor_users ADD COLUMN salt varchar(255) NOT NULL,
 
 
 

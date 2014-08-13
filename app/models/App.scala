@@ -17,10 +17,10 @@ case class App(id: Long, active: Boolean, distributorID: Long, name: String) {}
 object App {
   // Used to convert SQL row into an instance of the App class.
   val AppParser: RowParser[App] = {
-      get[Long]("App.id") ~
-      get[Boolean]("App.active") ~
-      get[Long]("App.distributor_id") ~
-      get[String]("App.name") map {
+      get[Long]("apps.id") ~
+      get[Boolean]("apps.active") ~
+      get[Long]("apps.distributor_id") ~
+      get[String]("apps.name") map {
       case id ~ active ~ distributor_id ~ name => App(id, active, distributor_id, name)
     }
   }
@@ -34,8 +34,8 @@ object App {
     DB.withConnection { implicit c =>
       val query = SQL(
         """
-          SELECT App.*
-          FROM App
+          SELECT apps.*
+          FROM apps
           WHERE distributor_id = {distributor_id};
         """
       ).on("distributor_id" -> distributorID)
@@ -52,11 +52,11 @@ object App {
     DB.withConnection { implicit c =>
       val query = SQL(
         """
-          SELECT App.*
-          FROM App
-          WHERE id = {app_id};
+          SELECT apps.*
+          FROM apps
+          WHERE id = {id};
         """
-      ).on("app_id" -> appID)
+      ).on("id" -> appID)
       query.as(AppParser*) match {
         case List(app) => Some(app)
         case _ => None
@@ -73,7 +73,7 @@ object App {
     DB.withConnection { implicit c =>
       SQL(
         """
-          UPDATE App
+          UPDATE apps
           SET name={name}, active={active}
           WHERE id={id};
         """
@@ -91,7 +91,7 @@ object App {
     DB.withConnection { implicit c =>
       SQL(
         """
-          INSERT INTO App (name, distributor_id)
+          INSERT INTO apps (name, distributor_id)
           VALUES ({name}, {distributor_id});
         """
       ).on("name" -> name, "distributor_id" -> distributorID).executeInsert()

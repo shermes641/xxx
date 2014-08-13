@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   anorm,
   cache,
   ws,
-  "mysql" % "mysql-connector-java" % "5.1.18",
+  "org.postgresql" % "postgresql" % "9.3-1100-jdbc4",
   "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.0",
   "com.github.t3hnar" %% "scala-bcrypt" % "2.4"
 )

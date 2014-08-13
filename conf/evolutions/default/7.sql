@@ -1,8 +1,10 @@
 # --- !Ups
 
-ALTER TABLE DistributorUser ADD COLUMN distributor_id bigint(20) NOT NULL;
-ALTER TABLE DistributorUser ADD FOREIGN KEY (distributor_id) REFERENCES Distributor(id);
+ALTER TABLE distributor_users ADD COLUMN distributor_id bigint;
+ALTER TABLE distributor_users ADD FOREIGN KEY (distributor_id) REFERENCES distributors(id);
+
+CREATE INDEX distributor_id_index on distributor_users(distributor_id);
 
 # --- !Downs
 
-ALTER TABLE DistributorUser DROP COLUMN distributor_id;
+ALTER TABLE distributor_users DROP COLUMN distributor_id;

@@ -20,7 +20,7 @@ case class DistributorUser (id: Option[Long], email: String, hashedPassword: Str
    */
   def setPassword(password: String) {
     val salt = generateSalt
-    SQL("UPDATE DistributorUser SET ('hashed_password') VALUE ('{hash}') WHERE id = {id}")
+    SQL("UPDATE distributor_users SET ('hashed_password') VALUE ('{hash}') WHERE id = {id}")
       .on("hash" -> password.bcrypt(salt), "id" -> this.id.get)
   }
 }
@@ -45,10 +45,10 @@ object DistributorUser {
 
   // Used to convert SQL row into an instance of DistributorUser class.
   val userParser: RowParser[DistributorUser] = {
-    get[Option[Long]]("DistributorUser.id") ~
-    get[String]("DistributorUser.email") ~
-    get[String]("DistributorUser.hashed_password") ~
-    get[Option[Long]]("DistributorUser.distributor_id") map {
+    get[Option[Long]]("distributor_users.id") ~
+    get[String]("distributor_users.email") ~
+    get[String]("distributor_users.hashed_password") ~
+    get[Option[Long]]("distributor_users.distributor_id") map {
       case id ~ email ~ hashed_password ~ distributor_id => DistributorUser(id, email, hashed_password, distributor_id)
     }
   }
@@ -62,9 +62,9 @@ object DistributorUser {
     DB.withConnection { implicit c =>
       val query = SQL(
         """
-          SELECT DistributorUser.*
-          FROM DistributorUser
-          WHERE DistributorUser.email = {email}
+          SELECT distributor_users.*
+          FROM distributor_users
+          WHERE distributor_users.email = {email}
         """
       ).on("email" -> email)
       query.as(userParser*) match {
@@ -92,7 +92,7 @@ object DistributorUser {
             DB.withConnection { implicit c =>
               SQL(
                 """
-                  INSERT INTO DistributorUser (email, hashed_password, distributor_id)
+                  INSERT INTO distributor_users (email, hashed_password, distributor_id)
                   VALUES ({email}, {hashed_password}, {distributor_id});
                 """
               ).on("email" -> email, "hashed_password" -> hashedPassword, "distributor_id" -> distributorID).executeInsert()
@@ -113,7 +113,7 @@ object DistributorUser {
     DB.withConnection { implicit c =>
       SQL(
         """
-          UPDATE DistributorUser
+          UPDATE distributor_users
           SET email={email}, hashed_password={hashed_password}, distributor_id={distributor_id}
           WHERE id = {id};
         """

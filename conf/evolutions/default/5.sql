@@ -1,11 +1,11 @@
 
 # --- !Ups
 
-ALTER TABLE DistributorUser ADD UNIQUE (email)
+ALTER TABLE distributor_users ADD UNIQUE (email)
 
 # --- !Downs
 
-ALTER TABLE DistributorUser DROP UNIQUE (email)
+ALTER TABLE distributor_users DROP UNIQUE (email)
 
 
 
