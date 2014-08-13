@@ -6,7 +6,9 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
 
+/** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured {
+  // Form mapping used in new and create actions
   val signupForm = Form[Signup](
       mapping(
       "company" -> nonEmptyText,
@@ -27,6 +29,10 @@ object DistributorUsersController extends Controller with Secured {
     })
   )
 
+  /**
+   * Creates a new DistributorUser in the database.
+   * @return Responds with 201 when DistributorUser is properly persisted and redirects to the login page if the email is already taken.
+   */
   def create = Action { implicit request =>
     signupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.signup(formWithErrors)),
@@ -45,10 +51,15 @@ object DistributorUsersController extends Controller with Secured {
     )
   }
 
+  /**
+   * Renders form to create a new DistributorUser.
+   * @return Form for sign up
+   */
   def signup = Action { implicit request =>
     Ok(views.html.DistributorUsers.signup(signupForm))
   }
 
+  // Form mapping used in login and authenticate actions.
   val loginForm = Form(
     tuple(
       "email" -> text,
@@ -58,14 +69,29 @@ object DistributorUsersController extends Controller with Secured {
     })
   )
 
-  def check(email: String, password: String) = {
+
+  /**
+   * Used to validate email/password combination on login.
+   * @param email Email of current DistributorUser
+   * @param password Password of current DistributorUser
+   * @return True if email/password combination is valid and false otherwise.
+   */
+  def check(email: String, password: String): Boolean = {
     DistributorUser.checkPassword(email, password)
   }
 
+  /**
+   * Renders form for DistributorUser log in.
+   * @return Log in form
+   */
   def login = Action { implicit request =>
     Ok(views.html.DistributorUsers.login(loginForm))
   }
 
+  /**
+   * Authenticates DistributorUser and creates a new session.
+   * @return Redirect to Application index if successful and stay on log in page otherwise.
+   */
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
@@ -73,6 +99,10 @@ object DistributorUsersController extends Controller with Secured {
     )
   }
 
+  /**
+   * Logs out DistributorUser and ends session.
+   * @return Redirects to Application index.
+   */
   def logout = Action {
     Redirect(routes.Application.index).withNewSession.flashing(
       "success" -> "You are now logged out."
@@ -80,7 +110,16 @@ object DistributorUsersController extends Controller with Secured {
   }
 }
 
+/**
+ * Used for mapping DistributorUser attributes in log in form.
+ * @param company Company name to be used for creating a Distributor.
+ * @param email Email for new DistributorUser.
+ * @param password Password for new DistributorUser.
+ * @param confirmation Password confirmation for new DistributorUser.
+ * @param agreeToTerms Boolean checkbox for terms of service.
+ */
 case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean) extends Mailer {
+   /** Sends email to new DistributorUser.  This is called on a successful sign up. */
   def sendWelcomeEmail(): Unit = {
     val subject = "Welcome to HyprMediation"
     val body = "Welcome to HyprMediation!"
@@ -88,21 +127,42 @@ case class Signup(company: String, email: String, password: String, confirmation
   }
 }
 
+/** Handles authentication for DistributorUsers. */
 trait Secured {
-  def username(request: RequestHeader) = request.session.get(Security.username)
+  /**
+   * Retrieves username for DistributorUser.
+   * @param request Current request
+   * @return username for DistributorUser if available.
+   */
+  def username(request: RequestHeader): Option[String] = request.session.get(Security.username)
 
-  def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.DistributorUsersController.login)
+  /**
+   * Redirects unauthorized requests to log in page.
+   * @param request Current request.
+   * @return Renders log in view.
+   */
+  def onUnauthorized(request: RequestHeader): Result = Results.Redirect(routes.DistributorUsersController.login)
 
-  def withAuth(f: => String => Request[AnyContent] => Result) = {
+  /**
+   * Authenticates DistributorUser for controller actions.
+   * @param controllerAction Function corresponding to a controller action which returns DistributorUser username.
+   * @return Continue request if DistributorUser is logged in.  Otherwise, redirect to log in page.
+   */
+  def withAuth(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
     Security.Authenticated(username, onUnauthorized) { user =>
-      Action(request => f(user)(request))
+      Action(request => controllerAction(user)(request))
     }
   }
 
-  def withUser(f: DistributorUser => Request[AnyContent] => Result ) = withAuth { email => implicit request =>
+  /**
+   * Finds DistributorUser by email during controller actions.
+   * @param controllerAction Function corresponding to a controller action which returns the current DistributorUser.
+   * @return If DistributorUser is found, continue request.  Otherwise, redirect to log in page.
+   */
+  def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth { email => implicit request =>
     val optionalUser = DistributorUser.findByEmail(email)
     optionalUser match {
-      case Some(user) => f(user)(request)
+      case Some(user) => controllerAction(user)(request)
       case None => onUnauthorized(request)
     }
   }
