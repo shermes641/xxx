@@ -22,20 +22,20 @@ abstract class SpecificationWithFixtures extends Specification {
     DB.withConnection { implicit c =>
       val hashedPassword = password.bcrypt(generateSalt)
 
-      val distributorID: Option[Long] = SQL("INSERT INTO Distributor (name) VALUES ('TestDistributor')").executeInsert()
+      val distributorID: Option[Long] = SQL("INSERT INTO distributors (name) VALUES ('TestDistributor')").executeInsert()
 
-      SQL("INSERT INTO DistributorUser (email, hashed_password, distributor_id) VALUES ({email}, {pwd}, {distributor_id})")
+      SQL("INSERT INTO distributor_users (email, hashed_password, distributor_id) VALUES ({email}, {pwd}, {distributor_id})")
         .on("pwd" -> hashedPassword, "email" -> email, "distributor_id" -> distributorID.get).executeInsert()
 
-      SQL("INSERT INTO App (name, distributor_id) VALUES ('TestApp', {distributor_id})")
+      SQL("INSERT INTO apps (name, distributor_id) VALUES ('TestApp', {distributor_id})")
         .on("distributor_id" -> distributorID.get).executeInsert()
-      SQL("INSERT INTO Waterfall (name, property_id) VALUES ('TestWaterfall', 1)").executeInsert()
+      SQL("INSERT INTO waterfalls (name, property_id) VALUES ('TestWaterfall', 1)").executeInsert()
 
-      SQL("INSERT INTO AdProvider (name) VALUES ('AdProvider 1')").executeInsert()
-      SQL("INSERT INTO AdProvider (name) VALUES ('AdProvider 2')").executeInsert()
+      SQL("INSERT INTO ad_providers (name) VALUES ('AdProvider 1')").executeInsert()
+      SQL("INSERT INTO ad_providers (name) VALUES ('AdProvider 2')").executeInsert()
 
-      SQL("INSERT INTO WaterfallAdProvider (waterfall_id, ad_provider_id) VALUES (1, 1)").executeInsert()
-      SQL("INSERT INTO WaterfallAdProvider (waterfall_id, ad_provider_id, waterfall_order) VALUES (1, 2, 0)").executeInsert()
+      SQL("INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id) VALUES (1, 1)").executeInsert()
+      SQL("INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order) VALUES (1, 2, 0)").executeInsert()
 
         }
 

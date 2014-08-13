@@ -9,8 +9,8 @@ case class Distributor(id: Option[Long], name: String) {}
 
 object Distributor {
   val DistributorParser: RowParser[Distributor] = {
-      get[Option[Long]]("Distributor.id") ~
-      get[String]("Distributor.name") map {
+      get[Option[Long]]("distributors.id") ~
+      get[String]("distributors.name") map {
       case id ~ name => Distributor(id, name)
     }
   }
@@ -19,8 +19,8 @@ object Distributor {
     DB.withConnection { implicit c =>
       val query = SQL(
         """
-          SELECT Distributor.*
-          FROM Distributor
+          SELECT distributors.*
+          FROM distributors
           WHERE id = {id}
         """
       ).on("id" -> id)
@@ -35,7 +35,7 @@ object Distributor {
     DB.withConnection { implicit c =>
       SQL(
         """
-          INSERT INTO Distributor (name)
+          INSERT INTO distributors (name)
           VALUES ({name});
         """
       ).on("name" -> name).executeInsert()
