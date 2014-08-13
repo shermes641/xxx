@@ -1,19 +1,25 @@
 @(apps: List[App], distributorID: Long)
-<div class="content app_list">
-  <h1>My Apps</h1>
-  @main("Welcome to Play") {
-  }
-  <ul>
-    @for(app <- apps) {
-      <li>
-          @app.name
-          <form action='@routes.AppsController.edit(distributorID, app.id)'>
-              <button type="submit" name="submit">Edit</button>
-          </form>
-          <form action='@routes.AppsController.destroy(distributorID, app.id)' method="POST">
-              <button type="submit" name="submit">Delete</button>
-          </form>
-      </li>
-    }
-  </ul>
-</div>
+@main("Welcome to Play") {
+    <div class="content app_list">
+      <h1>My Apps</h1>
+      <div class="content_actions">
+          <a href="@routes.AppsController.newApp(distributorID)">Create New App</a>
+      </div>
+      <ul class="full_list">
+        @for(app <- apps) {
+          <li>
+              <h3>@app.name</h3>
+              <div class="description">A brief overview of a couple app settings here (ex. active vs inactive etc.)</div>
+              <div class="actions">
+                  <a href='@routes.AppsController.show(distributorID, app.id)'>
+                      View
+                  </a>
+                  <a href='@routes.AppsController.destroy(distributorID, app.id)'>
+                      Delete
+                  </a>
+              </div>
+          </li>
+        }
+      </ul>
+    </div>
+}

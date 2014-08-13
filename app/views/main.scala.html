@@ -1,5 +1,4 @@
-@(title: String)(content: Html)
-
+@(title: String, distributorID: Long = 0)(content: Html)
 <!DOCTYPE html>
 
 <html>
@@ -12,6 +11,15 @@
     <body>
         <header>
 			<img src="@routes.Assets.at("images/logo.png")">
+            <div class="actions">
+                <a href="http://documentation.hyprmx.com">Documentation</a>
+                @if(distributorID != 0) {
+                    <a href="@routes.AppsController.index(distributorID)">App List</a>
+                }
+            </div>
+            <div class="user_info">
+                Username
+            </div>
 		</header>
         @content
     </body>

@@ -1,4 +1,5 @@
-@(form: Form[Signup])
+@(form: Form[Signup])(implicit session: play.api.mvc.Session)
+
 <div class="content registration">
     <h1>Sign Up</h1>
     @if(form.hasErrors) {
