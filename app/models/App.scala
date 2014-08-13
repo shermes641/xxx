@@ -97,20 +97,4 @@ object App {
       ).on("name" -> name, "distributor_id" -> distributorID).executeInsert()
     }
   }
-
-  /**
-   * Removes record from App table
-   * @param appID ID of record to be removed
-   * @return Number of rows removed
-   */
-  def destroy(appID: Long): Int = {
-    DB.withConnection { implicit c =>
-      SQL(
-        """
-          DELETE FROM App
-          WHERE id={id};
-        """
-      ).on("id" -> appID).executeUpdate()
-    }
-  }
 }
