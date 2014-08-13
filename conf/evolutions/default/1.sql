@@ -8,8 +8,9 @@ CREATE TABLE Distributor (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE Property (
+CREATE TABLE App (
 	id bigint(20) NOT NULL AUTO_INCREMENT,
+	active BOOL NOT NULL DEFAULT TRUE,
 	distributor_id bigint(20) NOT NULL,
 	name varchar(255) NOT NULL,
 	PRIMARY KEY (id),
@@ -18,5 +19,5 @@ CREATE TABLE Property (
  
 # --- !Downs
  
-DROP TABLE Property;
+DROP TABLE App;
 DROP TABLE Distributor;

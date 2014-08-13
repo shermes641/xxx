@@ -1,0 +1,17 @@
+@(apps: List[App], distributorID: Long)
+<div class="content app_list">
+  <h1>My Apps</h1>
+  @main("Welcome to Play") {
+  }
+  <ul>
+    @for(app <- apps) {
+      <li>
+          @app.name -
+          @if(app.active) { Active } else { Deactivated }
+          <form action='@routes.AppsController.edit(distributorID, app.id)'>
+              <button type="submit" name="submit">Edit</button>
+          </form>
+      </li>
+    }
+  </ul>
+</div>
