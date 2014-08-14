@@ -10,8 +10,8 @@ CREATE TABLE waterfall_ad_providers (
   active bit(1),
   fill_rate float,
   PRIMARY KEY (id),
-  FOREIGN KEY (waterfall_id) REFERENCES Waterfall(id),
-  FOREIGN KEY (ad_provider_id) REFERENCES AdProvider(id)
+  FOREIGN KEY (waterfall_id) REFERENCES waterfalls(id),
+  FOREIGN KEY (ad_provider_id) REFERENCES ad_providers(id)
 );
 
 CREATE INDEX waterfall_id_index on waterfall_ad_providers(waterfall_id);
