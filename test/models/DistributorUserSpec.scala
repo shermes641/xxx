@@ -6,12 +6,12 @@ import org.specs2.runner._
 @RunWith(classOf[JUnitRunner])
 class DistributorUserSpec extends SpecificationWithFixtures {
   "DistributorUser.create" should {
-    "add a DistributorUser to the database" in new WithFakeDB {
+    "add a DistributorUser to the database" in new WithDB {
       DistributorUser.create(email, password, companyName)
       DistributorUser.findByEmail(email) must beSome[DistributorUser]
     }
 
-    "create a Distributor" in new WithFakeDB {
+    "create a Distributor" in new WithDB {
       DistributorUser.create(email, password, companyName)
       val user = DistributorUser.findByEmail(email)
       user match {
@@ -26,7 +26,7 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       }
     }
 
-    "properly save a DistributorUser's information" in new WithFakeDB {
+    "properly save a DistributorUser's information" in new WithDB {
       DistributorUser.create(email, password, companyName)
       val user = DistributorUser.findByEmail(email)
       user match {
@@ -38,9 +38,10 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       }
     }
 
-    "not create another DistributionUser if the email is already taken" in new WithFakeDB {
+    "not create another DistributionUser if the email is already taken" in new WithDB {
       DistributorUser.create(email, password, companyName)
       DistributorUser.create(email, password, companyName) must equalTo(false)
     }
   }
+  step(clean)
 }

@@ -6,7 +6,7 @@ import org.specs2.runner._
 @RunWith(classOf[JUnitRunner])
 class DistributorSpec extends SpecificationWithFixtures {
   "Distributor.create" should {
-    "properly save a new Distributor in the database" in new WithFakeDB {
+    "properly save a new Distributor in the database" in new WithDB {
       val name = "Some Company Name"
       val id = Distributor.create(name)
       val distributor = Distributor.find(id.get)
@@ -20,4 +20,5 @@ class DistributorSpec extends SpecificationWithFixtures {
       }
     }
   }
+  step(clean)
 }

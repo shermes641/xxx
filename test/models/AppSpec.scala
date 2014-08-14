@@ -19,7 +19,7 @@ class AppSpec extends SpecificationWithFixtures {
   }
 
   "App.create" should {
-    "properly save a new App in the database" in new WithFakeDB {
+    "properly save a new App in the database" in new WithDB {
       withApp()(app => {
         app.name must beEqualTo(appName)
       })
@@ -27,7 +27,7 @@ class AppSpec extends SpecificationWithFixtures {
   }
 
   "App.findAll" should {
-    "return a list of all apps associated with the distributor ID" in new WithFakeDB {
+    "return a list of all apps associated with the distributor ID" in new WithDB {
       withDistributor(distributorID => {
         App.create(distributorID, "App 1")
         App.create(distributorID, "App 2")
@@ -38,7 +38,7 @@ class AppSpec extends SpecificationWithFixtures {
   }
 
   "App.update" should {
-    "update the field(s) for a given App" in new WithFakeDB{
+    "update the field(s) for a given App" in new WithDB{
       withApp()(app => {
         val newAppName = "New App Name"
         val updatedAppClass = new App(app.id, false, app.distributorID, newAppName)
@@ -49,5 +49,6 @@ class AppSpec extends SpecificationWithFixtures {
       })
     }
   }
+  step(clean)
 }
 

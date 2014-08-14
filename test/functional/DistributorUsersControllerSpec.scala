@@ -7,7 +7,7 @@ import play.api.test.Helpers._
 class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   val request = FakeRequest(POST, "/distributor_users").withFormUrlEncodedBody(
     "company" -> companyName,
-    "email" -> email,
+    "email" -> "user@jungroup.com",
     "password" -> password,
     "confirmation" -> password,
     "terms" -> "true"
@@ -58,4 +58,5 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       status(result) must equalTo(303)
     }
   }
+  step(clean)
 }
