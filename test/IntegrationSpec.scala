@@ -1,20 +1,22 @@
 import models.SpecificationWithFixtures
 import org.specs2.runner._
 import org.junit.runner._
+import models.DistributorUser
 
 @RunWith(classOf[JUnitRunner])
 class IntegrationSpec extends SpecificationWithFixtures {
 
   "Application" should {
 
-    "work from within a browser" in new WithBrowserAndFixtures {
+    "work from within a browser" in new WithFakeBrowser {
 
       browser.goTo("http://localhost:" + port)
 
       browser.pageSource must contain("Log In")
     }
 
-    "login" in new WithBrowserAndFixtures {
+    "login" in new WithFakeBrowser {
+      DistributorUser.create(email, password, "Company Name")
       browser.goTo("http://localhost:" + port + "/login")
       browser.pageSource must contain("Log In")
 
@@ -28,4 +30,5 @@ class IntegrationSpec extends SpecificationWithFixtures {
       browser.pageSource must contain(email)
     }
   }
+  step(clean)
 }

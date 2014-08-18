@@ -60,4 +60,5 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       })
     }
   }
+  step(clean)
 }
