@@ -95,7 +95,10 @@ object DistributorUsersController extends Controller with Secured with customFor
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
-      user => Redirect(routes.AppsController.index(DistributorUser.findByEmail(user._1).get.id.get)).withSession(Security.username -> user._1)
+      user => {
+        val currentUser = DistributorUser.findByEmail(user._1).get
+        Redirect(routes.AppsController.index(currentUser.id.get)).withSession(Security.username -> user._1, "distributorID" -> currentUser.distributorID.get.toString())
+      }
     )
   }
 
@@ -150,7 +153,21 @@ trait Secured {
    */
   def withAuth(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
     Security.Authenticated(username, onUnauthorized) { user =>
-      Action(request => controllerAction(user)(request))
+      Action(request => {
+        val sessionDistributorID = request.session.get("distributorID").get
+        val Pattern = "(.*(/distributors/(\\d{1,})).*)".r
+        request.uri match {
+          case Pattern(_, _, distributorID) => {
+            // Check distributor ID found in URL against the current user's distributor ID
+            if (distributorID == sessionDistributorID) {
+              controllerAction(user)(request)
+            } else {
+              Results.Redirect(routes.DistributorUsersController.login)
+            }
+          }
+          case _ => controllerAction(user)(request)
+        }
+      })
     }
   }
 
