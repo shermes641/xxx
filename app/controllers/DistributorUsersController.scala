@@ -41,7 +41,7 @@ object DistributorUsersController extends Controller with Secured {
           case Some(id) => {
             // Email credentials need to be configured
             // signup.sendWelcomeEmail()
-            Created(views.html.index(message = "New user created!", user = DistributorUser.findByEmail(signup.email).get)).flashing("success" -> "Your confirmation email will arrive shortly.")
+            Redirect(routes.Application.index).flashing("success" -> "Your confirmation email will arrive shortly.")
           }
           case _ => {
             Redirect(routes.DistributorUsersController.login).flashing("error" -> "This email has been registered already. Try logging in.")
@@ -104,7 +104,7 @@ object DistributorUsersController extends Controller with Secured {
    * @return Redirects to Application index.
    */
   def logout = Action {
-    Redirect(routes.Application.index).withNewSession.flashing(
+    Redirect(routes.DistributorUsersController.login).withNewSession.flashing(
       "success" -> "You are now logged out."
     )
   }

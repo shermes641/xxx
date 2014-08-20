@@ -56,7 +56,7 @@ object AppsController extends Controller with Secured {
             Created(views.html.Apps.index(apps, distributorID)).flashing("success" -> "App created!")
           }
           case _ => {
-            Redirect(routes.Application.index).flashing("error" -> "App could not be created.")
+            Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
           }
         }
       }
