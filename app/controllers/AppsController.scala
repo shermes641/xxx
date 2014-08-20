@@ -10,7 +10,7 @@ object AppsController extends Controller with Secured {
   // Form mapping used in edit action
   val appForm = Form[AppMapping](
     mapping(
-      "name" -> nonEmptyText,
+      "name" -> text.verifying("App name is required", {!_.isEmpty}),
       "active" -> text
     )(AppMapping.apply)(AppMapping.unapply)
   )
@@ -18,7 +18,7 @@ object AppsController extends Controller with Secured {
   // Form mapping used in create action
   val newAppForm = Form[NewAppMapping](
     mapping(
-      "name" -> nonEmptyText
+      "name" -> text.verifying("App name is required", {!_.isEmpty})
     )(NewAppMapping.apply)(NewAppMapping.unapply)
   )
 

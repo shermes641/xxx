@@ -11,13 +11,13 @@ object DistributorUsersController extends Controller with Secured {
   // Form mapping used in new and create actions
   val signupForm = Form[Signup](
       mapping(
-      "company" -> nonEmptyText,
-      "email" -> nonEmptyText,
+      "company" -> text.verifying("Company Name is required", {!_.isEmpty}),
+      "email" -> text.verifying("Email is required", {!_.isEmpty}),
       "password" -> text.verifying("Password must be at least 8 characters",
       result => result match {
         case (password: String) => password.length() >= 8
       }),
-      "confirmation" -> nonEmptyText,
+      "confirmation" -> text.verifying("Password confirmation is required", {!_.isEmpty}),
       "terms" -> checked("").verifying("Please agree to our terms and conditions",
       result => result match {
         case (check: Boolean) => check

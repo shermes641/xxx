@@ -6,7 +6,9 @@
 
         <ul>
             @form.errors.map { error =>
-                <li>@error.message</li>
+                @if(error.message != "") {
+                    <li>@error.message</li>
+                }
             }
         </ul>
     }
