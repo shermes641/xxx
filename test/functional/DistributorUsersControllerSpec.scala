@@ -14,7 +14,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   )
 
   "Sign up page" should {
-    "render application index page when sign up is successful" in new WithFakeBrowser {
+    "render log in page when sign up is successful" in new WithFakeBrowser {
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
@@ -22,7 +22,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.fill("#confirmation").`with`(password)
       browser.$("#terms").click()
       browser.click("button")
-      browser.pageSource must contain("My Apps")
+      browser.pageSource must contain("Log In")
     }
 
     "display an error if terms are not agreed to" in new WithFakeBrowser {
@@ -45,11 +45,6 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.$("#terms").click()
       browser.click("button")
       browser.pageSource must contain("Log In")
-    }
-
-    "respond with a 201 when sign up is successful" in new WithFakeBrowser {
-      val Some(result) = route(request)
-      status(result) must equalTo(201)
     }
 
     "respond with a 303 when email is taken" in new WithFakeBrowser {
