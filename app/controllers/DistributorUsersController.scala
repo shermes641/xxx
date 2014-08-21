@@ -60,15 +60,16 @@ object DistributorUsersController extends Controller with Secured with customFor
   }
 
   // Form mapping used in login and authenticate actions.
-  val loginForm = Form(
-    tuple(
+  val loginForm = Form[Login](
+    mapping(
       "email" -> text,
       "password" -> text
-    ) verifying ("Invalid email or password", result => result match {
-      case (email, password) => check(email, password)
+    )
+    (Login.apply)(Login.unapply)
+      verifying ("Invalid email or password", result => result match {
+      case (login: Login) => check(login.email, login.password)
     })
   )
-
 
   /**
    * Used to validate email/password combination on login.
@@ -96,8 +97,8 @@ object DistributorUsersController extends Controller with Secured with customFor
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
       user => {
-        val currentUser = DistributorUser.findByEmail(user._1).get
-        Redirect(routes.AppsController.index(currentUser.id.get)).withSession(Security.username -> user._1, "distributorID" -> currentUser.distributorID.get.toString())
+        val currentUser = DistributorUser.findByEmail(user.email).get
+        Redirect(routes.AppsController.index(currentUser.id.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
       }
     )
   }
@@ -114,7 +115,7 @@ object DistributorUsersController extends Controller with Secured with customFor
 }
 
 /**
- * Used for mapping DistributorUser attributes in log in form.
+ * Used for mapping sign up form fields to DistributorUser attributes.
  * @param company Company name to be used for creating a Distributor.
  * @param email Email for new DistributorUser.
  * @param password Password for new DistributorUser.
@@ -129,6 +130,13 @@ case class Signup(company: String, email: String, password: String, confirmation
     sendEmail(email, subject, body)
   }
 }
+
+/**
+ * Used for mapping log in form fields to DistributorUser attributes.
+ * @param email Email for current DistributorUser.
+ * @param password Password for current DistributorUser.
+ */
+case class Login(email: String, password: String)
 
 /** Handles authentication for DistributorUsers. */
 trait Secured {
