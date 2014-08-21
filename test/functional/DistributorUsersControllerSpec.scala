@@ -67,7 +67,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.fill("#email").`with`(email1)
       browser.fill("#password").`with`(password)
       browser.click("button")
-      browser.goTo(baseURL + "/distributors/" + user2.distributorID + "/apps")
+      browser.goTo(baseURL + "/distributors/" + user2.distributorID.get + "/apps")
       browser.pageSource must contain("Log In")
     }
   }

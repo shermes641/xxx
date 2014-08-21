@@ -30,7 +30,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @param distributorID ID associated with current DistributorUser
    * @return Apps index view
    */
-  def index(distributorID: Long) = withAuth { username => implicit request =>
+  def index(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     val apps = App.findAll(distributorID)
     Ok(views.html.Apps.index(apps, distributorID))
   }
@@ -40,7 +40,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @param distributorID ID associated with current DistributorUser
    * @return Form for creating a new App
    */
-  def newApp(distributorID: Long) = withAuth { username => implicit request =>
+  def newApp(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     Ok(views.html.Apps.newApp(newAppForm, distributorID))
   }
 
@@ -49,7 +49,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @param distributorID ID associated with current DistributorUser
    * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
    */
-  def create(distributorID: Long) = withAuth { username => implicit request =>
+  def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     var response = "error" -> "App could not be created."
     newAppForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.Apps.newApp(formWithErrors, distributorID)),
@@ -71,7 +71,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @param appID ID associated with current App
    * @return Apps show view
    */
-  def show(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
+  def show(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     val app = App.find(appID)
     Ok(views.html.Apps.show(app.get, distributorID, appID))
   }
@@ -82,7 +82,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @param appID ID associated with current App
    * @return Form for editing Apps
    */
-  def edit(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
+  def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     val app = App.find(appID).get
     val active = if(app.active) "1" else "0"
     val form = appForm.fill(new AppMapping(app.name, active))
@@ -95,7 +95,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @param appID ID associated with current App
    * @return Responds with 200 if App is successfully updated.  Otherwise, flash error and respond with 304.
    */
-  def update(distributorID: Long, appID: Long) = withAuth { username => implicit request =>
+  def update(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     appForm.bindFromRequest.fold(
       formWithErrors => {
         BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID))

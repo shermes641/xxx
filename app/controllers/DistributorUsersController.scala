@@ -148,24 +148,24 @@ trait Secured {
 
   /**
    * Authenticates DistributorUser for controller actions.
+   * @param controllerDistributorID Distributor ID passed from a controller action.
    * @param controllerAction Function corresponding to a controller action which returns DistributorUser username.
    * @return Continue request if DistributorUser is logged in.  Otherwise, redirect to log in page.
    */
-  def withAuth(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
+  def withAuth(controllerDistributorID: Option[Long])(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
     Security.Authenticated(username, onUnauthorized) { user =>
       Action(request => {
-        val sessionDistributorID = request.session.get("distributorID").get
-        val Pattern = "(.*(/distributors/(\\d{1,})).*)".r
-        request.uri match {
-          case Pattern(_, _, distributorID) => {
-            // Check distributor ID found in URL against the current user's distributor ID
-            if (distributorID == sessionDistributorID) {
-              controllerAction(user)(request)
-            } else {
-              Results.Redirect(routes.DistributorUsersController.login)
+        controllerDistributorID match {
+          case Some(ctrlDistID) => {
+            request.session.get("distributorID") match {
+              // Check if Distributor ID from session matches the ID passed from the controller
+              case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
+                controllerAction(user)(request)
+              }
+              case _ => Results.Redirect(routes.DistributorUsersController.login)
             }
           }
-          case _ => controllerAction(user)(request)
+          case _ => Results.Redirect(routes.DistributorUsersController.login)
         }
       })
     }
@@ -176,7 +176,7 @@ trait Secured {
    * @param controllerAction Function corresponding to a controller action which returns the current DistributorUser.
    * @return If DistributorUser is found, continue request.  Otherwise, redirect to log in page.
    */
-  def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth { email => implicit request =>
+  def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth(None) { email => implicit request =>
     val optionalUser = DistributorUser.findByEmail(email)
     optionalUser match {
       case Some(user) => controllerAction(user)(request)
