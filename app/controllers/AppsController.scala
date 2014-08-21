@@ -6,11 +6,14 @@ import play.api.mvc._
 import models.App
 
 /** Controller for models.App instances. */
-object AppsController extends Controller with Secured {
+object AppsController extends Controller with Secured with customFormValidation {
+  // Partial error message used in appForm and newAppForm
+  val nameError: String = "App name"
+
   // Form mapping used in edit action
   val appForm = Form[AppMapping](
     mapping(
-      "name" -> nonEmptyText,
+      "name" -> text.verifying(nonEmptyConstraint(nameError)),
       "active" -> text
     )(AppMapping.apply)(AppMapping.unapply)
   )
@@ -18,7 +21,7 @@ object AppsController extends Controller with Secured {
   // Form mapping used in create action
   val newAppForm = Form[NewAppMapping](
     mapping(
-      "name" -> nonEmptyText
+      "name" -> text.verifying(nonEmptyConstraint(nameError))
     )(NewAppMapping.apply)(NewAppMapping.unapply)
   )
 

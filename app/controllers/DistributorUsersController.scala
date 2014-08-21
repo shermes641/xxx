@@ -7,17 +7,17 @@ import play.api.data.Forms._
 import play.api.mvc._
 
 /** Controller for models.DistributorUser instances. */
-object DistributorUsersController extends Controller with Secured {
+object DistributorUsersController extends Controller with Secured with customFormValidation {
   // Form mapping used in new and create actions
   val signupForm = Form[Signup](
       mapping(
-      "company" -> nonEmptyText,
-      "email" -> nonEmptyText,
+      "company" -> text.verifying(nonEmptyConstraint("Company Name")),
+      "email" -> text.verifying(nonEmptyConstraint("Email")),
       "password" -> text.verifying("Password must be at least 8 characters",
       result => result match {
         case (password: String) => password.length() >= 8
       }),
-      "confirmation" -> nonEmptyText,
+      "confirmation" -> text.verifying(nonEmptyConstraint("Password confirmation")),
       "terms" -> checked("").verifying("Please agree to our terms and conditions",
       result => result match {
         case (check: Boolean) => check
