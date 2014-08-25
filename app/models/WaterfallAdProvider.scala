@@ -4,6 +4,7 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
+import play.api.libs.json.{JsUndefined, Json, JsValue}
 
 /**
  * Encapsulates information for a record in the waterfall_ad_providers table.
@@ -16,10 +17,10 @@ import play.api.Play.current
  * @param fillRate the ratio of ads shown to inventory checks
  */
 case class WaterfallAdProvider (
-	id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean], fillRate: Option[Float]
+	id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean], fillRate: Option[Float], configurationData: JsValue
 )
 
-object WaterfallAdProvider {
+object WaterfallAdProvider extends JsonConversion {
   // Used to convert SQL row into an instance of the WaterfallAdProvider class.
   val waterfallAdProviderParser: RowParser[WaterfallAdProvider] = {
     get[Long]("waterfall_ad_providers.id") ~
@@ -28,8 +29,9 @@ object WaterfallAdProvider {
     get[Option[Long]]("waterfall_order") ~
     get[Option[Double]]("cpm") ~
     get[Option[Boolean]]("active") ~
-    get[Option[Float]]("fill_rate") map {
-      case id ~ waterfall_id ~ ad_provider_id ~ waterfall_order ~ cpm ~ active ~ fill_rate => WaterfallAdProvider(id, waterfall_id, ad_provider_id, waterfall_order, cpm, active, fill_rate)
+    get[Option[Float]]("fill_rate") ~
+    get[JsValue]("configuration_data") map {
+      case id ~ waterfall_id ~ ad_provider_id ~ waterfall_order ~ cpm ~ active ~ fill_rate ~ configuration_data => WaterfallAdProvider(id, waterfall_id, ad_provider_id, waterfall_order, cpm, active, fill_rate, configuration_data)
     }
   }
 
@@ -43,12 +45,12 @@ object WaterfallAdProvider {
       SQL(
         """
           UPDATE waterfall_ad_providers
-          SET waterfall_order={waterfall_order}, cpm={cpm}, active={active}, fill_rate={fill_rate}
+          SET waterfall_order={waterfall_order}, cpm={cpm}, active={active}, fill_rate={fill_rate}, configuration_data=CAST({configuration_data} AS json)
           WHERE id={id};
         """
       ).on(
-          "waterfall_order" -> waterfallAdProvider.waterfallOrder, "cpm" -> waterfallAdProvider.cpm,
-          "active" -> waterfallAdProvider.active, "fill_rate" -> waterfallAdProvider.fillRate, "id" -> waterfallAdProvider.id
+          "waterfall_order" -> waterfallAdProvider.waterfallOrder, "cpm" -> waterfallAdProvider.cpm, "active" -> waterfallAdProvider.active,
+          "fill_rate" -> waterfallAdProvider.fillRate, "configuration_data" -> Json.stringify(waterfallAdProvider.configurationData), "id" -> waterfallAdProvider.id
         ).executeUpdate()
     }
   }
@@ -64,7 +66,7 @@ object WaterfallAdProvider {
       val updatableClass = WaterfallAdProvider.find(adProviderID.toLong) match {
         case Some(record) => {
           // The new waterfallOrder number is updated according to the position of each WaterfallAdProvider in the list.
-          val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, Some(index + 1), record.cpm, record.active, record.fillRate)
+          val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, Some(index + 1), record.cpm, record.active, record.fillRate, record.configurationData)
           update(updatedValues) match {
             case 1 => {}
             case _ => successful = false
@@ -82,21 +84,38 @@ object WaterfallAdProvider {
    * @param adProviderID ID of the Ad Provider to which the new WaterfallAdProvider belongs
    * @return ID of new record if insert is successful, otherwise None.
    */
-  def create(waterfallID: Long, adProviderID: Long): Option[Long] = {
+  def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None): Option[Long] = {
     DB.withConnection { implicit connection =>
-      try {
+      try{
         SQL(
           """
-          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id)
-          VALUES ({waterfall_id}, {ad_provider_id});
+          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order)
+          VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order});
           """
-        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID).executeInsert()
+        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder).executeInsert()
       } catch {
         case exception: org.postgresql.util.PSQLException => {
           None
         }
       }
     }
+  }
+
+  /**
+   * Creates WaterfallAdProviders from a list of AdProvider IDs.
+   * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
+   * @param adProviderList ID of the AdProvider to which the new WaterfallAdProvider belongs
+   * @return True if all WaterfallAdProvider inserts are successful.  Otherwise, returns false.
+   */
+  def createFromAdProviderList(waterfallID: Long, adProviderList: List[String]): Boolean = {
+    var successful: Boolean = true
+    adProviderList.map { adProviderID =>
+      create(waterfallID, adProviderID.toLong) match {
+        case Some(id) => {}
+        case _ => successful = false
+      }
+    }
+    successful
   }
 
   /**
@@ -139,21 +158,46 @@ object WaterfallAdProvider {
   }
 
   /**
-   * Finds all WaterfallAdProvider records sorted by waterfall_order for a particular waterfallID.
-   * @param waterfallID ID of current Waterfall
-   * @return List of OrderedWaterfallAdProvider instances by waterfall_order if any exist.  Otherwise, returns an empty list.
+   * Finds all WaterfallAdProvider records (active and inactive) for a Waterfall ID.
+   * @param waterfallID ID of the Waterfall to which the WaterfallAdProvider records belong.
+   * @return A list of OrderedWaterfallAdProvider instances if any exist.  Otherwise returns an empty list.
    */
-  def currentOrder(waterfallID: Long): List[OrderedWaterfallAdProvider] = {
+  def findAllOrdered(waterfallID: Long, active: Boolean = false): List[OrderedWaterfallAdProvider] = {
+    DB.withConnection { implicit connection =>
+      val activeClause = if(active) " AND active = true " else ""
+      val sqlStatement =
+        """
+          SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order FROM ad_providers
+          JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
+          WHERE waterfall_id = {waterfall_id}
+        """ + activeClause +
+        """
+          ORDER BY waterfall_order ASC;
+        """
+      val query = SQL(sqlStatement).on("waterfall_id" -> waterfallID)
+      query.as(waterfallAdProviderOrderParser*).toList
+    }
+  }
+
+  /**
+   * Retrieves configuration data for WaterfallAdProviders and AdProviders.
+   * @param waterfallAdProviderID ID of the current WaterfallAdProvider.
+   * @return Instance of WaterallAdProviderConfig class if records exist; otherwise, returns None.
+   */
+  def findConfigurationData(waterfallAdProviderID: Long): Option[WaterfallAdProviderConfig] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, waterfall_ad_providers.id as id, cpm, waterfall_order FROM ad_providers
-          JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
-          WHERE active = true AND waterfall_id = {waterfall_id}
-          ORDER BY waterfall_order ASC;
+          SELECT name, ad_providers.configuration_data as ad_provider_configuration, wap.configuration_data as wap_configuration
+          FROM waterfall_ad_providers wap
+          JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
+          WHERE wap.id = {id};
         """
-      ).on("waterfall_id" -> waterfallID)
-      query.as(waterfallAdProviderOrderParser*).toList
+      ).on("id" -> waterfallAdProviderID)
+      query.as(waterfallAdProviderConfigParser*) match {
+        case List(waterfallAdProviderConfig) => Some(waterfallAdProviderConfig)
+        case _ => None
+      }
     }
   }
 
@@ -162,8 +206,18 @@ object WaterfallAdProvider {
     get[String]("name") ~
     get[Long]("id") ~
     get[Option[Double]]("cpm") ~
+    get[Boolean]("active") ~
     get[Option[Long]]("waterfall_order") map {
-      case name ~ id ~ cpm ~ waterfall_order => OrderedWaterfallAdProvider(name, id, cpm, waterfall_order)
+      case name ~ id ~ cpm ~ active ~ waterfall_order => OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order)
+    }
+  }
+
+  // Used to convert result of findConfigurationData SQL query.
+  val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
+    get[String]("name") ~
+    get[JsValue]("ad_provider_configuration") ~
+    get[JsValue]("wap_configuration") map {
+      case name ~ ad_provider_configuration ~ wap_configuration => WaterfallAdProviderConfig(name, ad_provider_configuration, wap_configuration)
     }
   }
 }
@@ -175,4 +229,31 @@ object WaterfallAdProvider {
  * @param cpm cpm field from waterfall_ad_providers table
  * @param waterfallOrder waterfall_order field from waterfall_ad_providers table
  */
-case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], waterfallOrder: Option[Long])
+case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long], newRecord: Boolean = false)
+
+/**
+ * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
+ * @param name name field from ad_providers table.
+ * @param adProviderConfiguration Configuration data from AdProvider record.
+ * @param waterfallAdProviderConfiguration Configuration data form WaterfallAdProvider record.
+ */
+case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsValue, waterfallAdProviderConfiguration: JsValue) {
+  /**
+   * Maps required info from AdProviders to actual values stored in WaterfallAdProviders.
+   * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.
+   */
+  def mappedFields: List[(String, String)] = {
+    val reqFields = (this.adProviderConfiguration \ "required_params") match {
+      case _: JsUndefined => List()
+      case field: JsValue => field.as[List[String]]
+      case _ => List()
+    }
+    reqFields.map { param =>
+      (this.waterfallAdProviderConfiguration \ param) match {
+        case _: JsUndefined => (param, "")
+        case value: JsValue => (param, value.as[String])
+        case _ => (param, "")
+      }
+    }
+  }
+}

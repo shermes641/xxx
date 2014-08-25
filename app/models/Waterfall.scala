@@ -4,6 +4,7 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
+import controllers.ConfigInfo
 
 case class Waterfall(id: Long, name: String)
 
@@ -87,5 +88,34 @@ object Waterfall {
       ).on("app_id" -> appID)
       query.as(waterfallParser*).toList
     }
+  }
+
+  /**
+   * Updates WaterfallAdProvider records according to the configuration in the Waterfall edit view.
+   * @param waterfallID ID of the Waterfall to which all WaterfallAdProviders belong.
+   * @param adProviderConfigList List of attributes to update for each WaterfallAdProvider.
+   * @return True if the update is successful; otherwise, false.
+   */
+  def reconfigureAdProviders(waterfallID: Long, adProviderConfigList: List[ConfigInfo]): Boolean = {
+    var successful = true
+    adProviderConfigList.map { adProviderConfig =>
+      if(adProviderConfig.active && adProviderConfig.newRecord) {
+        // If a Distributor wants to add a new AdProvider to the current waterfall, create a new WaterfallAdProvider record.
+        WaterfallAdProvider.create(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder))
+      } else if(!adProviderConfig.newRecord) {
+        //  Otherwise, find and update the existing WaterfallAdProvider record.
+        WaterfallAdProvider.find(adProviderConfig.id) match {
+          case Some(record) => {
+            val newOrder = if(adProviderConfig.active) Some(adProviderConfig.waterfallOrder) else None
+            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, Some(adProviderConfig.active), record.fillRate, record.configurationData)
+            WaterfallAdProvider.update(updatedValues)
+          }
+          case _ => {
+            successful = false
+          }
+        }
+      }
+    }
+    successful
   }
 }

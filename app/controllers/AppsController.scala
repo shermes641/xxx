@@ -56,14 +56,19 @@ object AppsController extends Controller with Secured with customFormValidation 
       formWithErrors => BadRequest(views.html.Apps.newApp(formWithErrors, distributorID)),
       app => {
         App.create(distributorID, app.name) match {
-          case newID: Option[Long] => {
-            response = "success" -> "App created!"
+          case Some(appID) => {
+            Waterfall.create(appID, app.name) match {
+              case Some(waterfallID) => {
+                response = "success" -> "App created!"
+              }
+              case _ => {}
+            }
           }
           case _ => {}
         }
-        Redirect(routes.AppsController.index(distributorID)).flashing(response)
       }
     )
+    Redirect(routes.AppsController.index(distributorID)).flashing(response)
   }
 
   /**

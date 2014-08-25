@@ -38,12 +38,28 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures {
       }
       val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfallID, adProviderID1.get).get
       val waterfallAdProviderID2 = WaterfallAdProvider.create(waterfallID, adProviderID2.get).get
+      val configInfo1 = JsObject(
+        Seq(
+          "id" -> JsString(waterfallAdProviderID1.toString),
+          "newRecord" -> JsString("true"),
+          "active" -> JsString("true"),
+          "waterfallOrder" -> JsString("0")
+        )
+      )
+      val configInfo2 = JsObject(
+        Seq(
+          "id" -> JsString(waterfallAdProviderID2.toString),
+          "newRecord" -> JsString("true"),
+          "active" -> JsString("true"),
+          "waterfallOrder" -> JsString("1")
+        )
+      )
       val body = JsObject(
         Seq(
           "adProviderOrder" ->
             JsArray(Seq(
-              JsString(waterfallAdProviderID1.toString()),
-              JsString(waterfallAdProviderID2.toString())
+              configInfo1,
+              configInfo2
             )),
           "waterfallName" -> JsString("New Waterfall")
         )

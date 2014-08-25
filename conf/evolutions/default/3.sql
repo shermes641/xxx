@@ -9,6 +9,7 @@ CREATE TABLE waterfall_ad_providers (
   cpm float,
   active BOOL NOT NULL DEFAULT TRUE,
   fill_rate float,
+  configuration_data json NOT NULL DEFAULT to_json('{}'::JSON),
   PRIMARY KEY (id),
   FOREIGN KEY (waterfall_id) REFERENCES waterfalls(id),
   FOREIGN KEY (ad_provider_id) REFERENCES ad_providers(id)
