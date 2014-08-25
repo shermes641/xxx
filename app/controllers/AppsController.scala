@@ -50,18 +50,19 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
    */
   def create(distributorID: Long) = withAuth { username => implicit request =>
+    var response = "error" -> "App could not be created."
     newAppForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.Apps.newApp(formWithErrors, distributorID)),
       app => {
         App.create(distributorID, app.name) match {
           case newID: Option[Long] => {
-            val apps = App.findAll(distributorID)
-            Created(views.html.Apps.index(apps, distributorID)).flashing("success" -> "App created!")
+            response = "error" -> "App created!"
           }
           case _ => {
-            Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
+            response = "error" -> "App could not be created."
           }
         }
+        Redirect(routes.AppsController.index(distributorID)).flashing(response)
       }
     )
   }
@@ -106,7 +107,7 @@ object AppsController extends Controller with Secured with customFormValidation 
         val newAppValues = new App(appID, active, distributorID, app.name)
         App.update(newAppValues) match {
           case 1 => {
-            Ok(views.html.Apps.show(newAppValues, distributorID, appID))
+            Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
           }
           case _ => {
             NotModified.flashing("error" -> "App could not be updated.")
