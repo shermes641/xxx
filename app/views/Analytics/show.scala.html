@@ -1,0 +1,88 @@
+@(app: App, distributorID: Long, appID: Long)
+
+@main("Analytics") {
+    @views.html.Partials.subHeader("dashboard", distributorID, appID)
+    <script type="text/javascript">
+        !function(a,b){if(void 0===b[a]){b["_"+a]={},b[a]=function(c){b["_"+a].clients=b["_"+a].clients||{},b["_"+a].clients[c.projectId]=this,this._config=c},b[a].ready=function(c){b["_"+a].ready=b["_"+a].ready||[],b["_"+a].ready.push(c)};for(var c=["addEvent","setGlobalProperties","trackExternalLink","on"],d=0;d<c.length;d++){var e=c[d],f=function(a){return function(){return this["_"+a]=this["_"+a]||[],this["_"+a].push(arguments),this}};b[a].prototype[e]=f(e)}var g=document.createElement("script");g.type="text/javascript",g.async=!0,g.src="https://d26b395fwzu5fz.cloudfront.net/3.0.7/keen.min.js";var h=document.getElementsByTagName("script")[0];h.parentNode.insertBefore(g,h)}}("Keen",this);
+    </script>
+    <script>
+        var client = new Keen({
+            projectId: "53f75d42709a3952e3000002",
+            readKey: "38e91b786e4c8150f22eac2368b038bc50d7e2a6904e97578a32e11d08a89b1ec1192272df9d9b7ca2586d5852e059f5604c702ded6d914ba68f14e8049d6023b076555e23500a8baf660c503b038a0a3fc9050872441938525c888a65cb49b85186e1b060fa5ceb8256351ef22c0902"
+        });
+        Keen.ready(function(){
+            var query = new Keen.Query("count", {
+                eventCollection: "Inventory Request",
+                filters: [{"property_name":"app","operator":"eq","property_value":@appID},
+                    {"property_name":"distributor_id","operator":"eq","property_value":@distributorID}]
+            });
+            client.draw(query, document.getElementById("inventory_requests"), {
+                chartType: "metric",
+                title: "Requests",
+                colors: ["#4285f4"],
+                width: 460
+            });
+            client.draw(query, document.getElementById("unique_users"), {
+                chartType: "metric",
+                title: "Unique Users",
+                colors: ["#4285f4"],
+            width: 460
+            });
+            client.draw(query, document.getElementById("fill_rate"), {
+                chartType: "metric",
+                title: "Fill Rate",
+                colors: ["#4285f4"],
+            width: 460
+            });
+            client.draw(query, document.getElementById("estimated_revenue"), {
+                chartType: "metric",
+                title: "Estimated Revenue",
+                colors: ["#4285f4"],
+                width: 460
+            });
+            var tableQuery = new Keen.Query("count", {
+                eventCollection: "Inventory Request",
+                filters: [{"property_name":"distributor_id","operator":"eq","property_value":@distributorID}],
+                groupBy: "app"
+            });
+            client.draw(tableQuery, document.getElementById("table_by_day"), {
+                chartType: "table",
+                title: "Per Day",
+                width: 1000,
+                pageSize: 5
+            });
+        });
+    </script>
+
+
+    <div class="content dashboard">
+        <h1>Dashboard - @app.name</h1>
+        <div id="prev_app">
+            Previous App
+        </div>
+        <div id="next_app">
+            Next App
+        </div>
+        <div id="dashboard_metrics">
+            <div class="dashboard_box">
+                <div id="unique_users"  class="dashboard_numbers">
+                </div>
+            </div>
+            <div class="dashboard_box">
+                <div id="inventory_requests" class="dashboard_numbers">
+                </div>
+            </div>
+            <div class="dashboard_box">
+                <div id="fill_rate" class="dashboard_numbers">
+                </div>
+            </div>
+            <div class="dashboard_box">
+                <div id="estimated_revenue" class="dashboard_numbers">
+                </div>
+            </div>
+            <div style="clear: both;"></div>
+            <h2>App Data Per Day</h2>
+            <div id="table_by_day"></div>
+        </div>
+    </div>
+}

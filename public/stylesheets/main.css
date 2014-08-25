@@ -65,6 +65,7 @@ header {
 	font-family: "Avenir Black", "Arial", sans-serif;
 	font-weight: 400;
 	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+    z-index: 100;
 }
 
 header .user_info {
@@ -109,6 +110,7 @@ header .actions a {
 
 	background: #222;
 	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+    z-index: 100;
 }
 
 .sub_header .menu {
@@ -235,11 +237,14 @@ header .actions a {
     padding-top: 70px;
 }
 
+#dashboard_metrics {
+    width: 1000px;
+    margin: 0 auto;
+}
 .dashboard .dashboard_box {
     float: left;
-    width: 43%;
-    padding: 20px;
-    margin: 20px;
+    width: 460px;
+    padding: 0 20px;
     text-align: center;
 }
 
