@@ -49,7 +49,9 @@
                 chartType: "table",
                 title: "Per Day",
                 width: 1000,
-                pageSize: 5
+                cssClassNames: {
+                    headerRow: "dashboard_table_header_row"
+                }
             });
         });
     </script>
@@ -81,7 +83,7 @@
                 </div>
             </div>
             <div style="clear: both;"></div>
-            <h2>App Data Per Day</h2>
+            <h2 class="table_title">App Data Per Day</h2>
             <div id="table_by_day"></div>
         </div>
     </div>
