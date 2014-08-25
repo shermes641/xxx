@@ -84,36 +84,19 @@ object WaterfallAdProvider {
    * @return ID of new record if insert is successful, otherwise None.
    */
   def create(waterfallID: Long, adProviderID: Long): Option[Long] = {
-    findExisting(waterfallID, adProviderID) match {
-      case 0 => {
-        DB.withConnection { implicit connection =>
-          SQL(
-            """
-              INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id)
-              VALUES ({waterfall_id}, {ad_provider_id});
-            """
-          ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID).executeInsert()
+    DB.withConnection { implicit connection =>
+      try {
+        SQL(
+          """
+          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id)
+          VALUES ({waterfall_id}, {ad_provider_id});
+          """
+        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID).executeInsert()
+      } catch {
+        case exception: org.postgresql.util.PSQLException => {
+          None
         }
       }
-      case _ => None
-    }
-  }
-
-  /**
-   * Checks for existing WaterfallAdProvider containing the same waterfallID and adProviderID.
-   * @param waterfallID to be used in WHERE clause
-   * @param adProviderID to be used in WHERE clause
-   * @return The count of records existing in the database
-   */
-  def findExisting(waterfallID: Long, adProviderID: Long): Long = {
-    DB.withConnection { implicit connection =>
-      val query = SQL(
-        """
-          SELECT COUNT(1) FROM waterfall_ad_providers
-          WHERE waterfall_id={waterfall_id} AND ad_provider_id={ad_provider_id};
-        """
-      ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID).apply().head
-      query[Long]("count")
     }
   }
 

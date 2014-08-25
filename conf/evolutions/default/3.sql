@@ -16,6 +16,7 @@ CREATE TABLE waterfall_ad_providers (
 
 CREATE INDEX waterfall_id_index on waterfall_ad_providers(waterfall_id);
 CREATE INDEX ad_provider_id_index on waterfall_ad_providers(ad_provider_id);
+CREATE UNIQUE INDEX ad_provider_id_waterfall_id_index on waterfall_ad_providers(ad_provider_id, waterfall_id);
  
 # --- !Downs
  
