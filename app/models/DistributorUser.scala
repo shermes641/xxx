@@ -59,7 +59,7 @@ object DistributorUser {
    * @return List of DistributorUsers if query is successful.  Otherwise, returns an empty list.
    */
   def findByEmail(email: String): Option[DistributorUser] = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT distributor_users.*
@@ -89,7 +89,7 @@ object DistributorUser {
       case _ => {
         Distributor.create(company) match {
           case Some(distributorID) => {
-            DB.withConnection { implicit c =>
+            DB.withConnection { implicit connection =>
               SQL(
                 """
                   INSERT INTO distributor_users (email, hashed_password, distributor_id)
@@ -110,7 +110,7 @@ object DistributorUser {
    * @return Number of rows successfully updated.
    */
   def update(user: DistributorUser) = {
-    DB.withConnection { implicit c =>
+    DB.withConnection { implicit connection =>
       SQL(
         """
           UPDATE distributor_users

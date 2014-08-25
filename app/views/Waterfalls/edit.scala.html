@@ -1,0 +1,27 @@
+@(form: Form[WaterfallMapping], distributorID: Long, waterfallID: Long, adProviderOrder: List[OrderedWaterfallAdProvider])
+<div class="content waterfall_list" data-waterfall-id="@waterfallID" data-distributor-id="@distributorID">
+    <div id="success-message"></div>
+    <div id="error-message"></div>
+    <h1>Edit Waterfall</h1>
+    @main("Edit Waterfall") {
+        @helper.inputText(form("name"), 'placeholder -> "name", '_id -> waterfallID, '_label -> null, '_showConstraints -> false)
+        <div class="content">
+            <div class="waterfall ul">
+                <h2>Waterfall Order</h2>
+                <ul id="waterfall-list" class="waterfall ul li">
+                    @for((adProviderConfig) <- adProviderOrder) {
+                        <li data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" id="@adProviderConfig.waterfallAdProviderID">
+                            <h3>@adProviderConfig.name</h3>
+                            <div class="waterfall ul li b">ecpm: @adProviderConfig.cpm</div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <button type="submit" name="submit">Save Changes</button>
+        <button type="submit" name="order">Order by ecpm</button>
+        <button type="submit" name="reset">Reset order</button>
+    }
+</div>
+
+<script src="@routes.Assets.at("javascripts/waterfalls/edit.js")" type="text/javascript"></script>

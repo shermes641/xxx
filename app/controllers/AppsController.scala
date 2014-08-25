@@ -4,6 +4,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
 import models.App
+import models.Waterfall
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with customFormValidation {
@@ -55,6 +56,7 @@ object AppsController extends Controller with Secured with customFormValidation 
       app => {
         App.create(distributorID, app.name) match {
           case newID: Option[Long] => {
+            Waterfall.create(newID.get, app.name)
             val apps = App.findAll(distributorID)
             Created(views.html.Apps.index(apps, distributorID)).flashing("success" -> "App created!")
           }
