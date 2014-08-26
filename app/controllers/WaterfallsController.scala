@@ -8,29 +8,6 @@ import play.api.data.Forms._
 import play.api.libs.functional.syntax._
 
 object WaterfallsController extends Controller with Secured {
-  /*
-  def show(id: Long) = Action {
-    DB.withConnection { implicit connection =>
-      val result = Waterfall.withWaterfallAdProviders(id)
-      if (result.size == 0) {
-        NotFound("No such waterfall")
-      } else {
-        val (waterfall, list) = result.head
-        val res: JsValue = Json.toJson(waterfall).as[JsObject] ++ Json.obj("waterfall_ad_providers" -> list)
-        Ok(res)
-      }
-    }
-  }
-
-  def list(appID: Long) = Action {
-    DB.withConnection { implicit connection =>
-      val query = SQL("SELECT * FROM waterfalls where app_id = {app_id}").on("app_id" -> appID)
-      val waterfalls = query.as(Waterfall.waterfallParser*)
-      Ok(Json.toJson(waterfalls))
-    }
-  }
-  */
-
   // Form mapping used in edit action
   val waterfallForm = Form[WaterfallMapping](
     mapping(
