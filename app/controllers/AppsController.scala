@@ -56,11 +56,9 @@ object AppsController extends Controller with Secured with customFormValidation 
       app => {
         App.create(distributorID, app.name) match {
           case newID: Option[Long] => {
-            response = "error" -> "App created!"
+            response = "success" -> "App created!"
           }
-          case _ => {
-            response = "error" -> "App could not be created."
-          }
+          case _ => {}
         }
         Redirect(routes.AppsController.index(distributorID)).flashing(response)
       }
