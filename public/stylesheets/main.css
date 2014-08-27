@@ -57,7 +57,7 @@ header {
 	right: 0;
 	left: 0;
 
-	height: 30px;
+	height: 70px;
 	background: #fff;
 	padding: 20px;
 
@@ -131,7 +131,7 @@ header .actions a {
 	float: left;
 	width: 200px;
 	padding-top: 16px;
-	height: 34px;
+	height: 50px;
 
 	-webkit-transition: 400ms ease all;
 
@@ -229,12 +229,8 @@ header .actions a {
 	text-decoration: none;
 }
 
-.content.dashboard, .content.waterfall, .content.settings {
-	margin: 140px auto;
-}
-
 .content.dashboard {
-    padding-top: 70px;
+    background: none;
 }
 
 #dashboard_metrics {
@@ -277,7 +273,7 @@ header .actions a {
     top: 0px;
     left: 20px;
     color: #4285f4;
-    background: #efefef;
+    background: #fff;
     padding: 10px;
     cursor: pointer;
 }
@@ -288,7 +284,7 @@ header .actions a {
     top: 0px;
     right: 20px;
     color: #4285f4;
-    background: #efefef;
+    background: #fff;
     padding: 10px;
     cursor: pointer;
 }
@@ -324,6 +320,51 @@ header .actions a {
 	cursor: pointer;
 }
 
+.navbar-inverse {
+    background-color: #3d4a57;
+    border-color: #333;
+}
+.navbar-inverse .navbar-nav > li > a,
+.navbar a.navbar-brand {
+    color: #fbfbfb;
+}
 
+div [class^="col-"] {
+    padding-left: 5px;
+    padding-right: 5px;
+}
 
+.chart-wrapper {
+    background: #fff;
+    border: 1px solid #e2e2e2;
+    margin-bottom: 10px;
+}
+.chart-wrapper .chart-title {
+    border-bottom: 1px solid #d7d7d7;
+    font-family: "Avenir Black", "Helvetica", sans-serif;
+    color: #555;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 8px 10px 5px;
+}
 
+.chart-wrapper .chart-stage {
+    min-height: 240px;
+    padding: 5px 10px;
+}
+
+.chart-wrapper .chart-notes {
+    background: #fbfbfb;
+    border-top: 1px solid #e2e2e2;
+    color: #808080;
+    font-size: 12px;
+    padding: 8px 10px 5px;
+}
+
+#datepicker {
+    padding: 10px 0 20px 0;
+}
+
+.input-group .form-control {
+    padding: 20px;
+}
