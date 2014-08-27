@@ -349,7 +349,7 @@ div [class^="col-"] {
 }
 
 .chart-wrapper .chart-stage {
-    min-height: 240px;
+    min-height: 150px;
     padding: 5px 10px;
 }
 
