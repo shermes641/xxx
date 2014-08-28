@@ -60,15 +60,16 @@ object DistributorUsersController extends Controller with Secured with customFor
   }
 
   // Form mapping used in login and authenticate actions.
-  val loginForm = Form(
-    tuple(
+  val loginForm = Form[Login](
+    mapping(
       "email" -> text,
       "password" -> text
-    ) verifying ("Invalid email or password", result => result match {
-      case (email, password) => check(email, password)
+    )
+    (Login.apply)(Login.unapply)
+      verifying ("Invalid email or password", result => result match {
+      case (login: Login) => check(login.email, login.password)
     })
   )
-
 
   /**
    * Used to validate email/password combination on login.
@@ -95,7 +96,10 @@ object DistributorUsersController extends Controller with Secured with customFor
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
-      user => Redirect(routes.AppsController.index(DistributorUser.findByEmail(user._1).get.id.get)).withSession(Security.username -> user._1)
+      user => {
+        val currentUser = DistributorUser.findByEmail(user.email).get
+        Redirect(routes.AppsController.index(currentUser.id.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+      }
     )
   }
 
@@ -111,7 +115,7 @@ object DistributorUsersController extends Controller with Secured with customFor
 }
 
 /**
- * Used for mapping DistributorUser attributes in log in form.
+ * Used for mapping sign up form fields to DistributorUser attributes.
  * @param company Company name to be used for creating a Distributor.
  * @param email Email for new DistributorUser.
  * @param password Password for new DistributorUser.
@@ -126,6 +130,13 @@ case class Signup(company: String, email: String, password: String, confirmation
     sendEmail(email, subject, body)
   }
 }
+
+/**
+ * Used for mapping log in form fields to DistributorUser attributes.
+ * @param email Email for current DistributorUser.
+ * @param password Password for current DistributorUser.
+ */
+case class Login(email: String, password: String)
 
 /** Handles authentication for DistributorUsers. */
 trait Secured {
@@ -145,12 +156,26 @@ trait Secured {
 
   /**
    * Authenticates DistributorUser for controller actions.
+   * @param controllerDistributorID Distributor ID passed from a controller action.
    * @param controllerAction Function corresponding to a controller action which returns DistributorUser username.
    * @return Continue request if DistributorUser is logged in.  Otherwise, redirect to log in page.
    */
-  def withAuth(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
+  def withAuth(controllerDistributorID: Option[Long])(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
     Security.Authenticated(username, onUnauthorized) { user =>
-      Action(request => controllerAction(user)(request))
+      Action(request => {
+        controllerDistributorID match {
+          case Some(ctrlDistID) => {
+            request.session.get("distributorID") match {
+              // Check if Distributor ID from session matches the ID passed from the controller
+              case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
+                controllerAction(user)(request)
+              }
+              case _ => Results.Redirect(routes.DistributorUsersController.login)
+            }
+          }
+          case _ => Results.Redirect(routes.DistributorUsersController.login)
+        }
+      })
     }
   }
 
@@ -159,7 +184,7 @@ trait Secured {
    * @param controllerAction Function corresponding to a controller action which returns the current DistributorUser.
    * @return If DistributorUser is found, continue request.  Otherwise, redirect to log in page.
    */
-  def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth { email => implicit request =>
+  def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth(None) { email => implicit request =>
     val optionalUser = DistributorUser.findByEmail(email)
     optionalUser match {
       case Some(user) => controllerAction(user)(request)
