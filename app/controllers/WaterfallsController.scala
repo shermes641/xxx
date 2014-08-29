@@ -21,7 +21,7 @@ object WaterfallsController extends Controller with Secured {
    * @param waterfallID ID of the Waterfall being edited
    * @return Form for editing Waterfall
    */
-  def edit(distributorID: Long, waterfallID: Long) = withAuth { username => implicit request =>
+  def edit(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     val waterfall = Waterfall.find(waterfallID).get
     val form = waterfallForm.fill(new WaterfallMapping(waterfall.name))
     val waterfallAdProviderList = WaterfallAdProvider.currentOrder(waterfallID)
@@ -40,25 +40,22 @@ object WaterfallsController extends Controller with Secured {
    * @param waterfallID ID of the Waterfall being edited
    * @return Responds with 200 if update is successful.  Otherwise, 400 is returned.
    */
-  def update(distributorID: Long, waterfallID: Long) = Action(parse.json) { implicit request =>
-    val incoming = request.body.validate[WaterfallAttributes]
-    incoming.fold(
-      errors => {
-        BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(errors)))
-      },
-      waterfall => {
-        val listOrder: List[String] = waterfall.adProviderOrder.as[List[String]]
-        Waterfall.update(new Waterfall(waterfallID, waterfall.waterfallName))
-        WaterfallAdProvider.updateWaterfallOrder(listOrder) match {
-          case true => {
-            Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))
-          }
-          case _ => {
-            BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated."))
-          }
+  def update(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+    request.body.asJson.map { json =>
+      val waterfall = json.as[WaterfallAttributes]
+      val listOrder: List[String] = waterfall.adProviderOrder.as[List[String]]
+      Waterfall.update(new Waterfall(waterfallID, waterfall.waterfallName))
+      WaterfallAdProvider.updateWaterfallOrder(listOrder) match {
+        case true => {
+          Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))
+        }
+        case _ => {
+          BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated."))
         }
       }
-    )
+    }.getOrElse {
+      BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
   }
 }
 
