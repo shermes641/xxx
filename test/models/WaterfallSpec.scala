@@ -1,37 +1,40 @@
 package models
 
-import anorm._
 import org.junit.runner._
 import org.specs2.runner._
-import play.api.db.DB
-import play.api.libs.json._
+import play.api.test.Helpers._
+import play.api.test.FakeApplication
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallSpec extends SpecificationWithFixtures {
-  /*
-  "Waterfall" should {
-    "there should be One waterfall" in new WithDB  {
-      DB.withConnection { implicit c =>
-        val rows = SQL("SELECT count(*) from waterfalls;").apply.map(r => r)
-        val row = rows.head
-        row.asMap.get(".COUNT(*)") must equalTo(Some(1))
-      }
-    }
+  val distributor = running(FakeApplication(additionalConfiguration = testDB)) {
+    val distributorID = Distributor.create("Company Name").get
+    Distributor.find(distributorID).get
+  }
 
-    "should turn into JSON" in new WithDB  {
-      val waterfall = Waterfall(NotAssigned, "Name")
-      Json.toJson(waterfall).toString must equalTo("{\"name\":\"Name\"}")
-      val waterfall2 = Waterfall(Id(1.toLong), "Name2")
-      Json.toJson(waterfall2).toString must equalTo("{\"id\":1,\"name\":\"Name2\"}")
-    }
+  val app1 = running(FakeApplication(additionalConfiguration = testDB)) {
+    val appID = App.create(distributor.id.get, "App 1").get
+    App.find(appID).get
+  }
 
-    "should fetch relationships" in new WithDB  {
-      Waterfall.withWaterfallAdProviders(1) must
-        equalTo(Map(Waterfall(Id(1),"TestWaterfall") ->
-          List(WaterfallAdProvider(Id(1),1,1,None,None,None,None),
-          WaterfallAdProvider(Id(2),1,2,Some(0),None,None,None)))
-        )
+  val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
+    val waterfallID = Waterfall.create(app1.id, app1.name).get
+    Waterfall.find(waterfallID)
+  }
+
+  "Waterfall.create" should {
+    "add a new Waterfall record in the database" in new WithDB {
+      val waterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
+      Waterfall.find(waterfallID).get must haveClass[Waterfall]
     }
   }
-  */
+
+  "Waterfall.update" should {
+    "update a Waterfall record in the database" in new WithDB {
+      val newName = "Some new name"
+      Waterfall.update(new Waterfall(waterfall.get.id, newName))
+      Waterfall.find(waterfall.get.id).get.name must beEqualTo(newName)
+    }
+  }
+  step(clean)
 }

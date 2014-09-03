@@ -34,6 +34,16 @@ class AppsControllerSpec extends SpecificationWithFixtures {
         browser.pageSource must contain(appName)
       })
     }
+
+    "create a new Waterfall which belongs to the new App" in new WithFakeBrowser {
+      withUser(user => {
+        browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
+        browser.fill("#name").`with`(appName)
+        browser.click("button")
+        val appID = App.findAll(user.distributorID.get)(0).id
+        Waterfall.findByAppID(appID).size must beEqualTo(1)
+      })
+    }
   }
 
   "App show action" should {
