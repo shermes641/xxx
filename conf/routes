@@ -22,6 +22,9 @@ GET         /distributors/:distributor_id/apps/:app_id                         c
 GET         /distributors/:distributor_id/apps/:app_id/edit                    controllers.AppsController.edit(distributor_id: Long, app_id: Long)
 POST        /distributors/:distributor_id/apps/:app_id                         controllers.AppsController.update(distributor_id: Long, app_id: Long)
 
+# Analytics
+GET         /distributors/:distributor_id/analytics/:app_id        controllers.AnalyticsController.show(distributor_id: Long, app_id: Long)
+
 # Waterfalls
 GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit        controllers.WaterfallsController.edit(distributor_id: Long, waterfall_id: Long)
 POST        /distributors/:distributor_id/waterfalls/:waterfall_id             controllers.WaterfallsController.update(distributor_id: Long, waterfall_id: Long)
