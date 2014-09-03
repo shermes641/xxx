@@ -1,4 +1,5 @@
 import io.keen.client.scala.Client
+import play.api.libs.json.{JsNull,Json,JsString,JsValue}
 
 val client = new Client(
   projectId = "53f75d42709a3952e3000002",
@@ -8,20 +9,48 @@ val client = new Client(
 )
 
 
-// Publish an event!
-client.addEvent(
-  collection = "collectionNameHere",
-  event = """{"foo": "bar"}"""
+var inventory_requests = Array.fill(100) {
+  Json.obj(
+    "distributor_id" -> 1,
+    "app_name" -> "The Video Game",
+    "platform" -> "iOS",
+    "app_id" -> 105,
+    "device_type" -> "iphone",
+    "device_unique_id" -> "UUID",
+    "ip_address" -> "${keen.ip}",
+    "keen" -> Json.obj(
+      "timestamp" -> "2014-02-21T15:29:30.438Z"
+    )
+  )
+}
+
+
+var inventory_available = Array.fill(100) {
+  Json.obj(
+    "distributor_id" -> 1,
+    "app_name" -> "The Video Game",
+    "platform" -> "iOS",
+    "app_id" -> 105,
+    "device_type" -> "iphone",
+    "device_unique_id" -> "UUID",
+    "ip_address" -> "${keen.ip}",
+    "keen" -> Json.obj(
+      "timestamp" -> "2014-02-21T15:29:30.438Z"
+    )
+  )
+}
+
+val batch_request: JsValue = Json.obj(
+  "inventory_request" -> inventory_requests,
+  "inventory_available" -> inventory_available,
+  "ad_displayed" -> inventory_available,
+  "ad_completed" -> inventory_availablesc
 )
 
-// Publish an event and care about the result!
-val resp = client.addEvent(
-  collection = "collectionNameHere",
-  event = """{"foo": "bar"}"""
-)
-//
-//// Publish lots of events
-//client.addEvents(someEvents)
+println(batch_request)
+
+// Publish lots of events
+client.addEvents(Json.stringify(Json.toJson(batch_request)))
 
 // Add an onComplete callback for failures!
 //resp onComplete {
@@ -35,3 +64,4 @@ val resp = client.addEvent(
 //} getOrElse {
 //  println("I failed :(")
 //}
+
