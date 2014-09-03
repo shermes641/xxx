@@ -53,5 +53,23 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       status(result) must equalTo(303)
     }
   }
+
+  "Authenticated actions" should {
+    "redirect to login if the user is not authenticated" in new WithFakeBrowser {
+      val baseURL = "http://localhost:" + port
+      val email1 = "Email 1"
+      val email2 = "Email 2"
+      DistributorUser.create(email1, password, companyName)
+      DistributorUser.create(email2, password, companyName)
+      val user1 = DistributorUser.findByEmail(email1).get
+      val user2 = DistributorUser.findByEmail(email2).get
+      browser.goTo(baseURL + "/login")
+      browser.fill("#email").`with`(email1)
+      browser.fill("#password").`with`(password)
+      browser.click("button")
+      browser.goTo(baseURL + "/distributors/" + user2.distributorID.get + "/apps")
+      browser.pageSource must contain("Log In")
+    }
+  }
   step(clean)
 }
