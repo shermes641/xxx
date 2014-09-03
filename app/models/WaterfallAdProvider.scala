@@ -3,7 +3,6 @@ package models
 import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
-import play.api.libs.json._
 import play.api.Play.current
 
 /**
@@ -85,12 +84,18 @@ object WaterfallAdProvider {
    */
   def create(waterfallID: Long, adProviderID: Long): Option[Long] = {
     DB.withConnection { implicit connection =>
-      SQL(
-        """
+      try {
+        SQL(
+          """
           INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id)
           VALUES ({waterfall_id}, {ad_provider_id});
-        """
-      ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID).executeInsert()
+          """
+        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID).executeInsert()
+      } catch {
+        case exception: org.postgresql.util.PSQLException => {
+          None
+        }
+      }
     }
   }
 
@@ -171,40 +176,3 @@ object WaterfallAdProvider {
  * @param waterfallOrder waterfall_order field from waterfall_ad_providers table
  */
 case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], waterfallOrder: Option[Long])
-
-/*
-implicit object WaterfallAdProviderFormatter extends Format[WaterfallAdProvider] {
-    // convert from Waterfall object to JSON (serializing to JSON)
-    def writes(wap: WaterfallAdProvider): JsValue = {
-  Json.obj(
-    "id" -> JsNumber(wap.id.get),
-    "waterfall_id" -> JsNumber(wap.waterfall_id),
-    "ad_provider_id" -> JsNumber(wap.ad_provider_id),
-    "waterfall_order" -> (wap.waterfall_order match {
-      case None => JsNull
-      case _ => JsNumber(wap.waterfall_order.get)
-    }),
-    "cpm" -> (wap.cpm match {
-      case None => JsNull
-      case _ => JsNumber(wap.cpm.get)
-    }),
-    "active" -> (wap.active match {
-      case None => JsNull
-      case _ => JsBoolean(wap.active.get)
-    }),
-    "fill_rate" -> (wap.fill_rate match {
-      case None => JsNull
-      case _ => JsNumber(wap.fill_rate.get)
-    })
-      )
-    }
-
- // Convert to Watferfall object form JSON (serializing from JSON)
- // TODO: Currently mocked out.
-    def reads(json: JsValue): JsResult[WaterfallAdProvider] = {
-        JsError()
-    }
-
-}
-}
-*/

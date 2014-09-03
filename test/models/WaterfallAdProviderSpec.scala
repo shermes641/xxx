@@ -54,7 +54,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures {
     }
 
     "should not create a new record if another shares the same ad_provider_id and waterfall_id" in new WithDB {
-      WaterfallAdProvider.create(waterfall.id, adProviderID1.get) must throwA[org.postgresql.util.PSQLException]
+      WaterfallAdProvider.create(waterfall.id, adProviderID1.get) must beNone
     }
   }
 

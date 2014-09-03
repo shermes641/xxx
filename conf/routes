@@ -26,12 +26,6 @@ POST        /distributors/:distributor_id/apps/:app_id                         c
 GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit        controllers.WaterfallsController.edit(distributor_id: Long, waterfall_id: Long)
 POST        /distributors/:distributor_id/waterfalls/:waterfall_id             controllers.WaterfallsController.update(distributor_id: Long, waterfall_id: Long)
 
-#GET         /v1/properties/:property_id/waterfalls                             controllers.WaterfallsController.list(property_id: Long)
-#GET         /v1/waterfalls/:id                                                 controllers.WaterfallsController.show(id: Long)
-
-# Analytics
-GET         /distributors/:distributor_id/analytics/:app_id                    controllers.AnalyticsController.show(distributor_id: Long, app_id: Long)
-
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                      controllers.Assets.at(path="/public", file)
 

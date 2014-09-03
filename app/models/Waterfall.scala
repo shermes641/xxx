@@ -3,7 +3,6 @@ package models
 import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
-import play.api.libs.json._
 import play.api.Play.current
 
 case class Waterfall(id: Long, name: String)

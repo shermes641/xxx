@@ -41,7 +41,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
         browser.fill("#name").`with`(appName)
         browser.click("button")
         val appID = App.findAll(user.distributorID.get)(0).id
-        Waterfall.findByAppID(appID).size must beGreaterThan(0)
+        Waterfall.findByAppID(appID).size must beEqualTo(1)
       })
     }
   }
