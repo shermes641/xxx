@@ -182,7 +182,7 @@ header .actions a {
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration button[type="submit"] {
-	width: 600px;
+	width: 560px;
 }
 
 .registration dl {
