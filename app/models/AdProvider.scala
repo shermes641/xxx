@@ -59,4 +59,22 @@ object AdProvider extends JsonConversion {
       query.as(adProviderParser*).toList
     }
   }
+
+  /**
+   * Creates a new record in the AdProvider table
+   * @param name Maps to name column in AdProvider table
+   * @param configurationData Json configuration data for AdProvider
+   * @return ID of newly created record
+   */
+  def create(name: String, configurationData: String): Option[Long] = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          INSERT INTO ad_providers (name, configuration_data)
+          VALUES ({name}, CAST({configuration_data} AS json));
+        """
+      ).on("name" -> name, "configuration_data" -> configurationData).executeInsert()
+    }
+  }
 }
+
