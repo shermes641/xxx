@@ -70,10 +70,11 @@ object AdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          INSERT INTO apps (name, configuration_data)
-          VALUES ({name}, {configurationData});
+          INSERT INTO ad_providers (name, configuration_data)
+          VALUES ({name}, CAST({configuration_data} AS json));
         """
-      ).executeInsert()
+      ).on("name" -> name, "configuration_data" -> configurationData).executeInsert()
     }
   }
 }
+

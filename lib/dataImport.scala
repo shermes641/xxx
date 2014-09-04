@@ -1,33 +1,47 @@
+/**
+ * Creates seed data to bootstrap the database.  users and appNames array determine the number of users/apps created.
+ */
+
 import models.DistributorUser
 import models.App
 import models.AdProvider
 
+// The "correct" way to start the app
 new play.core.StaticApplication(new java.io.File("."))
 
-var users = List("dcullen@jungroup.com", "jellison@jungroup.com", "tdepplito@jungroup.com")
-users.foreach(createUser)
+// List of users to created.  "@jungroup" will be appended for email and the distributor will be have "Distributor" appended
+var users = List("dcullen", "jellison", "tdepplito", "jlunn", "dwood")
 
-var distributorUser = DistributorUser.findByEmail("dcullen@jungroup.com")
-                                                                                                 n
-AdProvider.create("Ad Colony", "")
-AdProvider.create("Vungle", "")
-AdProvider.create("HyprMX", "")
+// App Names to use for each user
+var appNames = List("Game App", "News App", "Casino App")
 
-def createUser(email: String) = {
-  DistributorUser.create(email, "testtest", "David Cullen Distributor") match {
-    case Some(userID:Long) => {
-      App.create(userID, "Dcullen App Name 1")
-      App.create(userID, "Dcullen App Name 2")
-      App.create(userID, "Dcullen App Name 3")
+// Create ad providers
+AdProvider.create("Ad Colony", "{\"required_params\":[\"key1\"]}")
+AdProvider.create("Vungle", "{\"required_params\":[\"key1\",\"key2\"]}")
+AdProvider.create("HyprMX", "{\"required_params\":[\"key1\",\"key2\",\"key3\"]}")
+
+/**
+ * Creates an app using name and distributorID
+ * @param name Name of App to be created
+ * @param distributorID Distributor Id to use
+ */
+def createApp(name: String, distributorID: Long) = {
+  App.create(distributorID, name)
+}
+
+/**
+ * Creates a user using a name string
+ * @param name Name to be used as a base for the email and distributor
+ */
+def createUser(name: String) = {
+  DistributorUser.create(name + "@jungroup.com", "testtest", name + " Distributor") match {
+    case Some(userID: Long) => {
+      val user = DistributorUser.find(userID).get
+      appNames.foreach((name: String) => createApp(name, user.distributorID.get))
     }
     case _ => false
   }
 }
 
-
-//
-//"insert into ad_providers (name, configuration_data) values ('Ad Colony’, '{\"required_params\":[\"key1\"]}');"
-//
-//"insert into ad_providers (name, configuration_data) values (‘Vungle’, '{\"required_params\":[\"key1\", \"key2\"]}');"
-//
-//"insert into ad_providers (name, configuration_data) values (’HyprMX’, '{\"required_params\":[\"key2\", \"key3\", \"key4\"]}');"
+// Kick off the data seeding
+users.foreach((name: String) => createUser(name))
