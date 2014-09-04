@@ -243,6 +243,8 @@ case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsVa
    * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.
    */
   def mappedFields: List[(String, String)] = {
+    // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
+    // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     val reqFields = (this.adProviderConfiguration \ "required_params") match {
       case _: JsUndefined => List()
       case field: JsValue => field.as[List[String]]
