@@ -80,6 +80,17 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures {
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
       wap.configurationData must beEqualTo(body)
     }
+
+    "respond with a 400 if proper JSON is not received" in new WithFakeBrowser {
+      val postRequest = FakeRequest(
+        POST,
+        controllers.routes.WaterfallAdProvidersController.update(distributorUser.distributorID.get, waterfallAdProviderID).url,
+        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        ""
+      )
+      val Some(result) = route(postRequest.withSession("distributorID" -> distributorUser.distributorID.get.toString(), "username" -> email))
+      status(result) must equalTo(400)
+    }
   }
   step(clean)
 }
