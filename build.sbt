@@ -16,5 +16,6 @@ libraryDependencies ++= Seq(
   "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
   "org.clapper" %% "grizzled-slf4j" % "1.0.2",
   "io.spray" %%  "spray-can"     % "1.3.1",
-  "io.spray" %%  "spray-routing" % "1.3.1"
+  "io.spray" %%  "spray-routing" % "1.3.1",
+  "com.github.nscala-time" %% "nscala-time" % "1.4.0"
 )

@@ -1,5 +1,7 @@
 import io.keen.client.scala.Client
 import play.api.libs.json.{JsNull,Json,JsString,JsValue}
+import com.github.nscala_time.time._
+import com.github.nscala_time.time.Imports._
 
 val client = new Client(
   projectId = "53f75d42709a3952e3000002",
@@ -8,8 +10,10 @@ val client = new Client(
   readKey = Option("38e91b786e4c8150f22eac2368b038bc50d7e2a6904e97578a32e11d08a89b1ec1192272df9d9b7ca2586d5852e059f5604c702ded6d914ba68f14e8049d6023b076555e23500a8baf660c503b038a0a3fc9050872441938525c888a65cb49b85186e1b060fa5ceb8256351ef22c0902")
 )
 
+var date = DateTime.now - 1.months
 
-var inventory_requests = Array.fill(100) {
+var inventory_requests = Array.fill(300) {
+  date = date + 5.minute
   Json.obj(
     "distributor_id" -> 1,
     "app_name" -> "The Video Game",
@@ -19,13 +23,13 @@ var inventory_requests = Array.fill(100) {
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
     "keen" -> Json.obj(
-      "timestamp" -> "2014-02-21T15:29:30.438Z"
+      "timestamp" -> date.toString()
     )
   )
 }
 
-
-var inventory_available = Array.fill(100) {
+var inventory_available = Array.fill(300) {
+  date = date + 5.minute
   Json.obj(
     "distributor_id" -> 1,
     "app_name" -> "The Video Game",
@@ -35,7 +39,39 @@ var inventory_available = Array.fill(100) {
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
     "keen" -> Json.obj(
-      "timestamp" -> "2014-02-21T15:29:30.438Z"
+      "timestamp" -> date.toString()
+    )
+  )
+}
+
+var ad_displayed = Array.fill(300) {
+  date = date + 5.minute
+  Json.obj(
+    "distributor_id" -> 1,
+    "app_name" -> "The Video Game",
+    "platform" -> "iOS",
+    "app_id" -> 105,
+    "device_type" -> "iphone",
+    "device_unique_id" -> "UUID",
+    "ip_address" -> "${keen.ip}",
+    "keen" -> Json.obj(
+      "timestamp" -> date.toString()
+    )
+  )
+}
+
+var ad_completed = Array.fill(300) {
+  date = date + 5.minute
+  Json.obj(
+    "distributor_id" -> 1,
+    "app_name" -> "The Video Game",
+    "platform" -> "iOS",
+    "app_id" -> 105,
+    "device_type" -> "iphone",
+    "device_unique_id" -> "UUID",
+    "ip_address" -> "${keen.ip}",
+    "keen" -> Json.obj(
+      "timestamp" -> date.toString()
     )
   )
 }
@@ -43,25 +79,12 @@ var inventory_available = Array.fill(100) {
 val batch_request: JsValue = Json.obj(
   "inventory_request" -> inventory_requests,
   "inventory_available" -> inventory_available,
-  "ad_displayed" -> inventory_available,
-  "ad_completed" -> inventory_availablesc
+  "ad_displayed" -> ad_displayed,
+  "ad_completed" -> ad_completed
 )
 
 println(batch_request)
 
 // Publish lots of events
 client.addEvents(Json.stringify(Json.toJson(batch_request)))
-
-// Add an onComplete callback for failures!
-//resp onComplete {
-//  case Success(r) => println(resp.statusCode)
-//  case Failure(t) => println(t.getMessage) // A Throwable
-//}
-//
-//// Or use a map
-//resp map {
-//  println("I succeeded!")
-//} getOrElse {
-//  println("I failed :(")
-//}
 
