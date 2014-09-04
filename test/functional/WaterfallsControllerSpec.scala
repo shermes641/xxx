@@ -41,7 +41,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures {
       val configInfo1 = JsObject(
         Seq(
           "id" -> JsString(waterfallAdProviderID1.toString),
-          "newRecord" -> JsString("true"),
+          "newRecord" -> JsString("false"),
           "active" -> JsString("true"),
           "waterfallOrder" -> JsString("0")
         )
@@ -49,7 +49,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures {
       val configInfo2 = JsObject(
         Seq(
           "id" -> JsString(waterfallAdProviderID2.toString),
-          "newRecord" -> JsString("true"),
+          "newRecord" -> JsString("false"),
           "active" -> JsString("true"),
           "waterfallOrder" -> JsString("1")
         )

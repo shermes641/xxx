@@ -102,23 +102,6 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
-   * Creates WaterfallAdProviders from a list of AdProvider IDs.
-   * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
-   * @param adProviderList ID of the AdProvider to which the new WaterfallAdProvider belongs
-   * @return True if all WaterfallAdProvider inserts are successful.  Otherwise, returns false.
-   */
-  def createFromAdProviderList(waterfallID: Long, adProviderList: List[String]): Boolean = {
-    var successful: Boolean = true
-    adProviderList.map { adProviderID =>
-      create(waterfallID, adProviderID.toLong) match {
-        case Some(id) => {}
-        case _ => successful = false
-      }
-    }
-    successful
-  }
-
-  /**
    * Finds waterfall_ad_provider record by ID.
    * @param waterfallAdProviderID ID of WaterfallAdProvider
    * @return WaterfallAdProvider instance if one exists. Otherwise, returns None.

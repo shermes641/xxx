@@ -97,23 +97,6 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures {
     }
   }
 
-  "WaterfallAdProvider.createFromAdProviderList" should {
-    "return true when all inserts are successful" in new WithDB {
-      val adProviderID = {
-        DB.withConnection { implicit connection =>
-          SQL("insert into ad_providers (name) values ('test ad provider 1')").executeInsert()
-        }
-      }
-      val adProviderList = List(adProviderID.get.toString())
-      WaterfallAdProvider.createFromAdProviderList(waterfall.id, adProviderList) must beEqualTo(true)
-    }
-
-    "return false when an insert fails" in new WithDB {
-      val unknownAdProviderIDs = List("10", "11", "12")
-      WaterfallAdProvider.createFromAdProviderList(waterfall.id, unknownAdProviderIDs) must beEqualTo(false)
-    }
-  }
-
   "WaterfallAdProvider.findConfigurationData" should {
     "return an instance of WaterfallAdProviderConfig containing configuration data for both WaterfallAdProvider and AdProvider" in new WithDB {
       val configData = WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get

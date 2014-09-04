@@ -101,7 +101,10 @@ object Waterfall {
     adProviderConfigList.map { adProviderConfig =>
       if(adProviderConfig.active && adProviderConfig.newRecord) {
         // If a Distributor wants to add a new AdProvider to the current waterfall, create a new WaterfallAdProvider record.
-        WaterfallAdProvider.create(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder))
+        WaterfallAdProvider.create(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder)) match {
+          case Some(id) => {}
+          case None => successful = false
+        }
       } else if(!adProviderConfig.newRecord) {
         //  Otherwise, find and update the existing WaterfallAdProvider record.
         WaterfallAdProvider.find(adProviderConfig.id) match {
