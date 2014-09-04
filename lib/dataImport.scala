@@ -16,9 +16,9 @@ var users = List("dcullen", "jellison", "tdepplito", "jlunn", "dwood")
 var appNames = List("Game App", "News App", "Casino App")
 
 // Create ad providers
-AdProvider.create("Ad Colony", "{\"required_params\":[\"key1\"]}")
-AdProvider.create("Vungle", "{\"required_params\":[\"key1\",\"key2\"]}")
-AdProvider.create("HyprMX", "{\"required_params\":[\"key1\",\"key2\",\"key3\"]}")
+AdProvider.create("Ad Colony", "{\"required_params\":[\"appId\"]}")
+AdProvider.create("Vungle", "{\"required_params\":[\"appId\",\"zoneIds\"]}")
+AdProvider.create("HyprMX", "{\"required_params\":[\"distributorId\",\"propertyId\"]}")
 
 /**
  * Creates an app using name and distributorID
