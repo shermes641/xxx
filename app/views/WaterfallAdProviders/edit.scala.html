@@ -1,0 +1,19 @@
+@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[(String, String)])
+<div class="content" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
+    <div id="success-message"></div>
+    <div id="error-message"></div>
+    <h1>Edit WaterfallAdProvider</h1>
+    @main("Edit WaterfallAdProvider") {
+        @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
+            @for(param <- reqParams) {
+                <div class="edit-waterfall-ad-provider-field">
+                    <label>@param._1</label>
+                    <input type="text" value="@param._2"></input>
+                </div>
+            }
+            <button type="submit" name="submit">Save Changes</button>
+        }
+    }
+</div>
+
+<script src="@routes.Assets.at("javascripts/waterfall_ad_providers/edit.js")" type="text/javascript"></script>

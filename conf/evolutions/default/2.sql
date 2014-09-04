@@ -5,6 +5,7 @@
 CREATE TABLE ad_providers (
   id bigserial,
   name varchar(255) NOT NULL,
+  configuration_data json NOT NULL DEFAULT to_json('{}'::JSON),
   PRIMARY KEY (id)
 );
 

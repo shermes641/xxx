@@ -19,6 +19,11 @@ $(document).ready(function() {
         })
     }
 
+    // Retrieves ordered list of ad providers who are either active or inactive
+    var providersByActive = function(active) {
+        return $('#waterfall-list li').filter(function(index, li) { return($(li).attr("data-active") === active) })
+    }
+
     // Updates waterfall properties via AJAX.
     var postUpdate = function() {
         var waterfallID = $('.content').attr("data-waterfall-id");
@@ -41,10 +46,17 @@ $(document).ready(function() {
 
     // Retrieves current list order and value of waterfall name field.
     var updatedData = function() {
-        var waterfallName = $(":input[id=name]").val();
-        var order = $('#waterfall-list li').map(function() {
-            return $(this).attr("id");
+        var adProviderList = providersByActive("true")
+        adProviderList.push.apply(adProviderList, providersByActive("false"))
+        var order = adProviderList.map(function(index, el) {
+            return({
+                id: $(this).attr("data-id"),
+                newRecord: $(this).attr("data-new-record"),
+                active: $(this).attr("data-active"),
+                waterfallOrder: index.toString()
+            });
         }).get();
+        var waterfallName = $(":input[id=name]").val();
         return(JSON.stringify({waterfallName: waterfallName, adProviderOrder: order}));
     }
 
@@ -67,5 +79,17 @@ $(document).ready(function() {
     // Reverts waterfall list back to the original order from initial page load.
     $(":button[name=reset]").click(function() {
         orderList("data-order-number", true);
+    });
+
+    // Controls activation/deactivation of each ad provider in a waterfall.
+    $("#waterfall-list li").click(function(event) {
+        var buttonID = $(event.target).attr("id");
+        var buttonSelect = "#waterfall-list " + ":button[id=" + buttonID + "]";
+        var selector = "#waterfall-list [id=" + buttonID + "]";
+        var listItem = $(selector);
+        var originalVal = listItem.attr("data-active");
+        listItem.attr("data-active", (originalVal === "true" ? "false" : "true"));
+        listItem.toggleClass("inactive");
+        listItem.attr("data-active") === "true" ? $(buttonSelect).html("Deactivate") : $(buttonSelect).html("Activate")
     });
 });
