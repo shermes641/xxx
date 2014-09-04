@@ -1,26 +1,31 @@
-@(form: Form[WaterfallMapping], distributorID: Long, waterfallID: Long, adProviderOrder: List[OrderedWaterfallAdProvider])
-<div class="content waterfall_list" data-waterfall-id="@waterfallID" data-distributor-id="@distributorID">
+@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])
+<div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
     <div id="success-message"></div>
     <div id="error-message"></div>
     <h1>Edit Waterfall</h1>
     @main("Edit Waterfall") {
-        @helper.inputText(form("name"), 'placeholder -> "name", '_id -> waterfallID, '_label -> null, '_showConstraints -> false)
+        <h1>API Token: @waterfall.token</h1>
         <div class="content">
             <div class="waterfall ul">
-                <h2>Waterfall Order</h2>
+                <h1>Waterfall Order</h1>
                 <ul id="waterfall-list" class="waterfall-sort">
                     @for((adProviderConfig) <- adProviderOrder) {
                         @defining(if(adProviderConfig.active) "waterfall" else "inactive") { classType =>
                             <li class="@classType" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
                                 <h3>@adProviderConfig.name</h3>
-                                <div class="waterfall ul li b">ecpm: @adProviderConfig.cpm</div>
+                                <div class="waterfall ul li b">eCPM: @adProviderConfig.cpm</div>
                                 <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" class="status" type="submit" name="status">
-                                @if(adProviderConfig.active) {
-                                    Deactivate
-                                } else {
-                                    Activate
-                                }
+                                    @if(adProviderConfig.active) {
+                                        Deactivate
+                                    } else {
+                                        Activate
+                                    }
                                 </button>
+                                @if(!adProviderConfig.newRecord) {
+                                    <a href="@routes.WaterfallAdProvidersController.edit(distributorID, adProviderConfig.waterfallAdProviderID).url">
+                                        <button name="configure-wap" type="submit">Configure</button>
+                                    </a>
+                                }
                             </li>
                         }
                     }
@@ -28,7 +33,7 @@
             </div>
         </div>
         <button type="submit" name="submit">Save Changes</button>
-        <button type="submit" name="order">Order by ecpm</button>
+        <button type="submit" name="order">Order by eCPM</button>
         <button type="submit" name="reset">Reset order</button>
     }
 </div>
