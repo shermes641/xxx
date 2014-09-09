@@ -74,6 +74,22 @@ object DistributorUser {
     }
   }
 
+  def find(userID: Long): Option[DistributorUser] = {
+    DB.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT distributor_users.*
+          FROM distributor_users
+          WHERE distributor_users.id = {id}
+        """
+      ).on("id" -> userID)
+      query.as(userParser*) match {
+        case List(user) => Some(user)
+        case List() => None
+      }
+    }
+  }
+
   /**
    * Creates a new record in the database for a DistributorUser.
    * @param email Email to be stored for DistributorUser

@@ -289,6 +289,14 @@ header .actions a {
     cursor: pointer;
 }
 
+.inactive {
+    background-color: #CCCCCC;
+}
+
+.waterfall-sort {
+    min-height: 50px;
+}
+
 .waterfall ul {
 	list-style: none;
 	width: 100%;
