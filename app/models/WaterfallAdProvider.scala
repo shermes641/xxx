@@ -4,7 +4,8 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
-import play.api.libs.json.{JsUndefined, Json, JsValue}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
 
 /**
  * Encapsulates information for a record in the waterfall_ad_providers table.
@@ -225,20 +226,35 @@ case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsVa
    * Maps required info from AdProviders to actual values stored in WaterfallAdProviders.
    * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.
    */
-  def mappedFields: List[(String, String)] = {
+  def mappedFields: List[RequiredParam] = {
+    val reqParams = (this.adProviderConfiguration \ "required_params").as[List[Map[String, String]]].map(el =>
+      new RequiredParam(el.get("key"), el.get("dataType"), el.get("description"), el.get("value"))
+    )
     // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
     // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
-    val reqFields = (this.adProviderConfiguration \ "required_params") match {
-      case _: JsUndefined => List()
-      case field: JsValue => field.as[List[String]]
-      case _ => List()
-    }
-    reqFields.map { param =>
-      (this.waterfallAdProviderConfiguration \ param) match {
-        case _: JsUndefined => (param, "")
-        case value: JsValue => (param, value.as[String])
-        case _ => (param, "")
+    reqParams.map( param =>
+      (this.waterfallAdProviderConfiguration \ param.key.get) match {
+        case _: JsUndefined => new RequiredParam(param.key, param.dataType, param.description, None)
+        case value: JsValue => {
+          var paramValue: Option[String] = None
+          if(param.dataType.get == "Array") {
+            paramValue = Some(value.as[List[String]].mkString(","))
+          } else {
+            paramValue = Some(value.as[String])
+          }
+          new RequiredParam(param.key, param.dataType, param.description, paramValue)
+        }
+        case _ => new RequiredParam(param.key, param.dataType, param.description, None)
       }
-    }
+    )
   }
 }
+
+/**
+ * Encapsulates information for configuration_data fields in ad_providers and waterfall_ad_providers tables.
+ * @param key Name of param required by Ad Provider.
+ * @param dataType Data type of param.  Currently, only Strings and Arrays are supported.
+ * @param description Description of the required param.  This is used in the UI to direct the distributor user on how to configure an ad provider.
+ * @param value The actual value of the param.
+ */
+case class RequiredParam(key: Option[String], dataType: Option[String], description: Option[String], value: Option[String] = None)

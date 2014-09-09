@@ -11,9 +11,7 @@ import play.api.db.DB
 import play.api.Play.current
 
 @RunWith(classOf[JUnitRunner])
-class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures {
-  val configurationParams = List("key1", "key2")
-  val configurationData = "{\"required_params\": [\"" + configurationParams(0) + "\", \"" + configurationParams(1) + "\"]}"
+class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with JsonTesting {
   val adProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
     DB.withConnection { implicit connection =>
       SQL(

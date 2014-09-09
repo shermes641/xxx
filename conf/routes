@@ -30,8 +30,8 @@ POST        /distributors/:distributor_id/waterfalls/:waterfall_id              
 GET         /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id/edit          controllers.WaterfallAdProvidersController.edit(distributor_id: Long, waterfall_ad_provider_id: Long)
 POST        /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id               controllers.WaterfallAdProvidersController.update(distributor_id: Long, waterfall_ad_provider_id: Long)
 
-#GET         /v1/properties/:property_id/waterfalls                                                      controllers.WaterfallsController.list(property_id: Long)
-#GET         /v1/waterfalls/:id                                                                          controllers.WaterfallsController.show(id: Long)
+# API
+GET          /v1/waterfall/:token                                                                        controllers.APIController.waterfallV1(token: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                                                controllers.Assets.at(path="/public", file)

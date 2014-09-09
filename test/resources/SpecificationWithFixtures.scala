@@ -4,6 +4,7 @@ import anorm._
 import org.specs2.mutable._
 import play.api.Play.current
 import play.api.db.DB
+import play.api.libs.json.{JsString, JsObject}
 import play.api.test.Helpers._
 import play.api.test._
 
@@ -30,4 +31,12 @@ trait cleanDB {
       }
     }
   }
+}
+
+trait JsonTesting {
+  val configurationParams = List("key1", "key2")
+  val configurationValues = List("value1", "value2")
+  def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\"}"
+  val configurationData = "{\"required_params\": [" + paramJson(0) + ", " + paramJson(1) + "]}"
+  val configurationJson = JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))
 }
