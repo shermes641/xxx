@@ -11,7 +11,8 @@ import play.api.libs.json._
 object AnalyticsController extends Controller {
   def show(distributorID: Long, appID: Long) = Action {
     val app = App.find(appID)
-    Ok(views.html.Analytics.show(app.get, distributorID, appID))
+
+    Ok(views.html.Analytics.show(app.get, distributorID, appID, AdProvider.findAll))
   }
 }
 

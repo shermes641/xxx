@@ -14,7 +14,9 @@
     </head>
     <body>
         <header>
-			<img src="@routes.Assets.at("images/logo.png")">
+            <a href="@routes.AppsController.index(distributorID)">
+                <img src="@routes.Assets.at("images/logo.png")">
+            </a>
             <div class="actions">
                 <a href="http://documentation.hyprmx.com">Documentation</a>
                 @if(distributorID != 0) {
