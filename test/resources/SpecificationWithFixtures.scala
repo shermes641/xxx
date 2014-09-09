@@ -11,7 +11,6 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
   val email = "tdepplito@jungroup.com"
   val password = "password"
   val companyName = "Some Company"
-  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test")
 
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB)) {
   }
@@ -21,8 +20,10 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
 }
 
 trait cleanDB {
+  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test", "db.default.user" -> "postgres", "db.default.password" -> "postgres")
+
   def clean = {
-    running(FakeApplication(additionalConfiguration = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test"))) {
+    running(FakeApplication(additionalConfiguration = testDB)) {
       DB.withConnection { implicit connection =>
         SQL("DROP SCHEMA PUBLIC CASCADE;").execute()
         SQL("CREATE SCHEMA PUBLIC;").execute()
