@@ -1,6 +1,7 @@
 package controllers
 
 import models.Waterfall.AdProviderInfo
+import models.JsonBuilder
 import play.api.mvc._
 import models.Waterfall
 import play.api.libs.json._
@@ -17,7 +18,7 @@ object APIController extends Controller {
         BadRequest(Json.obj("status" -> "error", "message" -> "No ad providers are active."))
       }
       case adProviders: List[AdProviderInfo] => {
-        Ok(Waterfall.createOrderJsonResponse(adProviders))
+        Ok(JsonBuilder.waterfallResponse(adProviders))
       }
     }
   }

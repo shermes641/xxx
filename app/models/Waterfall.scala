@@ -5,14 +5,11 @@ import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
 import controllers.ConfigInfo
-import play.api.libs.json.{JsArray, JsString, JsObject, JsValue}
+import play.api.libs.json.{JsValue}
 
 case class Waterfall(id: Long, name: String, token: String)
 
 object Waterfall extends JsonConversion {
-  val ANALYTICS_POST_URL = "http://api.keen.io/3.0/projects/mediation"
-  val ANALYTICS_WRITE_KEY = "writeKey"
-
   // Used to convert SQL row into an instance of the Waterfall class.
   val waterfallParser: RowParser[Waterfall] = {
     get[Long]("waterfalls.id") ~
@@ -115,46 +112,6 @@ object Waterfall extends JsonConversion {
       ).on("id" -> token)
       query.as(adProviderParser*).toList
     }
-  }
-
-  /**
-   * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
-   * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
-   * @return JSON object with an ordered array of ad providers and their respective configuration info.
-   */
-  def createOrderJsonResponse(adProviders: List[AdProviderInfo]): JsValue = {
-    val configuration = JsObject(
-      Seq(
-        "adProviderConfigurations" -> adProviders.foldLeft(JsArray())((array, el) =>
-          array ++
-            JsArray(
-              JsObject(
-                Seq(
-                  "providerName" -> JsString(el.providerName)
-                )
-              ).deepMerge(el.configurationData.as[JsObject]) :: Nil
-            )
-        )
-      )
-    )
-    analyticsConfiguration.deepMerge(configuration)
-  }
-
-  /**
-   * Creates JSON object containing configuration data for our analytics service (keen.io)
-   * @return JSON object to be merged into JSON API response.
-   */
-  def analyticsConfiguration: JsObject = {
-    JsObject(
-      Seq(
-        "analyticsConfiguration" -> JsObject(
-          Seq(
-            "analyticsPostUrl" -> JsString(ANALYTICS_POST_URL),
-            "analyticsWriteKey" -> JsString(ANALYTICS_WRITE_KEY)
-          )
-        )
-      )
-    )
   }
 
   // Used to convert SQL row into an instance of the AdProviderInfo class in Waterfall.order.
