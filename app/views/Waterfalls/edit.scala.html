@@ -1,10 +1,17 @@
 @(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])
 <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
-    <div id="success-message"></div>
-    <div id="error-message"></div>
+    <div id="success-message" class="flash-message success"></div>
+    <div id="error-message" class="flash-message error"></div>
     <h1>Edit Waterfall</h1>
     @main("Edit Waterfall") {
         <h1>API Token: @waterfall.token</h1>
+        <button data-optimized-order="@waterfall.optimizedOrder" type="submit" name="optimized-order">
+            @if(waterfall.optimizedOrder) {
+                Optimized
+            } else {
+                Manual
+            }
+        </button>
         <div class="content">
             <div class="waterfall ul">
                 <h1>Waterfall Order</h1>
@@ -21,10 +28,10 @@
                                         Activate
                                     }
                                 </button>
-                                @if(!adProviderConfig.newRecord) {
-                                    <a href="@routes.WaterfallAdProvidersController.edit(distributorID, adProviderConfig.waterfallAdProviderID).url">
-                                        <button name="configure-wap" type="submit">Configure</button>
-                                    </a>
+                                @defining(if(adProviderConfig.newRecord) "none" else "inline-block") { display =>
+                                    <button style="display: @display" data-distributor-id="@distributorID" data-waterfall-ad-provider-id="@adProviderConfig.waterfallAdProviderID" name="configure-wap" type="submit">
+                                        Configure
+                                    </button>
                                 }
                             </li>
                         }
@@ -37,5 +44,6 @@
         <button type="submit" name="reset">Reset order</button>
     }
 </div>
+<div id="edit-waterfall-ad-provider" class="modal"></div>
 
 <script src="@routes.Assets.at("javascripts/waterfalls/edit.js")" type="text/javascript"></script>

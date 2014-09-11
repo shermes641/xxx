@@ -16,7 +16,7 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB)) {
   }
 
-  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB)) { //, webDriver = WebDriverFactory(Helpers.FIREFOX)
+  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) {
   }
 }
 
@@ -36,7 +36,7 @@ trait cleanDB {
 trait JsonTesting {
   val configurationParams = List("key1", "key2")
   val configurationValues = List("value1", "value2")
-  def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\"}"
+  def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\", \"description\": \"some description\"}"
   val configurationData = "{\"required_params\": [" + paramJson(0) + ", " + paramJson(1) + "]}"
   val configurationJson = JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))
 }

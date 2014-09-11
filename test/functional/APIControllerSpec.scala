@@ -57,4 +57,5 @@ class APIControllerSpec extends SpecificationWithFixtures {
       status(result) must equalTo(200)
     }
   }
+  step(clean)
 }

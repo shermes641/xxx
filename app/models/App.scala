@@ -14,6 +14,16 @@ import play.api.Play.current
  */
 case class App(id: Long, active: Boolean, distributorID: Long, name: String) {}
 
+/**
+ * Maps to App table in the database.
+ * @param id Maps to id column in App table
+ * @param active Maps to the active column in App table
+ * @param distributorID Maps to distributor_id column in App table
+ * @param waterfallID ID of the Waterfall to which the app belongs
+ * @param name Maps to name column in App table
+ */
+case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, name: String, waterfallID: Long)
+
 object App {
   // Used to convert SQL row into an instance of the App class.
   val AppParser: RowParser[App] = {
@@ -22,6 +32,36 @@ object App {
       get[Long]("apps.distributor_id") ~
       get[String]("apps.name") map {
       case id ~ active ~ distributor_id ~ name => App(id, active, distributor_id, name)
+    }
+  }
+
+  // Used to convert SQL row into an instance of the App class.
+  val AppsWithWaterfallsParser: RowParser[AppWithWaterfallID] = {
+    get[Long]("apps.id") ~
+    get[Boolean]("apps.active") ~
+    get[Long]("apps.distributor_id") ~
+    get[String]("apps.name") ~
+    get[Long]("waterfall_id") map {
+      case id ~ active ~ distributor_id ~ name ~ waterfall_id => AppWithWaterfallID(id, active, distributor_id, name, waterfall_id)
+    }
+  }
+
+  /**
+   * Retrieves all records from the App table for a particular distributor_id
+   * @param distributorID ID of the current Distributor
+   * @return List of App instances
+   */
+  def findAllAppsWithWaterfalls(distributorID: Long): List[AppWithWaterfallID] = {
+    DB.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT apps.*, waterfalls.id as waterfall_id
+          FROM apps
+          JOIN waterfalls ON waterfalls.app_id = apps.id
+          WHERE distributor_id = {distributor_id};
+        """
+      ).on("distributor_id" -> distributorID)
+      query.as(AppsWithWaterfallsParser*).toList
     }
   }
 

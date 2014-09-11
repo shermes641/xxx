@@ -319,7 +319,6 @@ header .actions a {
     position: relative;
 }
 
-
 .waterfall-ad-provider-configure:hover:after {
     background: #333;
     background: rgba(0,0,0,.8);
@@ -343,4 +342,63 @@ header .actions a {
     left: 50%;
     position: absolute;
     z-index: 99;
+}
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #DEDEDE;
+    padding: 25px;
+    z-index: 20;
+    -webkit-border-top-right-radius: 10px 10px;
+    -webkit-border-bottom-right-radius: 10px 10px;
+    -webkit-border-top-left-radius: 10px 10px;
+    -webkit-border-bottom-left-radius: 10px 10px;
+}
+
+.modal-text {
+    text-align: center;
+    padding-bottom: 10px;
+}
+
+.modal-label {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+
+.modal-inactive {
+    filter:alpha(opacity=50); /* IE */
+    opacity: 0.5; /* Safari, Opera */
+    -moz-opacity:0.5; /* FireFox */
+    z-index: 10;
+    height: 100%;
+    width: 100%;
+    background-repeat:no-repeat;
+    background-position:center;
+    position:absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.flash-message {
+    z-index: 999;
+    position: fixed;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    align: center;
+    margin: 5px;
+    font-size: 18px;
+    clear: both;
+}
+
+.flash-message.success {
+    color: #0AD000;
+}
+
+.flash-message.error {
+    color: #E80000;
 }
