@@ -16,10 +16,9 @@ var users = List("dcullen", "jellison", "tdepplito", "jlunn", "dwood")
 var appNames = List("Game App", "News App", "Casino App")
 
 // Create ad providers
-AdProvider.create("Ad Colony", "{\"required_params\":[\"appId\"]}")
-AdProvider.create("Vungle", "{\"required_params\":[\"appId\",\"zoneIds\"]}")
-AdProvider.create("HyprMX", "{\"required_params\":[\"distributorId\",\"propertyId\"]}")
-
+AdProvider.create("AdColony", "{\"required_params\":[{\"description\": \"Your AdColony App ID\", \"key\": \"appId\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your AdColony Zones\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\"}]}")
+AdProvider.create("HyprMX",   "{\"required_params\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}")
+AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}")
 /**
  * Creates an app using name and distributorID
  * @param name Name of App to be created
