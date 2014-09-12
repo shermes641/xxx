@@ -5,14 +5,13 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-
 // Include the Keen.IO library
 !function(a,b){if(void 0===b[a]){b["_"+a]={},b[a]=function(c){b["_"+a].clients=b["_"+a].clients||{},b["_"+a].clients[c.projectId]=this,this._config=c},b[a].ready=function(c){b["_"+a].ready=b["_"+a].ready||[],b["_"+a].ready.push(c)};for(var c=["addEvent","setGlobalProperties","trackExternalLink","on"],d=0;d<c.length;d++){var e=c[d],f=function(a){return function(){return this["_"+a]=this["_"+a]||[],this["_"+a].push(arguments),this}};b[a].prototype[e]=f(e)}var g=document.createElement("script");g.type="text/javascript",g.async=!0,g.src="https://d26b395fwzu5fz.cloudfront.net/3.0.7/keen.min.js";var h=document.getElementsByTagName("script")[0];h.parentNode.insertBefore(g,h)}}("Keen",this);
 
 // Initializes the keen library
 var client = new Keen({
-    projectId: "53f75d42709a3952e3000002",
-    readKey: "38e91b786e4c8150f22eac2368b038bc50d7e2a6904e97578a32e11d08a89b1ec1192272df9d9b7ca2586d5852e059f5604c702ded6d914ba68f14e8049d6023b076555e23500a8baf660c503b038a0a3fc9050872441938525c888a65cb49b85186e1b060fa5ceb8256351ef22c0902"
+    projectId: $("#keen_project").val(),
+    readKey: $("#scoped_key").val()
 });
 
 /**
@@ -41,12 +40,12 @@ function updateCharts() {
     var start_date = $( '#start_date' ).datepicker( 'getUTCDate' );
     var end_date = $( '#end_date' ).datepicker( 'getUTCDate' );
     // Return if one or both of the dates are invalid
-    if ( !isValidDate(start_date) || !isValidDate( end_date ) ) {
+    if ( !isValidDate( start_date ) || !isValidDate( end_date ) ) {
         return;
     }
 
     // Return if start date after end date
-    if ( end_date.getTime() === start_date.getTime() ) {
+    if ( end_date.getTime() <= start_date.getTime() ) {
         return;
     }
 
@@ -93,22 +92,6 @@ function updateCharts() {
             width: $( "#inventory_requests" ).width()
         });
 
-        // Unique Users count, metric
-        var unique_users = new Keen.Query( "count", {
-            eventCollection: "inventory_request",
-            filters: filters,
-            timeframe: {
-                start: start_date_iso,
-                end: end_date_iso
-            }
-        } );
-        client.draw( unique_users, document.getElementById( "unique_users" ), {
-            chartType: "metric",
-            title: "Unique Users",
-            colors: [ "#4285f4" ],
-            width: $( "#unique_users" ).width()
-        });
-
         // Calculate fill rate using inventory requests divided by inventory_available
         var available_count = new Keen.Query( "count", {
             eventCollection: "inventory_available",
@@ -151,18 +134,34 @@ function updateCharts() {
         client.run( estimated_revenue, function() {
             var table_data = [];
             var chart_data = [];
+            var cumulative_revenue = 0;
             _.each( this.data.result, function ( day ) {
+                var days_revenue = (day.value * eCPM);
                 var date = new Date( day.timeframe.start );
                 var date_string = ( date.getUTCMonth() + 1 ) + "/" + date.getUTCDate() + "/" + date.getUTCFullYear();
                 table_data.push( {
                     "Date": date_string,
-                    "Estimated Revenue": '$' + (day.value * eCPM)
+                    "Estimated Revenue": '$' + days_revenue
                 } );
                 chart_data.push( {
                     "Date": date_string,
-                    "Estimated Revenue": (day.value * eCPM)
+                    "Estimated Revenue": days_revenue
                 } );
+                cumulative_revenue = cumulative_revenue + days_revenue;
             } );
+
+            var average_revenue = {
+                result: cumulative_revenue / this.data.result.length
+            };
+            new Keen.Visualization( average_revenue, document.getElementById( "unique_users" ), {
+                chartType: "metric",
+                title: "Average Revenue By Day",
+                colors: [ "#4285f4" ],
+                    chartOptions: {
+                    prefix: "$"
+                },
+                width: $( "#unique_users" ).width()
+            });
 
             // Estimated Revenue Table
             new Keen.Visualization( { result: table_data.reverse() }, document.getElementById( "estimated_revenue" ), {

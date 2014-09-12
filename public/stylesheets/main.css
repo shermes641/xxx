@@ -379,6 +379,12 @@ div [class^="col-"] {
     margin: 10px 0 20px 0;
 }
 
+.keen-loading {
+    margin-top: -140px;
+    margin-bottom: -120px;
+    display: none;
+}
+
 #ad_providers, #countries {
     border-radius: 0;
     height: 41px;

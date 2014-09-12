@@ -1,4 +1,4 @@
-@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider])
+@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)
 
 @main("Analytics") {
     @views.html.Partials.subHeader("dashboard", distributorID, appID)
@@ -10,6 +10,9 @@
                     <h1>Dashboard - @app.name</h1>
                 </div>
             </div>
+            <input type="hidden" value="@keenProject" id="keen_project">
+            <input type="hidden" value="@scopedKey" id="scoped_key">
+            <!-- Temporary until ecpm is implemented, just replace this value with the correct eCPM -->
             <input type="hidden" value="1" id="ecpm">
             <input type="hidden" value="@appID" id="app_id">
             <div class="row">
@@ -298,13 +301,13 @@
                 <div class="col-sm-4">
                     <div class="chart-wrapper">
                         <div class="chart-title">
-                            Unique devices
+                            Average Revenue By Day
                         </div>
                         <div class="chart-stage">
                             <div id="unique_users"></div>
                         </div>
                         <div class="chart-notes">
-                            The number of unique devices
+                            Average Revenue By Day based on eCPM
                         </div>
                     </div>
                 </div>
