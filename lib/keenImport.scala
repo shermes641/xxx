@@ -10,16 +10,16 @@ val client = new Client(
   readKey = Option("38e91b786e4c8150f22eac2368b038bc50d7e2a6904e97578a32e11d08a89b1ec1192272df9d9b7ca2586d5852e059f5604c702ded6d914ba68f14e8049d6023b076555e23500a8baf660c503b038a0a3fc9050872441938525c888a65cb49b85186e1b060fa5ceb8256351ef22c0902")
 )
 
-var date = DateTime.now - 1.months
+var date = DateTime.now
 
-var inventory_requests = Array.fill(300) {
-  date = date + 5.minute
+var inventory_requests = Array.fill(4620) {
+  date = date - 8.minute
   Json.obj(
-    "distributor_id" -> 1,
+    "distributor_id" -> 11,
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 105,
-    "ad_provider" -> 1,
+    "app_id" -> 28,
+    "ad_provider" -> 3,
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -28,15 +28,16 @@ var inventory_requests = Array.fill(300) {
     )
   )
 }
+date = DateTime.now
 
-var inventory_available = Array.fill(300) {
-  date = date + 5.minute
+var inventory_available = Array.fill(3303) {
+  date = date - 8.minute
   Json.obj(
-    "distributor_id" -> 1,
+    "distributor_id" -> 11,
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 105,
-    "ad_provider" -> 1,
+    "app_id" -> 28,
+    "ad_provider" -> 3,
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -45,15 +46,16 @@ var inventory_available = Array.fill(300) {
     )
   )
 }
+date = DateTime.now
 
-var ad_displayed = Array.fill(300) {
-  date = date + 5.minute
+var ad_displayed = Array.fill(3120) {
+  date = date - 8.minute
   Json.obj(
-    "distributor_id" -> 1,
+    "distributor_id" -> 11,
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 105,
-    "ad_provider" -> 1,
+    "app_id" -> 28,
+    "ad_provider" -> 3,
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -62,15 +64,16 @@ var ad_displayed = Array.fill(300) {
     )
   )
 }
+date = DateTime.now
 
-var ad_completed = Array.fill(300) {
-  date = date + 5.minute
+var ad_completed = Array.fill(3000) {
+  date = date - 9.minute
   Json.obj(
-    "distributor_id" -> 1,
+    "distributor_id" -> 11,
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 105,
-    "ad_provider" -> 1,
+    "app_id" -> 28,
+    "ad_provider" -> 3,
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",

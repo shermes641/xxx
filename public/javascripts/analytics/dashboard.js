@@ -38,8 +38,8 @@ function updateCharts() {
     var appID = $( '#app_id' ).val();
     var eCPM = $( '#ecpm' ).val();
 
-    var start_date = $( '#start_date' ).datepicker( 'getDate' );
-    var end_date = $( '#end_date' ).datepicker( 'getDate' );
+    var start_date = $( '#start_date' ).datepicker( 'getUTCDate' );
+    var end_date = $( '#end_date' ).datepicker( 'getUTCDate' );
     // Return if one or both of the dates are invalid
     if ( !isValidDate(start_date) || !isValidDate( end_date ) ) {
         return;
@@ -72,7 +72,6 @@ function updateCharts() {
             property_value: adProvider
         } );
     }
-
     var start_date_iso = start_date.toISOString();
     var end_date_iso = end_date.toISOString();
 
@@ -129,6 +128,9 @@ function updateCharts() {
             new Keen.Visualization( { result: conversion_rate }, document.getElementById( 'fill_rate' ), {
                 chartType: "metric",
                 title: "Fill Rate",
+                chartOptions: {
+                    suffix: "%"
+                },
                 colors: [ "#4285f4" ],
                 width: $( "#fill_rate" ).width()
             } );
@@ -147,17 +149,23 @@ function updateCharts() {
 
         // Calculate expected eCPM
         client.run( estimated_revenue, function() {
-            var data = [];
+            var table_data = [];
+            var chart_data = [];
             _.each( this.data.result, function ( day ) {
-                var date = new Date(day.timeframe.start);
-                data.push( {
-                    "Date": date.toDateString(),
-                    "Estimated Revenue": day.value * eCPM
+                var date = new Date( day.timeframe.start );
+                var date_string = ( date.getUTCMonth() + 1 ) + "/" + date.getUTCDate() + "/" + date.getUTCFullYear();
+                table_data.push( {
+                    "Date": date_string,
+                    "Estimated Revenue": '$' + (day.value * eCPM)
+                } );
+                chart_data.push( {
+                    "Date": date_string,
+                    "Estimated Revenue": (day.value * eCPM)
                 } );
             } );
 
             // Estimated Revenue Table
-            new Keen.Visualization( { result: data }, document.getElementById( "estimated_revenue" ), {
+            new Keen.Visualization( { result: table_data.reverse() }, document.getElementById( "estimated_revenue" ), {
                 chartType: "table",
                 title: "Estimated Revenue",
                 colors: [ "#4285f4" ],
@@ -165,7 +173,7 @@ function updateCharts() {
             } );
 
             // Estimated Revenue Chart
-            new Keen.Visualization( { result: data }, document.getElementById("estimated_revenue_chart"), {
+            new Keen.Visualization( { result: chart_data }, document.getElementById("estimated_revenue_chart"), {
                 chartType: "areachart",
                 title: false,
                 height: 250,

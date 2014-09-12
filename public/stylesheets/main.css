@@ -265,6 +265,7 @@ header .actions a {
     padding: 10px;
     background: #eee;
     font-family: "Avenir Black", "Arial", sans-serif;
+    text-align: left;
 }
 
 #prev_app {
