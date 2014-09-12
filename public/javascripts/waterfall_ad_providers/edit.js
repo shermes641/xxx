@@ -28,7 +28,12 @@ $(document).ready(function() {
         fields.map(function(index, el) {
             var label = $(el).children("label").html();
             var value = $(el).children("input").val();
-            fieldObj[label] = value;
+            var dataType = $(el).find('input').attr("data-param-type");
+            if(dataType == "Array") {
+                fieldObj[label] = value.split(",").map(function(el, index) { return(el.trim()); });
+            } else {
+                fieldObj[label] = value;
+            }
         }).get();
         return(JSON.stringify(fieldObj));
     }

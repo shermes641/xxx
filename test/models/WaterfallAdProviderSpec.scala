@@ -11,7 +11,7 @@ import play.api.test.FakeApplication
 import play.libs.Json
 
 @RunWith(classOf[JUnitRunner])
-class WaterfallAdProviderSpec extends SpecificationWithFixtures {
+class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting {
   val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
     val distributorID = Distributor.create("New Company").get
     val distributor = Distributor.find(distributorID).get
@@ -19,10 +19,6 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures {
     val waterfallID = Waterfall.create(appID, "New App Waterfall").get
     Waterfall.find(waterfallID).get
   }
-
-  val configurationParams = List("key1", "key2")
-  val configurationValues = List("value1", "value2")
-  val configurationData = "{\"required_params\": [\"" + configurationParams(0) + "\", \"" + configurationParams(1) + "\"]}"
 
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
     DB.withConnection { implicit connection =>
@@ -47,10 +43,10 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures {
   }
 
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val updatedWaterfallAdProvider1 = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, Some(1), None, Some(true), None, JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)))))
+    val updatedWaterfallAdProvider1 = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, Some(1), None, Some(true), None, configurationJson)
     WaterfallAdProvider.update(updatedWaterfallAdProvider1)
 
-    val updatedWaterfallAdProvider2 = new WaterfallAdProvider(waterfallAdProvider2.id, waterfall.id, adProviderID2.get, Some(1), None, Some(true), None, JsObject(Seq(configurationParams(1) -> JsString(configurationValues(1)))))
+    val updatedWaterfallAdProvider2 = new WaterfallAdProvider(waterfallAdProvider2.id, waterfall.id, adProviderID2.get, Some(1), None, Some(true), None, configurationJson)
     WaterfallAdProvider.update(updatedWaterfallAdProvider2)
   }
 
@@ -67,7 +63,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures {
   "WaterfallAdProvider.update" should {
     "update the WaterfallAdProvider record in the database" in new WithDB {
       val newWaterfallOrder = Some(1.toLong)
-      val updatedWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, newWaterfallOrder, None, Some(true), None, JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)))))
+      val updatedWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, newWaterfallOrder, None, Some(true), None, configurationJson)
       WaterfallAdProvider.update(updatedWaterfallAdProvider)
       val retrievedWaterfallAdProvider = WaterfallAdProvider.find(waterfallAdProvider1.id).get
       retrievedWaterfallAdProvider.waterfallOrder.get must beEqualTo(newWaterfallOrder.get)
@@ -100,20 +96,22 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures {
   "WaterfallAdProvider.findConfigurationData" should {
     "return an instance of WaterfallAdProviderConfig containing configuration data for both WaterfallAdProvider and AdProvider" in new WithDB {
       val configData = WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get
-      val params = (configData.adProviderConfiguration \ "required_params").as[List[String]]
+      val params = (configData.adProviderConfiguration \ "required_params").as[List[Map[String, String]]]
       params.map { param =>
-        configurationParams must contain(param)
+        configurationParams must contain(param.get("key").get)
       }
       (configData.waterfallAdProviderConfiguration \ configurationParams(0)).as[String] must beEqualTo(configurationValues(0))
     }
   }
 
   "WaterfallAdProviderConfig.mappedFields" should {
-    "return a list of tuples where the first element is the name of the required key and the second element is the value for that key" in new WithDB{
+    "return a list of RequiredParam instances" in new WithDB{
       val configData = WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get
       val fields = configData.mappedFields
-      fields(0) must beEqualTo((configurationParams(0), configurationValues(0)))
-      fields(1) must beEqualTo((configurationParams(1), ""))
+      for(index <- (0 to fields.size-1)) {
+        fields(index).key.get must beEqualTo(configurationParams(index))
+        fields(index).value.get must beEqualTo(configurationValues(index))
+      }
     }
   }
   step(clean)

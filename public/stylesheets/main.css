@@ -369,6 +369,11 @@ div [class^="col-"] {
     padding: 8px 10px 5px;
 }
 
+.waterfall-ad-provider-configure {
+    display: inline;
+    position: relative;
+}
+
 #datepicker, #ad_providers, #countries {
     margin: 10px 0 20px 0;
 }
@@ -380,4 +385,29 @@ div [class^="col-"] {
 
 .input-group .form-control {
     padding: 20px;
+}
+
+.waterfall-ad-provider-configure:hover:after {
+    background: #333;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    bottom: 26px;
+    color: #fff;
+    content: attr(title);
+    left: 20%;
+    padding: 5px 15px;
+    position: absolute;
+    z-index: 98;
+    width: 220px;
+}
+
+.waterfall-ad-provider-configure:hover:before {
+    border: solid;
+    border-color: #333 transparent;
+    border-width: 6px 6px 0 6px;
+    bottom: 20px;
+    content: "";
+    left: 50%;
+    position: absolute;
+    z-index: 99;
 }

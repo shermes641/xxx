@@ -13,11 +13,13 @@ CREATE TABLE waterfalls (
   id bigserial,
   app_id bigint NOT NULL,
   name varchar(255) NOT NULL,
+  token varchar(255) NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (app_id) REFERENCES apps(id)
 );
 
 CREATE INDEX app_id_index on waterfalls(app_id);
+CREATE INDEX token_index on waterfalls(token);
  
 # --- !Downs
  

@@ -2,6 +2,9 @@
 
 $(document).ready(function() {
     $("#waterfall-list").sortable();
+    $("#waterfall-list").on("sortdeactivate", function(event, ui) {
+        postUpdate();
+    });
 
     // Rearranges the waterfall order list either by ecpm or original order.
     var orderList = function(orderAttr, ascending) {
@@ -56,8 +59,7 @@ $(document).ready(function() {
                 waterfallOrder: index.toString()
             });
         }).get();
-        var waterfallName = $(":input[id=name]").val();
-        return(JSON.stringify({waterfallName: waterfallName, adProviderOrder: order}));
+        return(JSON.stringify({adProviderOrder: order}));
     }
 
     // Displays success or error of AJAX request.
@@ -74,6 +76,7 @@ $(document).ready(function() {
     // Orders waterfall list by ecpm descending.
     $(":button[name=order]").click(function() {
         orderList("data-cpm", false);
+        postUpdate();
     });
 
     // Reverts waterfall list back to the original order from initial page load.
@@ -91,5 +94,6 @@ $(document).ready(function() {
         listItem.attr("data-active", (originalVal === "true" ? "false" : "true"));
         listItem.toggleClass("inactive");
         listItem.attr("data-active") === "true" ? $(buttonSelect).html("Deactivate") : $(buttonSelect).html("Activate")
+        postUpdate();
     });
 });

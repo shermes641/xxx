@@ -2,35 +2,9 @@ package models
 
 import org.junit.runner._
 import org.specs2.runner._
-import play.api.test.Helpers._
-import play.api.test.FakeApplication
-import play.api.db.DB
-import anorm.SQL
-import play.api.Play.current
 
 @RunWith(classOf[JUnitRunner])
-class WaterfallSpec extends SpecificationWithFixtures {
-  val distributor = running(FakeApplication(additionalConfiguration = testDB)) {
-    val distributorID = Distributor.create("Company Name").get
-    Distributor.find(distributorID).get
-  }
-
-  val app1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val appID = App.create(distributor.id.get, "App 1").get
-    App.find(appID).get
-  }
-
-  val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallID = Waterfall.create(app1.id, app1.name).get
-    Waterfall.find(waterfallID)
-  }
-
-  val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    DB.withConnection { implicit connection =>
-      SQL("insert into ad_providers (name) values ('test ad provider 1')").executeInsert()
-    }
-  }
-
+class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   "Waterfall.create" should {
     "add a new Waterfall record in the database" in new WithDB {
       val waterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
@@ -41,7 +15,7 @@ class WaterfallSpec extends SpecificationWithFixtures {
   "Waterfall.update" should {
     "update a Waterfall record in the database" in new WithDB {
       val newName = "Some new name"
-      Waterfall.update(new Waterfall(waterfall.get.id, newName))
+      Waterfall.update(waterfall.get.id, newName)
       Waterfall.find(waterfall.get.id).get.name must beEqualTo(newName)
     }
   }
@@ -84,6 +58,17 @@ class WaterfallSpec extends SpecificationWithFixtures {
       val someFakeID = 100
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(someFakeID, false, false, 0))
       Waterfall.reconfigureAdProviders(currentWaterfallID, configList) must beEqualTo(false)
+    }
+  }
+
+  "Waterfall.order" should {
+    "return a list of ordered ad providers with configuration information if there are active waterfall ad providers" in new WithDB {
+      WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, Some(0))
+      Waterfall.order(waterfall.get.token).size must beEqualTo(1)
+    }
+
+    "return an empty list if no ad providers are active" in new WithDB {
+      Waterfall.order("some-fake-token").size must beEqualTo(0)
     }
   }
   step(clean)

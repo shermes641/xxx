@@ -4,6 +4,7 @@ import anorm._
 import org.specs2.mutable._
 import play.api.Play.current
 import play.api.db.DB
+import play.api.libs.json.{JsString, JsObject}
 import play.api.test.Helpers._
 import play.api.test._
 
@@ -11,7 +12,6 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
   val email = "tdepplito@jungroup.com"
   val password = "password"
   val companyName = "Some Company"
-  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test")
 
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB)) {
   }
@@ -21,12 +21,22 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
 }
 
 trait cleanDB {
+  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test", "db.default.user" -> "postgres", "db.default.password" -> "postgres")
+
   def clean = {
-    running(FakeApplication(additionalConfiguration = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test"))) {
+    running(FakeApplication(additionalConfiguration = testDB)) {
       DB.withConnection { implicit connection =>
         SQL("DROP SCHEMA PUBLIC CASCADE;").execute()
         SQL("CREATE SCHEMA PUBLIC;").execute()
       }
     }
   }
+}
+
+trait JsonTesting {
+  val configurationParams = List("key1", "key2")
+  val configurationValues = List("value1", "value2")
+  def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\"}"
+  val configurationData = "{\"required_params\": [" + paramJson(0) + ", " + paramJson(1) + "]}"
+  val configurationJson = JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))
 }

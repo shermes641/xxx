@@ -1,4 +1,4 @@
-@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[(String, String)])
+@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam])
 <div class="content" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
     <div id="success-message"></div>
     <div id="error-message"></div>
@@ -7,8 +7,9 @@
         @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
             @for(param <- reqParams) {
                 <div class="edit-waterfall-ad-provider-field">
-                    <label>@param._1</label>
-                    <input type="text" value="@param._2"></input>
+                    <label>@param.key</label>
+                    <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
+                    <h4 class="waterfall-ad-provider-configure" title="@param.description">?</h4>
                 </div>
             }
             <button type="submit" name="submit">Save Changes</button>
