@@ -369,8 +369,13 @@ div [class^="col-"] {
     padding: 8px 10px 5px;
 }
 
-#datepicker {
-    padding: 10px 0 20px 0;
+#datepicker, #ad_providers, #countries {
+    margin: 10px 0 20px 0;
+}
+
+#ad_providers, #countries {
+    border-radius: 0;
+    height: 41px;
 }
 
 .input-group .form-control {

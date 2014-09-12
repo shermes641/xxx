@@ -12,6 +12,8 @@ object AnalyticsController extends Controller {
   def show(distributorID: Long, appID: Long) = Action {
     val app = App.find(appID)
 
+
+
     Ok(views.html.Analytics.show(app.get, distributorID, appID, AdProvider.findAll))
   }
 }
