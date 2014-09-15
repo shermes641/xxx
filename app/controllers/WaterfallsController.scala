@@ -37,6 +37,8 @@ object WaterfallsController extends Controller with Secured {
       val adProviderConfigList = listOrder.map { jsArray =>
         new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong)
       }
+      val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
+      Waterfall.update(waterfallID, optimizedOrder)
       Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
         case true => {
           Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))

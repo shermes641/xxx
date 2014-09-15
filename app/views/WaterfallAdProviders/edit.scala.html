@@ -1,19 +1,20 @@
-@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam])
-<div class="content" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
+@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], adProviderName: String)
+<div class="contents" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
     <div id="success-message"></div>
     <div id="error-message"></div>
-    <h1>Edit WaterfallAdProvider</h1>
-    @main("Edit WaterfallAdProvider") {
-        @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
-            @for(param <- reqParams) {
-                <div class="edit-waterfall-ad-provider-field">
-                    <label>@param.key</label>
-                    <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
-                    <h4 class="waterfall-ad-provider-configure" title="@param.description">?</h4>
-                </div>
-            }
-            <button type="submit" name="submit">Save Changes</button>
+    <h1 class="modal-text">Configure @adProviderName</h1>
+    @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
+        @for(param <- reqParams) {
+            <div class="edit-waterfall-ad-provider-field">
+                <label class="modal-label">@param.key</label>
+                <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
+                <h4 class="waterfall-ad-provider-configure" title="@param.description">?</h4>
+            </div>
         }
+        <div class="modal-text">
+            <button type="submit" name="update-ad-provider">Save Changes</button>
+            <button type="submit" name="cancel">Cancel</button>
+        </div>
     }
 </div>
 

@@ -29,6 +29,7 @@ POST        /distributors/:distributor_id/waterfalls/:waterfall_id              
 # WaterfallAdProvider
 GET         /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id/edit          controllers.WaterfallAdProvidersController.edit(distributor_id: Long, waterfall_ad_provider_id: Long)
 POST        /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id               controllers.WaterfallAdProvidersController.update(distributor_id: Long, waterfall_ad_provider_id: Long)
+POST        /distributors/:distributor_id/waterfall_ad_providers                                         controllers.WaterfallAdProvidersController.create(distributor_id: Long)
 
 # API
 GET          /v1/waterfall/:token                                                                        controllers.APIController.waterfallV1(token: String)

@@ -3,6 +3,7 @@ package models
 import anorm._
 import play.api.Play.current
 import play.api.db.DB
+import play.api.libs.json.{JsObject, JsString}
 import play.api.test.Helpers._
 import play.api.test._
 

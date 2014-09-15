@@ -1,4 +1,4 @@
-@(apps: List[App], distributorID: Long)
+@(apps: List[AppWithWaterfallID], distributorID: Long)
 @main("Welcome to Play") {
     <div class="content app_list">
       <h1>My Apps</h1>
@@ -14,6 +14,11 @@
                   <a href='@routes.AppsController.show(distributorID, app.id)'>
                       View
                   </a>
+                  <div>
+                      <a href='@routes.WaterfallsController.edit(distributorID, app.waterfallID)'>
+                          Edit Waterfall
+                      </a>
+                  </div>
               </div>
           </li>
         }

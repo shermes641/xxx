@@ -32,7 +32,7 @@ object AppsController extends Controller with Secured with customFormValidation 
    * @return Apps index view
    */
   def index(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    val apps = App.findAll(distributorID)
+    val apps = App.findAllAppsWithWaterfalls(distributorID)
     Ok(views.html.Apps.index(apps, distributorID))
   }
 

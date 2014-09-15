@@ -14,6 +14,7 @@ CREATE TABLE waterfalls (
   app_id bigint NOT NULL,
   name varchar(255) NOT NULL,
   token varchar(255) NOT NULL,
+  optimized_order BOOL NOT NULL DEFAULT TRUE,
   PRIMARY KEY (id),
   FOREIGN KEY (app_id) REFERENCES apps(id)
 );
