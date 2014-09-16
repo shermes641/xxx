@@ -1,4 +1,4 @@
-@(form: Form[AppMapping], distributorID: Long, appID: Long)
+@(form: Form[AppMapping], distributorID: Long, appID: Long)(implicit flash: Flash)
 @main("Modify App Configuration") {
     @views.html.Partials.subHeader("settings", distributorID, appID)
     <div class="content settings">

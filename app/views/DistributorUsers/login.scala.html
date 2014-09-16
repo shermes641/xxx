@@ -1,4 +1,4 @@
-@(form: Form[Login])
+@(form: Form[Login])(implicit flash: Flash)
 <div class="content registration">
     <h1>Sign In</h1>
     @if(form.hasErrors) {
