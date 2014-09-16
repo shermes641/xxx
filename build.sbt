@@ -14,5 +14,6 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "9.3-1100-jdbc4",
   "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.0",
   "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
-  "org.seleniumhq.selenium" % "selenium-java" % "2.43.0" % "test"
+  "org.seleniumhq.selenium" % "selenium-java" % "2.43.0" % "test",
+  "org.specs2" %% "specs2-junit" % "2.3.12"
 )
