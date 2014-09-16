@@ -5,13 +5,37 @@
     <h1>Edit Waterfall</h1>
     @main("Edit Waterfall") {
         <h1>API Token: @waterfall.token</h1>
-        <button data-optimized-order="@waterfall.optimizedOrder" type="submit" name="optimized-order">
-            @if(waterfall.optimizedOrder) {
-                Optimized
-            } else {
-                Manual
-            }
-        </button>
+        <table>
+            <td class="td-waterfall-config">
+                <label>Test Mode:</label>
+                <div class="onoffswitch">
+                    @if(waterfall.testMode) {
+                        <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch" checked>
+                    } else {
+                        <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
+                    }
+                    <label class="onoffswitch-label" for="test-mode-switch">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                </div>
+            </td>
+            <tr/>
+            <td class="td-waterfall-config">
+                <label>Optimized Mode:</label>
+                <div class="onoffswitch">
+                    @if(waterfall.optimizedOrder) {
+                        <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch" checked>
+                    } else {
+                        <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
+                    }
+                    <label class="onoffswitch-label" for="optimized-mode-switch">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                </div>
+            </td>
+        </table>
         <div class="content">
             <div class="waterfall ul">
                 <h1>Waterfall Order</h1>
@@ -40,8 +64,6 @@
             </div>
         </div>
         <button type="submit" name="submit">Save Changes</button>
-        <button type="submit" name="order">Order by eCPM</button>
-        <button type="submit" name="reset">Reset order</button>
     }
 </div>
 <div id="edit-waterfall-ad-provider" class="modal"></div>

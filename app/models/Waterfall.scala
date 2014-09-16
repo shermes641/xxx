@@ -7,7 +7,7 @@ import play.api.Play.current
 import controllers.ConfigInfo
 import play.api.libs.json.{JsValue}
 
-case class Waterfall(id: Long, name: String, token: String, optimizedOrder: Boolean)
+case class Waterfall(id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
@@ -15,8 +15,9 @@ object Waterfall extends JsonConversion {
     get[Long]("waterfalls.id") ~
     get[String]("name") ~
     get[String]("token") ~
-    get[Boolean]("optimized_order") map {
-      case id ~ name  ~ token ~ optimized_order => Waterfall(id, name, token, optimized_order)
+    get[Boolean]("optimized_order") ~
+    get[Boolean]("test_mode") map {
+      case id ~ name  ~ token ~ optimized_order ~ test_mode => Waterfall(id, name, token, optimized_order, test_mode)
     }
   }
 
@@ -41,17 +42,18 @@ object Waterfall extends JsonConversion {
    * Updates the fields for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
+   * @param testMode Boolean value which determines if the waterfall is live or not.
    * @return Number of rows updated
    */
-  def update(id: Long, optimizedOrder: Boolean): Int = {
+  def update(id: Long, optimizedOrder: Boolean, testMode: Boolean): Int = {
     DB.withConnection { implicit connection =>
       SQL(
         """
           UPDATE waterfalls
-          SET optimized_order={optimized_order}
+          SET optimized_order={optimized_order}, test_mode={test_mode}
           WHERE id={id};
         """
-      ).on("optimized_order" -> optimizedOrder, "id" -> id).executeUpdate()
+      ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "id" -> id).executeUpdate()
     }
   }
 
@@ -103,23 +105,27 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT ap.name, wap.configuration_data
+          SELECT ap.name, wap.configuration_data, wap.cpm, w.test_mode, w.optimized_order, wap.active
           FROM waterfalls w
-          JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
-          JOIN ad_providers ap on ap.id = wap.ad_provider_id
-          WHERE w.token={id} AND wap.active = true
+          FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
+          FULL OUTER JOIN ad_providers ap on ap.id = wap.ad_provider_id
+          WHERE w.token={token}
           ORDER BY wap.waterfall_order ASC
         """
-      ).on("id" -> token)
+      ).on("token" -> token)
       query.as(adProviderParser*).toList
     }
   }
 
   // Used to convert SQL row into an instance of the AdProviderInfo class in Waterfall.order.
   val adProviderParser: RowParser[AdProviderInfo] = {
-    get[String]("name") ~
-    get[JsValue]("configuration_data") map {
-      case name ~ configuration_data => AdProviderInfo(name, configuration_data)
+    get[Option[String]]("name") ~
+    get[Option[JsValue]]("configuration_data") ~
+    get[Option[Double]]("cpm") ~
+    get[Boolean]("test_mode") ~
+    get[Boolean]("optimized_order") ~
+    get[Option[Boolean]]("active") map {
+      case name ~ configuration_data ~ cpm ~ test_mode ~ optimized_order ~ active => AdProviderInfo(name, configuration_data, cpm, test_mode, optimized_order, active)
     }
   }
 
@@ -127,8 +133,12 @@ object Waterfall extends JsonConversion {
    * Encapsulates necessary information returned from SQL query in Waterfall.order.
    * @param providerName Maps to the name field in the ad_providers table.
    * @param configurationData Maps to the configuration_data field in the waterfall_ad_providers table.
+   * @param cpm Maps to the cpm field of waterfall_ad_providers table.
+   * @param testMode Determines if a waterfall is live or not.
+   * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
+   * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
-  case class AdProviderInfo(providerName: String, configurationData: JsValue)
+  case class AdProviderInfo(providerName: Option[String], configurationData: Option[JsValue], cpm: Option[Double], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean])
 
   /**
    * Updates WaterfallAdProvider records according to the configuration in the Waterfall edit view.
