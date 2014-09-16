@@ -41,10 +41,10 @@ object DistributorUsersController extends Controller with Secured with customFor
           case Some(id) => {
             // Email credentials need to be configured
             // signup.sendWelcomeEmail()
-            Redirect(routes.Application.index).flashing("success" -> "Your confirmation email will arrive shortly.")
+            Redirect(routes.DistributorUsersController.login).flashing("success" -> "Your confirmation email will arrive shortly.")
           }
           case _ => {
-            Redirect(routes.DistributorUsersController.login).flashing("error" -> "This email has been registered already. Try logging in.")
+            Redirect(routes.DistributorUsersController.signup).flashing("error" -> "This email has been registered already. Try logging in.")
           }
         }
       }

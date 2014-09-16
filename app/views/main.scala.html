@@ -1,4 +1,4 @@
-@(title: String, distributorID: Long = 0)(content: Html)
+@(title: String, distributorID: Long = 0)(content: Html)(implicit flash: Flash)
 <!DOCTYPE html>
 
 <html>
@@ -27,6 +27,13 @@
                 Username
             </div>
 		</header>
+        @if(!flash.isEmpty) {
+            @for((msgKey, msgValue) <- flash.data) {
+                <div class="flash flash-@msgKey">
+                    @msgValue
+                </div>
+            }
+        }
         @content
     </body>
 </html>

@@ -35,7 +35,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("Please agree to our terms")
     }
 
-    "redirect to the login page if the user's email is taken" in new WithFakeBrowser {
+    "redirect to the sign up page if the user's email is taken" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
@@ -44,7 +44,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.fill("#confirmation").`with`(password)
       browser.$("#terms").click()
       browser.click("button")
-      browser.pageSource must contain("Log In")
+      browser.pageSource must contain("Sign Up")
     }
 
     "respond with a 303 when email is taken" in new WithFakeBrowser {

@@ -1,4 +1,4 @@
-@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])
+@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])(implicit flash: Flash)
 <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
     <div id="success-message" class="flash-message success"></div>
     <div id="error-message" class="flash-message error"></div>
