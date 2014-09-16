@@ -375,7 +375,6 @@ div [class^="col-"] {
     position: relative;
 }
 
-<<<<<<< HEAD
 #datepicker, #ad_providers, #countries {
     margin: 10px 0 20px 0;
 }
@@ -478,4 +477,3 @@ div [class^="col-"] {
 .flash-message.error {
     color: #E80000;
 }
->>>>>>> origin/master
