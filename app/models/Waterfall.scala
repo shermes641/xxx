@@ -7,15 +7,16 @@ import play.api.Play.current
 import controllers.ConfigInfo
 import play.api.libs.json.{JsValue}
 
-case class Waterfall(id: Long, name: String, token: String)
+case class Waterfall(id: Long, name: String, token: String, optimizedOrder: Boolean)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
   val waterfallParser: RowParser[Waterfall] = {
     get[Long]("waterfalls.id") ~
     get[String]("name") ~
-    get[String]("token") map {
-      case id ~ name  ~ token => Waterfall(id, name, token)
+    get[String]("token") ~
+    get[Boolean]("optimized_order") map {
+      case id ~ name  ~ token ~ optimized_order => Waterfall(id, name, token, optimized_order)
     }
   }
 
@@ -39,18 +40,18 @@ object Waterfall extends JsonConversion {
   /**
    * Updates the fields for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
-   * @param name name field of the waterfall to be updated.
+   * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
    * @return Number of rows updated
    */
-  def update(id: Long, name: String): Int = {
+  def update(id: Long, optimizedOrder: Boolean): Int = {
     DB.withConnection { implicit connection =>
       SQL(
         """
           UPDATE waterfalls
-          SET name={name}
+          SET optimized_order={optimized_order}
           WHERE id={id};
         """
-      ).on("name" -> name, "id" -> id).executeUpdate()
+      ).on("optimized_order" -> optimizedOrder, "id" -> id).executeUpdate()
     }
   }
 

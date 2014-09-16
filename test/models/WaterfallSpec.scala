@@ -14,9 +14,10 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
   "Waterfall.update" should {
     "update a Waterfall record in the database" in new WithDB {
-      val newName = "Some new name"
-      Waterfall.update(waterfall.get.id, newName)
-      Waterfall.find(waterfall.get.id).get.name must beEqualTo(newName)
+      val optimizedOrder = false
+      Waterfall.update(waterfall.get.id, optimizedOrder)
+      val currentWaterfall = Waterfall.find(waterfall.get.id).get
+      currentWaterfall.optimizedOrder must beEqualTo(optimizedOrder)
     }
   }
 
