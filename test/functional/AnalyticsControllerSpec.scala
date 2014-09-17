@@ -128,9 +128,17 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
 
-      val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap
-      // Decrypted scoped key must contain the correct distributor ID
+      val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
+    }
+
+
+    "Javascript Unit Tests" in new WithFakeBrowser {
+      browser.goTo("/assets/javascripts/test/index.html")
+
+      // eCPM must be set correctly (placeholder for now)
+      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").hasText("completed");
+      browser.pageSource must contain("qunit-pass")
     }
   }
 

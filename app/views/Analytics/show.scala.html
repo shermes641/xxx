@@ -1,4 +1,4 @@
-@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)
+@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash)
 
 @main("Analytics") {
     @views.html.Partials.subHeader("dashboard", distributorID, appID)
@@ -366,5 +366,10 @@
 
     </div>
 }
+<script src="https://d26b395fwzu5fz.cloudfront.net/3.0.5/keen.min.js"></script>
 <script src="@routes.Assets.at("javascripts/datepicker.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/analytics/dashboard.js")" type="text/javascript"></script>
+<script>
+    new Analytics();
+</script>
+
