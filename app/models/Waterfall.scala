@@ -1,5 +1,7 @@
 package models
 
+import java.sql.Connection
+
 import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
@@ -22,6 +24,21 @@ object Waterfall extends JsonConversion {
   }
 
   /**
+   * SQL statement for inserting a new record into the waterfalls table.
+   * @param appID ID of the App to which the new Waterfall belongs
+   * @param name Name of the new Waterfall
+   * @return A SQL statement to be executed by create or createWithTransaction methods.
+   */
+  def insert(appID: Long, name: String): SimpleSql[Row] = {
+    SQL(
+      """
+        INSERT INTO waterfalls (app_id, name, token)
+        VALUES ({app_id}, {name}, {token});
+      """
+    ).on("app_id" -> appID, "name" -> name, "token" -> generateToken)
+  }
+
+  /**
    * Creates a new Waterfall record in the database.
    * @param appID ID of the App to which the new Waterfall belongs
    * @param name Name of the new Waterfall
@@ -29,13 +46,19 @@ object Waterfall extends JsonConversion {
    */
   def create(appID: Long, name: String): Option[Long] = {
     DB.withConnection { implicit connection =>
-      SQL(
-        """
-          INSERT INTO waterfalls (app_id, name, token)
-          VALUES ({app_id}, {name}, {token});
-        """
-      ).on("app_id" -> appID, "name" -> name, "token" -> generateToken).executeInsert()
+      insert(appID, name).executeInsert()
     }
+  }
+
+  /**
+   * Executes SQL from insert method within a database transaction.
+   * @param appID ID of the App to which the new Waterfall belongs
+   * @param name Name of the new Waterfall
+   * @param connection Database transaction
+   * @return ID of new record if insert is successful, otherwise None.
+   */
+  def createWithTransaction(appID: Long, name: String)(implicit connection: Connection): Option[Long] = {
+    insert(appID, name).executeInsert()
   }
 
   /**

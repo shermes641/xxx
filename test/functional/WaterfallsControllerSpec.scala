@@ -94,10 +94,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "reorder the waterfall in the same configuration as the drag and drop list" in new WithFakeBrowser with WaterfallEditSetup {
       val firstProvider = Waterfall.order(currentWaterfall.token)(0).providerName
 
-      browser.goTo("http://localhost:" + port + "/login")
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.executeScript("$('ul').prepend($('li').last());")
@@ -109,10 +106,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "remove an ad provider from the order when a user clicks the Deactivate button" in new WithFakeBrowser with WaterfallEditSetup {
       val listSize = Waterfall.order(currentWaterfall.token).size
 
-      browser.goTo("http://localhost:" + port + "/login")
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.$("button[name=status]").first().click()
@@ -125,10 +119,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       DB.withConnection { implicit connection =>
         SQL("update ad_providers set configuration_data = CAST({configuration_data} AS json) where id = {wap2_id};").on("configuration_data" -> configurationData, "wap2_id" -> wap2.id).executeInsert()
       }
-      browser.goTo("http://localhost:" + port + "/login")
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.$("button[name=configure-wap]").first().click()
@@ -141,10 +132,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle waterfall optimization on and off" in new WithFakeBrowser with WaterfallEditSetup {
-      browser.goTo("http://localhost:" + port + "/login")
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       Waterfall.find(currentWaterfall.id).get.optimizedOrder must beEqualTo(false)
@@ -155,10 +143,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
     "toggle waterfall test mode on and off" in new WithFakeBrowser with WaterfallEditSetup {
       Waterfall.update(currentWaterfall.id, false, false)
-      browser.goTo("http://localhost:" + port + "/login")
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(false)
@@ -171,10 +156,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newAppID = App.create(distributorID, "New App").get
       val newWaterfallID = Waterfall.create(newAppID, "New App").get
 
-      browser.goTo("http://localhost:" + port + "/login")
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)

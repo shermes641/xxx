@@ -1,12 +1,21 @@
-@(form: Form[AppMapping], distributorID: Long, appID: Long)(implicit flash: Flash)
+@(form: Form[EditAppMapping], distributorID: Long, appID: Long)(implicit flash: Flash)
 @main("Modify App Configuration") {
+    <div id="error-message" class="flash-message error"></div>
     @views.html.Partials.subHeader("settings", distributorID, appID)
     <div class="content settings">
-        <h1>Modify App Configuration</h1>
         @helper.form(action = routes.AppsController.update(distributorID, appID)) {
-            @helper.inputText(form("name"), 'placeholder -> "name", '_label -> null, '_showConstraints -> false)
-            @helper.inputRadioGroup(form("active"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "", '_showConstraints -> false)
+            <h1>App Configuration</h1>
+            @helper.inputText(form("currencyID"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
+            @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
+            @helper.inputRadioGroup(form("active"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Active?", '_showConstraints -> false)
+
+            <h1>Virtual Currency Configuration</h1>
+            @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
+            @helper.inputRadioGroup(form("roundUp"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Round Up", '_showConstraints -> false, 'class -> "tooltip", 'title -> "Round up all rewards to the minimum amount")
             <button type="submit" name="submit">Save Changes</button>
         }
     </div>
 }
+
+<script src="@routes.Assets.at("javascripts/apps/formValidation.js")" type="text/javascript"></script>
+<script src="@routes.Assets.at("javascripts/apps/edit.js")" type="text/javascript"></script>
