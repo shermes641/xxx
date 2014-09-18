@@ -20,9 +20,9 @@ object JsonBuilder {
             JsArray(
               JsObject(
                 Seq(
-                  "providerName" -> JsString(el.providerName)
+                  "providerName" -> JsString(el.providerName.get)
                 )
-              ).deepMerge(el.configurationData.as[JsObject]) :: Nil
+              ).deepMerge(el.configurationData.get.as[JsObject]) :: Nil
             )
         )
       )

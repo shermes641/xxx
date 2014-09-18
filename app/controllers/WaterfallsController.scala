@@ -38,10 +38,17 @@ object WaterfallsController extends Controller with Secured {
         new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong)
       }
       val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
-      Waterfall.update(waterfallID, optimizedOrder)
-      Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
-        case true => {
-          Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))
+      val testMode: Boolean = (json \ "testMode").as[String].toBoolean
+      Waterfall.update(waterfallID, optimizedOrder, testMode) match {
+        case 1 => {
+          Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
+            case true => {
+              Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))
+            }
+            case _ => {
+              BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
+            }
+          }
         }
         case _ => {
           BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
