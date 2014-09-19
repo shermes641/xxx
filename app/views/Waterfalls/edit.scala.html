@@ -1,7 +1,7 @@
 @(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])(implicit flash: Flash)
 <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
-    <div id="success-message" class="flash-message success"></div>
-    <div id="error-message" class="flash-message error"></div>
+    <div id="waterfall-edit-success" class="flash-message success"></div>
+    <div id="waterfall-edit-error" class="flash-message error"></div>
     <h1>Edit Waterfall</h1>
     @main("Edit Waterfall") {
         <h1>API Token: @waterfall.token</h1>

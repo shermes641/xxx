@@ -5,6 +5,7 @@ import anorm.SqlParser._
 import com.github.t3hnar.bcrypt._
 import play.api.db.DB
 import play.api.Play.current
+import scala.language.postfixOps
 
 /**
  * Encapsulates information for DistributorUsers.

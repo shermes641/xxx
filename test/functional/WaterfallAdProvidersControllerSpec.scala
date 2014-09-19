@@ -55,7 +55,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     "properly fill the values of the fields if data exists" in new WithFakeBrowser {
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
       val configParam = "Some value"
-      val updatedValues = new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq(configurationParams(0) -> JsString(configParam))))
+      val updatedValues = new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq(configurationParams(0) -> JsString(configParam))))), wap.reportingActive)
       WaterfallAdProvider.update(updatedValues)
       val Some(result) = route(request.withSession("distributorID" -> distributorUser.distributorID.get.toString(), "username" -> email))
       contentAsString(result) must contain(configParam)
@@ -65,7 +65,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
   "WaterfallAdProvidersController.update" should {
     "update the configuration_data field of the waterfall_ad_providers record" in new WithFakeBrowser {
       val updatedParam = "Some new value"
-      val configurationData = Seq(configurationParams(0) -> JsString(updatedParam))
+      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"))
       val body = JsObject(configurationData)
       val postRequest = FakeRequest(
         POST,
@@ -76,7 +76,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val Some(result) = route(postRequest.withSession("distributorID" -> distributorUser.distributorID.get.toString(), "username" -> email))
       status(result) must equalTo(200)
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
-      wap.configurationData must beEqualTo(body)
+      wap.configurationData must beEqualTo(body \ "configurationData")
     }
 
     "respond with a 400 if proper JSON is not received" in new WithFakeBrowser {

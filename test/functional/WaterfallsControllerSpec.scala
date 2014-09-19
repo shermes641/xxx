@@ -99,7 +99,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.executeScript("$('ul').prepend($('li').last());")
       browser.executeScript("postUpdate();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#success-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.order(currentWaterfall.token)(0).providerName must not equalTo(firstProvider)
     }
 
@@ -111,7 +111,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.$("button[name=status]").first().click()
       browser.executeScript("postUpdate();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#success-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.order(currentWaterfall.token).filter(adProvider => adProvider.active.get).size must equalTo(listSize - 1)
     }
 
@@ -127,8 +127,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val configKey = "some key"
       browser.fill("input").`with`(configKey)
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#success-message").isPresent()
-      (WaterfallAdProvider.find(wap2.id).get.configurationData \ configurationParams(0)).as[String] must beEqualTo(configKey)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").isPresent()
+      val waterfallAdProviderParams = WaterfallAdProvider.find(wap2.id).get.configurationData \ "requiredParams"
+      (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configKey)
     }
 
     "toggle waterfall optimization on and off" in new WithFakeBrowser with WaterfallEditSetup {
@@ -137,7 +138,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       Waterfall.find(currentWaterfall.id).get.optimizedOrder must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); postUpdate();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#success-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(currentWaterfall.id).get.optimizedOrder must beEqualTo(true)
     }
 
@@ -148,7 +149,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); postUpdate();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#success-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
     }
 
@@ -161,8 +162,27 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
       Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
+    }
+
+    "update the status of reporting for a waterfall ad provider" in new WithFakeBrowser {
+      val newAppID = App.create(distributorID, "New App").get
+      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
+      browser.$("button[name=status]").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      val newWap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
+      newWap.reportingActive must beEqualTo(false)
+      browser.$("button[name=configure-wap]").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#wap-edit-success").areDisplayed()
+      WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
     }
   }
 
@@ -171,8 +191,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.find(waterfallID).get
     }
     running(FakeApplication(additionalConfiguration = testDB)) {
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(true), wap2.fillRate, wap2.configurationData))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(true), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
       Waterfall.update(waterfallID, false, false)
     }
   }

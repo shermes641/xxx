@@ -9,6 +9,7 @@ import play.api.libs.json._
 object APIController extends Controller {
   val TEST_MODE_DISTRIBUTOR_ID = "111"
   val TEST_MODE_PROVIDER_NAME = "HyprMX"
+  val TEST_MODE_APP_ID = " "
   /**
    * Responds with waterfall order in JSON form.
    * @param token Random string which both authenticates the request and identifies the waterfall.
@@ -23,7 +24,7 @@ object APIController extends Controller {
       }
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
-        val testConfigData: JsValue = JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID)))
+        val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
         val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(testConfigData), None, None, None, None, true, false, Some(false))
         Ok(JsonBuilder.waterfallResponse(List(testAdProviderConfig)))
       }

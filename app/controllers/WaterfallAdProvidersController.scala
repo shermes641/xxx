@@ -34,7 +34,7 @@ object WaterfallAdProvidersController extends Controller with Secured {
   def edit(distributorID: Long, waterfallAdProviderID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     WaterfallAdProvider.findConfigurationData(waterfallAdProviderID) match {
       case Some(configData) => {
-        Ok(views.html.WaterfallAdProviders.edit(distributorID, waterfallAdProviderID, configData.mappedFields, configData.name))
+        Ok(views.html.WaterfallAdProviders.edit(distributorID, waterfallAdProviderID, configData.mappedFields("requiredParams"), configData.mappedFields("reportingParams"), configData.name, configData.reportingActive))
       }
       case _ => {
         Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Could not find ad provider.")
@@ -50,10 +50,12 @@ object WaterfallAdProvidersController extends Controller with Secured {
    */
   def update(distributorID: Long, waterfallAdProviderID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     val badResponse = Json.obj("status" -> "error", "message" -> "Ad Provider configuration was not updated.")
-    request.body.asJson.map { configData =>
+    request.body.asJson.map { jsonResponse =>
       WaterfallAdProvider.find(waterfallAdProviderID) match {
         case Some(record) => {
-          val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, record.cpm, record.active, record.fillRate, configData)
+          val configData = (jsonResponse \ "configurationData").as[JsValue]
+          val reportingActive = (jsonResponse \ "reportingActive").as[String].toBoolean
+          val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, record.cpm, record.active, record.fillRate, configData, reportingActive)
           WaterfallAdProvider.update(newValues) match {
             case 1 => Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!"))
             case _ => BadRequest(badResponse)

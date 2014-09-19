@@ -35,14 +35,10 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures {
   val adProviders = List("test ad provider 1", "test ad provider 2")
 
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    DB.withConnection { implicit connection =>
-      SQL("insert into ad_providers (name) values ({name})").on("name" -> adProviders(0)).executeInsert()
-    }
+    AdProvider.create(adProviders(0), "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}")
   }
 
   val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    DB.withConnection { implicit connection =>
-      SQL("insert into ad_providers (name) values ({name})").on("name" -> adProviders(1)).executeInsert()
-    }
+    AdProvider.create(adProviders(1), "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}")
   }
 }
