@@ -1,13 +1,5 @@
 "use strict";
 
-// Toggles boolean for optimized_order setting for waterfall.
-var optimizeToggle = function() {
-    var newStatus = !(optimizeToggleButton.attr("data-optimized-order") == "true" ? true : false);
-    $("#waterfall-list").sortable(newStatus ? "disable" : "enable");
-    optimizeToggleButton.html(newStatus ? "Optimized" : "Manual");
-    optimizeToggleButton.attr("data-optimized-order", newStatus.toString());
-};
-
 // Rearranges the waterfall order list either by eCPM or original order.
 var orderList = function(orderAttr, ascending) {
     var newOrder = $("#waterfall-list li").sort(function(li1, li2) {
@@ -46,7 +38,7 @@ var postUpdate = function() {
             flashMessage(result.message, $("#error-message"));
         }
     });
-}
+};
 
 // Creates waterfall ad provider via AJAX.
 var createWaterfallAdProvider = function(adProviderID) {
@@ -77,7 +69,8 @@ var createWaterfallAdProvider = function(adProviderID) {
 // Retrieves current list order and value of waterfall name field.
 var updatedData = function() {
     var adProviderList = providersByActive("true");
-    var optimizedOrder = optimizeToggleButton.attr("data-optimized-order");
+    var optimizedOrder = optimizeToggleButton.prop("checked").toString();
+    var testMode = testModeButton.prop("checked").toString();
     adProviderList.push.apply(adProviderList, providersByActive("false").length > 0 ? providersByActive("false") : [])
     var order = adProviderList.map(function(index, el) {
         return({
@@ -87,7 +80,7 @@ var updatedData = function() {
             waterfallOrder: index.toString()
         });
     }).get();
-    return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder}));
+    return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode}));
 };
 
 // Displays success or error of AJAX request.
@@ -97,29 +90,21 @@ var flashMessage = function(message, div) {
 };
 
 // Selector for button which toggles waterfall optimization.
-var optimizeToggleButton = $(":button[name=optimized-order]");
+var optimizeToggleButton = $(":checkbox[name=optimized-order]");
+
+// Selector for button which toggles waterfall from live to test mode.
+var testModeButton = $(":checkbox[name=test-mode]");
 
 $("#waterfall-list").sortable({containment: ".content"});
 $("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false});
 
 // Disable sortable list if waterfall has optimized_order set to true.
-$("#waterfall-list").sortable(optimizeToggleButton.attr("data-optimized-order") == "true" ? "disable" : "enable");
+$("#waterfall-list").sortable(optimizeToggleButton.prop("checked") ? "disable" : "enable");
 
 $(document).ready(function() {
     // Initiates AJAX request to update waterfall.
     $(":button[name=submit]").click(function() {
         postUpdate();
-    });
-
-    // Orders waterfall list by eCPM descending.
-    $(":button[name=order]").click(function() {
-        orderList("data-cpm", false);
-        postUpdate();
-    });
-
-    // Reverts waterfall list back to the original order from initial page load.
-    $(":button[name=reset]").click(function() {
-        orderList("data-order-number", true);
     });
 
     // Controls activation/deactivation of each ad provider in a waterfall.
@@ -156,10 +141,30 @@ $(document).ready(function() {
         });
     });
 
-    // Click event for when Optimized/Manual button is pressed.
+    // Click event for when Optimized Mode is toggled.
     optimizeToggleButton.click(function() {
-        optimizeToggle();
+        var sortableOption;
+        if(optimizeToggleButton.prop("checked")) {
+            sortableOption = "disable";
+            orderList("data-cpm", false);
+        } else {
+            sortableOption = "enable";
+        }
+        $("#waterfall-list").sortable(sortableOption);
         postUpdate();
+    });
+
+    // Click event for when Test Mode is toggled.
+    testModeButton.click(function(event) {
+        var newRecords = $('#waterfall-list li').filter(function(index, li) { return($(li).attr("data-new-record") === "true") }).length;
+        var allRecords = $('#waterfall-list li').length;
+        // Prevent the user from setting the waterfall to live without configuring any ad providers.
+        if(newRecords == allRecords) {
+            event.preventDefault();
+            flashMessage("You must activate an ad provider before the waterfall can go live.", $("#error-message"));
+        } else {
+            postUpdate();
+        }
     });
 
     // Sends AJAX request when waterfall order is changed via drag and drop.
