@@ -136,8 +136,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
     "Javascript Unit Tests" in new WithFakeBrowser {
       browser.goTo("/assets/javascripts/test/index.html")
 
-      // eCPM must be set correctly (placeholder for now)
-      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").hasText("completed");
+      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").containsText("completed");
       browser.pageSource must contain("qunit-pass")
     }
   }

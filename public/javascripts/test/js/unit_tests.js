@@ -23,7 +23,7 @@ require(
     function( QUnit, analyticsTest ) {
 
         // start QUnit.
-        QUnit.load();
+        // Commented out due to Firefox loading QUnit twice.  QUnit.load();
         QUnit.start();
 
         // run the tests.
