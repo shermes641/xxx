@@ -7,7 +7,7 @@ import play.api.data.Forms._
 import play.api.mvc._
 
 /** Controller for models.DistributorUser instances. */
-object DistributorUsersController extends Controller with Secured with customFormValidation {
+object DistributorUsersController extends Controller with Secured with CustomFormValidation {
   // Form mapping used in new and create actions
   val signupForm = Form[Signup](
       mapping(

@@ -11,7 +11,7 @@ object Application extends Controller with Secured {
 
 }
 
-trait customFormValidation {
+trait CustomFormValidation {
   /**
    * Form validation to check for empty field
    * @param fieldName Name of empty field to be displayed in error message

@@ -63,10 +63,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       DistributorUser.create(email2, password, companyName)
       val user1 = DistributorUser.findByEmail(email1).get
       val user2 = DistributorUser.findByEmail(email2).get
-      browser.goTo(baseURL + "/login")
-      browser.fill("#email").`with`(email1)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
+      logInUser()
       browser.goTo(baseURL + "/distributors/" + user2.distributorID.get + "/apps")
       browser.pageSource must contain("Log In")
     }

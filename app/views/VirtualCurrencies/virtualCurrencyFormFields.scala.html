@@ -1,0 +1,6 @@
+@(name: Field, exchangeRate: Field, rewardMin: Field, rewardMax: Field)
+@helper.inputText(name, 'placeholder -> "Gold", '_label -> "Currency Name", '_showConstraints -> false)
+@helper.inputText(exchangeRate, 'placeholder -> "100", '_label -> "Exchange Rate", '_showConstraints -> false)
+<label>The number of virtual currency units per $1</label>
+@helper.inputText(rewardMin, 'placeholder -> "1", '_label -> "Reward Minimum", '_showConstraints -> false)
+@helper.inputText(rewardMax, 'placeholder -> "10", '_label -> "Reward Maximum", '_showConstraints -> false)

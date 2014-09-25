@@ -1,10 +1,26 @@
 @(form: Form[NewAppMapping], distributorID: Long)(implicit flash: Flash)
 @main("New App") {
-    <div class="content app_list">
-        <h1>New App</h1>
-        @helper.form(action = routes.AppsController.create(distributorID)) {
-            @helper.inputText(form("name"), 'placeholder -> "name", '_label -> null, '_showConstraints -> false)
-            <button type="submit" name="submit">Create App</button>
-        }
-    </div>
+    <div id="error-message" class="flash-message error"></div>
+    @helper.form(action = routes.AppsController.create(distributorID), 'name -> "new-app-form") {
+        <div id="new-app" class="content registration">
+            <h1>New App</h1>
+            @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
+            <button type="submit" name="app-form-next">Next</button>
+        </div>
+        <div id="new-virtual-currency" class="content registration">
+            <h1>New Virtual Currency</h1>
+            @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
+            @helper.checkbox(form("roundUp"), '_label -> "Round Up Reward", '_help -> "", 'class -> "tooltip", 'title -> "Round up all rewards to the minimum amount")
+            <label>
+                There are many situations where an offer could pay out less than the exchange rate that you are offering - e.g. in the case where an offer pays $0.009 and your currency is worth $0.01.
+                In those cases, an option we have is to round up, giving the user 1 Gold even though they didn’t quite earn it.
+                If you choose not to enable this option, we will simply not show offers from a provider that has an eCPM below the value of the minimum reward, ensuring in most cases that this does not occur.
+            </label>
+            <button id="create-app" type="submit" name="virtual-currency-form">Create App</button>
+            <button type="submit" name="virtual-currency-form-back">Back</button>
+        </div>
+    }
 }
+
+<script src="@routes.Assets.at("javascripts/apps/formValidation.js")" type="text/javascript"></script>
+<script src="@routes.Assets.at("javascripts/apps/newApp.js")" type="text/javascript"></script>

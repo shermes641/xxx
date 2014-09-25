@@ -86,7 +86,7 @@ var updatedData = function() {
 // Displays success or error of AJAX request.
 var flashMessage = function(message, div) {
     div.html(message).fadeIn();
-    div.delay(3000).fadeOut("sow");
+    div.delay(3000).fadeOut("slow");
 };
 
 // Selector for button which toggles waterfall optimization.

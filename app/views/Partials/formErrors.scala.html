@@ -1,0 +1,12 @@
+@(hasErrors: Boolean, errors: Seq[FormError])
+@if(hasErrors) {
+    <h3>Oops</h3>
+
+    <ul>
+    @errors.map { error =>
+        @if(error.message != "") {
+            <li>@error.message</li>
+        }
+    }
+    </ul>
+}
