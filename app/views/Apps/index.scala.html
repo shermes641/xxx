@@ -8,7 +8,11 @@
       <ul class="full_list">
         @for(app <- apps) {
           <li>
-              <h3>@app.name</h3>
+              <h3>
+                  <a href='@routes.AppsController.edit(distributorID, app.id)'>
+                      @app.name
+                  </a>
+              </h3>
               <div class="description">A brief overview of a couple app settings here (ex. active vs inactive etc.)</div>
               <div class="actions">
                   <a href='@routes.AppsController.show(distributorID, app.id)'>

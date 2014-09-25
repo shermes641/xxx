@@ -1,18 +1,7 @@
 @(form: Form[Signup])(implicit flash: Flash)
 <div class="content registration">
     <h1>Sign Up</h1>
-    @if(form.hasErrors) {
-        <h3>Oops</h3>
-
-        <ul>
-            @form.errors.map { error =>
-                @if(error.message != "") {
-                    <li>@error.message</li>
-                }
-            }
-        </ul>
-    }
-
+    @views.html.Partials.formErrors(form.hasErrors, form.errors)
     @main("Sign up") {
         @helper.form(action = routes.DistributorUsersController.create) {
             @helper.inputText(form("company"),'_showConstraints -> false, 'placeholder -> "Company Name", '_label -> null)

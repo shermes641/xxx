@@ -17,6 +17,18 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
   }
 
   abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) {
+    /**
+     * Logs in a distributor user for automated browser tests
+     * @param email A distributor user's email; defaults to the email value within the SpecificationWithFixtures class.
+     * @param password A distributor user's password; defaults to the password value within the SpecificationWithFixtures class.
+     * @return A browser with a session for the distributor user's email that was passed in.
+     */
+    def logInUser(email: String = email, password: String = password): Unit = {
+      browser.goTo("http://localhost:" + port + "/login")
+      browser.fill("#email").`with`(email)
+      browser.fill("#password").`with`(password)
+      browser.click("button")
+    }
   }
 }
 

@@ -8,9 +8,13 @@ import play.api.test.Helpers._
 import play.api.test._
 
 trait WaterfallSpecSetup extends SpecificationWithFixtures {
+  val user = running(FakeApplication(additionalConfiguration = testDB)) {
+    DistributorUser.create(email, password, "Company Name")
+    DistributorUser.findByEmail(email).get
+  }
+
   val distributor = running(FakeApplication(additionalConfiguration = testDB)) {
-    val distributorID = Distributor.create("Company Name").get
-    Distributor.find(distributorID).get
+    Distributor.find(user.distributorID.get).get
   }
 
   val app1 = running(FakeApplication(additionalConfiguration = testDB)) {

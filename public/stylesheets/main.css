@@ -187,6 +187,10 @@ header .actions a {
 	margin-top: 20px;
 }
 
+.settings dl {
+    margin-top: 20px;
+}
+
 .registration input[type="checkbox"] {
 	margin: 10px;
 	display: block;
@@ -314,12 +318,12 @@ header .actions a {
 	cursor: pointer;
 }
 
-.waterfall-ad-provider-configure {
+.tooltip {
     display: inline;
     position: relative;
 }
 
-.waterfall-ad-provider-configure:hover:after {
+.tooltip:hover:after {
     background: #333;
     background: rgba(0,0,0,.8);
     border-radius: 5px;
@@ -333,7 +337,7 @@ header .actions a {
     width: 220px;
 }
 
-.waterfall-ad-provider-configure:hover:before {
+.tooltip:hover:before {
     border: solid;
     border-color: #333 transparent;
     border-width: 6px 6px 0 6px;

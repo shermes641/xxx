@@ -1,16 +1,7 @@
 @(form: Form[Login])(implicit flash: Flash)
 <div class="content registration">
     <h1>Sign In</h1>
-    @if(form.hasErrors) {
-        <h3>Oops</h3>
-    
-        <ul>
-            @for(error <- form.errors) {
-                <li>@error.message</li>
-            }
-        </ul>
-    }
-    
+    @views.html.Partials.formErrors(form.hasErrors, form.errors)
     @main("Log In") {
         @helper.form(action = routes.DistributorUsersController.authenticate) {
             @helper.inputText(form("email"),'_showConstraints -> true, 'placeholder -> "Email", '_label -> null)
