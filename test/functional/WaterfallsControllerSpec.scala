@@ -133,6 +133,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.$("button[name=configure-wap]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      val configKey = "some key"
+      browser.fill("input").`with`(configKey)
+      browser.click("button[name=update-ad-provider]")
     }
 
     "toggle waterfall optimization on and off" in new WithFakeBrowser with WaterfallEditSetup {
