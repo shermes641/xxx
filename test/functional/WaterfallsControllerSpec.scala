@@ -129,6 +129,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
+      browser.$("button[name=configure-wap]").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
     }
 
     "toggle waterfall optimization on and off" in new WithFakeBrowser with WaterfallEditSetup {
