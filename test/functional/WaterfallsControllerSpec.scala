@@ -135,9 +135,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val configKey = "some key"
       browser.fill("input").`with`(configKey)
-      browser.takeScreenShot("before_scala_test.jpg")
       browser.click("button[name=update-ad-provider]")
-      browser.takeScreenShot("after_scala_test.jpg")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#success-message").isPresent()
       (WaterfallAdProvider.find(wap2.id).get.configurationData \ configurationParams(0)).as[String] must beEqualTo(configKey)
     }
