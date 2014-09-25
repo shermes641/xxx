@@ -428,6 +428,7 @@ div [class^="col-"] {
     background: #DEDEDE;
     padding: 25px;
     z-index: 20;
+    overflow: visible;
     -webkit-border-top-right-radius: 10px 10px;
     -webkit-border-bottom-right-radius: 10px 10px;
     -webkit-border-top-left-radius: 10px 10px;
