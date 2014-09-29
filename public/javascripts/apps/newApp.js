@@ -20,7 +20,7 @@ $(document).ready(function() {
         if(validRewardAmounts()) {
             $("form[name=new-app-form]").submit();
         } else {
-            flashMessage("Reward Maximum must be greater than Reward Minimum.");
+            flashMessage(rewardAmountErrorMessage);
         }
     });
 

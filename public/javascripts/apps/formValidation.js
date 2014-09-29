@@ -13,7 +13,10 @@ var validRewardAmounts = function() {
     var rewardMax = $(":input[name=rewardMax]").val();
     var validResult = true;
     if(rewardMin !== "" && rewardMax !== "") {
-        validResult = parseInt(rewardMax) > parseInt(rewardMin);
+        validResult = parseInt(rewardMax) >= parseInt(rewardMin);
     }
     return(validResult);
 };
+
+// Error message displayed when validRewardAmounts is false.
+var rewardAmountErrorMessage = "Reward Maximum must be greater than or equal to Reward Minimum.";

@@ -11,7 +11,7 @@
 
             <h1>Virtual Currency Configuration</h1>
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
-            @helper.inputRadioGroup(form("roundUp"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Round Up", '_showConstraints -> false, 'class -> "tooltip", 'title -> "Round up all rewards to the minimum amount")
+            @helper.inputRadioGroup(form("roundUp"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Round Up", '_showConstraints -> false, 'title -> "Round up all rewards to the minimum amount")
             <button type="submit" name="submit">Save Changes</button>
         }
     </div>

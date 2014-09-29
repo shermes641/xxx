@@ -10,7 +10,7 @@
         <div id="new-virtual-currency" class="content registration">
             <h1>New Virtual Currency</h1>
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
-            @helper.checkbox(form("roundUp"), '_label -> "Round Up Reward", '_help -> "", 'class -> "tooltip", 'title -> "Round up all rewards to the minimum amount")
+            @helper.checkbox(form("roundUp"), '_label -> "Round Up Reward", '_help -> "", 'checked -> "checked")
             <label>
                 There are many situations where an offer could pay out less than the exchange rate that you are offering - e.g. in the case where an offer pays $0.009 and your currency is worth $0.01.
                 In those cases, an option we have is to round up, giving the user 1 Gold even though they didn’t quite earn it.

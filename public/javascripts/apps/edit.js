@@ -7,7 +7,7 @@ $(document).ready(function() {
             $("form").submit();
         } else {
             event.preventDefault();
-            flashMessage("Reward Maximum must be greater than Reward Minimum.");
+            flashMessage(rewardAmountErrorMessage);
         }
     });
 });
