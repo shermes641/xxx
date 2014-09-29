@@ -22,6 +22,11 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures {
     App.find(appID).get
   }
 
+  val virtualCurrency1 = running(FakeApplication(additionalConfiguration = testDB)) {
+    val vcID = VirtualCurrency.create(app1.id, "Gold", 10, None, None, Some(true)).get
+    VirtualCurrency.find(vcID).get
+  }
+
   val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
     val waterfallID = Waterfall.create(app1.id, app1.name).get
     Waterfall.find(waterfallID)

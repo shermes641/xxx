@@ -77,6 +77,23 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val jsonResponse: List[JsValue] = (Json.parse(contentAsString(result)) \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       jsonResponse.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index))}
     }
+
+    "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
+      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(10.toLong), None, false))
+      Waterfall.update(waterfall.get.id, true, false)
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq())))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(0.0), Some(true), None, JsObject(Seq())))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      val jsonResponse: List[JsValue] = (Json.parse(contentAsString(result)) \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
+      jsonResponse.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
+    }
   }
   step(clean)
 }
