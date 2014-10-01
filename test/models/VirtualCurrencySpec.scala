@@ -33,4 +33,5 @@ class VirtualCurrencySpec extends SpecificationWithFixtures with AppSpecSetup {
       updatedRecord.name must beEqualTo(newName)
     }
   }
+  step(clean)
 }

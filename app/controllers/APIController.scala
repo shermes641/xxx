@@ -14,6 +14,7 @@ object APIController extends Controller {
    * @param token Random string which both authenticates the request and identifies the waterfall.
    * @return If a waterfall is found and ad providers are configured, return a JSON with the ordered ad providers and configuration info.  Otherwise, return a JSON with an error message.
    */
+  //case class AdProviderInfo(providerName: Option[String], configurationData: Option[JsValue], cpm: Option[Double], exchangeRate: Option[Long], rewardMin: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean])
   def waterfallV1(token: String) = Action { implicit request =>
     Waterfall.order(token) match {
       // Token was not found in waterfalls table.
@@ -23,22 +24,22 @@ object APIController extends Controller {
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
         val testConfigData: JsValue = JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID)))
-        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(testConfigData), None, true, false, Some(false))
+        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(testConfigData), None, None, None, None, true, false, Some(false))
         Ok(JsonBuilder.waterfallResponse(List(testAdProviderConfig)))
       }
       // Waterfall is in "Optimized" mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).optimizedOrder) => {
-        val providerList = adProviders.map( adProvider =>
-          adProvider.cpm match {
-            case Some(cpm: Double) => new AdProviderInfo(adProvider.providerName, adProvider.configurationData, adProvider.cpm, adProvider.optimizedOrder, adProvider.testMode, adProvider.active)
-            case None => new AdProviderInfo(adProvider.providerName, adProvider.configurationData, Some(0), adProvider.optimizedOrder, adProvider.testMode, adProvider.active)
+        val providerList = adProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold).sortWith { (provider1, provider2) =>
+          (provider1.cpm, provider2.cpm) match {
+            case (Some(cpm1: Double), Some(cpm2: Double)) => cpm1 > cpm2
+            case (_, _) => false
           }
-        ).filter(adProvider => adProvider.active.get).sortWith(_.cpm.get > _.cpm.get)
+        }
         Ok(JsonBuilder.waterfallResponse(providerList))
       }
       // All other cases.
       case adProviders: List[AdProviderInfo] => {
-        Ok(JsonBuilder.waterfallResponse(adProviders.filter(adProvider => adProvider.active.get)))
+        Ok(JsonBuilder.waterfallResponse(adProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold)))
       }
     }
   }

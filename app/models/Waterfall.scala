@@ -128,10 +128,11 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT ap.name, wap.configuration_data, wap.cpm, w.test_mode, w.optimized_order, wap.active
+          SELECT ap.name, wap.configuration_data, wap.cpm, vc.exchange_rate, vc.reward_min, vc.round_up, w.test_mode, w.optimized_order, wap.active
           FROM waterfalls w
           FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
           FULL OUTER JOIN ad_providers ap on ap.id = wap.ad_provider_id
+          FULL OUTER JOIN virtual_currencies vc on vc.app_id = w.app_id
           WHERE w.token={token}
           ORDER BY wap.waterfall_order ASC
         """
@@ -145,10 +146,13 @@ object Waterfall extends JsonConversion {
     get[Option[String]]("name") ~
     get[Option[JsValue]]("configuration_data") ~
     get[Option[Double]]("cpm") ~
+    get[Option[Long]]("exchange_rate") ~
+    get[Option[Long]]("reward_min") ~
+    get[Option[Boolean]]("round_up") ~
     get[Boolean]("test_mode") ~
     get[Boolean]("optimized_order") ~
     get[Option[Boolean]]("active") map {
-      case name ~ configuration_data ~ cpm ~ test_mode ~ optimized_order ~ active => AdProviderInfo(name, configuration_data, cpm, test_mode, optimized_order, active)
+      case name ~ configuration_data ~ cpm ~ exchange_rate ~ reward_min ~ round_up ~ test_mode ~ optimized_order ~ active => AdProviderInfo(name, configuration_data, cpm, exchange_rate, reward_min, round_up, test_mode, optimized_order, active)
     }
   }
 
@@ -157,11 +161,27 @@ object Waterfall extends JsonConversion {
    * @param providerName Maps to the name field in the ad_providers table.
    * @param configurationData Maps to the configuration_data field in the waterfall_ad_providers table.
    * @param cpm Maps to the cpm field of waterfall_ad_providers table.
+   * @param exchangeRate Maps to the exchange_rate field of the virtual_currencies table.
+   * @param rewardMin Maps to the reward_min field of the virtual_currencies table.
+   * @param roundUp Maps to the round_up field of the virtual_currencies table.
    * @param testMode Determines if a waterfall is live or not.
    * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
    * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
-  case class AdProviderInfo(providerName: Option[String], configurationData: Option[JsValue], cpm: Option[Double], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean])
+  case class AdProviderInfo(providerName: Option[String], configurationData: Option[JsValue], cpm: Option[Double], exchangeRate: Option[Long], rewardMin: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
+    lazy val meetsRewardThreshold: Boolean = {
+      (roundUp, cpm, rewardMin) match {
+        case (Some(roundUpValue: Boolean), _, _) if(roundUpValue) => true
+        case (Some(roundUpValue: Boolean), Some(cpmVal: Double), Some(minReward: Long)) if(!roundUpValue) => {
+          val rewardAmount = minReward / exchangeRate.get
+          (cpmVal / 1000) >= rewardAmount
+        }
+        // If there is no cpm value for an ad provider and the virtual currency does not roundUp, this will ensure it is excluded from the waterfall.
+        case (Some(roundUpValue: Boolean), None, _) if(!roundUpValue) => false
+        case (_, _, _) => true
+      }
+    }
+  }
 
   /**
    * Updates WaterfallAdProvider records according to the configuration in the Waterfall edit view.

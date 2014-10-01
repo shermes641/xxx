@@ -6,7 +6,7 @@ CREATE TABLE virtual_currencies (
     exchange_rate bigint NOT NULL,
     reward_min bigint,
     reward_max bigint,
-    round_up BOOL NOT NULL DEFAULT FALSE,
+    round_up BOOL NOT NULL DEFAULT TRUE,
     app_id bigint,
     FOREIGN KEY (app_id) REFERENCES apps(id),
     PRIMARY KEY (id)
