@@ -19,5 +19,6 @@ libraryDependencies ++= Seq(
   "io.spray" %%  "spray-routing" % "1.3.1",
   "com.github.nscala-time" %% "nscala-time" % "1.4.0",
   "org.seleniumhq.selenium" % "selenium-java" % "2.43.0" % "test",
-  "org.specs2" %% "specs2-junit" % "2.3.12"
+  "org.specs2" %% "specs2-junit" % "2.3.12",
+  "com.newrelic.agent.java" % "newrelic-agent" % "3.7.0"
 )
