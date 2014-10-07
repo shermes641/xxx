@@ -1,2 +1,1 @@
-web: play run --http.port=$PORT $PLAY_OPTS -DapplyEvolutions.default=true -J-javaagent:newrelic/newrelic.jar -J-Dnewrelic.config.file=newrelic/newrelic.yml
-
+web: target/universal/stage/bin/mediationapi -Dhttp.port=${PORT} -Dplay.modules.evolutions.autoApply=true -J-javaagent:newrelic/newrelic.jar -J-Dnewrelic.config.file=newrelic/newrelic.yml
