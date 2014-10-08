@@ -219,7 +219,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newWaterfallID = Waterfall.create(newAppID, "New App").get
 
       val defaultEcpm = Some(20.0)
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, false, defaultEcpm).get
+      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, None, false, defaultEcpm).get
       logInUser()
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.executeScript("var button = $('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('div[class=inactive-waterfall-content]').children(':button[name=status]').click();")
@@ -234,7 +234,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newWaterfallID = Waterfall.create(newAppID, "New App").get
 
       val defaultEcpm = "20.0"
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, false, Some(defaultEcpm.toDouble)).get
+      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, None, false, Some(defaultEcpm.toDouble)).get
       logInUser()
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.$("li[id=true-" + adProviderWithDefaultEcpmID + "]").getAttribute("data-cpm") must beEqualTo(defaultEcpm)

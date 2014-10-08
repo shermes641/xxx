@@ -1,7 +1,9 @@
 package models
 
+import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
 import org.specs2.runner._
+import play.api.libs.json.JsObject
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
@@ -72,6 +74,16 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
     "return an empty list if no ad providers are active" in new WithDB {
       Waterfall.order("some-fake-token").size must beEqualTo(0)
+    }
+  }
+
+  "Waterfall.findCallbackInfo" should {
+    "return an instance of WaterfallCallbackInfo if the token is found" in new WithDB {
+      Waterfall.findCallbackInfo(waterfall.get.token).get must haveClass[WaterfallCallbackInfo]
+    }
+
+    "return None if the token is not found" in new WithDB {
+      Waterfall.findCallbackInfo("some fake token") must beNone
     }
   }
   step(clean)

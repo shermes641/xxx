@@ -723,3 +723,8 @@ div [class^="col-"] {
 .td-waterfall-config {
     width: 250px;
 }
+
+.callback {
+    font-size: 10px;
+    max-width: 300px;
+}

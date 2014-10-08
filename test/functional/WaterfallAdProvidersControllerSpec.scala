@@ -38,7 +38,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
   val request = FakeRequest(
     GET,
-    controllers.routes.WaterfallAdProvidersController.edit(distributorUser.distributorID.get, waterfallAdProviderID).url,
+    controllers.routes.WaterfallAdProvidersController.edit(distributorUser.distributorID.get, waterfallAdProviderID, None).url,
     FakeHeaders(),
     ""
   )

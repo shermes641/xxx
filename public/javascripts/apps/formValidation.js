@@ -18,5 +18,18 @@ var validRewardAmounts = function() {
     return(validResult);
 };
 
+// Checks for a valid callback URL when server to server callbacks are enabled.
+var validCallback = function() {
+    var callbacksEnabled = $("input[id=serverToServerEnabled_1]").is(":checked");
+    var callbackURL = $("input[id=callbackURL]").val();
+    if(callbacksEnabled) {
+        return (/(http|https):\/\//).test(callbackURL);
+    }
+    return true;
+};
+
 // Error message displayed when validRewardAmounts is false.
 var rewardAmountErrorMessage = "Reward Maximum must be greater than or equal to Reward Minimum.";
+
+// Error message displayed when a callback URL is invalid.
+var callbackErrorMessage = "A valid HTTP or HTTPS callback URL is required.";

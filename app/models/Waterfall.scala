@@ -122,6 +122,43 @@ object Waterfall extends JsonConversion {
   }
 
   /**
+   * Encapsulates info for App's server to server callback.
+   * @param callbackURL The URL which receives the result of the completion attempt.
+   * @param serverToServerEnabled Boolean value that determines if we should use the callbackURL.
+   */
+  case class WaterfallCallbackInfo(callbackURL: Option[String], serverToServerEnabled: Boolean)
+
+  // Used to convert SQL row to an instance of WaterfallCallbackInfo class.
+  val waterfallCallbackInfoParser: RowParser[WaterfallCallbackInfo] = {
+    get[Option[String]]("callback_url") ~
+    get[Boolean]("server_to_server_enabled") map {
+      case callback_url ~ server_to_server_enabled => WaterfallCallbackInfo(callback_url, server_to_server_enabled)
+    }
+  }
+
+  /**
+   * Finds the callback information for an app based on the waterfall token.
+   * @param waterfallToken Maps to the token field of the waterfalls table.
+   * @return An instance of the WaterfallCallbackInfo if the token is found; otherwise, returns None.
+   */
+  def findCallbackInfo(waterfallToken: String): Option[WaterfallCallbackInfo] = {
+    DB.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT apps.callback_url, apps.server_to_server_enabled
+          FROM waterfalls
+          JOIN apps ON apps.id = waterfalls.app_id
+          WHERE waterfalls.token={waterfall_token};
+        """
+      ).on("waterfall_token" -> waterfallToken)
+      query.as(waterfallCallbackInfoParser*) match {
+        case List(waterfallCallbackInfo) => Some(waterfallCallbackInfo)
+        case _ => None
+      }
+    }
+  }
+
+  /**
    * Retrieves the order of ad providers with their respective configuration data.
    * @param token API token used to authenticate a request and find a particular waterfall.
    * @return A list containing instances of AdProviderInfo if any active WaterfallAdProviders exist.

@@ -70,18 +70,19 @@ object AdProvider extends JsonConversion {
    * Creates a new record in the AdProvider table
    * @param name Maps to name column in AdProvider table
    * @param configurationData Json configuration data for AdProvider
+   * @param callbackUrlFormat General format for reward callback URL
    * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
    * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
    * @return ID of newly created record
    */
-  def create(name: String, configurationData: String, configurable: Boolean = true, defaultEcpm: Option[Double] = None): Option[Long] = {
+  def create(name: String, configurationData: String, callbackUrlFormat: Option[String], configurable: Boolean = true, defaultEcpm: Option[Double] = None): Option[Long] = {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          INSERT INTO ad_providers (name, configuration_data, configurable, default_ecpm)
-          VALUES ({name}, CAST({configuration_data} AS json), {configurable}, {default_ecpm});
+          INSERT INTO ad_providers (name, configuration_data, callback_url_format, configurable, default_ecpm)
+          VALUES ({name}, CAST({configuration_data} AS json), {callback_url_format}, {configurable}, {default_ecpm});
         """
-      ).on("name" -> name, "configuration_data" -> configurationData, "configurable" -> configurable, "default_ecpm" -> defaultEcpm).executeInsert()
+      ).on("name" -> name, "configuration_data" -> configurationData, "callback_url_format" -> callbackUrlFormat, "configurable" -> configurable, "default_ecpm" -> defaultEcpm).executeInsert()
     }
   }
 }

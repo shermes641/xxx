@@ -18,6 +18,16 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, None, None, true).get
   }
 
+  val vungleCallbackUrl = Some("http://mediation-staging.herokuapp.com/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
+  val vungleAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
+    AdProvider.create("Vungle", "{\"requiredParams\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", vungleCallbackUrl).get
+  }
+
+  val completionWaterfall = running(FakeApplication(additionalConfiguration = testDB)) {
+    val waterfallID = Waterfall.create(app1.id, app1.name).get
+    Waterfall.find(waterfallID).get
+  }
+
   "APIController.waterfall" should {
     "respond with 400 if token is not valid" in new WithFakeBrowser {
       val request = FakeRequest(
@@ -122,6 +132,86 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val jsonResponse: JsValue = (Json.parse(contentAsString(result)))
       (jsonResponse \ "status").as[String] must beEqualTo("error")
       (jsonResponse \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
+    }
+  }
+
+  "APIController.vungleCompletionV1" should {
+    val transactionID = Some("0123456789")
+    val wap = running(FakeApplication(additionalConfiguration = testDB)) {
+      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleAdProviderID, None, None, true).get
+      WaterfallAdProvider.find(id).get
+    }
+    val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
+      "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
+
+    "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val digest = Some("bf80d53f84df22bb91b48acc7606bc0909876f6fe981b1610a0352433ae16a63")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.vungleCompletionV1(completionWaterfall.token, transactionID, digest, Some(1), None).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      tableCount("completions") must beEqualTo(completionCount + 1)
+    }
+
+    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.vungleCompletionV1(completionWaterfall.token, transactionID, Some("some-fake-digest"), Some(1), None).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+
+    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.vungleCompletionV1(completionWaterfall.token, None, None, Some(1), None).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+  }
+
+  "APIController.appLovinCompletionV1" should {
+    "respond with a 200 if all necessary params are present" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.appLovinCompletionV1(completionWaterfall.token, Some("event-id"), Some(1), None, None, None, None).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      tableCount("completions") must beEqualTo(completionCount + 1)
+    }
+
+    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.appLovinCompletionV1(completionWaterfall.token, None, None, None, None, None, None).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
     }
   }
   step(clean)

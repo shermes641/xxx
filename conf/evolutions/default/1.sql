@@ -13,6 +13,8 @@ CREATE TABLE apps (
   active BOOL NOT NULL DEFAULT TRUE,
   distributor_id bigint NOT NULL,
   name varchar(255) NOT NULL,
+  callback_url varchar(255),
+  server_to_server_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (id),
   FOREIGN KEY (distributor_id) REFERENCES distributors(id)
 );
