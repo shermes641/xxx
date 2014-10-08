@@ -41,15 +41,16 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val testConfigData: JsValue = JsArray(JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME))) :: Nil)
+      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME)))
+      val testConfigData: JsValue = JsArray(JsObject(Seq("requiredParams" -> requiredParams)) :: Nil)
       val jsonResponse: JsValue = Json.parse(contentAsString(result)) \ "adProviderConfigurations"
-      jsonResponse must beEqualTo(testConfigData)
+      jsonResponse must beEqualTo(JsArray(requiredParams :: Nil))
     }
 
     "respond with ad providers ordered by eCPM when the waterfall is in optimized mode" in new WithFakeBrowser {
       Waterfall.update(waterfall.get.id, true, false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq())))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq())))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
@@ -64,8 +65,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
 
     "respond with the current waterfall order when waterfall is live and not optimized" in new WithFakeBrowser {
       Waterfall.update(waterfall.get.id, false, false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(1.0), Some(true), None, JsObject(Seq())))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(5.0), Some(true), None, JsObject(Seq())))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
@@ -81,8 +82,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(10.toLong), None, false))
       Waterfall.update(waterfall.get.id, true, false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq())))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(0.0), Some(true), None, JsObject(Seq())))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq()), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(0.0), Some(true), None, JsObject(Seq()), true))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.waterfallV1(waterfall.get.token).url,

@@ -22,7 +22,7 @@ object JsonBuilder {
                 Seq(
                   "providerName" -> JsString(el.providerName.get)
                 )
-              ).deepMerge(el.configurationData.get.as[JsObject]) :: Nil
+              ).deepMerge((el.configurationData.get \ "requiredParams").as[JsObject]) :: Nil
             )
         )
       )

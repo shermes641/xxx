@@ -5,6 +5,7 @@ import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
 import java.sql.Connection
+import scala.language.postfixOps
 
 /**
  * Maps to App table in the database.

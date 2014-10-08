@@ -49,6 +49,6 @@ trait JsonTesting {
   val configurationParams = List("key1", "key2")
   val configurationValues = List("value1", "value2")
   def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\", \"description\": \"some description\"}"
-  val configurationData = "{\"required_params\": [" + paramJson(0) + ", " + paramJson(1) + "]}"
-  val configurationJson = JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))
+  val configurationData = "{\"requiredParams\": [" + paramJson(0) + ", " + paramJson(1) + "], \"reportingParams\": []}"
+  val configurationJson = JsObject(Seq("requiredParams" -> JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))))
 }

@@ -5,7 +5,7 @@ import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
+import scala.language.postfixOps
 
 /**
  * Encapsulates information for a record in the waterfall_ad_providers table.
@@ -18,7 +18,7 @@ import play.api.libs.functional.syntax._
  * @param fillRate the ratio of ads shown to inventory checks
  */
 case class WaterfallAdProvider (
-	id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean], fillRate: Option[Float], configurationData: JsValue
+	id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean], fillRate: Option[Float], configurationData: JsValue, reportingActive: Boolean
 )
 
 object WaterfallAdProvider extends JsonConversion {
@@ -31,8 +31,9 @@ object WaterfallAdProvider extends JsonConversion {
     get[Option[Double]]("cpm") ~
     get[Option[Boolean]]("active") ~
     get[Option[Float]]("fill_rate") ~
-    get[JsValue]("configuration_data") map {
-      case id ~ waterfall_id ~ ad_provider_id ~ waterfall_order ~ cpm ~ active ~ fill_rate ~ configuration_data => WaterfallAdProvider(id, waterfall_id, ad_provider_id, waterfall_order, cpm, active, fill_rate, configuration_data)
+    get[JsValue]("configuration_data") ~
+    get[Boolean]("reporting_active") map {
+      case id ~ waterfall_id ~ ad_provider_id ~ waterfall_order ~ cpm ~ active ~ fill_rate ~ configuration_data ~ reporting_active => WaterfallAdProvider(id, waterfall_id, ad_provider_id, waterfall_order, cpm, active, fill_rate, configuration_data, reporting_active)
     }
   }
 
@@ -46,13 +47,34 @@ object WaterfallAdProvider extends JsonConversion {
       SQL(
         """
           UPDATE waterfall_ad_providers
-          SET waterfall_order={waterfall_order}, cpm={cpm}, active={active}, fill_rate={fill_rate}, configuration_data=CAST({configuration_data} AS json)
+          SET waterfall_order={waterfall_order}, cpm={cpm}, active={active}, fill_rate={fill_rate},
+          configuration_data=CAST({configuration_data} AS json), reporting_active={reporting_active}
           WHERE id={id};
         """
       ).on(
-          "waterfall_order" -> waterfallAdProvider.waterfallOrder, "cpm" -> waterfallAdProvider.cpm, "active" -> waterfallAdProvider.active,
-          "fill_rate" -> waterfallAdProvider.fillRate, "configuration_data" -> Json.stringify(waterfallAdProvider.configurationData), "id" -> waterfallAdProvider.id
+          "waterfall_order" -> waterfallAdProvider.waterfallOrder, "cpm" -> waterfallAdProvider.cpm,
+          "active" -> waterfallAdProvider.active, "fill_rate" -> waterfallAdProvider.fillRate,
+          "configuration_data" -> Json.stringify(waterfallAdProvider.configurationData),
+          "reporting_active" -> waterfallAdProvider.reportingActive, "id" -> waterfallAdProvider.id
         ).executeUpdate()
+    }
+  }
+
+  /**
+   * Updates the eCPM field for a given WaterfallAdProvider ID.
+   * @param id The ID of the WaterfallAdProvider to be updated.
+   * @param eCPM The new eCPM value calculated in RevenueDataActor.
+   * @return 1 if the update is successful; otherwise, 0.
+   */
+  def updateEcpm(id: Long, eCPM: Double): Int = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          UPDATE waterfall_ad_providers
+          SET cpm={cpm}
+          WHERE id={id};
+        """
+      ).on("cpm" -> eCPM, "id" -> id).executeUpdate()
     }
   }
 
@@ -67,7 +89,7 @@ object WaterfallAdProvider extends JsonConversion {
       val updatableClass = WaterfallAdProvider.find(adProviderID.toLong) match {
         case Some(record) => {
           // The new waterfallOrder number is updated according to the position of each WaterfallAdProvider in the list.
-          val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, Some(index + 1), record.cpm, record.active, record.fillRate, record.configurationData)
+          val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, Some(index + 1), record.cpm, record.active, record.fillRate, record.configurationData, record.reportingActive)
           update(updatedValues) match {
             case 1 => {}
             case _ => successful = false
@@ -164,6 +186,23 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
+   * Retrieves all active WaterfallAdProviders that have reporting enabled.
+   * @return A list of WaterfallAdProviderRevenueData instances if any exist; otherwise, returns an empty list.
+   */
+  def findAllReportingEnabled: List[WaterfallAdProviderRevenueData] = {
+    DB.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT wap.id as id, ap.name, wap.configuration_data FROM ad_providers ap
+          JOIN waterfall_ad_providers wap ON wap.ad_provider_id = ap.id
+          WHERE wap.active = true AND wap.reporting_active = true;
+        """
+      )
+      query.as(waterfallAdProviderRevenueDataParser*).toList
+    }
+  }
+
+  /**
    * Retrieves configuration data for WaterfallAdProviders and AdProviders.
    * @param waterfallAdProviderID ID of the current WaterfallAdProvider.
    * @return Instance of WaterallAdProviderConfig class if records exist; otherwise, returns None.
@@ -172,7 +211,7 @@ object WaterfallAdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, ad_providers.configuration_data as ad_provider_configuration, wap.configuration_data as wap_configuration
+          SELECT name, ad_providers.configuration_data as ad_provider_configuration, wap.configuration_data as wap_configuration, wap.reporting_active
           FROM waterfall_ad_providers wap
           JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
           WHERE wap.id = {id};
@@ -200,11 +239,29 @@ object WaterfallAdProvider extends JsonConversion {
   val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
     get[String]("name") ~
     get[JsValue]("ad_provider_configuration") ~
-    get[JsValue]("wap_configuration") map {
-      case name ~ ad_provider_configuration ~ wap_configuration => WaterfallAdProviderConfig(name, ad_provider_configuration, wap_configuration)
+    get[JsValue]("wap_configuration") ~
+    get[Boolean]("reporting_active") map {
+      case name ~ ad_provider_configuration ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, ad_provider_configuration, wap_configuration, reporting_active)
+    }
+  }
+
+  // Used to convert result of findAll SQL query.
+  val waterfallAdProviderRevenueDataParser: RowParser[WaterfallAdProviderRevenueData] = {
+    get[Long]("id") ~
+    get[String]("name") ~
+    get[JsValue]("configuration_data") map {
+      case id ~ name ~ configuration_data => WaterfallAdProviderRevenueData(id, name, configuration_data)
     }
   }
 }
+
+/**
+ * Encapsulates information from WaterfallAdProvider and AdProvider to be used in the RevenueDataActor background job.
+ * @param waterfallAdProviderID Maps to the id field of the waterfall_ad_providers table.
+ * @param name Maps to the name field of the ad_providers table.
+ * @param configurationData Maps to the configuration_data field of the waterfall_ad_providers table.
+ */
+case class WaterfallAdProviderRevenueData(waterfallAdProviderID: Long, name: String, configurationData: JsValue)
 
 /**
  * Encapsulates WaterfallAdProvider information used to determine the waterfall order.
@@ -220,20 +277,22 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
  * @param name name field from ad_providers table.
  * @param adProviderConfiguration Configuration data from AdProvider record.
  * @param waterfallAdProviderConfiguration Configuration data form WaterfallAdProvider record.
+ * @param reportingActive Boolean value indicating if we are collecting revenue data from third-parties.
  */
-case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsValue, waterfallAdProviderConfiguration: JsValue) {
+case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsValue, waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) {
   /**
    * Maps required info from AdProviders to actual values stored in WaterfallAdProviders.
    * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.
    */
-  def mappedFields: List[RequiredParam] = {
-    val reqParams = (this.adProviderConfiguration \ "required_params").as[List[Map[String, String]]].map(el =>
+  def mappedFields(paramType: String): List[RequiredParam] = {
+    val reqParams = (this.adProviderConfiguration \ paramType).as[List[Map[String, String]]].map(el =>
       new RequiredParam(el.get("key"), el.get("dataType"), el.get("description"), el.get("value"))
     )
+    val waterfallAdProviderParams = this.waterfallAdProviderConfiguration \ paramType
     // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
     // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     reqParams.map( param =>
-      (this.waterfallAdProviderConfiguration \ param.key.get) match {
+      (waterfallAdProviderParams \ param.key.get) match {
         case _: JsUndefined => new RequiredParam(param.key, param.dataType, param.description, None)
         case value: JsValue => {
           var paramValue: Option[String] = None

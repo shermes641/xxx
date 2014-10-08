@@ -8,6 +8,7 @@ import play.api.db.DB
 import play.api.Play.current
 import controllers.ConfigInfo
 import play.api.libs.json.{JsValue}
+import scala.language.postfixOps
 
 case class Waterfall(id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean)
 
@@ -203,7 +204,7 @@ object Waterfall extends JsonConversion {
         WaterfallAdProvider.find(adProviderConfig.id) match {
           case Some(record) => {
             val newOrder = if(adProviderConfig.active) Some(adProviderConfig.waterfallOrder) else None
-            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, Some(adProviderConfig.active), record.fillRate, record.configurationData)
+            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, Some(adProviderConfig.active), record.fillRate, record.configurationData, record.reportingActive)
             WaterfallAdProvider.update(updatedValues)
           }
           case _ => {

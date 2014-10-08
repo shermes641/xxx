@@ -32,10 +32,10 @@ var postUpdate = function() {
         contentType: "application/json",
         data: updatedData(),
         success: function(result) {
-            flashMessage(result.message, $("#success-message"));
+            flashMessage(result.message, $("#waterfall-edit-success"));
         },
         error: function(result) {
-            flashMessage(result.message, $("#error-message"));
+            flashMessage(result.message, $("#waterfall-edit-error"));
         }
     });
 };
@@ -61,7 +61,7 @@ var createWaterfallAdProvider = function(adProviderID) {
             postUpdate();
         },
         error: function(result) {
-            flashMessage(result.message, $("#error-message"));
+            flashMessage(result.message, $("#waterfall-edit-error"));
         }
     });
 };
@@ -71,7 +71,7 @@ var updatedData = function() {
     var adProviderList = providersByActive("true");
     var optimizedOrder = optimizeToggleButton.prop("checked").toString();
     var testMode = testModeButton.prop("checked").toString();
-    adProviderList.push.apply(adProviderList, providersByActive("false").length > 0 ? providersByActive("false") : [])
+    adProviderList.push.apply(adProviderList, providersByActive("false").length > 0 ? providersByActive("false") : []);
     var order = adProviderList.map(function(index, el) {
         return({
             id: $(this).attr("data-id"),
@@ -96,7 +96,7 @@ var optimizeToggleButton = $(":checkbox[name=optimized-order]");
 var testModeButton = $(":checkbox[name=test-mode]");
 
 $("#waterfall-list").sortable({containment: ".content"});
-$("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false});
+$("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false, minHeight: 600});
 
 // Disable sortable list if waterfall has optimized_order set to true.
 $("#waterfall-list").sortable(optimizeToggleButton.prop("checked") ? "disable" : "enable");
@@ -136,7 +136,7 @@ $(document).ready(function() {
                 $(".ui-dialog-titlebar").hide();
             },
             error: function(data) {
-                flashMessage(data.message, $("#error-message"));
+                flashMessage(data.message, $("#waterfall-edit-error"));
             }
         });
     });
@@ -161,7 +161,7 @@ $(document).ready(function() {
         // Prevent the user from setting the waterfall to live without configuring any ad providers.
         if(newRecords == allRecords) {
             event.preventDefault();
-            flashMessage("You must activate an ad provider before the waterfall can go live.", $("#error-message"));
+            flashMessage("You must activate an ad provider before the waterfall can go live.", $("#waterfall-edit-error"));
         } else {
             postUpdate();
         }

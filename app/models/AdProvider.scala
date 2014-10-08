@@ -5,6 +5,7 @@ import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
 import play.api.libs.json._
+import scala.language.postfixOps
 
 /**
  * Encapsulates information for third-party SDKs to be mediated.
