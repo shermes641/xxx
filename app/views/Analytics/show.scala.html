@@ -1,4 +1,4 @@
-@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash)
+@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
 @main("Analytics") {
     @views.html.Partials.subHeader("dashboard", distributorID, appID)

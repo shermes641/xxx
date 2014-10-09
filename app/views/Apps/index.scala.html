@@ -1,4 +1,4 @@
-@(apps: List[AppWithWaterfallID], distributorID: Long)(implicit flash: Flash)
+@(apps: List[AppWithWaterfallID], distributorID: Long)(implicit flash: Flash, session: Session)
 @main("Welcome to Play") {
     <div class="content app_list">
       <h1>My Apps</h1>

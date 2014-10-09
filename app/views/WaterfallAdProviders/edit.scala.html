@@ -1,4 +1,4 @@
-@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean)(implicit flash: Flash)
+@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean)(implicit flash: Flash, session: Session)
 <div class="contents" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
     <div class="flash-message success" id="wap-edit-success"></div>
     <div class="flash-message error" id="wap-edit-error"></div>

@@ -1,4 +1,4 @@
-@(app: App, distributorID: Long, appID: Long)(implicit flash: Flash)
+@(app: App, distributorID: Long, appID: Long)(implicit flash: Flash, session: Session)
 @main("Dashboard", distributorID) {
     @views.html.Partials.subHeader("dashboard", distributorID, appID)
     <div class="content dashboard">

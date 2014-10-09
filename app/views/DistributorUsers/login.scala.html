@@ -1,6 +1,7 @@
-@(form: Form[Login])(implicit flash: Flash)
+@(form: Form[Login])(implicit flash: Flash, session: Session)
 <div class="content registration">
     <h1>Sign In</h1>
+    @println(session.get("user"))
     @views.html.Partials.formErrors(form.hasErrors, form.errors)
     @main("Log In") {
         @helper.form(action = routes.DistributorUsersController.authenticate) {

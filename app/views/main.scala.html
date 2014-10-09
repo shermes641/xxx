@@ -1,4 +1,4 @@
-@(title: String, distributorID: Long = 0)(content: Html)(implicit flash: Flash)
+@(title: String, distributorID: Long = 0)(content: Html)(implicit flash: Flash, session: Session)
 <!DOCTYPE html>
 
 <html>
@@ -22,9 +22,11 @@
                 @if(distributorID != 0) {
                     <a href="@routes.AppsController.index(distributorID)">App List</a>
                 }
-            </div>
-            <div class="user_info">
-                Username
+                @session.get("username").map { user =>
+                    <a href="@routes.DistributorUsersController.logout()">
+                        Log out
+                    </a>
+                }
             </div>
 		</header>
         @if(!flash.isEmpty) {
