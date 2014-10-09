@@ -1,31 +1,37 @@
 @(apps: List[AppWithWaterfallID], distributorID: Long)(implicit flash: Flash, session: Session)
-@main("Welcome to Play") {
-    <div class="content app_list">
-      <h1>My Apps</h1>
-      <div class="content_actions">
-          <a href="@routes.AppsController.newApp(distributorID)">Create New App</a>
-      </div>
-      <ul class="full_list">
-        @for(app <- apps) {
-          <li>
-              <h3>
-                  <a href='@routes.AppsController.edit(distributorID, app.id)'>
-                      @app.name
-                  </a>
-              </h3>
-              <div class="description">A brief overview of a couple app settings here (ex. active vs inactive etc.)</div>
-              <div class="actions">
-                  <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
+@main("My Apps") {
+        @if(apps.length == 0) {
+            <div class="content welcome_screen">
+            <h1>Welcome to HyprMX Mediation</h1>
+            <a href="@routes.AppsController.newApp(distributorID)">Begin by creating an app</a>
+        } else {
+            <div class="content app_list">
+            <h1>My Apps</h1>
+            <div class="content_actions">
+                <a href="@routes.AppsController.newApp(distributorID)">Create New App</a>
+            </div>
+            <ul class="full_list">
+            @for(app <- apps) {
+                <li>
+                    <h3>
+                        <a href='@routes.AppsController.edit(distributorID, app.id)'>
+                        @app.name
+                        </a>
+                    </h3>
+                    <div class="description">A brief overview of a couple app settings here (ex. active vs inactive etc.)</div>
+                    <div class="actions">
+                        <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
                       View
-                  </a>
-                  <div>
-                      <a href='@routes.WaterfallsController.edit(distributorID, app.waterfallID)'>
+                        </a>
+                        <div>
+                            <a href='@routes.WaterfallsController.edit(distributorID, app.waterfallID)'>
                           Edit Waterfall
-                      </a>
-                  </div>
-              </div>
-          </li>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            }
+            </ul>
         }
-      </ul>
     </div>
 }

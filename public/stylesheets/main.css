@@ -18,6 +18,11 @@ a {
 	text-decoration: none;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 h1 {
 	font-size: 30px;
 	font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
@@ -57,9 +62,9 @@ header {
 	right: 0;
 	left: 0;
 
-	height: 70px;
+    height: 50px;
 	background: #fff;
-	padding: 20px;
+	padding: 10px;
 
 	font-size: 20px;
 	font-family: "Avenir Black", "Arial", sans-serif;
@@ -73,7 +78,7 @@ header .actions {
 	top: 0px;
 	right: 0px;
 	bottom: 0px;
-	padding: 22px 22px 0 22px;
+	padding: 12px 22px 0 22px;
 
 	font-size: 20px;
 	font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
@@ -140,7 +145,7 @@ header .actions a {
 
 .content {
     position: relative;
-	margin: 100px auto;
+    margin: 70px 20px;
 	padding: 20px;
 
 	background: #fff;
@@ -163,6 +168,7 @@ header .actions a {
 
 .registration {
 	width: 600px;
+    margin: 70px auto;
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration button[type="submit"] {
@@ -188,6 +194,28 @@ header .actions a {
 	font-size: 30px;
 }
 
+.welcome_screen {
+    width: 600px;
+    margin: 70px auto;
+}
+
+.welcome_screen h1 {
+    text-align: center;
+}
+
+.welcome_screen a {
+    display: block;
+    background: #4285f4;
+    color: #fff;
+
+    font-size: 16px;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-weight: 400;
+    padding: 10px;
+    text-align: center;
+    margin-top: 20px;
+}
+
 .app_list ul.full_list  {
 	list-style: none;
 	width: 100%;
@@ -198,7 +226,7 @@ header .actions a {
 	margin: 0;
 	padding: 10px;
 	border: 1px solid #eee;
-	margin-top: 10px;
+	margin-top: 20px;
 }
 
 .app_list ul.full_list li .actions {
