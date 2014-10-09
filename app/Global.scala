@@ -1,7 +1,7 @@
 import play.api.Play
 import play.api.mvc._
 import scala.concurrent.Future
-import controllers.DistributorUsersController._
+import play.api.mvc.Results.Unauthorized
 
 // Filter to secure staging server. We should remove this before Mediation goes live.
 object HTTPAuthFilter extends Filter {
