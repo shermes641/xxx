@@ -1,12 +1,12 @@
 package models
 
+import play.api._
+import play.api.mvc._
+import play.api.Play.current
 import models.Waterfall.AdProviderInfo
 import play.api.libs.json.{JsArray, JsString, JsObject, JsValue}
 
 object JsonBuilder {
-  val ANALYTICS_POST_URL = "http://api.keen.io/3.0/projects/mediation"
-  val ANALYTICS_WRITE_KEY = "writeKey"
-
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
    * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
@@ -39,8 +39,8 @@ object JsonBuilder {
       Seq(
         "analyticsConfiguration" -> JsObject(
           Seq(
-            "analyticsPostUrl" -> JsString(ANALYTICS_POST_URL),
-            "analyticsWriteKey" -> JsString(ANALYTICS_WRITE_KEY)
+            "analyticsPostUrl" -> JsString("https://api.keen.io/3.0/projects/" + Play.current.configuration.getString("keen.project").get),
+            "analyticsWriteKey" -> JsString(Play.current.configuration.getString("keen.writeKey").get)
           )
         )
       )
