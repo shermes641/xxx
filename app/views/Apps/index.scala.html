@@ -7,6 +7,7 @@
         } else {
             <div class="content app_list">
             <h1>My Apps</h1>
+            <div class="description">Here are the apps connected to your account.</div>
             <div class="content_actions">
                 <a href="@routes.AppsController.newApp(distributorID)">Create New App</a>
             </div>
@@ -21,13 +22,11 @@
                     <div class="description">A brief overview of a couple app settings here (ex. active vs inactive etc.)</div>
                     <div class="actions">
                         <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
-                      View
+                            Analytics
                         </a>
-                        <div>
-                            <a href='@routes.WaterfallsController.edit(distributorID, app.waterfallID)'>
-                          Edit Waterfall
-                            </a>
-                        </div>
+                        <a href='@routes.WaterfallsController.edit(distributorID, app.waterfallID)'>
+                            Edit Waterfall
+                        </a>
                     </div>
                 </li>
             }

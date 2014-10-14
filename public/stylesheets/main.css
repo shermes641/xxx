@@ -89,9 +89,13 @@ header .actions a {
     padding-left: 20px;
 }
 
+#sign_up {
+    padding-top: 20px;
+}
+
 .sub_header {
 	position: fixed;
-	top: 70px;
+	top: 50px;
 	right: 0;
 	left: 0;
 
@@ -109,8 +113,8 @@ header .actions a {
 	left: 50%;
 	bottom: 0;
 
-	width: 600px;
-	margin-left: -300px;
+	width: 800px;
+	margin-left: -400px;
 
 	list-style: none;
 }
@@ -141,6 +145,37 @@ header .actions a {
 
 .sub_header .menu li:hover {
 	background: #444;
+}
+
+#apps_list {
+    background: #444;
+    position: relative;
+    cursor: pointer;
+}
+
+#apps_list:hover {
+    background: #4285f4;
+}
+
+#apps_list:hover #apps_list_menu {
+    display: block;
+}
+
+#apps_list_menu {
+    display: none;
+    background: #444;
+    position: absolute;
+    top: 50px;
+}
+
+#apps_list_menu li {
+    float: none;
+    display: block;
+    font-family: "Avenir", "Arial",sans-serif;
+}
+
+#apps_list_menu li:hover {
+    background: #222;
 }
 
 .content {
@@ -175,8 +210,20 @@ header .actions a {
 	width: 560px;
 }
 
+.registration h3 {
+    margin-top: 20px;
+}
+
+.registration ul {
+    padding-left: 25px;
+    padding-top: 10px;
+}
+
 .registration dl {
 	margin-top: 20px;
+}
+.content.settings {
+    margin-top: 100px;
 }
 
 .settings dl {
@@ -231,12 +278,14 @@ header .actions a {
 
 .app_list ul.full_list li .actions {
 	position: absolute;
-	top: 21px;
+	top: 25px;
 	right: 21px;
 }
 
 
 .app_list ul.full_list li .actions a {
+    display: inline-block;
+    margin-left: 20px;
 	color: #4285f4;
 
 	font-size: 14px;
@@ -246,7 +295,9 @@ header .actions a {
 }
 
 .content.dashboard {
+    margin-top: 100px;
     background: none;
+    box-shadow: none;
 }
 
 #dashboard_metrics {
