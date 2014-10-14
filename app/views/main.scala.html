@@ -1,9 +1,9 @@
-@(title: String, distributorID: Long = 0)(content: Html)(implicit flash: Flash)
+@(title: String, distributorID: Long = 0)(content: Html)(implicit flash: Flash, session: Session)
 <!DOCTYPE html>
 
 <html>
     <head>
-        <title>@title</title>
+        <title>@title - HyprMX Mediation</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/datepicker.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
@@ -15,16 +15,15 @@
     <body>
         <header>
             <a href="@routes.AppsController.index(distributorID)">
-                <img src="@routes.Assets.at("images/logo.png")">
+                <img height="34" src="@routes.Assets.at("images/hypr_logo_rgb.jpeg")">
             </a>
             <div class="actions">
                 <a href="http://documentation.hyprmx.com">Documentation</a>
-                @if(distributorID != 0) {
-                    <a href="@routes.AppsController.index(distributorID)">App List</a>
+                @session.get("username").map { user =>
+                    <a href="@routes.DistributorUsersController.logout()">
+                        Log out
+                    </a>
                 }
-            </div>
-            <div class="user_info">
-                Username
             </div>
 		</header>
         @if(!flash.isEmpty) {
