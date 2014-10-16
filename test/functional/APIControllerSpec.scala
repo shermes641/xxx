@@ -41,7 +41,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME)))
+      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME), "eCPM" -> JsNull))
       val testConfigData: JsValue = JsArray(JsObject(Seq("requiredParams" -> requiredParams)) :: Nil)
       val jsonResponse: JsValue = Json.parse(contentAsString(result)) \ "adProviderConfigurations"
       jsonResponse must beEqualTo(JsArray(requiredParams :: Nil))
