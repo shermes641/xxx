@@ -28,12 +28,12 @@ object APIController extends Controller {
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
         val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
-        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(testConfigData), Some(5.0), Some(100), Some(1), Some(100), Some(true), true, false, Some(false))
+        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(testConfigData), Some(5.0), Some("Coins"), Some(100), Some(1), Some(100), Some(true), true, false, Some(false))
         Ok(JsonBuilder.waterfallResponse(List(testAdProviderConfig)))
       }
       // No ad providers are active.
       case adProviders: List[AdProviderInfo] if(filteredAdProviders(adProviders).size == 0) => {
-        BadRequest(Json.obj("status" -> "error", "message" -> "There were no active ad providers found."))
+        BadRequest(Json.obj("status" -> "error", "message" -> "At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold."))
       }
       // Waterfall is in "Optimized" mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).optimizedOrder) => {

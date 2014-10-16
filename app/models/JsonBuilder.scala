@@ -22,7 +22,7 @@ object JsonBuilder {
               JsArray(
                 JsObject(
                   Seq(
-                    "providerName" -> JsString(el.providerName.get),
+                    "providerName" -> el.providerName,
                     "eCPM" -> (el.cpm match {
                       case Some(eCPM) => JsNumber(eCPM)
                       case None => JsNull
@@ -50,6 +50,18 @@ object JsonBuilder {
   }
 
   /**
+   * Converts an optional String value to a JsValue.
+   * @param param The original optional String value found in the adProviderInfo instance.
+   * @return A JsString if a String value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalStringToJsValue(param: Option[String]): JsValue = {
+    param match {
+      case Some(paramValue) => JsString(paramValue)
+      case None => JsNull
+    }
+  }
+
+  /**
    * Creates a JSON object for virtual currency information
    * @param adProviderInfo An instance of the AdProviderInfo class containing virtual currency information.
    * @return A JsObject with virtual currency information.
@@ -59,6 +71,7 @@ object JsonBuilder {
       Seq(
         "virtualCurrency" -> JsObject(
           Seq(
+            "name" -> adProviderInfo.virtualCurrencyName,
             "exchangeRate" -> adProviderInfo.exchangeRate,
             "roundUp" -> JsBoolean(adProviderInfo.roundUp.get),
             "rewardMin" -> adProviderInfo.rewardMin,
