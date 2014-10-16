@@ -34,13 +34,7 @@ object JsonBuilder {
         )
       )
     )
-    adProviders match {
-      // Only add virtual currency information if there are active ad providers and we are not in test mode.
-      case adProviders: List[AdProviderInfo] if(adProviders.size > 0 && !adProviders(0).testMode) => {
-        configuration.deepMerge(virtualCurrencyConfiguration(adProviders(0)))
-      }
-      case _ => configuration
-    }
+    configuration.deepMerge(virtualCurrencyConfiguration(adProviders(0)))
   }
 
   /**

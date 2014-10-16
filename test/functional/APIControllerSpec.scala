@@ -41,7 +41,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME), "eCPM" -> JsNull))
+      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME), "eCPM" -> JsNumber(5.0)))
       val testConfigData: JsValue = JsArray(JsObject(Seq("requiredParams" -> requiredParams)) :: Nil)
       val jsonResponse: JsValue = Json.parse(contentAsString(result)) \ "adProviderConfigurations"
       jsonResponse must beEqualTo(JsArray(requiredParams :: Nil))
@@ -82,8 +82,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(10.toLong), None, false))
       Waterfall.update(waterfall.get.id, true, false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq()), true))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(0.0), Some(true), None, JsObject(Seq()), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(1100.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
@@ -93,6 +93,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val jsonResponse: List[JsValue] = (Json.parse(contentAsString(result)) \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
+      jsonResponse.map( provider => (provider \ "providerName").as[String]) must contain(adProviders(0).name)
       jsonResponse.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
     }
   }
