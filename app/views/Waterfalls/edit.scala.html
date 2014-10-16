@@ -45,9 +45,7 @@
                                 <h3>@adProviderConfig.name</h3>
                                 <div class="waterfall ul li b">eCPM: @adProviderConfig.cpm</div>
                                 <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" class="status" type="submit" name="status" data-id="@adProviderConfig.waterfallAdProviderID">
-                                    @if(adProviderConfig.active) {
-                                        Deactivate
-                                    }
+                                    Deactivate
                                 </button>
                                 @defining(if(adProviderConfig.newRecord) "none" else "inline-block") { display =>
                                     <button style="display: @display" data-distributor-id="@distributorID" data-waterfall-ad-provider-id="@adProviderConfig.waterfallAdProviderID" name="configure-wap" type="submit">
