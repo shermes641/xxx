@@ -121,6 +121,28 @@ object App {
    * @param distributorID ID of the current Distributor
    * @return List of App instances
    */
+  def findAppWithWaterfalls(appID: Long): Option[AppWithWaterfallID] = {
+    DB.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT apps.*, waterfalls.id as waterfall_id
+          FROM apps
+          JOIN waterfalls ON waterfalls.app_id = apps.id
+          WHERE apps.id = {app_id};
+        """
+      ).on("app_id" -> appID)
+      query.as(AppsWithWaterfallsParser*) match {
+        case List(app) => Some(app)
+        case _ => None
+      }
+    }
+  }
+
+  /**
+   * Retrieves all records from the App table for a particular distributor_id
+   * @param distributorID ID of the current Distributor
+   * @return List of App instances
+   */
   def findAll(distributorID: Long): List[App] = {
     DB.withConnection { implicit connection =>
       val query = SQL(

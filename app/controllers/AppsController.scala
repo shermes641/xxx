@@ -93,17 +93,6 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   /**
-   * Displays attributes for current App.
-   * @param distributorID ID associated with current DistributorUser
-   * @param appID ID associated with current App
-   * @return Apps show view
-   */
-  def show(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    val app = App.find(appID)
-    Ok(views.html.Apps.show(app.get, distributorID, appID))
-  }
-
-  /**
    * Renders form for editing App.
    * @param distributorID ID associated with current DistributorUser
    * @param appID ID associated with current App

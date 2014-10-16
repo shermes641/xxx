@@ -42,7 +42,7 @@ input[type="text"], input[type="password"], button[type="submit"] {
 	border: 1px solid #eee;
 	-webkit-appearance: none;
 
-	font-size: 20px;
+	font-size: 16px;
 	font-family: "Avenir Book", "Helvetica", sans-serif;
 }
 
@@ -89,8 +89,19 @@ header .actions a {
     padding-left: 20px;
 }
 
+.tip {
+    color: #666;
+}
+
 #sign_up {
     padding-top: 20px;
+}
+
+#termsContainer {
+    margin-top: 20px;
+    height: 300px;
+    overflow: scroll;
+    color: #666;
 }
 
 .sub_header {
@@ -168,6 +179,10 @@ header .actions a {
     top: 50px;
 }
 
+#apps_list_menu a {
+    text-decoration: none;
+}
+
 #apps_list_menu li {
     float: none;
     display: block;
@@ -178,6 +193,11 @@ header .actions a {
     background: #222;
 }
 
+.center {
+    text-align: center;
+    display: block;
+}
+
 .content {
     position: relative;
     margin: 70px 20px;
@@ -185,6 +205,10 @@ header .actions a {
 
 	background: #fff;
 	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+}
+
+.content a:hover, .content a:focus {
+    text-decoration: none;
 }
 
 .content_actions {
@@ -221,9 +245,10 @@ header .actions a {
 
 .registration dl {
 	margin-top: 20px;
+    margin-bottom: 0px;
 }
 .content.settings {
-    margin-top: 100px;
+    margin-top: 120px;
 }
 
 .settings dl {
@@ -376,6 +401,7 @@ header .actions a {
 	padding: 10px;
 	border: 1px solid #eee;
 	margin-top: 10px;
+    background: #fff;
 }
 
 .waterfall ul li b {
@@ -396,6 +422,26 @@ header .actions a {
 	cursor: pointer;
 }
 
+.waterfall-drag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    height: 30px;
+    width: 30px;
+    cursor: row-resize;
+}
+
+.waterfall-drag-1 {
+    height: 5px;
+    background: #ddd;
+}
+
+.waterfall-drag-2, .waterfall-drag-3 {
+    height: 5px;
+    margin-top: 5px;
+    background: #ddd;
+}
+
 .inactive-waterfall {
     display: none;
 }
@@ -412,7 +458,7 @@ header .actions a {
     right: 0;
     bottom: 0;
     background: #000;
-    opacity: 0.5;
+    opacity: 0.8;
 }
 
 .inactive .inactive-waterfall-content {
