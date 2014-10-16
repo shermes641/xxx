@@ -33,7 +33,7 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
 }
 
 trait cleanDB {
-  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test", "db.default.user" -> "postgres", "db.default.password" -> "f2413097ff")
+  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test", "db.default.user" -> "postgres", "db.default.password" -> "postgres")
 
   def clean = {
     running(FakeApplication(additionalConfiguration = testDB)) {
