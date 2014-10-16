@@ -132,17 +132,6 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     }
   }
 
-  "AppsController.show action" should {
-    "display info for app" in new WithFakeBrowser {
-      logInUser()
-
-      val appID = App.create(user.distributorID.get, appName)
-      val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID.get
-      browser.goTo(url)
-      browser.pageSource must contain(appName)
-    }
-  }
-
   "AppsController.edit" should {
     "update the app record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
