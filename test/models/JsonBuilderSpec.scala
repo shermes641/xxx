@@ -1,6 +1,7 @@
 package models
 
-import play.api.libs.json.{JsValue, JsObject, JsString}
+import models.Waterfall.AdProviderInfo
+import play.api.libs.json._
 
 class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallSpecSetup {
   "JsonBuilder.waterfallResponse" should {
@@ -13,6 +14,17 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       adProviderConfigs.map { config =>
         adProviders must contain((config \ "providerName").as[String])
       }
+    }
+  }
+
+  "JsonBuilder.virtualCurrencyConfiguration" should {
+    "convert an AdProviderInfo instance into a JSON object containing virtual currency information" in new WithDB {
+      val virtualCurrency = new VirtualCurrency(0, 0, "Coins", 100, Some(1), Some(100), true)
+      val adProviderInfo = new AdProviderInfo(Some("ad provider name"), None, None, Some(virtualCurrency.name), Some(virtualCurrency.exchangeRate),
+        virtualCurrency.rewardMin, virtualCurrency.rewardMax, Some(virtualCurrency.roundUp), false, false, None)
+      val expectedVCJson = JsObject(Seq("virtualCurrency" -> JsObject(Seq("name" -> JsString(virtualCurrency.name), "exchangeRate" -> JsNumber(virtualCurrency.exchangeRate),
+        "rewardMin" -> JsNumber(virtualCurrency.rewardMin.get), "rewardMax" -> JsNumber(virtualCurrency.rewardMax.get), "roundUp" -> JsBoolean(virtualCurrency.roundUp)))))
+      JsonBuilder.virtualCurrencyConfiguration(adProviderInfo) must beEqualTo(expectedVCJson)
     }
   }
   step(clean)
