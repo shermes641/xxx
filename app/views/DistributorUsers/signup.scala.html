@@ -1,6 +1,7 @@
 @(form: Form[Signup])(implicit flash: Flash, session: Session)
 <div class="content registration">
     <h1>Sign Up</h1>
+    <div class="description">To begin, sign up below.  You will receive an email upon approval.</div>
     @views.html.Partials.formErrors(form.hasErrors, form.errors)
     @main("Sign up") {
         @helper.form(action = routes.DistributorUsersController.create) {
@@ -8,7 +9,10 @@
             @helper.inputText(form("email"),'_showConstraints -> false, 'placeholder -> "Email", '_label -> null)
             @helper.inputPassword(form("password"),'_showConstraints -> false, 'placeholder -> "Password", '_label -> null)
             @helper.inputPassword(form("confirmation"),'_showConstraints -> false, 'placeholder -> "Password (confirm)", '_label -> null)
-            @helper.checkbox(form("terms"), '_label -> "By checking this box, you agree to our terms and conditions", '_help -> "")
+            <div id="termsContainer">
+                @views.html.Partials.terms()
+            </div>
+            @helper.checkbox(form("terms"), '_label -> "I have read and agree to the above", '_help -> "")
             <button type="submit" name="submit">Sign up</button>
         }
     }

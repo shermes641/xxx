@@ -38,19 +38,19 @@ h2 {
 }
 
 input[type="text"], input[type="password"], button[type="submit"] {
-	padding: 10px;
+	padding: 5px;
 	border: 1px solid #eee;
 	-webkit-appearance: none;
 
-	font-size: 20px;
+	font-size: 16px;
 	font-family: "Avenir Book", "Helvetica", sans-serif;
 }
 
 button[type="submit"] {
 	background: #4285f4;
 	color: #fff;
-
-	font-size: 20px;
+    border: 0;
+	font-size: 14px;
 	font-family: "Avenir Book", "Helvetica", sans-serif;
 	font-weight: 400;
 	margin-top: 20px;
@@ -89,8 +89,19 @@ header .actions a {
     padding-left: 20px;
 }
 
+.tip {
+    color: #666;
+}
+
 #sign_up {
     padding-top: 20px;
+}
+
+#termsContainer {
+    margin-top: 20px;
+    height: 300px;
+    overflow: scroll;
+    color: #666;
 }
 
 .sub_header {
@@ -168,6 +179,10 @@ header .actions a {
     top: 50px;
 }
 
+#apps_list_menu a {
+    text-decoration: none;
+}
+
 #apps_list_menu li {
     float: none;
     display: block;
@@ -178,6 +193,11 @@ header .actions a {
     background: #222;
 }
 
+.center {
+    text-align: center;
+    display: block;
+}
+
 .content {
     position: relative;
     margin: 70px 20px;
@@ -185,6 +205,10 @@ header .actions a {
 
 	background: #fff;
 	box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+}
+
+.content a:hover, .content a:focus {
+    text-decoration: none;
 }
 
 .content_actions {
@@ -221,9 +245,10 @@ header .actions a {
 
 .registration dl {
 	margin-top: 20px;
+    margin-bottom: 0px;
 }
 .content.settings {
-    margin-top: 100px;
+    margin-top: 120px;
 }
 
 .settings dl {
@@ -278,7 +303,7 @@ header .actions a {
 
 .app_list ul.full_list li .actions {
 	position: absolute;
-	top: 25px;
+	top: 15px;
 	right: 21px;
 }
 
@@ -376,6 +401,7 @@ header .actions a {
 	padding: 10px;
 	border: 1px solid #eee;
 	margin-top: 10px;
+    background: #fff;
 }
 
 .waterfall ul li b {
@@ -395,6 +421,60 @@ header .actions a {
 	font-weight: 400;
 	cursor: pointer;
 }
+
+.waterfall-drag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    height: 30px;
+    width: 30px;
+    cursor: row-resize;
+}
+
+.waterfall-drag-1 {
+    height: 5px;
+    background: #ddd;
+}
+
+.waterfall-drag-2, .waterfall-drag-3 {
+    height: 5px;
+    margin-top: 5px;
+    background: #ddd;
+}
+
+.inactive-waterfall {
+    display: none;
+}
+
+.inactive-waterfall-content {
+    display: none;
+}
+
+.inactive .inactive-waterfall {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    opacity: 0.8;
+}
+
+.inactive .inactive-waterfall-content {
+    display: block;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    margin-left: -100px;
+    color: #fff;
+    text-align: center;
+}
+
+.inactive-button {
+    width: 200px;
+}
+
 
 .navbar-inverse {
     background-color: #3d4a57;
@@ -529,19 +609,22 @@ div [class^="col-"] {
 }
 
 .flash-message {
-    z-index: 999;
+    z-index: 99;
     position: fixed;
-    font-weight: bold;
-    width: 100%;
+    top: 50px;
+    left: 50%;
+    background: #fff;
+    width: 300px;
+    padding: 5px;
     text-align: center;
-    align: center;
-    margin: 5px;
-    font-size: 18px;
-    clear: both;
+    margin-left: -160px;
+    font-size: 14px;
+    box-shadow: 0px 0px 4px rgba(0,0,0,.2);
+    display: none;
 }
 
 .flash-message.success {
-    color: #0AD000;
+    color: #4285f4;
 }
 
 .flash-message.error {
@@ -549,9 +632,12 @@ div [class^="col-"] {
 }
 
 .onoffswitch {
-    position: relative; width: 90px;
+    position: relative;
+    width: 70px;
     float: right;
-    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select: none;
 }
 
 .onoffswitch-checkbox {
@@ -559,20 +645,36 @@ div [class^="col-"] {
 }
 
 .onoffswitch-label {
-    display: block; overflow: hidden; cursor: pointer;
-    border: 2px solid #999999; border-radius: 20px;
+    display: block;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 5px;
 }
 
 .onoffswitch-inner {
-    display: block; width: 200%; margin-left: -100%;
-    -moz-transition: margin 0.3s ease-in 0s; -webkit-transition: margin 0.3s ease-in 0s;
-    -o-transition: margin 0.3s ease-in 0s; transition: margin 0.3s ease-in 0s;
+    display: block;
+    width: 200%;
+    margin-left: -100%;
+    -moz-transition: margin 0.3s ease-in 0s;
+    -webkit-transition: margin 0.3s ease-in 0s;
+    -o-transition: margin 0.3s ease-in 0s;
+    transition: margin 0.3s ease-in 0s;
 }
 
 .onoffswitch-inner:before, .onoffswitch-inner:after {
-    display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
-    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
-    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+    display: block;
+    float: left;
+    width: 50%;
+    height: 30px;
+    padding: 0;
+    line-height: 30px;
+    font-size: 14px;
+    color: white;
+    font-family: Trebuchet, Arial, sans-serif;
+    font-weight: bold;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .onoffswitch-inner:before {
@@ -589,12 +691,20 @@ div [class^="col-"] {
 }
 
 .onoffswitch-switch {
-    display: block; width: 18px; margin: 6px;
+    display: block;
+    width: 15px;
+    height: 24px;
+    margin: 3px;
     background: #FFFFFF;
-    border: 2px solid #999999; border-radius: 20px;
-    position: absolute; top: 0; bottom: 0; right: 56px;
-    -moz-transition: all 0.3s ease-in 0s; -webkit-transition: all 0.3s ease-in 0s;
-    -o-transition: all 0.3s ease-in 0s; transition: all 0.3s ease-in 0s;
+    border-radius: 5px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 48px;
+    -moz-transition: all 0.3s ease-in 0s;
+    -webkit-transition: all 0.3s ease-in 0s;
+    -o-transition: all 0.3s ease-in 0s;
+    transition: all 0.3s ease-in 0s;
 }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {

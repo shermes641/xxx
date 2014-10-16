@@ -3,8 +3,27 @@ package controllers
 import play.api.mvc._
 import models._
 import play.api.libs.json._
+import play.api.Play
 
 object WaterfallsController extends Controller with Secured {
+  /**
+   * Redirects to the waterfall assigned to App.
+   * Future:  Will return list of waterfalls.
+   * @param distributorID ID of Distributor who owns the current Waterfall
+   * @param appID ID of the Waterfall being edited
+   * @return Redirects to edit page if app with waterfall exists.
+   */
+  def list(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+    App.findAppWithWaterfalls(appID) match {
+      case Some(app) => {
+        Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID))
+      }
+      case None => {
+        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")
+      }
+    }
+  }
+
   /**
    * Renders form for editing Waterfall.
    * @param distributorID ID of Distributor who owns the current Waterfall

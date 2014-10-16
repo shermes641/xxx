@@ -115,6 +115,27 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.order(currentWaterfall.token).filter(adProvider => adProvider.active.get).size must equalTo(listSize - 1)
     }
 
+    "return waterfall edit page with one waterfall" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
+      logInUser()
+
+      val appID = App.create(distributorID, "App List").get
+      Waterfall.create(appID, "New Waterfall").get
+
+      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID).url)
+      browser.pageSource must contain("Edit Waterfall")
+    }
+
+    "return to app list is multiple waterfalls are found" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
+      logInUser()
+
+      val appID = App.create(distributorID, "App List").get
+      Waterfall.create(appID, "New Waterfall").get
+      Waterfall.create(appID, "Second Waterfall").get
+
+      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID).url)
+      browser.pageSource must contain("Waterfall could not be found.")
+    }
+
     "configure an ad provider from the waterfall edit page" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
       DB.withConnection { implicit connection =>
         SQL("update ad_providers set configuration_data = CAST({configuration_data} AS json) where id = {wap2_id};").on("configuration_data" -> configurationData, "wap2_id" -> wap2.id).executeInsert()
