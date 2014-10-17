@@ -10,17 +10,18 @@ import controllers.ConfigInfo
 import play.api.libs.json.{JsValue}
 import scala.language.postfixOps
 
-case class Waterfall(id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean)
+case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
   val waterfallParser: RowParser[Waterfall] = {
     get[Long]("waterfalls.id") ~
+    get[Long]("app_id") ~
     get[String]("name") ~
     get[String]("token") ~
     get[Boolean]("optimized_order") ~
     get[Boolean]("test_mode") map {
-      case id ~ name  ~ token ~ optimized_order ~ test_mode => Waterfall(id, name, token, optimized_order, test_mode)
+      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode => Waterfall(id, app_id, name, token, optimized_order, test_mode)
     }
   }
 

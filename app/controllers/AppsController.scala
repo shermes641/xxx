@@ -74,7 +74,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
               case Some(appID) => {
                 Waterfall.createWithTransaction(appID, newApp.appName)
                 VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
-                Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App created!")
+                Redirect(routes.WaterfallsController.list(distributorID, appID)).flashing("success" -> "App created!")
               }
               case _ => {
                 Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
