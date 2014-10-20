@@ -143,7 +143,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       logInUser()
       browser.goTo(url)
       browser.fill("#appName").`with`(newAppName)
-      browser.$("button[name=submit]").click()
+      browser.$("button[name=submit]").first.click()
       browser.pageSource must contain(newAppName)
     }
 
@@ -159,7 +159,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain(virtualCurrency.name)
       browser.fill("#rewardMin").`with`(rewardMin.toString())
       browser.fill("#rewardMax").`with`(rewardMax.toString())
-      browser.$("button").click()
+      browser.$("button[name=submit]").first.click()
 
       val updatedVC = VirtualCurrency.find(virtualCurrency.id).get
       updatedVC.rewardMin.get must beEqualTo(rewardMin)
