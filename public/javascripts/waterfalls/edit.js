@@ -110,11 +110,11 @@ $(document).ready(function() {
     // Controls activation/deactivation of each ad provider in a waterfall.
     $("button[name=status]").click(function(event) {
         var button = $(event.target);
-        var listItem = button.parent();
+        var ad_provider = $(this).attr("data-id");
+        var listItem = $("li[data-id=" + ad_provider + "]");
         var originalVal = listItem.attr("data-active");
         listItem.attr("data-active", (originalVal === "true" ? "false" : "true"));
         listItem.toggleClass("inactive");
-        listItem.attr("data-active") === "true" ? button.html("Deactivate") : button.html("Activate");
         if(listItem.attr("data-new-record") === "true") {
             createWaterfallAdProvider(listItem.attr("data-id"));
         } else {

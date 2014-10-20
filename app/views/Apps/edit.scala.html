@@ -5,13 +5,14 @@
     <div class="content settings">
         @helper.form(action = routes.AppsController.update(distributorID, appID)) {
             <h1>App Configuration</h1>
-            @helper.inputText(form("currencyID"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
+            <button type="submit" name="submit">Save Changes</button>
             @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
             @helper.inputRadioGroup(form("active"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Active?", '_showConstraints -> false)
 
             <h1>Virtual Currency Configuration</h1>
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
             @helper.inputRadioGroup(form("roundUp"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Round Up", '_showConstraints -> false, 'title -> "Round up all rewards to the minimum amount")
+            @helper.inputText(form("currencyID"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
             <button type="submit" name="submit">Save Changes</button>
         }
     </div>

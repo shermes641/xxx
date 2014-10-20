@@ -18,7 +18,6 @@ POST        /distributor_users                                                  
 GET         /distributors/:distributor_id/apps                                                         controllers.AppsController.index(distributor_id: Long)
 GET         /distributors/:distributor_id/apps/new                                                     controllers.AppsController.newApp(distributor_id: Long)
 POST        /distributors/:distributor_id/apps                                                         controllers.AppsController.create(distributor_id: Long)
-GET         /distributors/:distributor_id/apps/:app_id                                                 controllers.AppsController.show(distributor_id: Long, app_id: Long)
 GET         /distributors/:distributor_id/apps/:app_id/edit                                            controllers.AppsController.edit(distributor_id: Long, app_id: Long)
 POST        /distributors/:distributor_id/apps/:app_id                                                 controllers.AppsController.update(distributor_id: Long, app_id: Long)
 
@@ -26,6 +25,7 @@ POST        /distributors/:distributor_id/apps/:app_id                          
 GET         /distributors/:distributor_id/analytics/:app_id                                              controllers.AnalyticsController.show(distributor_id: Long, app_id: Long)
 
 # Waterfalls
+GET         /distributors/:distributor_id/apps/:app_id/waterfalls                                      controllers.WaterfallsController.list(distributor_id: Long, app_id: Long)
 GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit                                controllers.WaterfallsController.edit(distributor_id: Long, waterfall_id: Long)
 POST        /distributors/:distributor_id/waterfalls/:waterfall_id                                     controllers.WaterfallsController.update(distributor_id: Long, waterfall_id: Long)
 

@@ -132,17 +132,6 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     }
   }
 
-  "AppsController.show action" should {
-    "display info for app" in new WithFakeBrowser {
-      logInUser()
-
-      val appID = App.create(user.distributorID.get, appName)
-      val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID.get
-      browser.goTo(url)
-      browser.pageSource must contain(appName)
-    }
-  }
-
   "AppsController.edit" should {
     "update the app record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
@@ -154,7 +143,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       logInUser()
       browser.goTo(url)
       browser.fill("#appName").`with`(newAppName)
-      browser.$("button[name=submit]").click()
+      browser.$("button[name=submit]").first.click()
       browser.pageSource must contain(newAppName)
     }
 
@@ -170,7 +159,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain(virtualCurrency.name)
       browser.fill("#rewardMin").`with`(rewardMin.toString())
       browser.fill("#rewardMax").`with`(rewardMax.toString())
-      browser.$("button").click()
+      browser.$("button[name=submit]").first.click()
 
       val updatedVC = VirtualCurrency.find(virtualCurrency.id).get
       updatedVC.rewardMin.get must beEqualTo(rewardMin)

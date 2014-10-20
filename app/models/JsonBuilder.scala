@@ -4,7 +4,8 @@ import play.api._
 import play.api.mvc._
 import play.api.Play.current
 import models.Waterfall.AdProviderInfo
-import play.api.libs.json.{JsArray, JsString, JsObject, JsValue}
+import play.api.libs.json._
+import scala.language.implicitConversions
 
 object JsonBuilder {
   /**
@@ -13,21 +14,72 @@ object JsonBuilder {
    * @return JSON object with an ordered array of ad providers and their respective configuration info.
    */
   def waterfallResponse(adProviders: List[AdProviderInfo]): JsValue = {
-    val configuration = JsObject(
-      Seq(
-        "adProviderConfigurations" -> adProviders.foldLeft(JsArray())((array, el) =>
-          array ++
-            JsArray(
-              JsObject(
-                Seq(
-                  "providerName" -> JsString(el.providerName.get)
-                )
-              ).deepMerge((el.configurationData.get \ "requiredParams").as[JsObject]) :: Nil
-            )
+    val configuration = analyticsConfiguration.deepMerge(
+      JsObject(
+        Seq(
+          "adProviderConfigurations" -> adProviders.foldLeft(JsArray())((array, el) =>
+            array ++
+              JsArray(
+                JsObject(
+                  Seq(
+                    "providerName" -> el.providerName,
+                    "eCPM" -> (el.cpm match {
+                      case Some(eCPM) => JsNumber(eCPM)
+                      case None => JsNull
+                    })
+                  )
+                ).deepMerge((el.configurationData.get \ "requiredParams").as[JsObject]) :: Nil
+              )
+          )
         )
       )
     )
-    analyticsConfiguration.deepMerge(configuration)
+    configuration.deepMerge(virtualCurrencyConfiguration(adProviders(0)))
+  }
+
+  /**
+   * Converts an optional Long value to a JsValue in virtualCurrencyConfiguration.
+   * @param param The original optional Long value found in the adProviderInfo instance.
+   * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalLongToJsValue(param: Option[Long]): JsValue = {
+    param match {
+      case Some(paramValue) => JsNumber(paramValue)
+      case None => JsNull
+    }
+  }
+
+  /**
+   * Converts an optional String value to a JsValue.
+   * @param param The original optional String value found in the adProviderInfo instance.
+   * @return A JsString if a String value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalStringToJsValue(param: Option[String]): JsValue = {
+    param match {
+      case Some(paramValue) => JsString(paramValue)
+      case None => JsNull
+    }
+  }
+
+  /**
+   * Creates a JSON object for virtual currency information
+   * @param adProviderInfo An instance of the AdProviderInfo class containing virtual currency information.
+   * @return A JsObject with virtual currency information.
+   */
+  def virtualCurrencyConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "virtualCurrency" -> JsObject(
+          Seq(
+            "name" -> adProviderInfo.virtualCurrencyName,
+            "exchangeRate" -> adProviderInfo.exchangeRate,
+            "roundUp" -> JsBoolean(adProviderInfo.roundUp.get),
+            "rewardMin" -> adProviderInfo.rewardMin,
+            "rewardMax" -> adProviderInfo.rewardMax
+          )
+        )
+      )
+    )
   }
 
   /**
@@ -46,5 +98,4 @@ object JsonBuilder {
       )
     )
   }
-
 }

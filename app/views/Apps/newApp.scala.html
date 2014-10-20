@@ -4,11 +4,13 @@
     @helper.form(action = routes.AppsController.create(distributorID), 'name -> "new-app-form") {
         <div id="new-app" class="content registration">
             <h1>New App</h1>
+            <div class="description">Get started by entering your app's name</div>
             @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
             <button type="submit" name="app-form-next">Next</button>
         </div>
         <div id="new-virtual-currency" class="content registration">
             <h1>New Virtual Currency</h1>
+            <div class="description">We provide a standardized virtual currency that is used for each ad provider.</div>
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
             @helper.checkbox(form("roundUp"), '_label -> "Round Up Reward", '_help -> "", 'checked -> "checked")
             <label>

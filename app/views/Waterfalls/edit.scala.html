@@ -1,42 +1,43 @@
 @(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])(implicit flash: Flash, session: Session)
-<div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
-    <div id="waterfall-edit-success" class="flash-message success"></div>
-    <div id="waterfall-edit-error" class="flash-message error"></div>
-    <h1>Edit Waterfall</h1>
+
     @main("Edit Waterfall") {
-        <h1>API Token: @waterfall.token</h1>
-        <table>
-            <td class="td-waterfall-config">
-                <label>Test Mode:</label>
-                <div class="onoffswitch">
-                    @if(waterfall.testMode) {
-                        <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch" checked>
-                    } else {
-                        <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
-                    }
-                    <label class="onoffswitch-label" for="test-mode-switch">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                </div>
-            </td>
-            <tr/>
-            <td class="td-waterfall-config">
-                <label>Optimized Mode:</label>
-                <div class="onoffswitch">
-                    @if(waterfall.optimizedOrder) {
-                        <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch" checked>
-                    } else {
-                        <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
-                    }
-                    <label class="onoffswitch-label" for="optimized-mode-switch">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                </div>
-            </td>
-        </table>
-        <div class="content">
+        @views.html.Partials.subHeader("waterfall", distributorID, waterfall.app_id)
+        <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
+            <div id="waterfall-edit-success" class="flash-message success"></div>
+            <div id="waterfall-edit-error" class="flash-message error"></div>
+            <h1>Edit Waterfall</h1>
+            <h2>API Token: @waterfall.token</h2>
+            <table>
+                <td class="td-waterfall-config">
+                    <label>Test Mode:</label>
+                    <div class="onoffswitch">
+                        @if(waterfall.testMode) {
+                            <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch" checked>
+                        } else {
+                            <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
+                        }
+                        <label class="onoffswitch-label" for="test-mode-switch">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                    </div>
+                </td>
+                <tr/>
+                <td class="td-waterfall-config">
+                    <label>Optimized Mode:</label>
+                    <div class="onoffswitch">
+                        @if(waterfall.optimizedOrder) {
+                            <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch" checked>
+                        } else {
+                            <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
+                        }
+                        <label class="onoffswitch-label" for="optimized-mode-switch">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                    </div>
+                </td>
+            </table>
             <div class="waterfall ul">
                 <h1>Waterfall Order</h1>
                 <ul id="waterfall-list" class="waterfall-sort">
@@ -45,27 +46,35 @@
                             <li class="@classType" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
                                 <h3>@adProviderConfig.name</h3>
                                 <div class="waterfall ul li b">eCPM: @adProviderConfig.cpm</div>
-                                <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" class="status" type="submit" name="status">
-                                    @if(adProviderConfig.active) {
-                                        Deactivate
-                                    } else {
-                                        Activate
-                                    }
+                                <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" class="status" type="submit" name="status" data-id="@adProviderConfig.waterfallAdProviderID">
+                                    Deactivate
                                 </button>
                                 @defining(if(adProviderConfig.newRecord) "none" else "inline-block") { display =>
                                     <button style="display: @display" data-distributor-id="@distributorID" data-waterfall-ad-provider-id="@adProviderConfig.waterfallAdProviderID" name="configure-wap" type="submit">
                                         Configure
                                     </button>
                                 }
+                                <div class="waterfall-drag">
+                                    <div class="waterfall-drag-1"></div>
+                                    <div class="waterfall-drag-2"></div>
+                                    <div class="waterfall-drag-3"></div>
+                                </div>
+                                <div class="inactive-waterfall">
+                                </div>
+                                <div class="inactive-waterfall-content">
+                                    <h3>@adProviderConfig.name</h3>
+                                    <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" data-id="@adProviderConfig.waterfallAdProviderID" class="status inactive-button" type="submit" name="status">
+                                        Activate
+                                    </button>
+                                </div>
                             </li>
                         }
                     }
                 </ul>
             </div>
+            <button type="submit" name="submit">Save Changes</button>
         </div>
-        <button type="submit" name="submit">Save Changes</button>
+        <div id="edit-waterfall-ad-provider" class="modal"></div>
     }
-</div>
-<div id="edit-waterfall-ad-provider" class="modal"></div>
 
 <script src="@routes.Assets.at("javascripts/waterfalls/edit.js")" type="text/javascript"></script>

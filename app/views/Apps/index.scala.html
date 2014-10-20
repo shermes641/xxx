@@ -3,6 +3,7 @@
         @if(apps.length == 0) {
             <div class="content welcome_screen">
             <h1>Welcome to HyprMX Mediation</h1>
+            <div class="description">Welcome to HyprMX.</div>
             <a href="@routes.AppsController.newApp(distributorID)">Begin by creating an app</a>
         } else {
             <div class="content app_list">
@@ -19,13 +20,12 @@
                         @app.name
                         </a>
                     </h3>
-                    <div class="description">A brief overview of a couple app settings here (ex. active vs inactive etc.)</div>
                     <div class="actions">
                         <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
-                            Analytics
+                            Dashboard
                         </a>
-                        <a href='@routes.WaterfallsController.edit(distributorID, app.waterfallID)'>
-                            Edit Waterfall
+                        <a href='@routes.WaterfallsController.list(distributorID, app.id)'>
+                            Waterfall
                         </a>
                     </div>
                 </li>
