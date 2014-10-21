@@ -2,9 +2,13 @@ package controllers
 
 import models.DistributorUser
 import models.Mailer
+import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
+import play.api.libs.ws.{WSResponse, WSAuthScheme, WS}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {
@@ -39,6 +43,11 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       signup => {
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id) => {
+            signup.createJunGroupAdNetwork() map {
+              case response => {
+                println(response.body)
+              }
+            }
             // Email credentials need to be configured
             // signup.sendWelcomeEmail()
             Redirect(routes.DistributorUsersController.login).flashing("success" -> "Your confirmation email will arrive shortly.")
@@ -128,6 +137,10 @@ case class Signup(company: String, email: String, password: String, confirmation
     val subject = "Welcome to HyprMediation"
     val body = "Welcome to HyprMediation!"
     sendEmail(email, subject, body)
+  }
+
+  def createJunGroupAdNetwork(): Future[WSResponse] = {
+    WS.url("http://dcullen.junlabs.com:3000/admin/ad_network/create").withAuth("mediation", "testtest", WSAuthScheme.BASIC).post("content")
   }
 }
 
