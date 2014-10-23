@@ -200,7 +200,7 @@ object Waterfall extends JsonConversion {
     adProviderConfigList.map { adProviderConfig =>
       if(adProviderConfig.active && adProviderConfig.newRecord) {
         // If a Distributor wants to add a new AdProvider to the current waterfall, create a new WaterfallAdProvider record.
-        WaterfallAdProvider.create(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder)) match {
+        WaterfallAdProvider.create(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder), adProviderConfig.cpm, adProviderConfig.configurable) match {
           case Some(id) => {}
           case None => successful = false
         }

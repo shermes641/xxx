@@ -7,7 +7,7 @@ import models.Waterfall.AdProviderInfo
 import play.api.libs.json._
 import scala.language.implicitConversions
 
-object JsonBuilder {
+object JsonBuilder extends ValueToJsonHelper {
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
    * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
@@ -35,30 +35,6 @@ object JsonBuilder {
       )
     )
     configuration.deepMerge(virtualCurrencyConfiguration(adProviders(0)))
-  }
-
-  /**
-   * Converts an optional Long value to a JsValue in virtualCurrencyConfiguration.
-   * @param param The original optional Long value found in the adProviderInfo instance.
-   * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
-   */
-  implicit def optionalLongToJsValue(param: Option[Long]): JsValue = {
-    param match {
-      case Some(paramValue) => JsNumber(paramValue)
-      case None => JsNull
-    }
-  }
-
-  /**
-   * Converts an optional String value to a JsValue.
-   * @param param The original optional String value found in the adProviderInfo instance.
-   * @return A JsString if a String value is found; otherwise, returns JsNull.
-   */
-  implicit def optionalStringToJsValue(param: Option[String]): JsValue = {
-    param match {
-      case Some(paramValue) => JsString(paramValue)
-      case None => JsNull
-    }
   }
 
   /**
@@ -97,5 +73,67 @@ object JsonBuilder {
         )
       )
     )
+  }
+}
+
+/**
+ * Implicit functions to convert Scala values to JSON values.
+ */
+trait ValueToJsonHelper {
+  /**
+   * Converts an optional Long value to a JsValue in virtualCurrencyConfiguration.
+   * @param param The original optional Long value found in the adProviderInfo instance.
+   * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalLongToJsValue(param: Option[Long]): JsValue = {
+    param match {
+      case Some(paramValue) => JsNumber(paramValue)
+      case None => JsNull
+    }
+  }
+
+  /**
+   * Converts an optional String value to a JsValue.
+   * @param param The original optional String value found in the adProviderInfo instance.
+   * @return A JsString if a String value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalStringToJsValue(param: Option[String]): JsValue = {
+    param match {
+      case Some(paramValue) => JsString(paramValue)
+      case None => JsNull
+    }
+  }
+}
+
+/**
+ * Implicit functions to convert JSON values to Scala values.
+ */
+trait JsonToValueHelper {
+  /**
+   * Converts a JsValue to an Optional Double.
+   * @param param The value to be converted.
+   * @return A Double if a value exists; otherwise, None.
+   */
+  implicit def jsValueToOptionalDouble(param: JsValue): Option[Double] = {
+    param match {
+      case value: JsUndefined => None
+      case value: JsValue if(value.as[String] == "") => None
+      case value: JsValue => Some(value.as[String].toDouble)
+      case _ => None
+    }
+  }
+
+  /**
+   * Converts a JsValue to an Optional Long.
+   * @param param The value to be converted.
+   * @return A long if a value exists; otherwise, None.
+   */
+  implicit def jsValueToOptionalLong(param: JsValue): Option[Long] = {
+    param match {
+      case value: JsUndefined => None
+      case value: JsValue if(value.as[String] == "") => None
+      case value: JsValue => Some(value.as[String].toLong)
+      case _ => None
+    }
   }
 }

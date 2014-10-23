@@ -4,7 +4,7 @@ import play.api.mvc._
 import models._
 import play.api.libs.json._
 
-object WaterfallAdProvidersController extends Controller with Secured {
+object WaterfallAdProvidersController extends Controller with Secured with JsonToValueHelper {
   /**
    * Accepts AJAX call from Waterfall edit form.
    * @param distributorID ID of the Distributor who owns the Waterfall and WaterfallAdProviders.
@@ -12,7 +12,7 @@ object WaterfallAdProvidersController extends Controller with Secured {
    */
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { wapData =>
-      WaterfallAdProvider.create((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, None) match {
+      WaterfallAdProvider.create((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, (wapData \ "waterfallOrder") , (wapData \ "cpm"), (wapData \ "configurable").as[String].toBoolean) match {
         case Some(id) => {
           Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "wapID" -> id))
         }

@@ -26,7 +26,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   "Waterfall.reconfigureAdProviders" should {
     "create a new WaterfallAdProvider if one doesn't exist and ConfigInfo is a new record" in new WithDB {
       WaterfallAdProvider.findAllByWaterfallID(waterfall.get.id).size must beEqualTo(0)
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, 0))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, 0, None, true))
       Waterfall.reconfigureAdProviders(waterfall.get.id, configList)
       WaterfallAdProvider.findAllByWaterfallID(waterfall.get.id).size must beEqualTo(1)
     }
@@ -34,7 +34,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
     "should not create a new WaterfallAdProvider if one doesn't exist and ConfigInfo is not active" in new WithDB {
       val currentWaterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID).size must beEqualTo(0)
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, false, true, 0))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, false, true, 0, None, true))
       Waterfall.reconfigureAdProviders(currentWaterfallID, configList)
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID).size must beEqualTo(0)
     }
@@ -42,16 +42,16 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
     "should set the waterfallOrder property on WaterfallAdProviders correctly" in new WithDB {
       val currentWaterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
       val waterfallOrder = 0
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, waterfallOrder))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, waterfallOrder, None, true))
       Waterfall.reconfigureAdProviders(currentWaterfallID, configList)
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID)(0).waterfallOrder.get must beEqualTo(waterfallOrder)
     }
 
     "should deactivate a WaterfallAdProvider correctly" in new WithDB {
       val currentWaterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
-      val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0)).get
+      val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true).get
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true)(0).waterfallAdProviderID must beEqualTo(wapID)
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true))
       Waterfall.reconfigureAdProviders(currentWaterfallID, configList)
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true).size must beEqualTo(0)
     }
@@ -59,14 +59,14 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
     "should return false if the update is not successful" in new WithDB {
       val currentWaterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
       val someFakeID = 100
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(someFakeID, false, false, 0))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(someFakeID, false, false, 0, None, true))
       Waterfall.reconfigureAdProviders(currentWaterfallID, configList) must beEqualTo(false)
     }
   }
 
   "Waterfall.order" should {
     "return a list of ordered ad providers with configuration information if there are active waterfall ad providers" in new WithDB {
-      WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, Some(0))
+      WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, Some(0), None, true)
       Waterfall.order(waterfall.get.token).size must beEqualTo(1)
     }
 

@@ -6,7 +6,7 @@ import play.api.libs.json._
 class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallSpecSetup {
   "JsonBuilder.waterfallResponse" should {
     "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {
-      val wapID1 = WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, Some(0))
+      val wapID1 = WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, Some(0), None, true)
       val wap = WaterfallAdProvider.find(wapID1.get).get
       val configData = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("value1")))))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, configData, wap.reportingActive))
