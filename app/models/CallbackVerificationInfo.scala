@@ -9,5 +9,6 @@ import play.api.libs.json.JsValue
  * @param transactionID A unique ID to verify the completion.
  * @param waterfallToken The token for the waterfall to which the completion will belong.
  * @param offerProfit The payout amount for a Completion.
+ * @param rewardQuantity The amount of virtual currency earned.
  */
-case class CallbackVerificationInfo(isValid: Boolean, adProviderName: String, transactionID: String, waterfallToken: String, offerProfit: Option[Double])
+case class CallbackVerificationInfo(isValid: Boolean, adProviderName: String, transactionID: String, waterfallToken: String, offerProfit: Option[Double], rewardQuantity: Int)

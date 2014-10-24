@@ -11,14 +11,15 @@ import play.api.libs.json.JsNumber
  * @param time The timestamp for the callback.
  * @param transactionID A unique ID to verify the completion.
  * @param offerProfit The amount earned from the completion.
+ * @param quantity The amount of virtual currency earned.
  */
-class HyprMXCallback(waterfallToken: String, userID: String, signature: String, time: String, transactionID: String, offerProfit: Option[Double]) extends CallbackVerificationHelper {
+class HyprMXCallback(waterfallToken: String, userID: String, signature: String, time: String, transactionID: String, offerProfit: Option[Double], quantity: Int) extends CallbackVerificationHelper {
   override val adProviderName = "HyprMX"
   override val token = waterfallToken
   override val receivedVerification = signature
-  override val currencyAmount = 1
+  override val currencyAmount = quantity
   override def payout = offerProfit
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout)
+  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout, currencyAmount)
 
   /**
    * Generates a security digest using the steps provided in HyprMX's documentation.

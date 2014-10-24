@@ -156,12 +156,12 @@ object APIController extends Controller {
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
   def hyprMXCompletionV1(waterfallToken: String, time: Option[String], sig: Option[String], quantity: Option[Int], offerProfit: Option[Double], rewardID: Option[String], uid: Option[String], subID: Option[String]) = Action { implicit request =>
-    (uid, sig, time, subID) match {
-      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String)) => {
-        val callback = new HyprMXCallback(waterfallToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit)
+    (uid, sig, time, subID, quantity) match {
+      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String), Some(quantityValue: Int)) => {
+        val callback = new HyprMXCallback(waterfallToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
         callbackResponse(callback.verificationInfo, request.toString)
       }
-      case (_, _, _, _) => BadRequest
+      case (_, _, _, _, _) => BadRequest
     }
   }
 

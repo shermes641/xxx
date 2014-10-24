@@ -20,10 +20,10 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val completionCount = tableCount("completions")
       App.update(new App(app1.id, true, app1.distributorID, app1.name, None, true))
       val completion = spy(new Completion)
-      completion.postCallback(Some(any[String]), any[String], any[String], Some(any[Double])) returns Future { true }
-      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", waterfall.get.token, Some(1.0))
+      completion.postCallback(Some(any[String]), any[String], any[String], any[CallbackVerificationInfo]) returns Future { true }
+      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", waterfall.get.token, Some(1.0), 1)
       Await.result(completion.createWithNotification(callbackInfo), Duration(5000, "millis")) must beEqualTo(true)
-      there was one(completion).postCallback(any[Option[String]], any[String], any[String], Some(any[Double]))
+      there was one(completion).postCallback(any[Option[String]], any[String], any[String], any[CallbackVerificationInfo])
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
 
@@ -31,9 +31,9 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val completionCount = tableCount("completions")
       App.update(new App(app1.id, true, app1.distributorID, app1.name, None, false))
       val completion = spy(new Completion)
-      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", waterfall.get.token, Some(1.0))
+      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", waterfall.get.token, Some(1.0), 1)
       Await.result(completion.createWithNotification(callbackInfo), Duration(5000, "millis")) must beEqualTo(true)
-      there was no(completion).postCallback(any[Option[String]], any[String], any[String], Some(any[Double]))
+      there was no(completion).postCallback(any[Option[String]], any[String], any[String], any[CallbackVerificationInfo])
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
   }

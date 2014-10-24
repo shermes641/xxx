@@ -14,7 +14,7 @@ class VungleCallback(waterfallToken: String, transactionID: String, digest: Stri
   override val token = waterfallToken
   override val receivedVerification = digest
   override val currencyAmount = amount
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout)
+  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout, currencyAmount)
 
   /**
    * Generates a security digest using the steps provided in Vungle's documentation.

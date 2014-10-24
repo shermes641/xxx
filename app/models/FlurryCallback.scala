@@ -14,7 +14,7 @@ class FlurryCallback(waterfallToken: String, transactionID: String, rewardQuanti
   override val token = waterfallToken
   override val receivedVerification = fhash
   override val currencyAmount = rewardQuantity
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout)
+  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout, currencyAmount)
 
   /**
    * Generates a security digest using the steps provided in Flurry's documentation.

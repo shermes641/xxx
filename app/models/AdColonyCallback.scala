@@ -20,7 +20,7 @@ class AdColonyCallback(waterfallToken: String, transactionID: String, uid: Strin
   override val token = waterfallToken
   override val receivedVerification = verifier
   override val currencyAmount = amount
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout)
+  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, waterfallToken, payout, currencyAmount)
 
   /**
    * Generates a security digest using the steps provided in Ad Colony's documentation.

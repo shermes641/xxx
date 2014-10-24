@@ -47,13 +47,13 @@ class Completion {
   def createWithNotification(verificationInfo: CallbackVerificationInfo, requestBody: String = ""): Future[Boolean] = {
     (create(verificationInfo.waterfallToken, verificationInfo.adProviderName, verificationInfo.transactionID, verificationInfo.offerProfit), Waterfall.findCallbackInfo(verificationInfo.waterfallToken)) match {
       case (Some(id: Long), Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, "Completion successful.", requestBody, verificationInfo.offerProfit)
+        postCallback(callbackInfo.callbackURL, "Completion successful.", requestBody, verificationInfo)
       }
       case (Some(id: Long), _) => {
         Future { true }
       }
       case (None, Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, "Completion was not successful.", requestBody, verificationInfo.offerProfit)
+        postCallback(callbackInfo.callbackURL, "Completion was not successful.", requestBody, verificationInfo)
       }
       case (_, _) => {
         Future { false }
@@ -66,16 +66,18 @@ class Completion {
    * @param callbackURL The target URL for the POST request.
    * @param message A message indicating the success or failure of the Completion.
    * @param body The original postback from the ad provider.
-   * @param offerProfit The payout for a successful Completion.
+   * @param verificationInfo Class containing information to verify the postback and create a new Completion.
    * @return A boolean future indicating the success of the call to the App's reward callback.
    */
-  def postCallback(callbackURL: Option[String], message: String, body: String, offerProfit: Option[Double]): Future[Boolean] = {
+  def postCallback(callbackURL: Option[String], message: String, body: String, verificationInfo: CallbackVerificationInfo): Future[Boolean] = {
     callbackURL match {
       case Some(url: String) => {
         val data = Map(
           "status" -> Seq(message),
           "original_postback" -> Seq(body),
-          "offer_profit" -> Seq(offerProfit match {
+          "ad_provider" -> Seq(verificationInfo.adProviderName),
+          "reward_quantity" -> Seq(verificationInfo.rewardQuantity.toString),
+          "calculated_offer_profit" -> Seq(verificationInfo.offerProfit match {
             case Some(profit: Double) => profit.toString
             case None => ""
           })
