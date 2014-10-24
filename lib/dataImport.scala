@@ -10,7 +10,7 @@ import models.AdProvider
 new play.core.StaticApplication(new java.io.File("."))
 
 // List of users to created.  "@jungroup" will be appended for email and the distributor will be have "Distributor" appended
-var users = List("dcullen", "jellison", "tdepplito", "jlunn", "dwood")
+var users = List("dcullen", "jellison", "tdepplito", "jlunn", "dwood", "akriger", "sbhat", "tkerchmar", "eabuhoff")
 
 // App Names to use for each user
 var appNames = List("Game App", "News App", "Casino App")
