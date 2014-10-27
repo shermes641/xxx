@@ -77,7 +77,7 @@ class Completion {
           "original_postback" -> Seq(body),
           "ad_provider" -> Seq(verificationInfo.adProviderName),
           "reward_quantity" -> Seq(verificationInfo.rewardQuantity.toString),
-          "calculated_offer_profit" -> Seq(verificationInfo.offerProfit match {
+          "estimated_offer_profit" -> Seq(verificationInfo.offerProfit match {
             case Some(profit: Double) => profit.toString
             case None => ""
           })
