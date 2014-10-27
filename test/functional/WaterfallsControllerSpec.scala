@@ -26,7 +26,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   }
 
   val waterfallAdProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfallID, adProviderID1.get).get
+    WaterfallAdProvider.create(waterfallID, adProviderID1.get, None, None, true).get
   }
 
   val wap1 = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -34,21 +34,27 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   }
 
   val waterfallAdProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfallID, adProviderID2.get).get
+    WaterfallAdProvider.create(waterfallID, adProviderID2.get, None, None, true).get
   }
 
   val wap2 = running(FakeApplication(additionalConfiguration = testDB)) {
     WaterfallAdProvider.find(waterfallAdProviderID2).get
   }
 
+  val adProviderConfiguration = "{\"requiredParams\":[{\"description\": \"Your Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, " +
+    "{\"description\": \"Your App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, " +
+    "{\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}"
+
   "Waterfall.update" should {
-    "respond with a 200 with update is successful" in new WithFakeBrowser {
+    "respond with a 200 if update is successful" in new WithFakeBrowser {
       val configInfo1 = JsObject(
         Seq(
           "id" -> JsString(waterfallAdProviderID1.toString),
           "newRecord" -> JsString("false"),
           "active" -> JsString("true"),
-          "waterfallOrder" -> JsString("0")
+          "waterfallOrder" -> JsString("0"),
+          "cpm" -> JsString(""),
+          "configurable" -> JsString("true")
         )
       )
       val configInfo2 = JsObject(
@@ -56,7 +62,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
           "id" -> JsString(waterfallAdProviderID2.toString),
           "newRecord" -> JsString("false"),
           "active" -> JsString("true"),
-          "waterfallOrder" -> JsString("1")
+          "waterfallOrder" -> JsString("1"),
+          "cpm" -> JsString(""),
+          "configurable" -> JsString("true")
         )
       )
       val body = JsObject(
@@ -204,6 +212,32 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#wap-edit-success").areDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
+    }
+
+    "create a WaterfallAdProvider with an eCPM value if an AdProvider with a default eCPM is activated" in new WithFakeBrowser with WaterfallEditSetup {
+      val newAppID = App.create(distributorID, "New App").get
+      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+
+      val defaultEcpm = Some(20.0)
+      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, false, defaultEcpm).get
+      logInUser()
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      browser.executeScript("var button = $('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('div[class=inactive-waterfall-content]').children(':button[name=status]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      WaterfallAdProvider.findAllByWaterfallID(newWaterfallID).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
+    }
+  }
+
+  "Waterfall.edit" should {
+    "display default eCPM values for Ad Providers" in new WithFakeBrowser with WaterfallEditSetup {
+      val newAppID = App.create(distributorID, "New App").get
+      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+
+      val defaultEcpm = "20.0"
+      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, false, Some(defaultEcpm.toDouble)).get
+      logInUser()
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      browser.$("li[id=true-" + adProviderWithDefaultEcpmID + "]").getAttribute("data-cpm") must beEqualTo(defaultEcpm)
     }
   }
 

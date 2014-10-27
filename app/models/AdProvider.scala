@@ -11,16 +11,21 @@ import scala.language.postfixOps
  * Encapsulates information for third-party SDKs to be mediated.
  * @param id id field in the ad_providers table
  * @param name name field in the ad_providers table
+ * @param configurationData contains default required params, reporting params, and callback params for an ad provider.
+ * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
+ * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
  */
-case class AdProvider(id: Long, name: String, configurationData: JsValue)
+case class AdProvider(id: Long, name: String, configurationData: JsValue, configurable: Boolean = true, defaultEcpm: Option[Double] = None)
 
 object AdProvider extends JsonConversion {
   // Used to convert SQL query result into instances of the AdProvider class.
   val adProviderParser: RowParser[AdProvider] = {
       get[Long]("id") ~
       get[String]("name") ~
-      get[JsValue]("configuration_data") map {
-      case id ~ name ~ configuration_data => AdProvider(id, name, configuration_data)
+      get[JsValue]("configuration_data") ~
+      get[Boolean]("configurable") ~
+      get[Option[Double]]("default_ecpm") map {
+      case id ~ name ~ configuration_data ~ configurable ~ default_ecpm => AdProvider(id, name, configuration_data, configurable, default_ecpm)
     }
   }
 
@@ -49,7 +54,7 @@ object AdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, id, configuration_data
+          SELECT name, id, configuration_data, configurable, default_ecpm
           FROM ad_providers
           WHERE id NOT IN
           (SELECT DISTINCT ad_provider_id
@@ -65,16 +70,18 @@ object AdProvider extends JsonConversion {
    * Creates a new record in the AdProvider table
    * @param name Maps to name column in AdProvider table
    * @param configurationData Json configuration data for AdProvider
+   * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
+   * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
    * @return ID of newly created record
    */
-  def create(name: String, configurationData: String): Option[Long] = {
+  def create(name: String, configurationData: String, configurable: Boolean = true, defaultEcpm: Option[Double] = None): Option[Long] = {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          INSERT INTO ad_providers (name, configuration_data)
-          VALUES ({name}, CAST({configuration_data} AS json));
+          INSERT INTO ad_providers (name, configuration_data, configurable, default_ecpm)
+          VALUES ({name}, CAST({configuration_data} AS json), {configurable}, {default_ecpm});
         """
-      ).on("name" -> name, "configuration_data" -> configurationData).executeInsert()
+      ).on("name" -> name, "configuration_data" -> configurationData, "configurable" -> configurable, "default_ecpm" -> defaultEcpm).executeInsert()
     }
   }
 }

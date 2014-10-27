@@ -43,7 +43,7 @@
                 <ul id="waterfall-list" class="waterfall-sort">
                     @for((adProviderConfig) <- adProviderOrder) {
                         @defining(if(adProviderConfig.active) "waterfall" else "inactive") { classType =>
-                            <li class="@classType" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
+                            <li class="@classType" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
                                 <h3>@adProviderConfig.name</h3>
                                 <div class="waterfall ul li b">eCPM: @adProviderConfig.cpm</div>
                                 <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" class="status" type="submit" name="status" data-id="@adProviderConfig.waterfallAdProviderID">

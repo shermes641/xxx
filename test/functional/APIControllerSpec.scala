@@ -11,11 +11,11 @@ import controllers.APIController
 @RunWith(classOf[JUnitRunner])
 class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None).get
+    WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None, None, true).get
   }
 
   val wap2ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, None).get
+    WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, None, None, true).get
   }
 
   "APIController.waterfall" should {

@@ -18,7 +18,7 @@ import scala.language.postfixOps
  * @param fillRate the ratio of ads shown to inventory checks
  */
 case class WaterfallAdProvider (
-	id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean], fillRate: Option[Float], configurationData: JsValue, reportingActive: Boolean
+  id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean], fillRate: Option[Float], configurationData: JsValue, reportingActive: Boolean
 )
 
 object WaterfallAdProvider extends JsonConversion {
@@ -105,17 +105,19 @@ object WaterfallAdProvider extends JsonConversion {
    * Creates a new WaterfallAdProvider record in the database unless a similar record exists.
    * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
    * @param adProviderID ID of the Ad Provider to which the new WaterfallAdProvider belongs
+   * @param cpm The estimated cost per thousand completions for an AdProvider.
+   * @param configurable Determines if the cpm value can be edited for the WaterfallAdProvider.
    * @return ID of new record if insert is successful, otherwise None.
    */
-  def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None): Option[Long] = {
+  def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean): Option[Long] = {
     DB.withConnection { implicit connection =>
       try{
         SQL(
           """
-          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order)
-          VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order});
+          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order, cpm, configurable)
+          VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order}, {cpm}, {configurable});
           """
-        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder).executeInsert()
+        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder, "cpm" -> cpm, "configurable" -> configurable).executeInsert()
       } catch {
         case exception: org.postgresql.util.PSQLException => {
           None
@@ -173,7 +175,7 @@ object WaterfallAdProvider extends JsonConversion {
       val activeClause = if(active) " AND active = true " else ""
       val sqlStatement =
         """
-          SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order FROM ad_providers
+          SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configurable FROM ad_providers
           JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
           WHERE waterfall_id = {waterfall_id}
         """ + activeClause +
@@ -230,8 +232,9 @@ object WaterfallAdProvider extends JsonConversion {
     get[Long]("id") ~
     get[Option[Double]]("cpm") ~
     get[Boolean]("active") ~
-    get[Option[Long]]("waterfall_order") map {
-      case name ~ id ~ cpm ~ active ~ waterfall_order => OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order)
+    get[Option[Long]]("waterfall_order") ~
+    get[Boolean]("configurable") map {
+      case name ~ id ~ cpm ~ active ~ waterfall_order ~ configurable => OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, false, configurable)
     }
   }
 
@@ -269,8 +272,9 @@ case class WaterfallAdProviderRevenueData(waterfallAdProviderID: Long, name: Str
  * @param waterfallAdProviderID id field from waterfall_ad_providers table
  * @param cpm cpm field from waterfall_ad_providers table
  * @param waterfallOrder waterfall_order field from waterfall_ad_providers table
+ * @param configurable Determines if a DistributorUser can edit the cpm value for the WaterfallAdProvider.
  */
-case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long], newRecord: Boolean = false)
+case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long], newRecord: Boolean = false, configurable: Boolean = true)
 
 /**
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
