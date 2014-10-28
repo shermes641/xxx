@@ -12,10 +12,12 @@ trait Mailer {
    * @param body Email body
    */
   def sendEmail(recipient: String, subject: String, body: String): Unit = {
-    val mail = use[MailerPlugin].email
-    mail.setRecipient(recipient)
-    mail.setFrom("tdepplito@jungroup.com")
-    mail.setSubject(subject)
-    mail.send(body)
+    if(play.api.Play.isProd(play.api.Play.current)) {
+      val mail = use[MailerPlugin].email
+      mail.setRecipient(recipient)
+      mail.setFrom("noreply@hyprMediate.com")
+      mail.setSubject(subject)
+      mail.send(body)
+    }
   }
 }

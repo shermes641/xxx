@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "org.postgresql" % "postgresql" % "9.3-1100-jdbc4",
-  "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.0",
+  "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.1",
   "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
   "org.clapper" %% "grizzled-slf4j" % "1.0.2",
   "io.spray" %%  "spray-can"     % "1.3.1",

@@ -1,10 +1,12 @@
 package controllers
 
-import models.DistributorUser
-import models.Mailer
+import models.{WelcomeEmailActor, DistributorUser}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
+import play.api.libs.concurrent.Akka
+import akka.actor.Props
+import play.api.Play.current
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {
@@ -39,8 +41,8 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       signup => {
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id) => {
-            // Email credentials need to be configured
-            // signup.sendWelcomeEmail()
+            val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
+            emailActor ! signup.email
             Redirect(routes.DistributorUsersController.login).flashing("success" -> "Your confirmation email will arrive shortly.")
           }
           case _ => {
@@ -122,14 +124,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
  * @param confirmation Password confirmation for new DistributorUser.
  * @param agreeToTerms Boolean checkbox for terms of service.
  */
-case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean) extends Mailer {
-   /** Sends email to new DistributorUser.  This is called on a successful sign up. */
-  def sendWelcomeEmail(): Unit = {
-    val subject = "Welcome to HyprMediation"
-    val body = "Welcome to HyprMediation!"
-    sendEmail(email, subject, body)
-  }
-}
+case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean)
 
 /**
  * Used for mapping log in form fields to DistributorUser attributes.
