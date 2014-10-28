@@ -134,6 +134,7 @@ $(document).ready(function() {
         $(".content.waterfall_list").toggleClass("modal-inactive", true);
         $.ajax({
             url: path,
+            data: {waterfall_token: $(".waterfall-token").attr("data-waterfall-token")},
             type: 'GET',
             success: function(data) {
                 $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");

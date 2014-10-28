@@ -126,5 +126,16 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
       }
     }
   }
+
+  "WaterfallAdProvider.findByAdProvider" should {
+    "return the configuration data JSON if a record is found" in new WithDB {
+      VirtualCurrency.create(waterfall.app_id, "Coins", 100, None, None, Some(true))
+      WaterfallAdProvider.findByAdProvider(waterfall.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.WaterfallAdProviderCallbackInfo]
+    }
+
+    "return None if the configuration data does not exist" in new WithDB {
+      WaterfallAdProvider.findByAdProvider(waterfall.token, "Some fake ad provider name") must beNone
+    }
+  }
   step(clean)
 }

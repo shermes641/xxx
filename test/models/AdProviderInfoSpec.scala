@@ -49,4 +49,5 @@ class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSet
       adProviderInfo.meetsRewardThreshold must beEqualTo(false)
     }
   }
+  step(clean)
 }

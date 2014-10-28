@@ -15,17 +15,6 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     DistributorUser.findByEmail(email).get
   }
 
-  /**
-   * Retrieve the count of all records in a particular table.
-   * @param tableName The table on which the count is performed.
-   * @return The number of rows in the table.
-   */
-  def tableCount(tableName: String): Long = {
-    (DB.withConnection { implicit connection =>
-      SQL("""SELECT COUNT(1) FROM """ + tableName).apply()
-    }.head)[Long]("count")
-  }
-
   "AppsController.index" should {
     "display all apps" in new WithFakeBrowser {
       val app2Name = "App 2"

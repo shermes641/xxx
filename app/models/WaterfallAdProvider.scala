@@ -213,7 +213,7 @@ object WaterfallAdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, ad_providers.configuration_data as ad_provider_configuration, wap.configuration_data as wap_configuration, wap.reporting_active
+          SELECT name, ad_providers.configuration_data as ad_provider_configuration, ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
           FROM waterfall_ad_providers wap
           JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
           WHERE wap.id = {id};
@@ -223,6 +223,47 @@ object WaterfallAdProvider extends JsonConversion {
         case List(waterfallAdProviderConfig) => Some(waterfallAdProviderConfig)
         case _ => None
       }
+    }
+  }
+
+  /**
+   * Find a WaterfallAdProvider record by AdProvider name and Waterfall token.
+   * @param waterfallToken The token for the Waterfall to which the WaterfallAdProvider belongs.
+   * @param adProviderName The name of the AdProvider stored in the ad_providers table.
+   * @return a WaterfallAdProvider instance if one exists; otherwise, returns None.
+   */
+  def findByAdProvider(waterfallToken: String, adProviderName: String): Option[WaterfallAdProviderCallbackInfo] = {
+    DB.withConnection { implicit connection =>
+      val query = SQL(
+        """
+           SELECT wap.configuration_data, wap.cpm, vc.exchange_rate FROM waterfalls
+           JOIN waterfall_ad_providers wap ON wap.waterfall_id = waterfalls.id
+           JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
+           JOIN virtual_currencies vc ON vc.app_id = waterfalls.app_id
+           WHERE token={waterfall_token} AND ad_providers.name={ad_provider_name};
+        """
+      ).on("waterfall_token" -> waterfallToken, "ad_provider_name" -> adProviderName)
+      query.as(waterfallAdProviderCallbackInfoParser*) match {
+        case List(waterfallAdProviderCallbackInfo) => Some(waterfallAdProviderCallbackInfo)
+        case _ => None
+      }
+    }
+  }
+
+  /**
+   * Encapsulates information to be used in callbacks.
+   * @param configurationData maps to the configuration_data field in the waterfall_ad_providers table.
+   * @param cpm maps to the cpm field in the waterfall_ad_providers table.
+   * @param exchangeRate maps to the exchange_rate field in the virtual_currencies table.
+   */
+  case class WaterfallAdProviderCallbackInfo(configurationData: JsValue, cpm: Option[Double], exchangeRate: Double)
+
+  // Used to convert result of orderedByCPM SQL query.
+  val waterfallAdProviderCallbackInfoParser: RowParser[WaterfallAdProviderCallbackInfo] = {
+    get[JsValue]("configuration_data") ~
+    get[Option[Double]]("cpm") ~
+    get[Long]("exchange_rate") map {
+      case configuration_data ~ cpm ~ exchange_rate => WaterfallAdProviderCallbackInfo(configuration_data, cpm, exchange_rate)
     }
   }
 
@@ -242,9 +283,10 @@ object WaterfallAdProvider extends JsonConversion {
   val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
     get[String]("name") ~
     get[JsValue]("ad_provider_configuration") ~
+    get[Option[String]]("callback_url_format") ~
     get[JsValue]("wap_configuration") ~
     get[Boolean]("reporting_active") map {
-      case name ~ ad_provider_configuration ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, ad_provider_configuration, wap_configuration, reporting_active)
+      case name ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
     }
   }
 
@@ -280,10 +322,11 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
  * @param name name field from ad_providers table.
  * @param adProviderConfiguration Configuration data from AdProvider record.
+ * @param callbackUrlFormat General format for an AdProvider's reward callback URL.
  * @param waterfallAdProviderConfiguration Configuration data form WaterfallAdProvider record.
  * @param reportingActive Boolean value indicating if we are collecting revenue data from third-parties.
  */
-case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsValue, waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) {
+case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) {
   /**
    * Maps required info from AdProviders to actual values stored in WaterfallAdProviders.
    * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.

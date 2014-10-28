@@ -38,8 +38,15 @@ var retrieveFields = function(fieldType) {
 
 // Assembles JSON to be saved as configuration_data in the waterfall_ad_providers table.
 var updatedData = function() {
-    return(JSON.stringify({configurationData: {requiredParams: retrieveFields("edit-waterfall-ad-provider-field"),
-        reportingParams: retrieveFields("reporting-waterfall-ad-provider-field")}, reportingActive: reportingActiveToggleButton.prop("checked").toString()}));
+    return(JSON.stringify(
+        {
+            configurationData: {
+                requiredParams: retrieveFields("edit-waterfall-ad-provider-field"), reportingParams: retrieveFields("reporting-waterfall-ad-provider-field"),
+                callbackParams: retrieveFields("callback-waterfall-ad-provider-field")
+            },
+            reportingActive: reportingActiveToggleButton.prop("checked").toString()
+        }
+    ));
 };
 
 // Displays success or error of AJAX request.
