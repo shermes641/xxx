@@ -1,5 +1,5 @@
 @(form: Form[EditAppMapping], distributorID: Long, appID: Long)(implicit flash: Flash, session: Session)
-@main("Modify App Configuration") {
+@main("Modify App Configuration", distributorID) {
     <div id="error-message" class="flash-message error"></div>
     @views.html.Partials.subHeader("settings", distributorID, appID)
     <div class="content settings">

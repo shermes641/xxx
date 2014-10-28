@@ -1,5 +1,5 @@
 @(apps: List[AppWithWaterfallID], distributorID: Long)(implicit flash: Flash, session: Session)
-@main("My Apps") {
+@main("My Apps", distributorID) {
         @if(apps.length == 0) {
             <div class="content welcome_screen">
             <h1>Welcome to HyprMX Mediation</h1>

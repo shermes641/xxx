@@ -1,5 +1,5 @@
 @(form: Form[NewAppMapping], distributorID: Long)(implicit flash: Flash, session: Session)
-@main("New App") {
+@main("New App", distributorID) {
     <div id="error-message" class="flash-message error"></div>
     @helper.form(action = routes.AppsController.create(distributorID), 'name -> "new-app-form") {
         <div id="new-app" class="content registration">
