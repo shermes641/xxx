@@ -9,7 +9,7 @@ CREATE TABLE distributor_users (
   primary key (id)
 );
 
-CREATE INDEX email_index on distributor_users(email)
+CREATE INDEX email_index on distributor_users(LOWER(email));
 
 # --- !Downs
 

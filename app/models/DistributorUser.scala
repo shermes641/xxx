@@ -65,9 +65,9 @@ object DistributorUser {
         """
           SELECT distributor_users.*
           FROM distributor_users
-          WHERE distributor_users.email = {email}
+          WHERE LOWER(distributor_users.email) = {email}
         """
-      ).on("email" -> email)
+      ).on("email" -> email.toLowerCase)
       query.as(userParser*) match {
         case List(user) => Some(user)
         case List() => None
