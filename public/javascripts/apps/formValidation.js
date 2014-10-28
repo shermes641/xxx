@@ -23,7 +23,7 @@ var formComplete = function() {
 var validRewardAmounts = function() {
     var rewardMin = $(":input[name=rewardMin]").val();
     var rewardMax = $(":input[name=rewardMax]").val();
-    if(rewardMin !== "" && rewardMax !== "") {
+    if(typeof rewardMin === "string" && rewardMin !== "" && typeof rewardMax === "string" && rewardMax !== "") {
         if(parseInt(rewardMax) < parseInt(rewardMin)) {
             flashMessage("Reward Maximum must be greater than or equal to Reward Minimum.");
             return false;
