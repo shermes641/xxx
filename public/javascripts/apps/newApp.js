@@ -17,10 +17,10 @@ $(document).ready(function() {
     // Submit form if fields are valid.
     $(":button[name=virtual-currency-form]").click(function(event) {
         event.preventDefault();
-        if(validRewardAmounts()) {
+        if(validRewardAmounts() && formComplete()) {
             $("form[name=new-app-form]").submit();
         } else {
-            flashMessage(rewardAmountErrorMessage);
+            event.preventDefault();
         }
     });
 

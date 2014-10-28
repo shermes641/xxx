@@ -1,7 +1,7 @@
 @(name: Field, exchangeRate: Field, rewardMin: Field, rewardMax: Field)
-@helper.inputText(name, 'placeholder -> "Gold", '_label -> "Currency Name", '_showConstraints -> false)
+@helper.inputText(name, 'placeholder -> "Gold", '_label -> "*Currency Name", '_showConstraints -> false)
 <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
-@helper.inputText(exchangeRate, 'placeholder -> "100", '_label -> "Exchange Rate", '_showConstraints -> false)
+@helper.inputText(exchangeRate, 'placeholder -> "100", '_label -> "*Exchange Rate", '_showConstraints -> false)
 <div class="tip">The number of virtual currency units per $1.</div>
 @helper.inputText(rewardMin, 'placeholder -> "1", '_label -> "Reward Minimum", '_showConstraints -> false)
 <div class="tip">The minimum reward earned per ad completion.</div>
