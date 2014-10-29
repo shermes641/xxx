@@ -9,11 +9,23 @@
             @helper.inputText(form("email"),'_showConstraints -> false, 'placeholder -> "Email", '_label -> null)
             @helper.inputPassword(form("password"),'_showConstraints -> false, 'placeholder -> "Password", '_label -> null)
             @helper.inputPassword(form("confirmation"),'_showConstraints -> false, 'placeholder -> "Password (confirm)", '_label -> null)
+            @helper.checkbox(form("terms"), '_label -> null, '_help -> "")
+            <div class="checkbox-label">
+                <label>
+                    I have read and agree to the
+                </label>
+                <span id="viewTerms">License Agreement</span>
+            </div>
             <div id="termsContainer">
                 @views.html.Partials.terms()
             </div>
-            @helper.checkbox(form("terms"), '_label -> "I have read and agree to the above", '_help -> "")
             <button type="submit" name="submit">Sign up</button>
         }
     }
+
+    <div id="registration-link">
+        <a href="@routes.DistributorUsersController.login()">Or sign-in if you're an existing user</a>
+    </div>
 </div>
+
+<script src="@routes.Assets.at("javascripts/distributor_users/signup.js")" type="text/javascript"></script>

@@ -40,10 +40,17 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       formWithErrors => BadRequest(views.html.DistributorUsers.signup(formWithErrors)),
       signup => {
         DistributorUser.create(signup.email, signup.password, signup.company) match {
-          case Some(id) => {
+          case Some(id: Long) => {
             val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
             emailActor ! signup.email
-            Redirect(routes.DistributorUsersController.login).flashing("success" -> "Your confirmation email will arrive shortly.")
+            DistributorUser.find(id) match {
+              case Some(user: DistributorUser) => {
+                Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString()).flashing("success" -> "Your confirmation email will arrive shortly.")
+              }
+              case None => {
+                Redirect(routes.DistributorUsersController.signup).flashing("error" -> "User was not found.")
+              }
+            }
           }
           case _ => {
             Redirect(routes.DistributorUsersController.signup).flashing("error" -> "This email has been registered already. Try logging in.")
