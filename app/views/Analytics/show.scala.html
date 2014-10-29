@@ -1,6 +1,6 @@
 @(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
-@main("Analytics") {
+@main("Analytics", distributorID) {
     @views.html.Partials.subHeader("dashboard", distributorID, appID)
 
     <div class="content dashboard">
