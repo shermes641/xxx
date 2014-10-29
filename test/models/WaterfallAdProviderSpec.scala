@@ -33,12 +33,12 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get).get
+    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true).get
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }
 
   val waterfallAdProvider2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID2 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get).get
+    val waterfallAdProviderID2 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, true).get
     WaterfallAdProvider.find(waterfallAdProviderID2).get
   }
 
@@ -56,7 +56,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
 
     "should not create a new record if another shares the same ad_provider_id and waterfall_id" in new WithDB {
-      WaterfallAdProvider.create(waterfall.id, adProviderID1.get) must beNone
+      WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true) must beNone
     }
   }
 
@@ -124,6 +124,17 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
         fields(index).key.get must beEqualTo(configurationParams(index))
         fields(index).value.get must beEqualTo(configurationValues(index))
       }
+    }
+  }
+
+  "WaterfallAdProvider.findByAdProvider" should {
+    "return the configuration data JSON if a record is found" in new WithDB {
+      VirtualCurrency.create(waterfall.app_id, "Coins", 100, None, None, Some(true))
+      WaterfallAdProvider.findByAdProvider(waterfall.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.WaterfallAdProviderCallbackInfo]
+    }
+
+    "return None if the configuration data does not exist" in new WithDB {
+      WaterfallAdProvider.findByAdProvider(waterfall.token, "Some fake ad provider name") must beNone
     }
   }
   step(clean)

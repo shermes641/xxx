@@ -1,4 +1,4 @@
-@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean)(implicit flash: Flash, session: Session)
+@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], callbackParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean, callbackUrl: Option[String], appDomain: String)(implicit flash: Flash, session: Session)
 <div class="contents" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
     <div class="flash-message success" id="wap-edit-success"></div>
     <div class="flash-message error" id="wap-edit-error"></div>
@@ -30,6 +30,22 @@
         </table>
         @for(param <- reportingParams) {
             <div class="reporting-waterfall-ad-provider-field">
+                <label class="modal-label">@param.key</label>
+                <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
+                <h4 class="tooltip" title="@param.description">?</h4>
+            </div>
+        }
+        <h1 class="modal-text">Callback Configuration</h1>
+        <table>
+            @if(!(callbackUrl == None)) {
+                <td>
+                    <label class="modal-label">Callback URL:</label>
+                    <div class="callback">@{appDomain + callbackUrl.get}</div>
+                </td>
+            }
+        </table>
+        @for(param <- callbackParams) {
+            <div class="callback-waterfall-ad-provider-field">
                 <label class="modal-label">@param.key</label>
                 <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
                 <h4 class="tooltip" title="@param.description">?</h4>

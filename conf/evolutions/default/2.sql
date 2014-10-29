@@ -6,6 +6,9 @@ CREATE TABLE ad_providers (
   id bigserial,
   name varchar(255) NOT NULL,
   configuration_data json NOT NULL DEFAULT to_json('{}'::JSON),
+  callback_url_format varchar(2083),
+  configurable BOOL NOT NULL DEFAULT TRUE,
+  default_ecpm float,
   PRIMARY KEY (id)
 );
 

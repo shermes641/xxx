@@ -8,6 +8,9 @@
             <button type="submit" name="submit">Save Changes</button>
             @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
             @helper.inputRadioGroup(form("active"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Active?", '_showConstraints -> false)
+            <h1>Reward Handling</h1>
+            @helper.inputRadioGroup(form("serverToServerEnabled"), options = Seq("1" -> "Yes", "0" -> "No"), '_label -> "Enable server to server callbacks", '_showConstraints -> false)
+            @helper.inputText(form("callbackURL"), 'placeholder -> "", '_label -> "Callback URL", '_showConstraints -> false)
 
             <h1>Virtual Currency Configuration</h1>
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))

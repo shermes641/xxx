@@ -13,6 +13,18 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
   val password = "password"
   val companyName = "Some Company"
 
+  /**
+   * Retrieve the count of all records in a particular table.
+   * @param tableName The table on which the count is performed.
+   * @return The number of rows in the table.
+   */
+  def tableCount(tableName: String): Long = {
+    (DB.withConnection { implicit connection =>
+      SQL("""SELECT COUNT(1) FROM """ + tableName).apply()
+    }.head)[Long]("count")
+  }
+
+
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB)) {
   }
 
@@ -49,6 +61,6 @@ trait JsonTesting {
   val configurationParams = List("key1", "key2")
   val configurationValues = List("value1", "value2")
   def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\", \"description\": \"some description\"}"
-  val configurationData = "{\"requiredParams\": [" + paramJson(0) + ", " + paramJson(1) + "], \"reportingParams\": []}"
+  val configurationData = "{\"requiredParams\": [" + paramJson(0) + ", " + paramJson(1) + "], \"reportingParams\": [], \"callbackParams\": []}"
   val configurationJson = JsObject(Seq("requiredParams" -> JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))))
 }

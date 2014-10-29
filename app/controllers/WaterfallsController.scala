@@ -4,8 +4,9 @@ import play.api.mvc._
 import models._
 import play.api.libs.json._
 import play.api.Play
+import scala.language.implicitConversions
 
-object WaterfallsController extends Controller with Secured {
+object WaterfallsController extends Controller with Secured with JsonToValueHelper {
   /**
    * Redirects to the waterfall assigned to App.
    * Future:  Will return list of waterfalls.
@@ -34,7 +35,7 @@ object WaterfallsController extends Controller with Secured {
     Waterfall.find(waterfallID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
-          OrderedWaterfallAdProvider(adProvider.name, adProvider.id, None, false, None, true)
+            new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, adProvider.configurable)
         }
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList))
       }
@@ -54,7 +55,7 @@ object WaterfallsController extends Controller with Secured {
     request.body.asJson.map { json =>
       val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
       val adProviderConfigList = listOrder.map { jsArray =>
-        new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong)
+        new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean)
       }
       val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
       val testMode: Boolean = (json \ "testMode").as[String].toBoolean
@@ -85,6 +86,8 @@ object WaterfallsController extends Controller with Secured {
  * @param newRecord True if no WaterfallAdProvider record exists; otherwise, false.
  * @param active True if the WaterfallAdProvider is used in the waterfall; otherwise, false.
  * @param waterfallOrder The position of this WaterfallAdProvider in the waterfall.
+ * @param cpm Maps to the cpm value in the waterfall_ad_providers table.
+ * @param configurable Determines if the cpm value can be edited by a DistributorUser.
  */
-case class ConfigInfo(id: Long, newRecord: Boolean, active: Boolean, waterfallOrder: Long)
+case class ConfigInfo(id: Long, newRecord: Boolean, active: Boolean, waterfallOrder: Long, cpm: Option[Double], configurable: Boolean)
 

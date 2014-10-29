@@ -36,7 +36,9 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       "exchangeRate" -> longNumber,
       "rewardMin" -> optional(longNumber),
       "rewardMax" -> optional(longNumber),
-      "roundUp" -> text
+      "roundUp" -> text,
+      "callbackURL" -> optional(text),
+      "serverToServerEnabled" -> text
     )(EditAppMapping.apply)(EditAppMapping.unapply)
   )
 
@@ -102,7 +104,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     App.findAppWithVirtualCurrency(appID) match {
       case Some(appInfo) => {
         val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, if(appInfo.active) { "1" } else { "0" }, appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, if(appInfo.roundUp) { "1" } else { "0" }))
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, if(appInfo.roundUp) { "1" } else { "0" }, appInfo.callbackURL, if(appInfo.serverToServerEnabled) { "1" } else { "0" }))
         Ok(views.html.Apps.edit(form, distributorID, appID))
       }
       case None => {
@@ -123,7 +125,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
         BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID))
       },
       appInfo => {
-        val newAppValues = new App(appID, if(appInfo.active == "1") { true } else { false }, distributorID, appInfo.appName)
+        val newAppValues = new App(appID, if(appInfo.active == "1") { true } else { false }, distributorID, appInfo.appName, appInfo.callbackURL, if(appInfo.serverToServerEnabled == "1") { true } else { false })
         App.update(newAppValues) match {
           case 1 => {
             VirtualCurrency.update(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
@@ -167,5 +169,7 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
  * @param rewardMin Maps to the reward_min field in the virtual_currencies table.
  * @param rewardMax Maps to the reward_max field in the virtual_currencies table.
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
+ * @param callbackURL Maps to the callback_url field in the apps table.
+ * @param serverToServerEnabled Maps to the server_to_server_enabled field in the apps table.
  */
-case class EditAppMapping(currencyID: Long, active: String, appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: String)
+case class EditAppMapping(currencyID: Long, active: String, appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: String, callbackURL: Option[String], serverToServerEnabled: String)

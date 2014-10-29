@@ -41,17 +41,19 @@ var postUpdate = function() {
 };
 
 // Creates waterfall ad provider via AJAX.
-var createWaterfallAdProvider = function(adProviderID) {
+var createWaterfallAdProvider = function(params) {
     var waterfallID = $('.content').attr("data-waterfall-id");
     var distributorID = $('.content').attr("data-distributor-id");
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers";
+    params["waterfallID"] = waterfallID;
+    params["waterfallOrder"] = "";
     $.ajax({
         url: path,
         type: 'POST',
         contentType: "application/json",
-        data: JSON.stringify({waterfallID: waterfallID, adProviderID: adProviderID}),
+        data: JSON.stringify(params),
         success: function(result) {
-            var item = $("li[id=true-" + adProviderID + "]");
+            var item = $("li[id=true-" + params["adProviderID"] + "]");
             var configureButton = item.find("button[name=configure-wap]");
             item.attr("data-new-record", "false");
             item.attr("id", "false-" + result.wapID);
@@ -77,7 +79,9 @@ var updatedData = function() {
             id: $(this).attr("data-id"),
             newRecord: $(this).attr("data-new-record"),
             active: $(this).attr("data-active"),
-            waterfallOrder: index.toString()
+            waterfallOrder: index.toString(),
+            cpm: $(this).attr("data-cpm"),
+            configurable: $(this).attr("data-configurable")
         });
     }).get();
     return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode}));
@@ -116,7 +120,7 @@ $(document).ready(function() {
         listItem.attr("data-active", (originalVal === "true" ? "false" : "true"));
         listItem.toggleClass("inactive");
         if(listItem.attr("data-new-record") === "true") {
-            createWaterfallAdProvider(listItem.attr("data-id"));
+            createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable")});
         } else {
             postUpdate();
         }
@@ -130,6 +134,7 @@ $(document).ready(function() {
         $(".content.waterfall_list").toggleClass("modal-inactive", true);
         $.ajax({
             url: path,
+            data: {waterfall_token: $(".waterfall-token").attr("data-waterfall-token")},
             type: 'GET',
             success: function(data) {
                 $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");
