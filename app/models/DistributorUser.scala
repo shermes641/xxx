@@ -65,7 +65,7 @@ object DistributorUser {
         """
           SELECT distributor_users.*
           FROM distributor_users
-          WHERE distributor_users.email = {email}
+          WHERE LOWER(distributor_users.email) = LOWER({email})
         """
       ).on("email" -> email)
       query.as(userParser*) match {
