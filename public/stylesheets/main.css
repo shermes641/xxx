@@ -88,15 +88,26 @@ header .actions {
 header .actions a {
     padding-left: 20px;
 }
-#sign_up {
+#registration-link {
     padding-top: 20px;
 }
 
 #termsContainer {
+    display: none;
     margin-top: 20px;
     height: 300px;
     overflow: scroll;
     color: #666;
+}
+
+#viewTerms {
+    cursor: hand;
+    color: #4285f4;
+    font-weight: bold;
+}
+
+span#viewTerms:hover {
+    text-decoration: underline;
 }
 
 .sub_header {
@@ -311,6 +322,7 @@ header .actions a {
 .registration input[type="checkbox"] {
     margin: 10px;
     display: block;
+    float: left;
 }
 
 .registration h2 {
@@ -477,7 +489,7 @@ header .actions a {
     width: 200px;
 }
 
-.inactive {
+button.inactive {
     background-color: #CCCCCC;
 }
 
@@ -727,4 +739,8 @@ div [class^="col-"] {
 .callback {
     font-size: 10px;
     max-width: 300px;
+}
+
+.checkbox-label {
+    margin-top: 7px;
 }

@@ -14,25 +14,32 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   )
 
   "Sign up page" should {
-    "render log in page when sign up is successful" in new WithFakeBrowser {
+    "render apps index page when sign up is successful" in new WithFakeBrowser {
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.fill("#confirmation").`with`(password)
       browser.$("#terms").click()
+      browser.find("button").first().isEnabled must beEqualTo(true)
       browser.click("button")
-      browser.pageSource must contain("Log In")
+      browser.pageSource must contain("My Apps")
     }
 
-    "display an error if terms are not agreed to" in new WithFakeBrowser {
+    "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.fill("#confirmation").`with`(password)
-      browser.click("button")
-      browser.pageSource must contain("Please agree to our terms")
+      browser.find("button").first().isEnabled must beEqualTo(false)
+    }
+
+    "hide the license agreement unless the user clicks on the License Agreement link" in new WithFakeBrowser {
+      browser.goTo("http://localhost:" + port + "/signup")
+      browser.find("#termsContainer").first().isDisplayed must beEqualTo(false)
+      browser.$("#viewTerms").click()
+      browser.find("#termsContainer").first().isDisplayed must beEqualTo(true)
     }
 
     "redirect to the sign up page if the user's email is taken" in new WithFakeBrowser {
