@@ -14,10 +14,17 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @param appID ID of the Waterfall being edited
    * @return Redirects to edit page if app with waterfall exists.
    */
-  def list(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+  def list(distributorID: Long, appID: Long, flashMessage: Option[String] = None) = withAuth(Some(distributorID)) { username => implicit request =>
     App.findAppWithWaterfalls(appID) match {
       case Some(app) => {
-        Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID))
+        flashMessage match {
+          case Some(message: String) => {
+            Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID)).flashing("success" -> message)
+          }
+          case None => {
+            Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID))
+          }
+        }
       }
       case None => {
         Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")

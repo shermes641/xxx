@@ -325,7 +325,6 @@ span#viewTerms:hover {
 
 .registration input[type="checkbox"] {
     margin: 10px;
-    display: block;
     float: left;
 }
 
@@ -629,8 +628,13 @@ div [class^="col-"] {
     left: 0px;
 }
 
+#flash {
+    cursor: pointer;
+    display: inline-block;
+}
+
 .flash-message {
-    z-index: 99;
+    z-index: 999;
     position: fixed;
     top: 50px;
     left: 50%;
@@ -736,6 +740,14 @@ div [class^="col-"] {
     right: 0px;
 }
 
+.onoff-field {
+    overflow: hidden;
+}
+
+.switch-left {
+    float: left;
+}
+
 .td-waterfall-config {
     width: 250px;
 }
@@ -747,4 +759,26 @@ div [class^="col-"] {
 
 .checkbox-label {
     margin-top: 7px;
+    max-width: 400px;
+}
+
+.switch-checkbox-label {
+    margin-top: -3px;
+    max-width: 450px;
+    padding-left: 15px;
+}
+
+::-webkit-input-placeholder { /* WebKit browsers */
+    color: #DEDEDE;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    color: #DEDEDE;
+    opacity:  1;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+    color: #DEDEDE;
+    opacity:  1;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+    color: #DEDEDE;
 }

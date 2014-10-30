@@ -7,19 +7,6 @@ var termsChecked = function() {
     return($(":input[id=terms]").prop("checked"));
 };
 
-// Check if all required fields are filled.
-var fieldsFilled = function() {
-    for(var i=0; i < requiredFields.length; i++) {
-        var field = $(requiredFields[i]);
-        if(typeof field.val() === "string") {
-            if(field.val() === "") {
-                return false;
-            }
-        }
-    }
-    return true;
-};
-
 // Enables or disables the submit button.
 var toggleSubmit = function(disabledStatus) {
     var submitButton = $(':input[name=submit]');
@@ -35,7 +22,7 @@ $(document).ready(function() {
     });
 
     $(":input").change(function() {
-        if(fieldsFilled() && termsChecked()) {
+        if(fieldsFilled(requiredFields) && termsChecked()) {
             toggleSubmit(false);
         } else {
             toggleSubmit(true);
