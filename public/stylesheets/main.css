@@ -128,7 +128,7 @@ header .actions a {
 .sub_header .menu li {
 	margin: 0;
 	float: left;
-	width: 200px;
+	width: 250px;
 	padding-top: 16px;
 	height: 50px;
 
@@ -252,6 +252,10 @@ header .actions a {
     padding: 10px;
     text-align: center;
     margin-top: 20px;
+}
+
+.app_list {
+    margin-top: 120px;
 }
 
 .app_list ul.full_list  {
