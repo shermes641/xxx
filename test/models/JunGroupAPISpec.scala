@@ -5,8 +5,10 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import akka.actor.ActorSystem
+import akka.testkit.TestActorRef
+import com.typesafe.config.ConfigFactory
+import scala.concurrent.{Future}
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.Play
@@ -38,5 +40,25 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
     }
   }
 
+  "JunGroup API Actor" should {
+    "exist and accept Create Ad Network message" in running(FakeApplication(additionalConfiguration = testDB)) {
+      implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
+      val junActor = TestActorRef(new JunGroupAPIActor()).underlyingActor
+      junActor.receive(CreateAdNetwork(user))
+      junActor must haveClass[JunGroupAPIActor]
+    }
+  }
+
+  "JunGroup Email Actor" should {
+    "exist and accept email message" in running(FakeApplication(additionalConfiguration = testDB)) {
+      implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
+      val emailActor = TestActorRef(new JunGroupEmailActor()).underlyingActor
+      emailActor.receive("test@test.com")
+      emailActor must haveClass[JunGroupEmailActor]
+
+    }
+  }
+
   step(clean)
 }
+

@@ -64,7 +64,7 @@ case class JunGroupAPI() {
               Seq(
                 JsString("UID"),
                 JsString("EPOCH_SECONDS"),
-                JsString("TOKENPLACEHOLDER")
+                JsString(Play.current.configuration.getString("jungroup.token").get)
               )
             )
           )
