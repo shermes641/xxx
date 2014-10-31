@@ -1,24 +1,12 @@
 package controllers
 
-<<<<<<< HEAD
-import models.{JunGroupAPI, DistributorUser, Mailer}
-import play.api.Play.current
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.mvc._
-import play.api.libs.ws.{WSResponse, WSAuthScheme, WS}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import play.api.Play
-=======
-import models.{WelcomeEmailActor, DistributorUser}
+import models.{JunGroupAPI, WelcomeEmailActor, DistributorUser}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
 import akka.actor.Props
 import play.api.Play.current
->>>>>>> origin/master
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {

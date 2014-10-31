@@ -88,9 +88,7 @@ class JunGroupAPIActor() extends Actor {
   def retry(distributorUser: DistributorUser) = {
     context.system.scheduler.scheduleOnce(RETRY_FREQUENCY, self, CreateAdNetwork(distributorUser))
   }
-  /**
-   * Receives messages passed from JunGroupAPI
-   */
+
   def receive = {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       counter += 1
