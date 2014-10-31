@@ -1,6 +1,5 @@
 package models
 
-import models.{Mailer}
 import akka.actor.{Props, Actor}
 import play.api.libs.json._
 import scala.concurrent.Future
@@ -9,7 +8,7 @@ import play.api.libs.ws._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 import play.api.libs.json.{JsArray, JsValue}
-import play.api.{Play, Application}
+import play.api.{Play}
 import play.api.libs.concurrent.Akka
 import scala.concurrent.duration.DurationInt
 
@@ -38,10 +37,8 @@ case class JunGroupAPI() {
    * Sends failure email to account specified in application config
    */
   def sendFailureEmail(distributorUser: DistributorUser) {
-    val email = Play.current.configuration.getString("jungroup.email").get
-    val subject = "Distribution Sign Up Failure"
-    val body = distributorUser.email + " did not have an account created successfully on JunGroup Ad Server."
-    println(body)
+    val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor))
+    emailActor ! distributorUser.email
   }
 
   /**
@@ -121,5 +118,26 @@ class JunGroupAPIActor() extends Actor {
       }
 
     }
+  }
+}
+
+/**
+ * Sends email on failure.  Called by sendFailureEmail
+ */
+class JunGroupEmailActor extends Actor with Mailer {
+  def receive = {
+    case email: String => {
+      sendEmail(email)
+    }
+  }
+
+  /**
+   * Sends email to new DistributorUser.  This is called on a successful sign up.
+   * @param email Email of the new DistributorUser.
+   */
+  def sendEmail(email: String): Unit = {
+    val subject = "Distribution Sign Up Failure"
+    val body = email + " did not have an account created successfully on JunGroup Ad Server."
+    sendEmail(Play.current.configuration.getString("jungroup.email").get, subject, body)
   }
 }
