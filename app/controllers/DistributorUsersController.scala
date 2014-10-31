@@ -1,7 +1,6 @@
 package controllers
 
-import models.DistributorUser
-import models.Mailer
+import models.{JunGroupAPI, DistributorUser, Mailer}
 import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
@@ -9,6 +8,7 @@ import play.api.mvc._
 import play.api.libs.ws.{WSResponse, WSAuthScheme, WS}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import play.api.Play
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {
@@ -42,12 +42,8 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       formWithErrors => BadRequest(views.html.DistributorUsers.signup(formWithErrors)),
       signup => {
         DistributorUser.create(signup.email, signup.password, signup.company) match {
-          case Some(id) => {
-            signup.createJunGroupAdNetwork() map {
-              case response => {
-                println(response.body)
-              }
-            }
+          case Some(id: Long) => {
+            new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(id).get)
             // Email credentials need to be configured
             // signup.sendWelcomeEmail()
             Redirect(routes.DistributorUsersController.login).flashing("success" -> "Your confirmation email will arrive shortly.")
@@ -58,6 +54,14 @@ object DistributorUsersController extends Controller with Secured with CustomFor
         }
       }
     )
+  }
+
+  /**
+   * Renders Pending page is user account is not active.
+   * @return Pending page
+   */
+  def pending = Action { implicit request =>
+    Ok(views.html.DistributorUsers.pending())
   }
 
   /**
@@ -140,7 +144,7 @@ case class Signup(company: String, email: String, password: String, confirmation
   }
 
   def createJunGroupAdNetwork(): Future[WSResponse] = {
-    WS.url("http://dcullen.junlabs.com:3000/admin/ad_network/create").withAuth("mediation", "testtest", WSAuthScheme.BASIC).post("content")
+    WS.url("http://dcullen.junlabs.com:3000/admin/ad_network/create").withAuth(Play.current.configuration.getString("jungroup.user").get, Play.current.configuration.getString("jungroup.password").get, WSAuthScheme.BASIC).post("content")
   }
 }
 
@@ -181,7 +185,11 @@ trait Secured {
             request.session.get("distributorID") match {
               // Check if Distributor ID from session matches the ID passed from the controller
               case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
-                controllerAction(user)(request)
+                if (DistributorUser.isNotActive(ctrlDistID)) {
+                  Results.Redirect(routes.DistributorUsersController.pending)
+                } else {
+                  controllerAction(user)(request)
+                }
               }
               case _ => Results.Redirect(routes.DistributorUsersController.login)
             }
