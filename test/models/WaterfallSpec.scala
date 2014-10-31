@@ -51,7 +51,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
     "should deactivate a WaterfallAdProvider correctly" in new WithDB {
       val currentWaterfallID = Waterfall.create(distributor.id.get, "Waterfall").get
-      val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true).get
+      val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true, true).get
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true)(0).waterfallAdProviderID must beEqualTo(wapID)
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true))
       Waterfall.reconfigureAdProviders(currentWaterfallID, configList)
@@ -68,7 +68,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
   "Waterfall.order" should {
     "return a list of ordered ad providers with configuration information if there are active waterfall ad providers" in new WithDB {
-      WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, Some(0), None, true)
+      WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, Some(0), None, true, true)
       Waterfall.order(waterfall.get.token).size must beEqualTo(1)
     }
 
