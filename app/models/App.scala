@@ -8,13 +8,15 @@ import java.sql.Connection
 import scala.language.postfixOps
 
 /**
- * Maps to App table in the database.
- * @param id Maps to id column in App table
- * @param active Maps to the active column in App table
- * @param distributorID Maps to distributor_id column in App table
- * @param name Maps to name column in App table
+ * Maps to the apps table in the database.
+ * @param id Maps to the id column in the apps table
+ * @param active Maps to the active column in apps table
+ * @param distributorID Maps to the distributor_id column in the apps table
+ * @param name Maps to the name column in the apps table
+ * @param callbackURL Maps to the callback_url column in the apps table
+ * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
  */
-case class App(id: Long, active: Boolean, distributorID: Long, name: String) {}
+case class App(id: Long, active: Boolean, distributorID: Long, name: String, callbackURL: Option[String], serverToServerEnabled: Boolean)
 
 /**
  * Maps to App table in the database.
@@ -31,13 +33,15 @@ case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, na
  * @param currencyID Maps to the id field in the virtual_currencies table.
  * @param active Maps to the active field in the apps table.
  * @param appName Maps to the name field in the apps table
+ * @param callbackURL Maps to the callback_url field in the apps table
+ * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
  * @param currencyName Maps to the name field in the virtual_currencies table.
  * @param exchangeRate Maps the the exchange_rate field in the virtual_currencies table.
  * @param rewardMin Maps to the reward_min field in the virtual_currencies table.
  * @param rewardMax Maps to the reward_max field in the virtual_currencies table.
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  */
-case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Boolean)
+case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Boolean)
 
 object App {
   // Used to convert SQL row into an instance of the App class.
@@ -45,8 +49,10 @@ object App {
       get[Long]("apps.id") ~
       get[Boolean]("apps.active") ~
       get[Long]("apps.distributor_id") ~
-      get[String]("apps.name") map {
-      case id ~ active ~ distributor_id ~ name => App(id, active, distributor_id, name)
+      get[String]("apps.name") ~
+      get[Option[String]]("apps.callback_url") ~
+      get[Boolean]("apps.server_to_server_enabled") map {
+      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled => App(id, active, distributor_id, name, callback_url, server_to_server_enabled)
     }
   }
 
@@ -66,12 +72,14 @@ object App {
     get[Long]("virtual_currencies.id") ~
     get[Boolean]("apps.active") ~
     get[String]("apps.name") ~
+    get[Option[String]]("apps.callback_url") ~
+    get[Boolean]("apps.server_to_server_enabled") ~
     get[String]("virtual_currencies.name") ~
     get[Long]("virtual_currencies.exchange_rate") ~
     get[Option[Long]]("virtual_currencies.reward_min") ~
     get[Option[Long]]("virtual_currencies.reward_max") ~
     get[Boolean]("virtual_currencies.round_up") map {
-      case currencyID ~ active ~ appName ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp => AppWithVirtualCurrency(currencyID, active, appName, currencyName, exchangeRate, rewardMin, rewardMax, roundUp)
+      case currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp => AppWithVirtualCurrency(currencyID, active, appName, callbackURL, serverToServerEnabled, currencyName, exchangeRate, rewardMin, rewardMax, roundUp)
     }
   }
 
@@ -84,7 +92,7 @@ object App {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT apps.active, apps.name, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up
+          SELECT apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up
           FROM apps
           JOIN virtual_currencies vc ON vc.app_id = apps.id
           WHERE apps.id = {app_id};
@@ -187,10 +195,10 @@ object App {
       SQL(
         """
           UPDATE apps
-          SET name={name}, active={active}
+          SET name={name}, active={active}, callback_url={callback_url}, server_to_server_enabled={server_to_server_enabled}
           WHERE id={id};
         """
-      ).on("name" -> app.name, "active" -> app.active, "id" -> app.id).executeUpdate()
+      ).on("name" -> app.name, "active" -> app.active, "callback_url" -> app.callbackURL, "server_to_server_enabled" -> app.serverToServerEnabled, "id" -> app.id).executeUpdate()
     }
   }
 

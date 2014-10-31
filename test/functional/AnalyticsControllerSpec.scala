@@ -44,7 +44,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       userLogin(browser)
 
-      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}")
+      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
 
       // Verify first option defaults to "all"

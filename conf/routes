@@ -23,7 +23,7 @@ GET         /distributors/:distributor_id/apps/:app_id/edit                     
 POST        /distributors/:distributor_id/apps/:app_id                                                 controllers.AppsController.update(distributor_id: Long, app_id: Long)
 
 # Analytics
-GET         /distributors/:distributor_id/analytics/:app_id                                              controllers.AnalyticsController.show(distributor_id: Long, app_id: Long)
+GET         /distributors/:distributor_id/analytics/:app_id                                            controllers.AnalyticsController.show(distributor_id: Long, app_id: Long)
 
 # Waterfalls
 GET         /distributors/:distributor_id/apps/:app_id/waterfalls                                      controllers.WaterfallsController.list(distributor_id: Long, app_id: Long)
@@ -31,13 +31,17 @@ GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit         
 POST        /distributors/:distributor_id/waterfalls/:waterfall_id                                     controllers.WaterfallsController.update(distributor_id: Long, waterfall_id: Long)
 
 # WaterfallAdProvider
-GET         /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id/edit        controllers.WaterfallAdProvidersController.edit(distributor_id: Long, waterfall_ad_provider_id: Long)
+GET         /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id/edit        controllers.WaterfallAdProvidersController.edit(distributor_id: Long, waterfall_ad_provider_id: Long, waterfall_token: Option[String])
 POST        /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_provider_id             controllers.WaterfallAdProvidersController.update(distributor_id: Long, waterfall_ad_provider_id: Long)
 POST        /distributors/:distributor_id/waterfall_ad_providers                                       controllers.WaterfallAdProvidersController.create(distributor_id: Long)
 
 # API
 GET         /v1/waterfall/:token                                                                       controllers.APIController.waterfallV1(token: String)
+GET         /v1/waterfall/:token/vungle_completion                                                     controllers.APIController.vungleCompletionV1(token: String, transaction_id: Option[String], digest: Option[String], amount: Option[Int], uid: Option[String])
+POST        /v1/waterfall/:token/ad_colony_completion                                                  controllers.APIController.adColonyCompletionV1(token: String, id: Option[String], uid: Option[String], amount: Option[Int], currency: Option[String], open_udid: Option[String], udid: Option[String], odin1: Option[String], mac_sha1: Option[String], verifier: Option[String])
+GET         /v1/waterfall/:token/app_lovin_completion                                                  controllers.APIController.appLovinCompletionV1(token: String, event_id: Option[String], amount: Option[Double], idfa: Option[String], hadid: Option[String], currency: Option[String], user_id: Option[String])
+POST        /v1/waterfall/:token/flurry_completion                                                     controllers.APIController.flurryCompletionV1(token: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardquantity: Option[Int], fhash: Option[String], udid: Option[String])
+POST        /v1/waterfall/:token/hyprmx_completion                                                     controllers.APIController.hyprMXCompletionV1(token: String, time: Option[String], sig: Option[String], quantity: Option[Int], offer_profit: Option[Double], reward_id: Option[String], uid: Option[String], sub_id: Option[String])
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                                              controllers.Assets.at(path="/public", file)
-

@@ -33,12 +33,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
   }
 
   val waterfallAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfallID, adProviderID.get).get
+    WaterfallAdProvider.create(waterfallID, adProviderID.get, None, None, true).get
   }
 
   val request = FakeRequest(
     GET,
-    controllers.routes.WaterfallAdProvidersController.edit(distributorUser.distributorID.get, waterfallAdProviderID).url,
+    controllers.routes.WaterfallAdProvidersController.edit(distributorUser.distributorID.get, waterfallAdProviderID, None).url,
     FakeHeaders(),
     ""
   )

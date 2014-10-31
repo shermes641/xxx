@@ -1,5 +1,6 @@
 package controllers
 
+<<<<<<< HEAD
 import models.{JunGroupAPI, DistributorUser, Mailer}
 import play.api.Play.current
 import play.api.data.Form
@@ -9,6 +10,15 @@ import play.api.libs.ws.{WSResponse, WSAuthScheme, WS}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import play.api.Play
+=======
+import models.{WelcomeEmailActor, DistributorUser}
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.mvc._
+import play.api.libs.concurrent.Akka
+import akka.actor.Props
+import play.api.Play.current
+>>>>>>> origin/master
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {
@@ -44,9 +54,16 @@ object DistributorUsersController extends Controller with Secured with CustomFor
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
             new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(id).get)
-            // Email credentials need to be configured
-            // signup.sendWelcomeEmail()
-            Redirect(routes.DistributorUsersController.login).flashing("success" -> "Your confirmation email will arrive shortly.")
+            val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
+            emailActor ! signup.email
+            DistributorUser.find(id) match {
+              case Some(user: DistributorUser) => {
+                Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString()).flashing("success" -> "Your confirmation email will arrive shortly.")
+              }
+              case None => {
+                Redirect(routes.DistributorUsersController.signup).flashing("error" -> "User was not found.")
+              }
+            }
           }
           case _ => {
             Redirect(routes.DistributorUsersController.signup).flashing("error" -> "This email has been registered already. Try logging in.")
@@ -135,18 +152,8 @@ object DistributorUsersController extends Controller with Secured with CustomFor
  * @param confirmation Password confirmation for new DistributorUser.
  * @param agreeToTerms Boolean checkbox for terms of service.
  */
-case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean) extends Mailer {
-   /** Sends email to new DistributorUser.  This is called on a successful sign up. */
-  def sendWelcomeEmail(): Unit = {
-    val subject = "Welcome to HyprMediation"
-    val body = "Welcome to HyprMediation!"
-    sendEmail(email, subject, body)
-  }
 
-  def createJunGroupAdNetwork(): Future[WSResponse] = {
-    WS.url("http://dcullen.junlabs.com:3000/admin/ad_network/create").withAuth(Play.current.configuration.getString("jungroup.user").get, Play.current.configuration.getString("jungroup.password").get, WSAuthScheme.BASIC).post("content")
-  }
-}
+case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean)
 
 /**
  * Used for mapping log in form fields to DistributorUser attributes.
