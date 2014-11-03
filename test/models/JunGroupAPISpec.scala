@@ -41,7 +41,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   }
 
   "JunGroup API Actor" should {
-    "exist and accept Create Ad Network message" in running(FakeApplication(additionalConfiguration = testDB)) {
+    "exist and accept Create Ad Network message" in new WithDB {
       implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
       val junActor = TestActorRef(new JunGroupAPIActor()).underlyingActor
       junActor.receive(CreateAdNetwork(user))
@@ -50,7 +50,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   }
 
   "JunGroup Email Actor" should {
-    "exist and accept email message" in running(FakeApplication(additionalConfiguration = testDB)) {
+    "exist and accept email message" in new WithDB {
       implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
       val emailActor = TestActorRef(new JunGroupEmailActor()).underlyingActor
       emailActor.receive("test@test.com")

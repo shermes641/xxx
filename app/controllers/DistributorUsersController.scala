@@ -62,7 +62,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   }
 
   /**
-   * Renders Pending page is user account is not active.
+   * Renders Pending page if user account is not active.
    * @return Pending page
    */
   def pending = Action { implicit request =>

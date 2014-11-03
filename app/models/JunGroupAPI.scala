@@ -127,7 +127,7 @@ class JunGroupAPIActor() extends Actor {
 class JunGroupEmailActor extends Actor with Mailer {
   def receive = {
     case email: String => {
-      sendEmail(email)
+      sendJunGroupEmail(email)
     }
   }
 
@@ -135,7 +135,7 @@ class JunGroupEmailActor extends Actor with Mailer {
    * Sends email to new DistributorUser.  This is called on a successful sign up.
    * @param email Email of the new DistributorUser.
    */
-  def sendEmail(email: String): Unit = {
+  def sendJunGroupEmail(email: String): Unit = {
     val subject = "Distribution Sign Up Failure"
     val body = email + " did not have an account created successfully on JunGroup Ad Server."
     sendEmail(Play.current.configuration.getString("jungroup.email").get, subject, body)
