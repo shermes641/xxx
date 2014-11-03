@@ -49,9 +49,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       // Verify first option defaults to "all"
       browser.$("#ad_providers").getValue() must beEqualTo("all")
-      // If select box does not contain the value it will not switch
-      browser.fillSelect("#ad_providers").withValue(adProviderID.get.toString)
-      browser.$("#ad_providers").getValue() must beEqualTo(adProviderID.get.toString)
     }
 
     "country select box should exist and not be empty" in new WithFakeBrowser {
@@ -64,9 +61,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       // Verify first option defaults to "all"
       browser.$("#countries").getValue() must beEqualTo("all")
-      // If select box does not contain the value it will not switch
-      browser.fillSelect("#countries").withValue("Ireland")
-      browser.$("#countries").getValue() must beEqualTo("Ireland")
     }
 
     "date picker should be setup correctly" in new WithFakeBrowser {
