@@ -35,7 +35,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
       userLogin(browser)
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
-      browser.pageSource must contain(app2Name)
+      browser.pageSource must contain("Analytics")
     }
 
     "populate ad networks for show page" in new WithFakeBrowser {
