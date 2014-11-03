@@ -15,6 +15,7 @@ var Analytics = function () {
     this.elements = {
         country: $( '#countries' ),
         adProvider: $( '#ad_providers' ),
+        apps: $( '#apps' ),
         appID: $( '#app_id' ),
         eCPM: $( '#ecpm' ),
         startDate: $( '#start_date' ),
@@ -34,25 +35,27 @@ var Analytics = function () {
         return true;
     };
 
-    this.buildFilters = function( appID, country, adProvider ) {
+    this.buildFilters = function( apps, country, adProvider ) {
         var filters = [];
-        filters.push( {
-            property_name: "app_id",
-            operator: "eq",
-            property_value: appID
-        } );
+        if ( apps.indexOf( "all" ) === -1 && apps.length !== 0 ) {
+            filters.push( {
+                property_name: "app_id",
+                operator: "in",
+                property_value: apps
+            } );
+        }
         // ip_geo_info.country is generated using the IP address by keen.
-        if ( country !== "all" ) {
+        if ( country.indexOf( "all" ) === -1 && country.length !== 0 ) {
             filters.push( {
                 property_name: "ip_geo_info.country",
-                operator: "eq",
+                operator: "in",
                 property_value: country
             } );
         }
-        if ( adProvider !== "all" ) {
+        if ( adProvider.indexOf( "all" ) === -1 && adProvider.length !== 0 ) {
             filters.push( {
                 property_name: "ad_provider",
-                operator: "eq",
+                operator: "in",
                 property_value: adProvider
             } );
         }
@@ -67,9 +70,9 @@ var Analytics = function () {
     this.updateCharts = function() {
         // Get current element values
         // We do this every update just incase any fields have changed (including hidden)
-        var country = this.elements.country.val(),
-            adProvider = this.elements.adProvider.val(),
-            appID = this.elements.appID.val(),
+        var country = this.selectize.country.getValue(),
+            adProvider = this.selectize.adProvider.getValue(),
+            apps = this.selectize.apps.getValue(),
             eCPM = this.elements.eCPM.val(),
             start_date = this.elements.startDate.datepicker( 'getUTCDate'),
             end_date = this.elements.endDate.datepicker( 'getUTCDate' );
@@ -85,7 +88,7 @@ var Analytics = function () {
         }
 
         // Build filters based on the dropdown selections and app_id
-        var filters = this.buildFilters(appID, country, adProvider);
+        var filters = this.buildFilters(apps, country, adProvider);
 
         var start_date_iso = start_date.toISOString();
         var end_date_iso = end_date.toISOString();
@@ -209,6 +212,18 @@ var Analytics = function () {
         });
     };
 
+    var selectizeOptions = {
+        maxItems: 6,
+        plugins: ['remove_button'],
+        onChange: _.bind( this.updateCharts, this )
+    };
+
+    this.selectize = {
+        country: this.elements.country.selectize( selectizeOptions )[0].selectize,
+        apps: this.elements.apps.selectize( selectizeOptions )[0].selectize,
+        adProvider: this.elements.adProvider.selectize( selectizeOptions )[0].selectize
+    };
+
     // Create date range picker
     $( '.input-daterange' ).datepicker( {
         orientation: "top left"
@@ -217,7 +232,4 @@ var Analytics = function () {
     // Set initial start date to the last 30days
     this.elements.startDate.datepicker( 'setDate', '-1m');
     this.elements.endDate.datepicker( 'setDate', '0');
-
-    // Bind update events on dropdown changes
-    $( '#countries, #ad_providers' ).change( _.bind( this.updateCharts, this ) );
 }

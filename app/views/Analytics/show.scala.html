@@ -1,4 +1,4 @@
-@(app: App, distributorID: Long, appID: Long, adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
+@(app: App, distributorID: Long, appID: Long, apps: List[App], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
 @main("Analytics", distributorID) {
     @views.html.Partials.subHeader("dashboard", distributorID, appID)
@@ -33,6 +33,14 @@
                 </div>
             </div>
             <div class="row">
+                <div class="col-sm-6">
+                    <select id="apps" class="input-sm form-control" name="apps">
+                        <option value="all">All Apps</option>
+                        @for(app <- apps) {
+                            <option value="@app.id">@app.name</option>
+                        }
+                    </select>
+                </div>
                 <div class="col-sm-6">
                     <select id="countries" class="input-sm form-control" name="countries">
                         <option value="all">All Countries</option>
@@ -281,14 +289,6 @@
                         <option value="Yemen">Yemen</option>
                         <option value="Zambia">Zambia</option>
                         <option value="Zimbabwe">Zimbabwe</option>
-                    </select>
-                </div>
-                <div class="col-sm-6">
-                    <select id="ad_providers" class="input-sm form-control" name="ad_providers">
-                        <option value="all">All Ad Providers</option>
-                        @for(provider <- adProviders) {
-                            <option value="@provider.id">@provider.name</option>
-                        }
                     </select>
                 </div>
             </div>

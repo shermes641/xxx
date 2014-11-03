@@ -14,7 +14,7 @@ object AnalyticsController extends Controller with Secured {
   def show(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     App.find(appID) match {
       case Some(app) => {
-        Ok(views.html.Analytics.show(app, distributorID, appID, AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
+        Ok(views.html.Analytics.show(app, distributorID, appID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
       }
       case None => {
         Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
