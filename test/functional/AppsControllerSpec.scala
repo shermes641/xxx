@@ -12,9 +12,9 @@ class AppsControllerSpec extends SpecificationWithFixtures {
 
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, companyName)
+    DistributorUser.setActive(DistributorUser.findByEmail(email).get)
     DistributorUser.findByEmail(email).get
   }
-  DistributorUser.setActive(user)
 
   "AppsController.index" should {
     "display all apps" in new WithFakeBrowser {
