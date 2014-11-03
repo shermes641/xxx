@@ -14,6 +14,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     DistributorUser.create(email, password, companyName)
     DistributorUser.findByEmail(email).get
   }
+  DistributorUser.setActive(user)
 
   "AppsController.index" should {
     "display all apps" in new WithFakeBrowser {

@@ -19,6 +19,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
 
   val distributorID = distributorUser.distributorID.get
+  DistributorUser.setActive(distributorUser)
 
   "Analytics show action" should {
     def userLogin(browser: TestBrowser) = {
