@@ -51,11 +51,12 @@ object DistributorUser {
           SELECT distributor_users.*
           FROM distributor_users
           WHERE distributor_users.id = {id}
+          AND active = true
         """
       ).on("id" -> id)
       query.as(userParser*) match {
-        case List(user) => true
-        case List() => false
+        case List(user) => false
+        case List() => true
       }
     }
   }
