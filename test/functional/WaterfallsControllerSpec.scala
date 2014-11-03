@@ -15,6 +15,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   val currentPassword = "password"
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
+    DistributorUser.setActive(DistributorUser.findByEmail(email).get)
     DistributorUser.findByEmail(email).get
   }
 
