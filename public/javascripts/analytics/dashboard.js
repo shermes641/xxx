@@ -218,10 +218,17 @@ var Analytics = function () {
         onChange: _.bind( this.updateCharts, this )
     };
 
+    this.getSelectizeInstance = function( element ) {
+        if( typeof element.selectize( selectizeOptions )[0] !== 'undefined' ){
+            return element.selectize( selectizeOptions )[0].selectize;
+        } else {
+            return false;
+        }
+    }
     this.selectize = {
-        country: this.elements.country.selectize( selectizeOptions )[0].selectize,
-        apps: this.elements.apps.selectize( selectizeOptions )[0].selectize,
-        adProvider: this.elements.adProvider.selectize( selectizeOptions )[0].selectize
+        country: this.getSelectizeInstance( this.elements.country ),
+        apps: this.getSelectizeInstance( this.elements.apps ),
+        adProvider: this.getSelectizeInstance( this.elements.adProvider )
     };
 
     // Create date range picker
