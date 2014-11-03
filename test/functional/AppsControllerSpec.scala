@@ -62,6 +62,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       val newUserPassword = "password"
       DistributorUser.create(newUserEmail, newUserPassword, companyName)
       val newUser = DistributorUser.findByEmail(newUserEmail).get
+      DistributorUser.setActive(newUser)
       val appsCount = tableCount("apps")
       val waterfallsCount = tableCount("waterfalls")
       val currenciesCount = tableCount("virtual_currencies")
