@@ -7,7 +7,7 @@
         <div class="fluid-container">
             <div class="row">
                 <div class="col-sm-4">
-                    <h1>Dashboard - @app.name</h1>
+                    <h1>Analytics</h1>
                 </div>
             </div>
             <input type="hidden" value="@keenProject" id="keen_project">
@@ -16,14 +16,14 @@
             <input type="hidden" value="1" id="ecpm">
             <input type="hidden" value="@appID" id="app_id">
             <div class="row">
-                <div class="col-sm-4">
+                <div class="col-sm-6">
                     <div class="input-daterange input-group" id="datepicker">
                         <input type="text" class="input-sm form-control" name="start" id="start_date" />
                         <span class="input-group-addon">to</span>
                         <input type="text" class="input-sm form-control" name="end" id="end_date" />
                     </div>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-6">
                     <select id="ad_providers" class="input-sm form-control" name="ad_providers">
                         <option value="all">All Ad Providers</option>
                         @for(provider <- adProviders) {
@@ -31,9 +31,12 @@
                         }
                     </select>
                 </div>
-                <div class="col-sm-4">
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
                     <select id="countries" class="input-sm form-control" name="countries">
                         <option value="all">All Countries</option>
+                        <option value="United States">United States</option>
                         <option value="Afghanistan">Afghanistan</option>
                         <option value="Åland Islands">Åland Islands</option>
                         <option value="Albania">Albania</option>
@@ -280,6 +283,14 @@
                         <option value="Zimbabwe">Zimbabwe</option>
                     </select>
                 </div>
+                <div class="col-sm-6">
+                    <select id="ad_providers" class="input-sm form-control" name="ad_providers">
+                        <option value="all">All Ad Providers</option>
+                        @for(provider <- adProviders) {
+                            <option value="@provider.id">@provider.name</option>
+                        }
+                    </select>
+                </div>
             </div>
 
             <div class="row">
@@ -368,6 +379,7 @@
 }
 <script src="https://d26b395fwzu5fz.cloudfront.net/3.0.5/keen.min.js"></script>
 <script src="@routes.Assets.at("javascripts/datepicker.js")" type="text/javascript"></script>
+<script src="@routes.Assets.at("javascripts/selectize.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/analytics/dashboard.js")" type="text/javascript"></script>
 <script>
     new Analytics();
