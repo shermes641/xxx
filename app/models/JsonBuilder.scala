@@ -14,7 +14,7 @@ object JsonBuilder extends ValueToJsonHelper {
    * @return JSON object with an ordered array of ad providers and their respective configuration info.
    */
   def waterfallResponse(adProviders: List[AdProviderInfo]): JsValue = {
-    val configuration = analyticsConfiguration.deepMerge(
+    val adProviderConfigurations = {
       JsObject(
         Seq(
           "adProviderConfigurations" -> adProviders.foldLeft(JsArray())((array, el) =>
@@ -33,8 +33,23 @@ object JsonBuilder extends ValueToJsonHelper {
           )
         )
       )
+    }
+    List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0))).foldLeft(adProviderConfigurations)((jsObject, el) =>
+      jsObject.deepMerge(el)
     )
-    configuration.deepMerge(virtualCurrencyConfiguration(adProviders(0)))
+  }
+
+  /**
+   * Creates a JSON object for app name.
+   * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
+   * @return A JsObject containing app name.
+   */
+  def appNameConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "appName" -> adProviderInfo.appName
+      )
+    )
   }
 
   /**
