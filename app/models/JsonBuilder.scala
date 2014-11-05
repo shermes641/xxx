@@ -34,8 +34,23 @@ object JsonBuilder extends ValueToJsonHelper {
         )
       )
     }
-    List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0))).foldLeft(adProviderConfigurations)((jsObject, el) =>
+    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)))
+    configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
+    )
+  }
+
+  /**
+   * Creates a JSON object for distributor information.
+   * @param adProviderInfo An instance of the AdProviderInfo class containing distributor information.
+   * @return A JsObject containing distributorID and distributorName.
+   */
+  def distributorConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "distributorName" -> adProviderInfo.distributorName,
+        "distributorID" -> adProviderInfo.distributorID
+      )
     )
   }
 

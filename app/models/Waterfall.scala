@@ -167,12 +167,14 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT ap.name, apps.name as app_name, wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
+          SELECT ap.name, apps.name as app_name, distributors.id as distributor_id, distributors.name as distributor_name, wap.configuration_data,
+          wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
           FROM waterfalls w
           FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
           FULL OUTER JOIN ad_providers ap on ap.id = wap.ad_provider_id
           FULL OUTER JOIN virtual_currencies vc on vc.app_id = w.app_id
           FULL OUTER JOIN apps on apps.id = vc.app_id
+          FULL OUTER JOIN distributors on apps.distributor_id = distributors.id
           WHERE w.token={token}
           ORDER BY wap.waterfall_order ASC
         """
@@ -185,6 +187,8 @@ object Waterfall extends JsonConversion {
   val adProviderParser: RowParser[AdProviderInfo] = {
     get[Option[String]]("name") ~
     get[Option[String]]("app_name") ~
+    get[Option[String]]("distributor_name") ~
+    get[Option[Long]]("distributor_id") ~
     get[Option[JsValue]]("configuration_data") ~
     get[Option[Double]]("cpm") ~
     get[Option[String]]("vc_name") ~
@@ -195,7 +199,9 @@ object Waterfall extends JsonConversion {
     get[Boolean]("test_mode") ~
     get[Boolean]("optimized_order") ~
     get[Option[Boolean]]("active") map {
-      case name ~ app_name ~ configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ optimized_order ~ active => AdProviderInfo(name, app_name, configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, optimized_order, active)
+      case name ~ app_name ~ distributor_name ~ distributor_id ~ configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ optimized_order ~ active => {
+        AdProviderInfo(name, app_name, distributor_name, distributor_id, configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, optimized_order, active)
+      }
     }
   }
 
@@ -203,6 +209,8 @@ object Waterfall extends JsonConversion {
    * Encapsulates necessary information returned from SQL query in Waterfall.order.
    * @param providerName Maps to the name field in the ad_providers table.
    * @param appName Maps to the name field in the apps table.
+   * @param distributorName Maps to the name field in the distributors table.
+   * @param distributorID Maps to the id field in the distributors table.
    * @param configurationData Maps to the configuration_data field in the waterfall_ad_providers table.
    * @param cpm Maps to the cpm field of waterfall_ad_providers table.
    * @param virtualCurrencyName Maps to the name field in the virtual_currencies table.
@@ -214,7 +222,9 @@ object Waterfall extends JsonConversion {
    * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
    * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
-  case class AdProviderInfo(providerName: Option[String], appName: Option[String], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String], exchangeRate: Option[Long], rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
+  case class AdProviderInfo(providerName: Option[String], appName: Option[String], distributorName: Option[String], distributorID: Option[Long],
+                            configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String], exchangeRate: Option[Long],
+                            rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
     lazy val meetsRewardThreshold: Boolean = {
       (roundUp, cpm, rewardMin) match {
         case (Some(roundUpValue: Boolean), _, _) if(roundUpValue) => true
