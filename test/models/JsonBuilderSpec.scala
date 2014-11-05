@@ -47,5 +47,12 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       JsonBuilder.distributorConfiguration(adProviderInfo) must beEqualTo(expectedDistributorJson)
     }
   }
+
+  "JsonBuilder.waterfallRefreshInterval" should {
+    "create a JSON object containing the waterfall refresh interfal" in new WithDB {
+      val expectedWaterfallRefreshJson = JsObject(Seq("waterfallRefreshInterval" -> JsNumber(JsonBuilder.WATERFALL_REFRESH_INTERVAL)))
+      JsonBuilder.waterfallRefreshInterval must beEqualTo(expectedWaterfallRefreshJson)
+    }
+  }
   step(clean)
 }

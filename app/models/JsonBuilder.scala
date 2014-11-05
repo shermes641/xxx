@@ -8,6 +8,8 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper {
+  val WATERFALL_REFRESH_INTERVAL = 30
+
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
    * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
@@ -35,9 +37,21 @@ object JsonBuilder extends ValueToJsonHelper {
         )
       )
     }
-    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)))
+    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)), waterfallRefreshInterval)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
+    )
+  }
+
+  /**
+   * Creates a JSON object for the waterfall refresh interval.
+   * @return A JsObject containing the waterfall refresh interval.
+   */
+  def waterfallRefreshInterval: JsObject = {
+    JsObject(
+      Seq(
+        "waterfallRefreshInterval" -> JsNumber(WATERFALL_REFRESH_INTERVAL)
+      )
     )
   }
 
