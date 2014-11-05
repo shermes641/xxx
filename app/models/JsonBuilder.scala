@@ -23,6 +23,7 @@ object JsonBuilder extends ValueToJsonHelper {
                 JsObject(
                   Seq(
                     "providerName" -> el.providerName,
+                    "providerID" -> el.providerID,
                     "eCPM" -> (el.cpm match {
                       case Some(eCPM) => JsNumber(eCPM)
                       case None => JsNull
@@ -55,14 +56,15 @@ object JsonBuilder extends ValueToJsonHelper {
   }
 
   /**
-   * Creates a JSON object for app name.
+   * Creates a JSON object for app information.
    * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
-   * @return A JsObject containing app name.
+   * @return A JsObject containing app name and ID.
    */
   def appNameConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
-        "appName" -> adProviderInfo.appName
+        "appName" -> adProviderInfo.appName,
+        "appID" -> adProviderInfo.appID
       )
     )
   }
