@@ -12,7 +12,7 @@ import play.api.Play.current
 
 object APIController extends Controller {
   val TEST_MODE_DISTRIBUTOR_ID = "111"
-  val TEST_MODE_PROVIDER_NAME = "HyprMX"
+  val TEST_MODE_PROVIDER_NAME = "HyprMarketplace"
   val TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME = "Test Distributor"
   val TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID = 0.toLong
   val TEST_MODE_APP_NAME = "Test App"
