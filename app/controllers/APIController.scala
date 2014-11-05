@@ -13,6 +13,7 @@ import play.api.Play.current
 object APIController extends Controller {
   val TEST_MODE_DISTRIBUTOR_ID = "111"
   val TEST_MODE_PROVIDER_NAME = "HyprMX"
+  val TEST_MODE_APP_NAME = "Test App"
   val TEST_MODE_APP_ID = " "
   val TEST_MODE_VIRTUAL_CURRENCY = new VirtualCurrency(0, 0, "Coins", 100, Some(1), Some(100), true)
   /**
@@ -33,7 +34,7 @@ object APIController extends Controller {
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
         val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
-        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
+        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_APP_NAME), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
           Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, Some(false))
         Ok(JsonBuilder.waterfallResponse(List(testAdProviderConfig)))
       }

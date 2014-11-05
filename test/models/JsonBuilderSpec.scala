@@ -20,11 +20,20 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
   "JsonBuilder.virtualCurrencyConfiguration" should {
     "convert an AdProviderInfo instance into a JSON object containing virtual currency information" in new WithDB {
       val virtualCurrency = new VirtualCurrency(0, 0, "Coins", 100, Some(1), Some(100), true)
-      val adProviderInfo = new AdProviderInfo(Some("ad provider name"), None, None, Some(virtualCurrency.name), Some(virtualCurrency.exchangeRate),
+      val adProviderInfo = new AdProviderInfo(Some("ad provider name"), None, None, None, Some(virtualCurrency.name), Some(virtualCurrency.exchangeRate),
         virtualCurrency.rewardMin, virtualCurrency.rewardMax, Some(virtualCurrency.roundUp), false, false, None)
       val expectedVCJson = JsObject(Seq("virtualCurrency" -> JsObject(Seq("name" -> JsString(virtualCurrency.name), "exchangeRate" -> JsNumber(virtualCurrency.exchangeRate),
         "rewardMin" -> JsNumber(virtualCurrency.rewardMin.get), "rewardMax" -> JsNumber(virtualCurrency.rewardMax.get), "roundUp" -> JsBoolean(virtualCurrency.roundUp)))))
       JsonBuilder.virtualCurrencyConfiguration(adProviderInfo) must beEqualTo(expectedVCJson)
+    }
+  }
+
+  "JsonBuilder.appNameConfiguration" should {
+    "convert an AdProviderInfo instance into a JSON object containing the name of an app" in new WithDB {
+      val appName = "Test App"
+      val adProviderInfo = new AdProviderInfo(None, Some(appName), None, None, None, None, None, None, None, false, false, None)
+      val expectedAppNameJson = JsObject(Seq("appName" -> JsString(appName)))
+      JsonBuilder.appNameConfiguration(adProviderInfo) must beEqualTo(expectedAppNameJson)
     }
   }
   step(clean)

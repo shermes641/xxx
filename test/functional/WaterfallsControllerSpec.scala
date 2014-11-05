@@ -129,7 +129,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val appID = App.create(distributorID, "App List").get
       Waterfall.create(appID, "New Waterfall").get
 
-      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID).url)
+      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID, None).url)
       browser.pageSource must contain("Edit Waterfall")
     }
 
@@ -140,7 +140,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.create(appID, "New Waterfall").get
       Waterfall.create(appID, "Second Waterfall").get
 
-      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID).url)
+      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID, None).url)
       browser.pageSource must contain("Waterfall could not be found.")
     }
 
