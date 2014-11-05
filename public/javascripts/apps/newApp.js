@@ -1,33 +1,33 @@
 "use strict";
 
-$("#new-virtual-currency").hide();
+var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]"];
+
+
+// Enables or disables the submit button.
+var toggleSubmit = function(disabledStatus) {
+    var submitButton = $(':input[name=new-app-form]');
+    submitButton.prop("disabled", disabledStatus);
+    submitButton.toggleClass('button inactive', disabledStatus);
+};
+
+toggleSubmit(true);
 
 $(document).ready(function() {
-    // Switch to virtual currency portion of form if App Name is filled out.
-    $(":button[name=app-form-next]").click(function(event) {
-        event.preventDefault();
-        if($(":input[name=appName]").val() === "") {
-            flashMessage("App Name is required");
+    $(":input").change(function() {
+        if(fieldsFilled(requiredFields)) {
+            toggleSubmit(false);
         } else {
-            $("#new-app").hide();
-            $("#new-virtual-currency").show();
+            toggleSubmit(true);
         }
     });
 
     // Submit form if fields are valid.
-    $(":button[name=virtual-currency-form]").click(function(event) {
+    $(":button[name=new-app-form]").click(function(event) {
         event.preventDefault();
-        if(validRewardAmounts() && formComplete()) {
+        if(validRewardAmounts()) {
             $("form[name=new-app-form]").submit();
         } else {
             event.preventDefault();
         }
-    });
-
-    // Switch back to app portion of form.
-    $(":button[name=virtual-currency-form-back]").click(function(event) {
-        event.preventDefault();
-        $("#new-virtual-currency").hide();
-        $("#new-app").show();
     });
 });
