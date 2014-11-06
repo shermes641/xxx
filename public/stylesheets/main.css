@@ -782,3 +782,8 @@ div [class^="col-"] {
 :-ms-input-placeholder { /* Internet Explorer 10+ */
     color: #DEDEDE;
 }
+
+.inactive-link {
+    pointer-events: none;
+    cursor: default;
+}
