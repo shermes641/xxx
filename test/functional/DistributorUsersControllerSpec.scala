@@ -23,7 +23,9 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.$("#terms").click()
       browser.find("button").first().isEnabled must beEqualTo(true)
       browser.click("button")
-      browser.pageSource must contain("My Apps")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").areDisplayed()
+      val user = DistributorUser.findByEmail(email).get
+      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/apps")
     }
 
     "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
