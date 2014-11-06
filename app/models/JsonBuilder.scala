@@ -9,6 +9,7 @@ import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper {
   val WATERFALL_REFRESH_INTERVAL = 30
+  val LOG_FULL_CONFIG = true
 
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
@@ -37,20 +38,21 @@ object JsonBuilder extends ValueToJsonHelper {
         )
       )
     }
-    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)), waterfallRefreshInterval)
+    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)), sdkConfiguration)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
   }
 
   /**
-   * Creates a JSON object for the waterfall refresh interval.
-   * @return A JsObject containing the waterfall refresh interval.
+   * Creates a JSON object for SDK configuration info.
+   * @return A JsObject containing SDK configuration info.
    */
-  def waterfallRefreshInterval: JsObject = {
+  def sdkConfiguration: JsObject = {
     JsObject(
       Seq(
-        "waterfallRefreshInterval" -> JsNumber(WATERFALL_REFRESH_INTERVAL)
+        "waterfallRefreshInterval" -> JsNumber(WATERFALL_REFRESH_INTERVAL),
+        "logFullConfig" -> JsBoolean(LOG_FULL_CONFIG)
       )
     )
   }

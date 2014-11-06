@@ -48,10 +48,15 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     }
   }
 
-  "JsonBuilder.waterfallRefreshInterval" should {
-    "create a JSON object containing the waterfall refresh interfal" in new WithDB {
-      val expectedWaterfallRefreshJson = JsObject(Seq("waterfallRefreshInterval" -> JsNumber(JsonBuilder.WATERFALL_REFRESH_INTERVAL)))
-      JsonBuilder.waterfallRefreshInterval must beEqualTo(expectedWaterfallRefreshJson)
+  "JsonBuilder.sdkConfiguration" should {
+    "create a JSON object containing the appropriate SDK configuration info" in new WithDB {
+      val expectedSdkConfigurationJson = JsObject(
+        Seq(
+          "waterfallRefreshInterval" -> JsNumber(JsonBuilder.WATERFALL_REFRESH_INTERVAL),
+          "logFullConfig" -> JsBoolean(JsonBuilder.LOG_FULL_CONFIG)
+        )
+      )
+      JsonBuilder.sdkConfiguration must beEqualTo(expectedSdkConfigurationJson)
     }
   }
   step(clean)
