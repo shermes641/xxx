@@ -53,6 +53,21 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     }
   }
 
+  def editAll(distributorID: Long, currentWaterfallID: Option[Long], currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
+    (currentWaterfallID, currentAppID) match {
+      case (Some(waterfallID), _) => {
+        Redirect(routes.WaterfallsController.edit(distributorID, waterfallID))
+      }
+      case (_, Some(appID)) => {
+        Redirect(routes.WaterfallsController.list(distributorID, appID, None))
+      }
+      case (None, None) => {
+        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
+        Ok(views.html.Waterfalls.editAll(distributorID, appsWithWaterfalls))
+      }
+    }
+  }
+
   /**
    * Accepts AJAX call from Waterfall edit form to update attributes.
    * @param distributorID ID of Distributor who owns the current Waterfall

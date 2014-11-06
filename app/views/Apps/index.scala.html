@@ -6,34 +6,34 @@
                 <h1>Welcome to HyprMX Mediation</h1>
                 <a href="@routes.AppsController.newApp(distributorID)">Begin by creating an app</a>
         } else {
-            @views.html.Partials.subHeader("", distributorID, apps(0).id)
+            @views.html.Partials.subHeader("", distributorID, None, None)
             <div class="content app_list">
-                <h1>My Apps</h1>
-                <div class="description">Here are the apps connected to your account.</div>
-                <div class="content_actions">
-                    <a href="@routes.AppsController.newApp(distributorID)">Create New App</a>
-                </div>
-                <ul class="full_list">
-                @for(app <- apps) {
-                    <li>
-                        <h3>
-                            <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
+            <h1>My Apps</h1>
+            <div class="description">Here are the apps connected to your account.</div>
+            <div class="content_actions">
+                <a href="@routes.AppsController.newApp(distributorID)">Create New App</a>
+            </div>
+            <ul class="full_list">
+            @for(app <- apps) {
+                <li>
+                    <h3>
+                        <a href='@routes.AnalyticsController.show(distributorID, Some(app.id))'>
                             @app.name
-                            </a>
-                        </h3>
-                        <div class="actions">
-                            <a href='@routes.AppsController.edit(distributorID, app.id)'>
+                        </a>
+                    </h3>
+                    <div class="actions">
+                        <a href='@routes.AppsController.edit(distributorID, app.id)'>
                             Settings
-                            </a>
-                            <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
+                        </a>
+                        <a href='@routes.AnalyticsController.show(distributorID, Some(app.id))'>
                             Analytics
-                            </a>
-                            <a href='@routes.WaterfallsController.list(distributorID, app.id, None)'>
+                        </a>
+                        <a href='@routes.WaterfallsController.list(distributorID, app.id, None)'>
                             Waterfall
-                            </a>
-                        </div>
-                    </li>
-                }
+                        </a>
+                    </div>
+                </li>
+            }
                 </ul>
             </div>
         }
