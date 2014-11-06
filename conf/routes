@@ -22,11 +22,12 @@ GET         /distributors/:distributor_id/apps/:app_id/edit                     
 POST        /distributors/:distributor_id/apps/:app_id                                                 controllers.AppsController.update(distributor_id: Long, app_id: Long)
 
 # Analytics
-GET         /distributors/:distributor_id/analytics/:app_id                                            controllers.AnalyticsController.show(distributor_id: Long, app_id: Long)
+GET         /distributors/:distributor_id/analytics                                                    controllers.AnalyticsController.show(distributor_id: Long, app_id: Option[Long])
 
 # Waterfalls
 GET         /distributors/:distributor_id/apps/:app_id/waterfalls                                      controllers.WaterfallsController.list(distributor_id: Long, app_id: Long, flashMessage: Option[String])
 GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit                                controllers.WaterfallsController.edit(distributor_id: Long, waterfall_id: Long)
+GET         /distributors/:distributor_id/waterfalls/edit                                              controllers.WaterfallsController.editAll(distributor_id: Long, waterfall_id: Option[Long], app_id: Option[Long])
 POST        /distributors/:distributor_id/waterfalls/:waterfall_id                                     controllers.WaterfallsController.update(distributor_id: Long, waterfall_id: Long)
 
 # WaterfallAdProvider

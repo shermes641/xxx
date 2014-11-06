@@ -11,10 +11,17 @@ import io.keen.client.java.{ScopedKeys, KeenProject, JavaKeenClientBuilder, Keen
 import collection.JavaConversions._
 
 object AnalyticsController extends Controller with Secured {
-  def show(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.find(appID) match {
-      case Some(app) => {
-        Ok(views.html.Analytics.show(app, distributorID, appID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
+  def show(distributorID: Long, currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
+    currentAppID match {
+      case Some(appID) => {
+        App.find(appID) match {
+          case Some(app) => {
+            Ok(views.html.Analytics.show(app, distributorID, appID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
+          }
+          case None => {
+            Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
+          }
+        }
       }
       case None => {
         Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")

@@ -109,15 +109,15 @@ object WaterfallAdProvider extends JsonConversion {
    * @param configurable Determines if the cpm value can be edited for the WaterfallAdProvider.
    * @return ID of new record if insert is successful, otherwise None.
    */
-  def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean): Option[Long] = {
+  def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean, active: Boolean = false): Option[Long] = {
     DB.withConnection { implicit connection =>
       try{
         SQL(
           """
-          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order, cpm, configurable)
-          VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order}, {cpm}, {configurable});
+          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order, cpm, configurable, active)
+          VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order}, {cpm}, {configurable}, {active});
           """
-        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder, "cpm" -> cpm, "configurable" -> configurable).executeInsert()
+        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder, "cpm" -> cpm, "configurable" -> configurable, "active" -> active).executeInsert()
       } catch {
         case exception: org.postgresql.util.PSQLException => {
           None
