@@ -18,6 +18,13 @@ define([], function() {
 
                 equal( appId.property_value, 1, 'App ID Should be 1' );
 
+                var filters = analytics.buildFilters( [ 'all' ], [ "United States" ], [ 10 ] );
+                var appId = _.find( filters, function( filter ) {
+                    return filter.property_name === "app_id";
+                } );
+
+                equal( appId, "undefined", 'App ID Should be undefined' );
+
                 var country = _.find( filters, function( filter ) {
                     return filter.property_name === "ip_geo_info.country";
                 } );
