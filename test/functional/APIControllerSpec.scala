@@ -11,11 +11,11 @@ import controllers.APIController
 @RunWith(classOf[JUnitRunner])
 class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None, None, true).get
+    WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None, None, true, true).get
   }
 
   val wap2ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, None, None, true).get
+    WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, None, None, true, true).get
   }
 
   val vungleCallbackUrl = Some("http://mediation-staging.herokuapp.com/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
@@ -51,7 +51,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID), "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME), "eCPM" -> JsNumber(5.0)))
+      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(APIController.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(APIController.TEST_MODE_APP_ID),
+        "providerName" -> JsString(APIController.TEST_MODE_PROVIDER_NAME),"providerID" -> JsNumber(APIController.TEST_MODE_PROVIDER_ID), "eCPM" -> JsNumber(5.0)))
       val testConfigData: JsValue = JsArray(JsObject(Seq("requiredParams" -> requiredParams)) :: Nil)
       val jsonResponse: JsValue = Json.parse(contentAsString(result)) \ "adProviderConfigurations"
       val vcAttributes = APIController.TEST_MODE_VIRTUAL_CURRENCY
@@ -138,7 +139,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   "APIController.vungleCompletionV1" should {
     val transactionID = Some("0123456789")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleAdProviderID, None, None, true).get
+      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleAdProviderID, None, None, true, true).get
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),

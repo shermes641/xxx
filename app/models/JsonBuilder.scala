@@ -8,6 +8,9 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper {
+  val WATERFALL_REFRESH_INTERVAL = 30
+  val LOG_FULL_CONFIG = true
+
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
    * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
@@ -23,6 +26,7 @@ object JsonBuilder extends ValueToJsonHelper {
                 JsObject(
                   Seq(
                     "providerName" -> el.providerName,
+                    "providerID" -> el.providerID,
                     "eCPM" -> (el.cpm match {
                       case Some(eCPM) => JsNumber(eCPM)
                       case None => JsNull
@@ -34,20 +38,49 @@ object JsonBuilder extends ValueToJsonHelper {
         )
       )
     }
-    List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0))).foldLeft(adProviderConfigurations)((jsObject, el) =>
+    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)), sdkConfiguration)
+    configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
   }
 
   /**
-   * Creates a JSON object for app name.
+   * Creates a JSON object for SDK configuration info.
+   * @return A JsObject containing SDK configuration info.
+   */
+  def sdkConfiguration: JsObject = {
+    JsObject(
+      Seq(
+        "waterfallRefreshInterval" -> JsNumber(WATERFALL_REFRESH_INTERVAL),
+        "logFullConfig" -> JsBoolean(LOG_FULL_CONFIG)
+      )
+    )
+  }
+
+  /**
+   * Creates a JSON object for distributor information.
+   * @param adProviderInfo An instance of the AdProviderInfo class containing distributor information.
+   * @return A JsObject containing distributorID and distributorName.
+   */
+  def distributorConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "distributorName" -> adProviderInfo.distributorName,
+        "distributorID" -> adProviderInfo.distributorID
+      )
+    )
+  }
+
+  /**
+   * Creates a JSON object for app information.
    * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
-   * @return A JsObject containing app name.
+   * @return A JsObject containing app name and ID.
    */
   def appNameConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
-        "appName" -> adProviderInfo.appName
+        "appName" -> adProviderInfo.appName,
+        "appID" -> adProviderInfo.appID
       )
     )
   }

@@ -13,7 +13,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
    */
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { wapData =>
-      WaterfallAdProvider.create((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, (wapData \ "waterfallOrder") , (wapData \ "cpm"), (wapData \ "configurable").as[String].toBoolean) match {
+      WaterfallAdProvider.create((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, (wapData \ "waterfallOrder") , (wapData \ "cpm"), (wapData \ "configurable").as[String].toBoolean, (wapData \ "active").as[Boolean]) match {
         case Some(id) => {
           Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "wapID" -> id))
         }

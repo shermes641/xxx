@@ -100,8 +100,8 @@ header .actions a {
     color: #666;
 }
 
-#viewTerms {
-    cursor: hand;
+.clickable {
+    cursor: pointer;
     color: #4285f4;
     font-weight: bold;
 }
@@ -139,7 +139,7 @@ span#viewTerms:hover {
 .sub_header .menu li {
 	margin: 0;
 	float: left;
-	width: 250px;
+	width: 200px;
 	padding-top: 16px;
 	height: 50px;
 
@@ -489,7 +489,7 @@ span#viewTerms:hover {
 }
 
 .inactive-button {
-    width: 200px;
+    width: 100px;
 }
 
 button.inactive {
@@ -540,6 +540,9 @@ div [class^="col-"] {
 .tooltip {
     display: inline;
     position: relative;
+    opacity: 100;
+    cursor: pointer;
+    padding-left: 10px;
 }
 
 #datepicker, #ad_providers, #countries {
@@ -596,7 +599,7 @@ div [class^="col-"] {
     background: #DEDEDE;
     padding: 25px;
     z-index: 20;
-    overflow: visible;
+    overflow-y: auto;
     -webkit-border-top-right-radius: 10px 10px;
     -webkit-border-bottom-right-radius: 10px 10px;
     -webkit-border-top-left-radius: 10px 10px;
@@ -610,7 +613,7 @@ div [class^="col-"] {
 
 .modal-label {
     display: inline-block;
-    width: 100px;
+    width: 150px;
     text-align: right;
 }
 
@@ -755,6 +758,7 @@ div [class^="col-"] {
 .callback {
     font-size: 10px;
     max-width: 300px;
+    text-align: center;
 }
 
 .checkbox-label {
@@ -781,4 +785,34 @@ div [class^="col-"] {
 }
 :-ms-input-placeholder { /* Internet Explorer 10+ */
     color: #DEDEDE;
+}
+
+.inactive-link {
+    pointer-events: none;
+    cursor: default;
+}
+
+.waterfall-token {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 18px 0px 18px 0px;
+    clear: left;
+}
+
+code {
+    background-color: #4285f4;
+    color: #FFFFFF;
+}
+
+.hidden-wap-info {
+    visibility: hidden;
+}
+
+.modal-centered {
+    margin: auto;
+}
+
+.header-dropdown {
+    float: left;
+    padding-right: 5px;
 }

@@ -1,8 +1,23 @@
 "use strict";
 
+// Distributor ID to be used in AJAX calls.
+var distributorID = $(".content").attr("data-distributor-id");
+
+// Waterfall ID to be used in AJAX calls.
+var waterfallID = $('.content').attr("data-waterfall-id");
+
+// Selector for button which toggles waterfall optimization.
+var optimizeToggleButton = $(":checkbox[name=optimized-order]");
+
+// Selector for button which toggles waterfall from live to test mode.
+var testModeButton = $(":checkbox[name=test-mode]");
+
+// Drop down menu to select the desired waterfall edit page.
+var waterfallSelection = $(":input[id=waterfall-selection]");
+
 // Rearranges the waterfall order list either by eCPM or original order.
 var orderList = function(orderAttr, ascending) {
-    var newOrder = $("#waterfall-list li").sort(function(li1, li2) {
+    var newOrder = $("#waterfall-list").children("li").sort(function(li1, li2) {
         return (ascending ? $(li1).attr(orderAttr) - $(li2).attr(orderAttr) : $(li2).attr(orderAttr) - $(li1).attr(orderAttr))
     });
     appendNewList(newOrder);
@@ -18,13 +33,11 @@ var appendNewList = function(newOrder) {
 
 // Retrieves ordered list of ad providers who are either active or inactive
 var providersByActive = function(active) {
-    return $('#waterfall-list li').filter(function(index, li) { return($(li).attr("data-active") === active) });
+    return $("#waterfall-list").children("li").filter(function(index, li) { return($(li).attr("data-active") === active) });
 };
 
 // Updates waterfall properties via AJAX.
 var postUpdate = function() {
-    var waterfallID = $('.content').attr("data-waterfall-id");
-    var distributorID = $('.content').attr("data-distributor-id");
     var path = "/distributors/" + distributorID + "/waterfalls/" + waterfallID;
     $.ajax({
         url: path,
@@ -40,10 +53,27 @@ var postUpdate = function() {
     });
 };
 
+// Retrieves configuration data for a waterfall ad provider.
+var retrieveConfigData = function(waterfallAdProviderID) {
+    var path = "/distributors/" + distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
+    $(".content.waterfall_list").toggleClass("modal-inactive", true);
+    $.ajax({
+        url: path,
+        data: {waterfall_token: $(".waterfall-token").attr("data-waterfall-token")},
+        type: 'GET',
+        success: function(data) {
+            $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");
+            $(".ui-dialog-titlebar").hide();
+        },
+        error: function(data) {
+            flashMessage(data.message, $("#waterfall-edit-error"));
+        }
+    });
+};
+
+
 // Creates waterfall ad provider via AJAX.
-var createWaterfallAdProvider = function(params) {
-    var waterfallID = $('.content').attr("data-waterfall-id");
-    var distributorID = $('.content').attr("data-distributor-id");
+var createWaterfallAdProvider = function(params, newRecord) {
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers";
     params["waterfallID"] = waterfallID;
     params["waterfallOrder"] = "";
@@ -58,9 +88,11 @@ var createWaterfallAdProvider = function(params) {
             item.attr("data-new-record", "false");
             item.attr("id", "false-" + result.wapID);
             item.attr("data-id", result.wapID);
-            configureButton.attr("data-waterfall-ad-provider-id", result.wapID);
             configureButton.show();
-            postUpdate();
+            if(newRecord) {
+                retrieveConfigData(result.wapID);
+            }
+            flashMessage(result.message, $("#waterfall-edit-success"))
         },
         error: function(result) {
             flashMessage(result.message, $("#waterfall-edit-error"));
@@ -93,17 +125,17 @@ var flashMessage = function(message, div) {
     div.delay(3000).fadeOut("slow");
 };
 
-// Selector for button which toggles waterfall optimization.
-var optimizeToggleButton = $(":checkbox[name=optimized-order]");
-
-// Selector for button which toggles waterfall from live to test mode.
-var testModeButton = $(":checkbox[name=test-mode]");
-
 $("#waterfall-list").sortable({containment: ".content"});
-$("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false, minHeight: 600});
+$("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false, minHeight: 500});
 
-// Disable sortable list if waterfall has optimized_order set to true.
-$("#waterfall-list").sortable(optimizeToggleButton.prop("checked") ? "disable" : "enable");
+if(optimizeToggleButton.prop("checked")) {
+    // Disable sortable list and hide draggable icon if waterfall has optimized_order set to true.
+    $("#waterfall-list").sortable("disable");
+    $(".waterfall-drag").hide();
+} else {
+    // Enable sortable list if waterfall has optimized_order set to true.
+    $("#waterfall-list").sortable("enable");
+}
 
 $(document).ready(function() {
     // Initiates AJAX request to update waterfall.
@@ -111,16 +143,20 @@ $(document).ready(function() {
         postUpdate();
     });
 
+    // Direct the user to the selected Waterfall edit page.
+    waterfallSelection.change(function() {
+        window.location.href = waterfallSelection.val();
+    });
+
     // Controls activation/deactivation of each ad provider in a waterfall.
     $("button[name=status]").click(function(event) {
-        var button = $(event.target);
-        var ad_provider = $(this).attr("data-id");
-        var listItem = $("li[data-id=" + ad_provider + "]");
-        var originalVal = listItem.attr("data-active");
-        listItem.attr("data-active", (originalVal === "true" ? "false" : "true"));
+        var listItem = $(event.target).parents("li");
+        var originalVal = listItem.attr("data-active") === "true";
+        listItem.children(".hideable").toggleClass("hidden-wap-info", originalVal);
+        listItem.attr("data-active", (!originalVal).toString());
         listItem.toggleClass("inactive");
         if(listItem.attr("data-new-record") === "true") {
-            createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable")});
+            createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: true});
         } else {
             postUpdate();
         }
@@ -128,26 +164,18 @@ $(document).ready(function() {
 
     // Opens modal for editing waterfall ad provider configuration info.
     $(":button[name=configure-wap]").click(function(event) {
-        var distributorID = $(event.target).attr("data-distributor-id");
-        var waterfallAdProviderID = $(event.target).attr("data-waterfall-ad-provider-id");
-        var path = "/distributors/" + distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
-        $(".content.waterfall_list").toggleClass("modal-inactive", true);
-        $.ajax({
-            url: path,
-            data: {waterfall_token: $(".waterfall-token").attr("data-waterfall-token")},
-            type: 'GET',
-            success: function(data) {
-                $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");
-                $(".ui-dialog-titlebar").hide();
-            },
-            error: function(data) {
-                flashMessage(data.message, $("#waterfall-edit-error"));
-            }
-        });
+        var listItem = $(event.target).parents("li");
+        var waterfallAdProviderID = listItem.attr("data-id");
+        if(listItem.attr("data-new-record") === "true") {
+            createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: false}, true);
+        } else {
+            retrieveConfigData(waterfallAdProviderID);
+        }
     });
 
     // Click event for when Optimized Mode is toggled.
     optimizeToggleButton.click(function() {
+        $(".waterfall-drag").toggle();
         var sortableOption;
         if(optimizeToggleButton.prop("checked")) {
             sortableOption = "disable";
@@ -161,8 +189,9 @@ $(document).ready(function() {
 
     // Click event for when Test Mode is toggled.
     testModeButton.click(function(event) {
-        var newRecords = $('#waterfall-list li').filter(function(index, li) { return($(li).attr("data-new-record") === "true") }).length;
-        var allRecords = $('#waterfall-list li').length;
+        var waterfallListItems = $("#waterfall-list").children("li");
+        var newRecords = waterfallListItems.filter(function(index, li) { return($(li).attr("data-new-record") === "true") }).length;
+        var allRecords = waterfallListItems.length;
         // Prevent the user from setting the waterfall to live without configuring any ad providers.
         if(newRecords == allRecords) {
             event.preventDefault();

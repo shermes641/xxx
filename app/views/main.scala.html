@@ -14,7 +14,7 @@
     </head>
     <body>
         <header>
-            <a href="@routes.AppsController.index(distributorID)">
+            <a href="@routes.AppsController.index(distributorID)" class=@{if(title == "") "inactive-link" else ""}>
                 <img height="34" src="@routes.Assets.at("images/hypr_logo_rgb.jpeg")">
             </a>
             <div class="actions">
@@ -25,7 +25,7 @@
                     </a>
                 }
             </div>
-		</header>
+        </header>
         @if(!flash.isEmpty) {
             @for((msgKey, msgValue) <- flash.data) {
                 <div id="flash" class="flash-message flash-@msgKey">

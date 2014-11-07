@@ -17,7 +17,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
     DistributorUser.findByEmail(email).get
   }
 
-
   val distributorID = distributorUser.distributorID.get
 
   "Analytics show action" should {
@@ -34,7 +33,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       userLogin(browser)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
       browser.pageSource must contain("Analytics")
     }
 
@@ -45,7 +44,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
       userLogin(browser)
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // Verify first option defaults to "all"
       browser.$("#ad_providers").getValue() must beEqualTo("all")
@@ -57,7 +56,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       userLogin(browser)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // Verify first option defaults to "all"
       browser.$("#countries").getValue() must beEqualTo("all")
@@ -69,7 +68,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       userLogin(browser)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       var date = DateTime.now
       // End date must be todays date
@@ -85,7 +84,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       userLogin(browser)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // eCPM must be set correctly (placeholder for now)
       browser.$("#app_id").getValue() must beEqualTo(appID.toString)
@@ -96,7 +95,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
       val appID = App.create(distributorID, app2Name).get
 
       userLogin(browser)
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // eCPM must be set correctly (placeholder for now)
       browser.$("#keen_project").getValue() must beEqualTo(Play.current.configuration.getString("keen.project").get)
@@ -108,7 +107,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
       userLogin(browser)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, appID).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)

@@ -1,0 +1,21 @@
+@(distributorID: Long, appsWithWaterfalls: List[AppWithWaterfallID])(implicit flash: Flash, session: Session)
+
+@main("Edit Waterfall", distributorID) {
+    @views.html.Partials.subHeader("waterfall", distributorID, None, None)
+    <div class="content waterfall_list">
+        <div id="waterfall-edit-success" class="flash-message success"></div>
+        <div id="waterfall-edit-error" class="flash-message error"></div>
+        <h1 class="header-dropdown">Edit Waterfall for</h1>
+        <div class="col-sm-4">
+            <select id="waterfall-selection" class="input-sm form-control" name="waterfall-selection">
+                <option value="" checked> </option>
+            @for(appInfo <- appsWithWaterfalls) {
+                <option value="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)">@appInfo.name</option>
+            }
+            </select>
+        </div>
+        <div class="waterfall-token"> </div>
+    </div>
+}
+
+<script src="@routes.Assets.at("javascripts/waterfalls/edit.js")" type="text/javascript"></script>
