@@ -73,6 +73,12 @@ $(document).ready(function() {
     });
 
     // Closes waterfall ad provider editing modal.
+    $(".waterfall_list").click(function() {
+        closeModal();
+    });
+
+
+    // Closes waterfall ad provider editing modal.
     $(":button[name=cancel]").click(function(event) {
         event.preventDefault();
         closeModal();
