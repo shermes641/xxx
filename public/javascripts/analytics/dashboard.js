@@ -89,11 +89,13 @@ var Analytics = function () {
         var filters = this.buildFilters( apps, country, adProvider );
 
         var start_date_iso = start_date.toISOString();
+        end_date.setHours(end_date.getHours() + 40);
         var end_date_iso = end_date.toISOString();
 
+        // Empty styled metric
         var empty_metric = function ( element_id, title ) {
-            var result = '';
-            new Keen.Visualization( { result: result }, document.getElementById( element_id ), {
+            var result = 0;
+            var test = new Keen.Visualization( { result: result }, document.getElementById( element_id ), {
                 chartType: "metric",
                 title: title,
                 chartOptions: {
@@ -102,6 +104,7 @@ var Analytics = function () {
                 colors: [ "#aaaaaa" ],
                 width: $( "#" + element_id ).width()
             } );
+            console.log(test);
         };
 
         // Only create the charts if keen is ready
@@ -123,9 +126,12 @@ var Analytics = function () {
                 if ( this.data.result === null ) {
                     empty_metric( "ecpm_metric", "eCPM" );
                 } else {
-                    client.draw( this.data, document.getElementById( "ecpm_metric" ), {
+                    new Keen.Visualization( this.data, document.getElementById( "ecpm_metric" ), {
                         chartType: "metric",
                         title: "eCPM",
+                        chartOptions: {
+                            decimals: 2
+                        },
                         colors: [ "#4285f4" ],
                         width: $( "#ecpm_metric" ).width()
                     });
@@ -165,14 +171,15 @@ var Analytics = function () {
                     } );
 
                     var average_revenue = {
-                        result: cumulative_revenue / this.data.result.length
+                        result: 1.1
                     };
                     new Keen.Visualization( average_revenue, document.getElementById( "unique_users" ), {
                         chartType: "metric",
                         title: "Average Revenue By Day",
                         colors: [ "#4285f4" ],
                         chartOptions: {
-                            prefix: "$"
+                            prefix: "$",
+                            decimals: 2
                         },
                         width: $( "#unique_users" ).width()
                     });
@@ -205,14 +212,14 @@ var Analytics = function () {
                 } );
             } );
 
-            if ( apps.length > 1 ) {
+            if ( adProvider.length > 1 ) {
                 empty_metric( "fill_rate", "Fill Rate" );
             } else {
                 var request_collection = "availability_requested";
                 var response_collection = "availability_response_true";
 
                 // If all or no ad providers are selected show waterfall fill rate
-                if ( apps.indexOf( "all" ) !== -1 ) {
+                if ( adProvider.indexOf( "all" ) !== -1 ) {
                     request_collection = "mediation_availability_requested";
                     response_collection = "mediation_availability_response_true";
                 }
@@ -262,7 +269,13 @@ var Analytics = function () {
     var selectizeOptions = {
         maxItems: 6,
         plugins: ['remove_button'],
-        onChange: _.bind( this.updateCharts, this )
+        onChange: _.bind( this.updateCharts, this ),
+        onItemAdd: function( value ) {
+            if( value !== "all" ) {
+                this.removeItem( "all" );
+                this.refreshItems();
+            }
+        }
     };
 
     this.getSelectizeInstance = function( element ) {
