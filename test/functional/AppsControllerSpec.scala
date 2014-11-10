@@ -39,14 +39,11 @@ class AppsControllerSpec extends SpecificationWithFixtures {
 
       browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
       browser.fill("#appName").`with`(appName)
-      browser.$("button[name=app-form-next]").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-virtual-currency").areDisplayed()
-      browser.pageSource must contain("New Virtual Currency")
       browser.fill("#currencyName").`with`(currencyName)
       browser.fill("#exchangeRate").`with`("100")
-      browser.$("#roundUp").click()
-      browser.$("button[name=virtual-currency-form]").click()
-      browser.pageSource must contain(appName)
+      browser.fill("#rewardMin").`with`("1")
+      browser.$("button[name=new-app-form]").first.click()
+      browser.pageSource must contain("Edit Waterfall")
 
       val apps = App.findAll(user.distributorID.get)
       val firstApp = apps(0)
@@ -77,13 +74,10 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       }
 
       browser.fill("#appName").`with`(appName)
-      browser.$("button[name=app-form-next]").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-virtual-currency").areDisplayed()
-      browser.pageSource must contain("New Virtual Currency")
       browser.fill("#currencyName").`with`("Gold")
       browser.fill("#exchangeRate").`with`("100")
-      browser.$("#roundUp").click()
-      browser.$("button[name=virtual-currency-form]").click()
+      browser.fill("#rewardMin").`with`("1")
+      browser.$("button[name=new-app-form]").first.click()
       browser.pageSource must not contain(appName)
 
       appsCount must beEqualTo(tableCount("apps"))
@@ -98,28 +92,33 @@ class AppsControllerSpec extends SpecificationWithFixtures {
 
       browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
       browser.fill("#appName").`with`(appName)
-      browser.$("button[name=app-form-next]").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-virtual-currency").areDisplayed()
-      browser.pageSource must contain("New Virtual Currency")
       browser.fill("#currencyName").`with`("Gold")
       browser.fill("#exchangeRate").`with`("100")
       browser.fill("#rewardMin").`with`("100")
       browser.fill("#rewardMax").`with`("1")
-      browser.$("#roundUp").click()
-      browser.$("button[name=virtual-currency-form]").click()
+      browser.$("button[name=new-app-form]").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
-    "not create a new app without all required fields" in new WithFakeBrowser {
+    "not allow a new app to be created unless all required fields are filled" in new WithFakeBrowser {
       val appCount = App.findAll(user.distributorID.get).size
 
       logInUser()
 
       browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
-      browser.$("button[name=app-form-next]").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
-      App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
+
+      browser.fill("#appName").`with`(appName)
+      browser.fill("#currencyName").`with`("Gold")
+      browser.fill("#exchangeRate").`with`("100")
+      browser.fill("#rewardMin").`with`("1")
+      browser.fill("#rewardMax").`with`("10")
+
+      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(true)
+      browser.$("button[name=new-app-form]").first.click()
+      browser.pageSource must contain("Edit Waterfall")
+      App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
     }
   }
 

@@ -30,15 +30,15 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   val editAppForm = Form[EditAppMapping](
     mapping(
       "currencyID" -> longNumber,
-      "active" -> text,
+      "active" -> optional(checked("")),
       "appName" -> text.verifying(nonEmptyConstraint(appNameError)),
       "currencyName" -> text.verifying(nonEmptyConstraint(currencyNameError)),
       "exchangeRate" -> longNumber,
       "rewardMin" -> optional(longNumber),
       "rewardMax" -> optional(longNumber),
-      "roundUp" -> text,
+      "roundUp" -> optional(checked("")),
       "callbackURL" -> optional(text),
-      "serverToServerEnabled" -> text
+      "serverToServerEnabled" -> optional(checked(""))
     )(EditAppMapping.apply)(EditAppMapping.unapply)
   )
 
@@ -76,7 +76,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
               case Some(appID) => {
                 Waterfall.createWithTransaction(appID, newApp.appName)
                 VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
-                Redirect(routes.WaterfallsController.list(distributorID, appID)).flashing("success" -> "App created!")
+                Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
               }
               case _ => {
                 Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
@@ -103,8 +103,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     App.findAppWithVirtualCurrency(appID) match {
       case Some(appInfo) => {
-        val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, if(appInfo.active) { "1" } else { "0" }, appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, if(appInfo.roundUp) { "1" } else { "0" }, appInfo.callbackURL, if(appInfo.serverToServerEnabled) { "1" } else { "0" }))
+        val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled)))
         Ok(views.html.Apps.edit(form, distributorID, appID))
       }
       case None => {
@@ -125,11 +125,11 @@ object AppsController extends Controller with Secured with CustomFormValidation 
         BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID))
       },
       appInfo => {
-        val newAppValues = new App(appID, if(appInfo.active == "1") { true } else { false }, distributorID, appInfo.appName, appInfo.callbackURL, if(appInfo.serverToServerEnabled == "1") { true } else { false })
+        val newAppValues = new App(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
         App.update(newAppValues) match {
           case 1 => {
             VirtualCurrency.update(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
-              appInfo.rewardMin, appInfo.rewardMax, if(appInfo.roundUp == "1") { true } else { false })) match {
+              appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
               case 1 => {
                 Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
               }
@@ -172,4 +172,4 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
  * @param callbackURL Maps to the callback_url field in the apps table.
  * @param serverToServerEnabled Maps to the server_to_server_enabled field in the apps table.
  */
-case class EditAppMapping(currencyID: Long, active: String, appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: String, callbackURL: Option[String], serverToServerEnabled: String)
+case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean])

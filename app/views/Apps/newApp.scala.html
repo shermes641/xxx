@@ -4,25 +4,17 @@
     @helper.form(action = routes.AppsController.create(distributorID), 'name -> "new-app-form") {
         <div id="new-app" class="content registration">
             <h1>New App</h1>
-            <div class="description">Get started by entering your app's name</div>
-            @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
-            <button type="submit" name="app-form-next">Next</button>
-        </div>
-        <div id="new-virtual-currency" class="content registration">
-            <h1>New Virtual Currency</h1>
-            <div class="description">We provide a standardized virtual currency that is used for each ad provider.</div>
-            @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"))
-            @helper.checkbox(form("roundUp"), '_label -> "Round Up Reward", '_help -> "", 'checked -> "checked")
-            <label>
-                There are many situations where an offer could pay out less than the exchange rate that you are offering - e.g. in the case where an offer pays $0.009 and your currency is worth $0.01.
-                In those cases, an option we have is to round up, giving the user 1 Gold even though they didn’t quite earn it.
-                If you choose not to enable this option, we will simply not show offers from a provider that has an eCPM below the value of the minimum reward, ensuring in most cases that this does not occur.
-            </label>
-            <button id="create-app" type="submit" name="virtual-currency-form">Create App</button>
-            <button type="submit" name="virtual-currency-form-back">Back</button>
+            @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "*App Name", '_showConstraints -> false)
+            @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"), None)
+            <div>
+                <label class="switch-checkbox-label">
+                    Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+                </label>
+            </div>
+            <button id="create-app" type="submit" name="new-app-form">Create App</button>
         </div>
     }
 }
 
-<script src="@routes.Assets.at("javascripts/apps/formValidation.js")" type="text/javascript"></script>
+<script src="@routes.Assets.at("javascripts/shared/formValidation.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/apps/newApp.js")" type="text/javascript"></script>

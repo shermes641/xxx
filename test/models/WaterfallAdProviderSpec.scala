@@ -33,12 +33,12 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true).get
+    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }
 
   val waterfallAdProvider2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID2 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, true).get
+    val waterfallAdProviderID2 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, true, true).get
     WaterfallAdProvider.find(waterfallAdProviderID2).get
   }
 
@@ -56,7 +56,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
 
     "should not create a new record if another shares the same ad_provider_id and waterfall_id" in new WithDB {
-      WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true) must beNone
+      WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true) must beNone
     }
   }
 

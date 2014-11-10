@@ -21,11 +21,12 @@ class ApplicationSpec extends SpecificationWithFixtures {
       DistributorUser.create(email, password, companyName)
       DistributorUser.setActive(DistributorUser.findByEmail(email).get)
 
+      val user = DistributorUser.findByEmail(email).get
       browser.goTo("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
-      browser.pageSource must contain("My Apps")
+      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/apps")
     }
   }
   step(clean)

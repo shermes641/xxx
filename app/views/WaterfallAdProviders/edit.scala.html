@@ -36,11 +36,11 @@
             </div>
         }
         <h1 class="modal-text">Callback Configuration</h1>
-        <table>
+        <table class="modal-centered">
             @if(!(callbackUrl == None)) {
                 <td>
-                    <label class="modal-label">Callback URL:</label>
-                    <div class="callback">@{appDomain + callbackUrl.get}</div>
+                    <label id="callback-url-label" class="modal-text">Callback URL:</label>
+                    <div class="callback"><pre>@{appDomain + callbackUrl.get}</pre></div>
                 </td>
             }
         </table>

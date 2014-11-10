@@ -1,12 +1,25 @@
-@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider])(implicit flash: Flash, session: Session)
+@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider], appsWithWaterfalls: List[AppWithWaterfallID])(implicit flash: Flash, session: Session)
 
     @main("Edit Waterfall", distributorID) {
-        @views.html.Partials.subHeader("waterfall", distributorID, waterfall.app_id)
+        @views.html.Partials.subHeader("waterfall", distributorID, Some(waterfall.app_id), Some(waterfall.id))
         <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
             <div id="waterfall-edit-success" class="flash-message success"></div>
             <div id="waterfall-edit-error" class="flash-message error"></div>
-            <h1>Edit Waterfall</h1>
-            <h2 class="waterfall-token" data-waterfall-token="@waterfall.token">API Token: @waterfall.token</h2>
+            <h1 class="header-dropdown">Edit Waterfall for</h1>
+            <div class="col-sm-4">
+                <select id="waterfall-selection" class="input-sm form-control" name="waterfall-selection">
+                @for(appInfo <- appsWithWaterfalls) {
+                    @if(waterfall.app_id == appInfo.id) {
+                        <option value="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)" selected>@appInfo.name</option>
+                    } else {
+                        <option value="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)">@appInfo.name</option>
+                    }
+                }
+                </select>
+            </div>
+            <div class="waterfall-token" data-waterfall-token="@waterfall.token">API Token:
+                <code>@waterfall.token</code>
+            </div>
             <table>
                 <td class="td-waterfall-config">
                     <label>Test Mode:</label>
@@ -21,6 +34,9 @@
                             <span class="onoffswitch-switch"></span>
                         </label>
                     </div>
+                </td>
+                <td>
+                    <h4 class="tooltip" title="Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.">?</h4>
                 </td>
                 <tr/>
                 <td class="td-waterfall-config">
@@ -37,38 +53,42 @@
                         </label>
                     </div>
                 </td>
+                <td>
+                    <h4 class="tooltip" title="Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.">?</h4>
+                </td>
             </table>
             <div class="waterfall ul">
                 <h1>Waterfall Order</h1>
                 <ul id="waterfall-list" class="waterfall-sort">
                     @for((adProviderConfig) <- adProviderOrder) {
-                        @defining(if(adProviderConfig.active) "waterfall" else "inactive") { classType =>
-                            <li class="@classType" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
+                        <li class="@{if(adProviderConfig.active) "waterfall" else "inactive"}" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
+                            <div class="@{if(adProviderConfig.active) "hideable hideable-wap-info" else "hideable hidden-wap-info" }">
                                 <h3>@adProviderConfig.name</h3>
                                 <div class="waterfall ul li b">eCPM: @adProviderConfig.cpm</div>
-                                <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" class="status" type="submit" name="status" data-id="@adProviderConfig.waterfallAdProviderID">
+                                <button class="status" type="submit" name="status">
                                     Deactivate
                                 </button>
-                                @defining(if(adProviderConfig.newRecord) "none" else "inline-block") { display =>
-                                    <button style="display: @display" data-distributor-id="@distributorID" data-waterfall-ad-provider-id="@adProviderConfig.waterfallAdProviderID" name="configure-wap" type="submit">
-                                        Configure
-                                    </button>
-                                }
-                                <div class="waterfall-drag">
-                                    <div class="waterfall-drag-1"></div>
-                                    <div class="waterfall-drag-2"></div>
-                                    <div class="waterfall-drag-3"></div>
-                                </div>
-                                <div class="inactive-waterfall">
-                                </div>
-                                <div class="inactive-waterfall-content">
-                                    <h3>@adProviderConfig.name</h3>
-                                    <button id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}" data-id="@adProviderConfig.waterfallAdProviderID" class="status inactive-button" type="submit" name="status">
-                                        Activate
-                                    </button>
-                                </div>
-                            </li>
-                        }
+                                <button style="display: @{if(adProviderConfig.newRecord) "none" else "inline-block"}" name="configure-wap" class="configure active-button" type="submit">
+                                    Configure
+                                </button>
+                            </div>
+                            <div class="waterfall-drag">
+                                <div class="waterfall-drag-1"></div>
+                                <div class="waterfall-drag-2"></div>
+                                <div class="waterfall-drag-3"></div>
+                            </div>
+                            <div class="inactive-waterfall">
+                            </div>
+                            <div class="inactive-waterfall-content">
+                                <h3>@adProviderConfig.name</h3>
+                                <button class="status inactive-button" type="submit" name="status">
+                                    Activate
+                                </button>
+                                <button class="configure inactive-button" name="configure-wap" type="submit">
+                                    Configure
+                                </button>
+                            </div>
+                        </li>
                     }
                 </ul>
             </div>

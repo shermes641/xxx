@@ -13,7 +13,7 @@ import org.specs2.runner._
 @RunWith(classOf[JUnitRunner])
 class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None, None, true).get
+    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None, None, true, true).get
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }
 

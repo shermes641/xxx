@@ -11,7 +11,7 @@ define([], function() {
             } );
 
             test( 'Filters have been created correctly', function() {
-                var filters = analytics.buildFilters(1, "United States", 10);
+                var filters = analytics.buildFilters( [ '1' ], [ "United States" ], [ 10 ] );
                 var appId = _.find( filters, function( filter ) {
                     return filter.property_name === "app_id";
                 } );

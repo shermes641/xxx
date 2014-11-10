@@ -27,7 +27,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   }
 
   val waterfallAdProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfallID, adProviderID1.get, None, None, true).get
+    WaterfallAdProvider.create(waterfallID, adProviderID1.get, None, None, true, true).get
   }
 
   val wap1 = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -35,7 +35,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   }
 
   val waterfallAdProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfallID, adProviderID2.get, None, None, true).get
+    WaterfallAdProvider.create(waterfallID, adProviderID2.get, None, None, true, true).get
   }
 
   val wap2 = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -130,7 +130,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val appID = App.create(distributorID, "App List").get
       Waterfall.create(appID, "New Waterfall").get
 
-      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID).url)
+      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID, None).url)
       browser.pageSource must contain("Edit Waterfall")
     }
 
@@ -141,7 +141,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.create(appID, "New Waterfall").get
       Waterfall.create(appID, "Second Waterfall").get
 
-      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID).url)
+      browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID, None).url)
       browser.pageSource must contain("Waterfall could not be found.")
     }
 
@@ -204,12 +204,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
-      browser.$("button[name=status]").first().click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      browser.$(".configure.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
       newWap.reportingActive must beEqualTo(false)
-      browser.$("button[name=configure-wap]").first().click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#wap-edit-success").areDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
@@ -223,9 +221,28 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, None, false, defaultEcpm).get
       logInUser()
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
-      browser.executeScript("var button = $('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('div[class=inactive-waterfall-content]').children(':button[name=status]').click();")
+      browser.executeScript("$('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('.inactive-waterfall-content').children('.status.inactive-button').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       WaterfallAdProvider.findAllByWaterfallID(newWaterfallID).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
+    }
+
+    "create an inactive WaterfallAdProvider when an AdProvider is configured before being activated" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
+      val newAppID = App.create(distributorID, "New App").get
+      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      val configKey = "some key"
+
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      browser.$(".configure.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input").`with`(configKey)
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").isPresent()
+      val wap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
+      wap.active.get must beEqualTo(false)
+      (wap.configurationData \ "requiredParams" \ "distributorID").as[String] must beEqualTo(configKey)
+      (wap.configurationData \ "requiredParams" \ "appID").as[String] must beEqualTo(configKey)
     }
   }
 
@@ -239,6 +256,15 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.$("li[id=true-" + adProviderWithDefaultEcpmID + "]").getAttribute("data-cpm") must beEqualTo(defaultEcpm)
+    }
+
+    "automatically select the name of the app in the drop down menu" in new WithFakeBrowser with WaterfallEditSetup {
+      val appName = "New App"
+      val newAppID = App.create(distributorID, "New App").get
+      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      logInUser()
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      browser.find("#waterfall-selection").getValue.contains(appName)
     }
   }
 

@@ -100,8 +100,8 @@ header .actions a {
     color: #666;
 }
 
-#viewTerms {
-    cursor: hand;
+.clickable {
+    cursor: pointer;
     color: #4285f4;
     font-weight: bold;
 }
@@ -130,8 +130,8 @@ span#viewTerms:hover {
 	left: 50%;
 	bottom: 0;
 
-	width: 800px;
-	margin-left: -400px;
+	width: 600px;
+	margin-left: -300px;
 
 	list-style: none;
 }
@@ -265,6 +265,10 @@ span#viewTerms:hover {
     margin-top: 20px;
 }
 
+.app_list {
+    margin-top: 120px;
+}
+
 .app_list ul.full_list  {
 	list-style: none;
 	width: 100%;
@@ -321,7 +325,6 @@ span#viewTerms:hover {
 
 .registration input[type="checkbox"] {
     margin: 10px;
-    display: block;
     float: left;
 }
 
@@ -486,7 +489,7 @@ span#viewTerms:hover {
 }
 
 .inactive-button {
-    width: 200px;
+    width: 100px;
 }
 
 button.inactive {
@@ -537,6 +540,9 @@ div [class^="col-"] {
 .tooltip {
     display: inline;
     position: relative;
+    opacity: 100;
+    cursor: pointer;
+    padding-left: 10px;
 }
 
 #datepicker, #ad_providers, #countries {
@@ -593,7 +599,7 @@ div [class^="col-"] {
     background: #DEDEDE;
     padding: 25px;
     z-index: 20;
-    overflow: visible;
+    overflow-y: auto;
     -webkit-border-top-right-radius: 10px 10px;
     -webkit-border-bottom-right-radius: 10px 10px;
     -webkit-border-top-left-radius: 10px 10px;
@@ -607,7 +613,7 @@ div [class^="col-"] {
 
 .modal-label {
     display: inline-block;
-    width: 100px;
+    width: 150px;
     text-align: right;
 }
 
@@ -625,8 +631,13 @@ div [class^="col-"] {
     left: 0px;
 }
 
+#flash {
+    cursor: pointer;
+    display: inline-block;
+}
+
 .flash-message {
-    z-index: 99;
+    z-index: 999;
     position: fixed;
     top: 50px;
     left: 50%;
@@ -732,6 +743,14 @@ div [class^="col-"] {
     right: 0px;
 }
 
+.onoff-field {
+    overflow: hidden;
+}
+
+.switch-left {
+    float: left;
+}
+
 .td-waterfall-config {
     width: 250px;
 }
@@ -739,8 +758,61 @@ div [class^="col-"] {
 .callback {
     font-size: 10px;
     max-width: 300px;
+    text-align: center;
 }
 
 .checkbox-label {
     margin-top: 7px;
+    max-width: 400px;
+}
+
+.switch-checkbox-label {
+    margin-top: -3px;
+    max-width: 450px;
+    padding-left: 15px;
+}
+
+::-webkit-input-placeholder { /* WebKit browsers */
+    color: #DEDEDE;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    color: #DEDEDE;
+    opacity:  1;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+    color: #DEDEDE;
+    opacity:  1;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+    color: #DEDEDE;
+}
+
+.inactive-link {
+    pointer-events: none;
+    cursor: default;
+}
+
+.waterfall-token {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 18px 0px 18px 0px;
+    clear: left;
+}
+
+code {
+    background-color: #4285f4;
+    color: #FFFFFF;
+}
+
+.hidden-wap-info {
+    visibility: hidden;
+}
+
+.modal-centered {
+    margin: auto;
+}
+
+.header-dropdown {
+    float: left;
+    padding-right: 5px;
 }

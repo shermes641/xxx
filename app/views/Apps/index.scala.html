@@ -1,11 +1,12 @@
 @(apps: List[AppWithWaterfallID], distributorID: Long)(implicit flash: Flash, session: Session)
-@main("My Apps", distributorID) {
-        @if(apps.length == 0) {
+@defining(apps.length == 0) { zeroApps =>
+    @main(if(zeroApps) "" else "My Apps", distributorID) {
+        @if(zeroApps) {
             <div class="content welcome_screen">
-            <h1>Welcome to HyprMX Mediation</h1>
-            <div class="description">Welcome to HyprMX.</div>
-            <a href="@routes.AppsController.newApp(distributorID)">Begin by creating an app</a>
+                <h1>Welcome to HyprMX Mediation</h1>
+                <a href="@routes.AppsController.newApp(distributorID)">Begin by creating an app</a>
         } else {
+            @views.html.Partials.subHeader("", distributorID, None, None)
             <div class="content app_list">
             <h1>My Apps</h1>
             <div class="description">Here are the apps connected to your account.</div>
@@ -16,21 +17,25 @@
             @for(app <- apps) {
                 <li>
                     <h3>
-                        <a href='@routes.AppsController.edit(distributorID, app.id)'>
-                        @app.name
+                        <a href='@routes.AnalyticsController.show(distributorID, Some(app.id))'>
+                            @app.name
                         </a>
                     </h3>
                     <div class="actions">
-                        <a href='@routes.AnalyticsController.show(distributorID, app.id)'>
-                            Dashboard
+                        <a href='@routes.AppsController.edit(distributorID, app.id)'>
+                            Settings
                         </a>
-                        <a href='@routes.WaterfallsController.list(distributorID, app.id)'>
+                        <a href='@routes.AnalyticsController.show(distributorID, Some(app.id))'>
+                            Analytics
+                        </a>
+                        <a href='@routes.WaterfallsController.list(distributorID, app.id, None)'>
                             Waterfall
                         </a>
                     </div>
                 </li>
             }
-            </ul>
+                </ul>
+            </div>
         }
-    </div>
+    }
 }

@@ -7,7 +7,7 @@ CREATE TABLE waterfall_ad_providers (
   ad_provider_id bigint,
   waterfall_order int,
   cpm float,
-  active BOOL NOT NULL DEFAULT TRUE,
+  active BOOL NOT NULL DEFAULT FALSE,
   reporting_active BOOL NOT NULL DEFAULT FALSE,
   fill_rate float,
   configuration_data json NOT NULL DEFAULT to_json('{}'::JSON),
