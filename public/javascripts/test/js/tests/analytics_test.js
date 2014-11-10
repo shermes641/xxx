@@ -23,7 +23,7 @@ define([], function() {
                     return filter.property_name === "app_id";
                 } );
 
-                equal( appId, "undefined", 'App ID Should be undefined' );
+                equal( typeof appId, "undefined", 'App ID Should be undefined' );
 
                 var country = _.find( filters, function( filter ) {
                     return filter.property_name === "ip_geo_info.country";
