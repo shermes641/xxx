@@ -21,7 +21,6 @@ var Analytics = function () {
         endDate: $( '#end_date' )
     };
 
-
     /**
      * Check if date is valid.  Provide a valid Javascript date object.
      * @param date
@@ -34,6 +33,13 @@ var Analytics = function () {
         return true;
     };
 
+    /**
+     * Returns filters to use for charting and graphs
+     * @param apps An array of apps to include
+     * @param country An array of countries to include
+     * @param adProvider An array of ad Providers to include
+     * @returns filter Array to be used in keen queries
+     */
     this.buildFilters = function( apps, country, adProvider ) {
         var filters = [];
         if ( apps.indexOf( "all" ) === -1 && apps.length !== 0 ) {
