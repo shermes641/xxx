@@ -94,17 +94,9 @@ var Analytics = function () {
 
         // Empty styled metric
         var empty_metric = function ( element_id, title ) {
-            var result = 0;
-            var test = new Keen.Visualization( { result: result }, document.getElementById( element_id ), {
-                chartType: "metric",
-                title: title,
-                chartOptions: {
-                    suffix: "N/A"
-                },
-                colors: [ "#aaaaaa" ],
-                width: $( "#" + element_id ).width()
-            } );
-            console.log(test);
+            var element = $( "#" + element_id );
+            var template = '<div class="keen-widget keen-metric" style="background-color: #aaaaaa; width:' + el.width() + 'px;"><span class="keen-metric-value"><span class="keen-metric-suffix">N/A</span></span><span class="keen-metric-title">' + title + '</span></div>';
+            element.html( template );
         };
 
         // Only create the charts if keen is ready
@@ -171,7 +163,7 @@ var Analytics = function () {
                     } );
 
                     var average_revenue = {
-                        result: 1.1
+                        result: cumulative_revenue / this.data.result.length
                     };
                     new Keen.Visualization( average_revenue, document.getElementById( "unique_users" ), {
                         chartType: "metric",
