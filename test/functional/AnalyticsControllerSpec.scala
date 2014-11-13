@@ -78,18 +78,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
       browser.$("#start_date").getValue() must beEqualTo(date.minusMonths(1).toString("MM/dd/yyyy"))
     }
 
-    "ecpm should be set correctly in hidden field" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
-
-      userLogin(browser)
-
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
-
-      // eCPM must be set correctly (placeholder for now)
-      browser.$("#ecpm").getValue() must beEqualTo("1")
-    }
-
     "app ID should be set correctly in hidden field" in new WithFakeBrowser {
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
