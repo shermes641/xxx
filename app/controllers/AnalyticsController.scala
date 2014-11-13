@@ -45,7 +45,7 @@ object AnalyticsController extends Controller with Secured {
         "property_value" -> distributorID
       )
     }
-    println(filter())
+
     val scope = Map(
       "filters" -> Array(
         filter()

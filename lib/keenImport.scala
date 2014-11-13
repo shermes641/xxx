@@ -161,8 +161,6 @@ val batch_request_ads: JsValue = Json.obj(
   "ad_completed" -> ad_completed
 )
 
-println(client)
-
 // Publish lots of events
 client.addEvents(Json.stringify(Json.toJson(batch_request)))
 client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
