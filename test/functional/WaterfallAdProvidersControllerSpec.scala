@@ -64,8 +64,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
   "WaterfallAdProvidersController.update" should {
     "update the configuration_data field of the waterfall_ad_providers record" in new WithFakeBrowser {
+      val waterfall = Waterfall.find(waterfallID).get
+      VirtualCurrency.create(waterfall.app_id, "Coins", 100.toLong, None, None, Some(true))
+      val originalGeneration = generationNumber(waterfall.id)
       val updatedParam = "Some new value"
-      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"))
+      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"),
+        "waterfallToken" -> JsString(waterfall.token), "waterfallID" -> JsString(waterfall.id.toString))
       val body = JsObject(configurationData)
       val postRequest = FakeRequest(
         POST,
@@ -77,6 +81,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       status(result) must equalTo(200)
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
       wap.configurationData must beEqualTo(body \ "configurationData")
+      generationNumber(waterfall.id) must beEqualTo(originalGeneration + 1)
     }
 
     "respond with a 400 if proper JSON is not received" in new WithFakeBrowser {

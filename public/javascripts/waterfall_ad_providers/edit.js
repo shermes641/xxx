@@ -44,7 +44,9 @@ var updatedData = function() {
                 requiredParams: retrieveFields("edit-waterfall-ad-provider-field"), reportingParams: retrieveFields("reporting-waterfall-ad-provider-field"),
                 callbackParams: retrieveFields("callback-waterfall-ad-provider-field")
             },
-            reportingActive: reportingActiveToggleButton.prop("checked").toString()
+            reportingActive: reportingActiveToggleButton.prop("checked").toString(),
+            waterfallToken: waterfallToken,
+            waterfallID: waterfallID
         }
     ));
 };

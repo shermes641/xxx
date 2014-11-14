@@ -32,7 +32,17 @@ object JsonBuilder extends ValueToJsonHelper {
                       case None => JsNull
                     })
                   )
-                ).deepMerge((el.configurationData.get \ "requiredParams").as[JsObject]) :: Nil
+                ).deepMerge(
+                  el.configurationData match {
+                    case Some(data) => {
+                      (data \ "requiredParams") match {
+                        case _: JsUndefined => JsObject(Seq())
+                        case json: JsValue => json.as[JsObject]
+                      }
+                    }
+                    case None => JsObject(Seq())
+                  }
+                  ) :: Nil
               )
           )
         )

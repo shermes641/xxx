@@ -15,6 +15,9 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
     request.body.asJson.map { wapData =>
       WaterfallAdProvider.create((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, (wapData \ "waterfallOrder") , (wapData \ "cpm"), (wapData \ "configurable").as[String].toBoolean, (wapData \ "active").as[Boolean]) match {
         case Some(id) => {
+          val token = (wapData \ "waterfallToken").as[String]
+          val waterfallID = (wapData \ "waterfallID").as[String].toLong
+          WaterfallGeneration.create(waterfallID, token)
           Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "wapID" -> id))
         }
         case None => {
@@ -63,11 +66,16 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
     request.body.asJson.map { jsonResponse =>
       WaterfallAdProvider.find(waterfallAdProviderID) match {
         case Some(record) => {
+          val token = (jsonResponse \ "waterfallToken").as[String]
+          val waterfallID = (jsonResponse \ "waterfallID").as[String].toLong
           val configData = (jsonResponse \ "configurationData").as[JsValue]
           val reportingActive = (jsonResponse \ "reportingActive").as[String].toBoolean
           val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, record.cpm, record.active, record.fillRate, configData, reportingActive)
           WaterfallAdProvider.update(newValues) match {
-            case 1 => Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!"))
+            case 1 => {
+              WaterfallGeneration.create(waterfallID, token)
+              Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!"))
+            }
             case _ => BadRequest(badResponse)
           }
         }

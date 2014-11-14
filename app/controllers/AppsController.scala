@@ -6,7 +6,7 @@ import play.api.db.DB
 import play.api.mvc._
 import play.api.Play.current
 import anorm._
-import models.{VirtualCurrency, App, Waterfall}
+import models._
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with CustomFormValidation {
@@ -131,6 +131,12 @@ object AppsController extends Controller with Secured with CustomFormValidation 
             VirtualCurrency.update(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
               appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
               case 1 => {
+                Waterfall.findByAppID(appID) match {
+                  case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
+                    val waterfall = waterfalls(0)
+                    WaterfallGeneration.create(waterfall.id, waterfall.token)
+                  }
+                }
                 Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
               }
               case _ => {

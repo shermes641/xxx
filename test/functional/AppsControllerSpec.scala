@@ -123,8 +123,9 @@ class AppsControllerSpec extends SpecificationWithFixtures {
   "AppsController.edit" should {
     "update the app record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
-      Waterfall.create(appID, "App 1")
+      val waterfallID = Waterfall.create(appID, "App 1").get
       VirtualCurrency.create(appID, "Gold", 100, None, None, Some(true))
+      val originalGeneration = generationNumber(waterfallID)
       val newAppName = "New App Name"
       val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID + "/edit"
 
@@ -133,12 +134,15 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.fill("#appName").`with`(newAppName)
       browser.$("button[name=submit]").first.click()
       browser.pageSource must contain(newAppName)
+      generationNumber(waterfallID) must beEqualTo(originalGeneration + 1)
     }
 
     "update the virtual currency record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
       val vcID = VirtualCurrency.create(appID, "App 1", 100, None, None, Some(true)).get
+      val waterfallID = Waterfall.create(appID, "App 1").get
       val virtualCurrency = VirtualCurrency.find(vcID).get
+      val originalGeneration = generationNumber(waterfallID)
       val rewardMin = 1
       val rewardMax = 100
 
@@ -152,6 +156,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       val updatedVC = VirtualCurrency.find(virtualCurrency.id).get
       updatedVC.rewardMin.get must beEqualTo(rewardMin)
       updatedVC.rewardMax.get must beEqualTo(rewardMax)
+      generationNumber(waterfallID) must beEqualTo(originalGeneration + 1)
     }
   }
   step(clean)

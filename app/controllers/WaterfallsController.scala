@@ -86,6 +86,8 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         case 1 => {
           Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
             case true => {
+              val token = (json \ "waterfallToken").as[String]
+              WaterfallGeneration.create(waterfallID, token)
               Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))
             }
             case _ => {

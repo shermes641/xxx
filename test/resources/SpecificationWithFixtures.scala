@@ -24,6 +24,17 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
     }.head)[Long]("count")
   }
 
+  /**
+   * Retrieve the latest generation_number for a particular waterfall ID.
+   * @param waterfallID The ID of the Waterfall to look up in the waterfall_generations table.
+   * @return The latest generation number if a record exists; otherwise, returns none.
+   */
+  def generationNumber(waterfallID: Long): Long = {
+    (DB.withConnection { implicit connection =>
+      SQL("""SELECT COALESCE(MAX(generation_number), 0) AS generation FROM waterfall_generations where waterfall_id={waterfall_id}""").on("waterfall_id" -> waterfallID).apply()
+    }.head)[Long]("generation")
+  }
+
 
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB)) {
   }

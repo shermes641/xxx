@@ -6,6 +6,9 @@ var distributorID = $(".content").attr("data-distributor-id");
 // Waterfall ID to be used in AJAX calls.
 var waterfallID = $('.content').attr("data-waterfall-id");
 
+// Waterfall Token to be used in AJAX calls.
+var waterfallToken = $(".waterfall-token").attr("data-waterfall-token");
+
 // Selector for button which toggles waterfall optimization.
 var optimizeToggleButton = $(":checkbox[name=optimized-order]");
 
@@ -59,7 +62,7 @@ var retrieveConfigData = function(waterfallAdProviderID) {
     $(".content.waterfall_list").toggleClass("modal-inactive", true);
     $.ajax({
         url: path,
-        data: {waterfall_token: $(".waterfall-token").attr("data-waterfall-token")},
+        data: {waterfall_token: waterfallToken},
         type: 'GET',
         success: function(data) {
             $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");
@@ -76,6 +79,7 @@ var retrieveConfigData = function(waterfallAdProviderID) {
 var createWaterfallAdProvider = function(params, newRecord) {
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers";
     params["waterfallID"] = waterfallID;
+    params["waterfallToken"] = waterfallToken;
     params["waterfallOrder"] = "";
     $.ajax({
         url: path,
@@ -116,7 +120,7 @@ var updatedData = function() {
             configurable: $(this).attr("data-configurable")
         });
     }).get();
-    return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode}));
+    return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, waterfallToken: waterfallToken}));
 };
 
 // Displays success or error of AJAX request.
