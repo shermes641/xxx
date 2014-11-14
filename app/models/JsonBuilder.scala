@@ -8,7 +8,7 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper {
-  val WATERFALL_REFRESH_INTERVAL = 30
+  val WATERFALL_REFRESH_INTERVAL = 1800 // The SDK expects this value to be in seconds.
   val LOG_FULL_CONFIG = true
 
   /**
