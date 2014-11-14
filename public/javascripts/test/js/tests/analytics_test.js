@@ -32,7 +32,7 @@ define([], function() {
                 equal( country.property_value, "United States", 'Country Should be United States' );
 
                 var ad_provider = _.find( filters, function( filter ) {
-                    return filter.property_name === "ad_provider";
+                    return filter.property_name === "ad_provider_id";
                 } );
 
                 equal( ad_provider.property_value, 10, 'Ad Provider Should be 10' );
