@@ -19,9 +19,9 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
    * @return The number of rows in the table.
    */
   def tableCount(tableName: String): Long = {
-    (DB.withConnection { implicit connection =>
+    DB.withConnection { implicit connection =>
       SQL("""SELECT COUNT(1) FROM """ + tableName).apply()
-    }.head)[Long]("count")
+    }.head[Long]("count")
   }
 
   /**
@@ -30,9 +30,9 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
    * @return The latest generation number if a record exists; otherwise, returns none.
    */
   def generationNumber(waterfallID: Long): Long = {
-    (DB.withConnection { implicit connection =>
+    DB.withConnection { implicit connection =>
       SQL("""SELECT COALESCE(MAX(generation_number), 0) AS generation FROM waterfall_generations where waterfall_id={waterfall_id}""").on("waterfall_id" -> waterfallID).apply()
-    }.head)[Long]("generation")
+    }.head[Long]("generation")
   }
 
 

@@ -78,12 +78,7 @@ object WaterfallAdProvider extends JsonConversion {
     } match {
       case 1 => {
         WaterfallAdProvider.find(id) match {
-          case Some(wap) => {
-            Waterfall.find(wap.waterfallID) match {
-              case Some(waterfall) => WaterfallGeneration.create(waterfall.id, waterfall.token)
-              case None => None
-            }
-          }
+          case Some(wap) => WaterfallGeneration.createWithWaterfallID(wap.waterfallID)
           case None => None
         }
       }

@@ -14,9 +14,10 @@ object APIController extends Controller {
    * @return If a waterfall is found and ad providers are configured, return a JSON with the ordered ad providers and configuration info.  Otherwise, return a JSON with an error message.
    */
   def waterfallV1(token: String) = Action { implicit request =>
-    Waterfall.responseV1(token) match {
-      case jsonResponse: JsValue if((jsonResponse \ "status").isInstanceOf[JsUndefined]) => Ok(jsonResponse)
-      case jsonResponse: JsValue => BadRequest(jsonResponse)
+    WaterfallGeneration.findLatest(token) match {
+      case Some(response) if((response.configuration \ "status").isInstanceOf[JsUndefined]) => Ok(response.configuration)
+      case Some(response) => BadRequest(response.configuration)
+      case None => BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall not found."))
     }
   }
 

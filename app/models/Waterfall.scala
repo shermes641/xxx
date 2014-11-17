@@ -1,13 +1,12 @@
 package models
 
-import java.sql.Connection
-
 import anorm._
 import anorm.SqlParser._
-import play.api.db.DB
-import play.api.Play.current
 import controllers.ConfigInfo
+import java.sql.Connection
+import play.api.db.DB
 import play.api.libs.json._
+import play.api.Play.current
 import scala.language.postfixOps
 
 case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean)
@@ -58,7 +57,9 @@ object Waterfall extends JsonConversion {
    */
   def create(appID: Long, name: String): Option[Long] = {
     DB.withConnection { implicit connection =>
-      insert(appID, name).executeInsert()
+      val id = insert(appID, name).executeInsert()
+      createGeneration(id)
+      id
     }
   }
 
@@ -70,7 +71,21 @@ object Waterfall extends JsonConversion {
    * @return ID of new record if insert is successful, otherwise None.
    */
   def createWithTransaction(appID: Long, name: String)(implicit connection: Connection): Option[Long] = {
-    insert(appID, name).executeInsert()
+    val id = insert(appID, name).executeInsert()
+    createGeneration(id)
+    id
+  }
+
+  /**
+   * Creates a WaterfallGeneration on Waterfall creation.
+   * @param waterfallID The ID of the Waterfall to which the WaterfallGeneration belongs.
+   * @return If successful, the ID of the WaterfallGeneration; otherwise, None.
+   */
+  def createGeneration(waterfallID: Option[Long]): Option[Long] = {
+    waterfallID match {
+      case Some(id: Long) => WaterfallGeneration.createWithWaterfallID(id)
+      case None => None
+    }
   }
 
   /**

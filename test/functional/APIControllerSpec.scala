@@ -67,6 +67,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       Waterfall.update(waterfall.get.id, true, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallGeneration.createWithWaterfallID(waterfall.get.id)
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
@@ -92,6 +93,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
+      WaterfallGeneration.createWithWaterfallID(waterfall.get.id)
       val jsonResponse: JsValue = Json.parse(contentAsString(result))
       val adProviderConfigs: List[JsValue] = (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index))}
@@ -122,6 +124,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(100.toLong), None, false))
       Waterfall.update(waterfall.get.id, true, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallGeneration.createWithWaterfallID(waterfall.get.id)
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
