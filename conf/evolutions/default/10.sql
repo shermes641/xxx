@@ -6,6 +6,7 @@ CREATE TABLE waterfall_generations (
     waterfall_id bigint NOT NULL,
     waterfall_token VARCHAR(255) NOT NULL,
     configuration json NOT NULL DEFAULT to_json('{}'::JSON),
+    FOREIGN KEY (waterfall_id) REFERENCES waterfalls(id),
     PRIMARY KEY (id)
 );
 

@@ -29,7 +29,7 @@ class WaterfallGenerationSpec extends SpecificationWithFixtures with WaterfallSp
   "WaterfallGeneration.create" should {
     "store the proper waterfall response for a given waterfall ID" in new WithDB {
       WaterfallGeneration.create(waterfall.get.id, waterfall.get.token)
-      latestGenerationConfig(waterfall.get.id) must beEqualTo(JsonBuilder.waterfallResponse(Waterfall.order(waterfall.get.token)))
+      latestGenerationConfig(waterfall.get.id) must beEqualTo(Waterfall.responseV1(waterfall.get.token))
     }
 
     "increment the generation number for an existing waterfall ID each time it is called" in new WithDB {

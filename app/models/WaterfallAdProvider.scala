@@ -64,9 +64,9 @@ object WaterfallAdProvider extends JsonConversion {
    * Updates the eCPM field for a given WaterfallAdProvider ID.
    * @param id The ID of the WaterfallAdProvider to be updated.
    * @param eCPM The new eCPM value calculated in RevenueDataActor.
-   * @return 1 if the update is successful; otherwise, 0.
+   * @return 1 if the update is successful; otherwise, None.
    */
-  def updateEcpm(id: Long, eCPM: Double): Int = {
+  def updateEcpm(id: Long, eCPM: Double): Option[Long] = {
     DB.withConnection { implicit connection =>
       SQL(
         """
@@ -75,6 +75,19 @@ object WaterfallAdProvider extends JsonConversion {
           WHERE id={id};
         """
       ).on("cpm" -> eCPM, "id" -> id).executeUpdate()
+    } match {
+      case 1 => {
+        WaterfallAdProvider.find(id) match {
+          case Some(wap) => {
+            Waterfall.find(wap.waterfallID) match {
+              case Some(waterfall) => WaterfallGeneration.create(waterfall.id, waterfall.token)
+              case None => None
+            }
+          }
+          case None => None
+        }
+      }
+      case _ => None
     }
   }
 

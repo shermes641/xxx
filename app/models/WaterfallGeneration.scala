@@ -7,7 +7,7 @@ import play.api.Play.current
 
 object WaterfallGeneration {
   def create(waterfallID: Long, waterfallToken: String): Option[Long] = {
-    val configuration = JsonBuilder.waterfallResponse(Waterfall.order(waterfallToken))
+    val configuration = Waterfall.responseV1(waterfallToken)
     DB.withConnection { implicit connection =>
       SQL(
         """
