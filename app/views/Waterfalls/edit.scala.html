@@ -1,6 +1,6 @@
 @(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider], appsWithWaterfalls: List[AppWithWaterfallID])(implicit flash: Flash, session: Session)
 
-    @main("Edit Waterfall", distributorID) {
+    @main("Edit Waterfall", distributorID, Some(waterfall.app_id)) {
         @views.html.Partials.subHeader("waterfall", distributorID, Some(waterfall.app_id), Some(waterfall.id))
         <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
             <div id="waterfall-edit-success" class="flash-message success"></div>

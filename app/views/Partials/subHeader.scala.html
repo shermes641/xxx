@@ -3,13 +3,6 @@
     <ul class="menu">
         <a href="@routes.AnalyticsController.show(distributorID, appID)"><li @if(page == "analytics") { class="active" }>ANALYTICS</li></a>
         <a href="@routes.WaterfallsController.editAll(distributorID, waterfallID, appID)"><li @if(page == "waterfall") { class="active" }>WATERFALL</li></a>
-        <li id="apps_list">MY APPS
-            <ul id="apps_list_menu">
-                @for(app <- App.findAllAppsWithWaterfalls(distributorID)) {
-                    <a href="@routes.AnalyticsController.show(distributorID, Some(app.id))"><li>@app.name</li></a>
-                }
-                <a href="@routes.AppsController.index(distributorID)"><li>View All</li></a>
-            </ul>
-        </li>
+        <a href="@routes.AppsController.index(distributorID)"><li @if(page == "apps") { class="active"}>MY APPS</li></a>
     </ul>
 </div>
