@@ -4,7 +4,7 @@ import anorm._
 import org.specs2.mutable._
 import play.api.Play.current
 import play.api.db.DB
-import play.api.libs.json.{JsString, JsObject}
+import play.api.libs.json.{Json, JsString, JsObject}
 import play.api.test.Helpers._
 import play.api.test._
 
@@ -33,6 +33,28 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
     DB.withConnection { implicit connection =>
       SQL("""SELECT COALESCE(MAX(generation_number), 0) AS generation FROM waterfall_generations where waterfall_id={waterfall_id}""").on("waterfall_id" -> waterfallID).apply()
     }.head[Long]("generation")
+  }
+
+  /**
+   * Helper function to clear out previous generation configuration data.
+   * @param waterfallID The ID of the Waterfall to which the WaterfallGeneration belongs.
+   * @return 1 if the insert is successful; otherwise, None.
+   */
+  def clearGeneration(waterfallID: Long) = {
+    Waterfall.find(waterfallID) match {
+      case Some(waterfall) => {
+        DB.withConnection { implicit connection =>
+          SQL(
+            """
+              INSERT INTO waterfall_generations (generation_number, waterfall_id, waterfall_token, configuration)
+              VALUES ((SELECT COALESCE(MAX(generation_number), 0) AS generation FROM waterfall_generations where waterfall_id={waterfall_id}),
+              {waterfall_id}, {waterfall_token}, '{}');
+            """
+          ).on("waterfall_id" -> waterfallID, "waterfall_token" -> waterfall.token).executeInsert()
+        }
+      }
+      case None => None
+    }
   }
 
 

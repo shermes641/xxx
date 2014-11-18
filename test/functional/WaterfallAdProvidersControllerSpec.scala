@@ -67,6 +67,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val waterfall = Waterfall.find(waterfallID).get
       VirtualCurrency.create(waterfall.app_id, "Coins", 100.toLong, None, None, Some(true))
       val originalGeneration = generationNumber(waterfall.id)
+      clearGeneration(waterfall.id)
       val updatedParam = "Some new value"
       val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"),
         "waterfallToken" -> JsString(waterfall.token), "waterfallID" -> JsString(waterfall.id.toString))

@@ -38,15 +38,16 @@ object Waterfall extends JsonConversion {
    * SQL statement for inserting a new record into the waterfalls table.
    * @param appID ID of the App to which the new Waterfall belongs
    * @param name Name of the new Waterfall
+   * @param token A unique identifier used for API requests.
    * @return A SQL statement to be executed by create or createWithTransaction methods.
    */
-  def insert(appID: Long, name: String): SimpleSql[Row] = {
+  def insert(appID: Long, name: String, token: String): SimpleSql[Row] = {
     SQL(
       """
         INSERT INTO waterfalls (app_id, name, token)
         VALUES ({app_id}, {name}, {token});
       """
-    ).on("app_id" -> appID, "name" -> name, "token" -> generateToken)
+    ).on("app_id" -> appID, "name" -> name, "token" -> token)
   }
 
   /**
@@ -57,9 +58,13 @@ object Waterfall extends JsonConversion {
    */
   def create(appID: Long, name: String): Option[Long] = {
     DB.withConnection { implicit connection =>
-      val id = insert(appID, name).executeInsert()
-      createGeneration(id)
-      id
+      val waterfallToken = generateToken
+      val waterfallID = insert(appID, name, waterfallToken).executeInsert()
+      waterfallID match {
+        case Some(id: Long) => WaterfallGeneration.create(id, waterfallToken)
+        case None => None
+      }
+      waterfallID
     }
   }
 
@@ -71,21 +76,13 @@ object Waterfall extends JsonConversion {
    * @return ID of new record if insert is successful, otherwise None.
    */
   def createWithTransaction(appID: Long, name: String)(implicit connection: Connection): Option[Long] = {
-    val id = insert(appID, name).executeInsert()
-    createGeneration(id)
-    id
-  }
-
-  /**
-   * Creates a WaterfallGeneration on Waterfall creation.
-   * @param waterfallID The ID of the Waterfall to which the WaterfallGeneration belongs.
-   * @return If successful, the ID of the WaterfallGeneration; otherwise, None.
-   */
-  def createGeneration(waterfallID: Option[Long]): Option[Long] = {
+    val waterfallToken = generateToken
+    val waterfallID = insert(appID, name, waterfallToken).executeInsert()
     waterfallID match {
-      case Some(id: Long) => WaterfallGeneration.createWithWaterfallID(id)
+      case Some(id: Long) => WaterfallGeneration.createWithTransaction(id, waterfallToken)
       case None => None
     }
+    waterfallID
   }
 
   /**
@@ -225,11 +222,7 @@ object Waterfall extends JsonConversion {
       }
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
-        val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
-        val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_PROVIDER_ID), Some(TEST_MODE_APP_NAME), Some(TEST_MODE_HYPRMEDIATE_APP_ID),
-          Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
-          Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, Some(false))
-        JsonBuilder.waterfallResponse(List(testAdProviderConfig))
+        testResponseV1
       }
       // No ad providers are active.
       case adProviders: List[AdProviderInfo] if(filteredAdProviders(adProviders).size == 0) => {
@@ -250,6 +243,14 @@ object Waterfall extends JsonConversion {
         JsonBuilder.waterfallResponse(filteredAdProviders(adProviders))
       }
     }
+  }
+
+  def testResponseV1: JsValue = {
+    val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
+    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_PROVIDER_ID), Some(TEST_MODE_APP_NAME), Some(TEST_MODE_HYPRMEDIATE_APP_ID),
+      Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
+      Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, Some(false))
+    JsonBuilder.waterfallResponse(List(testAdProviderConfig))
   }
 
   // Used to convert SQL row into an instance of the AdProviderInfo class in Waterfall.order.

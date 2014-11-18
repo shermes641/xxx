@@ -125,7 +125,6 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       val appID = App.create(user.distributorID.get, "App 1").get
       val waterfallID = Waterfall.create(appID, "App 1").get
       VirtualCurrency.create(appID, "Gold", 100, None, None, Some(true))
-      val originalGeneration = generationNumber(waterfallID)
       val newAppName = "New App Name"
       val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID + "/edit"
 
@@ -134,17 +133,19 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.fill("#appName").`with`(newAppName)
       browser.$("button[name=submit]").first.click()
       browser.pageSource must contain(newAppName)
-      generationNumber(waterfallID) must beEqualTo(originalGeneration + 1)
     }
 
     "update the virtual currency record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
       val vcID = VirtualCurrency.create(appID, "App 1", 100, None, None, Some(true)).get
       val waterfallID = Waterfall.create(appID, "App 1").get
+      Waterfall.update(waterfallID, true, false)
+      val adProviderID = AdProvider.create("test ad provider", "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      WaterfallAdProvider.create(waterfallID, adProviderID.get, None, Some(5.0), false, false)
       val virtualCurrency = VirtualCurrency.find(vcID).get
       val originalGeneration = generationNumber(waterfallID)
-      val rewardMin = 1
-      val rewardMax = 100
+      val rewardMin = 10
+      val rewardMax = 1000
 
       logInUser()
       browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID + "/edit")

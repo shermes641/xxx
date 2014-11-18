@@ -24,6 +24,7 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
   "updateRevenueData" should {
     "updates the cpm field of the WaterfallAdProvider if the HyprMX API call is successful" in new WithDB {
       val originalGeneration = generationNumber(waterfallAdProvider1.waterfallID)
+      Waterfall.update(waterfallAdProvider1.waterfallID, true, false)
       waterfallAdProvider1.cpm must beNone
       val globalStats = JsObject(Seq("revenue" -> JsString("10.00"), "impressions" -> JsString("1000"), "completions" -> JsString("200")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))

@@ -2,6 +2,7 @@ package models
 
 import anorm._
 import anorm.SqlParser._
+import java.sql.Connection
 import play.api.db.DB
 import play.api.Play.current
 import play.api.libs.json._
@@ -16,22 +17,53 @@ case class WaterfallGeneration(generationNumber: Long, configuration: JsValue)
 
 object WaterfallGeneration extends JsonConversion {
   /**
-   * Creates a new WaterfallGeneration record in the waterfall_generations table.
+   * Creates a new WaterfallGeneration record in the waterfall_generations table if the configuration is different.
    * @param waterfallID The ID of the Waterfall to which the WaterfallGeneration belongs.
    * @param waterfallToken The token of the Waterfall to which the WaterfallGeneration belongs.
    * @return 1 if the insert is successful; otherwise, 0;
    */
   def create(waterfallID: Long, waterfallToken: String): Option[Long] = {
-    val configuration = Waterfall.responseV1(waterfallToken)
     DB.withConnection { implicit connection =>
-      SQL(
-        """
-          INSERT INTO waterfall_generations (generation_number, waterfall_id, waterfall_token, configuration)
-          VALUES ((SELECT COALESCE(MAX(generation_number), 0) + 1 FROM waterfall_generations WHERE waterfall_id={waterfall_id}),
-          {waterfall_id}, {waterfall_token}, CAST({configuration} AS json));
-        """
-      ).on("waterfall_id" -> waterfallID, "waterfall_token" -> waterfallToken, "configuration" -> Json.stringify(configuration)).executeInsert()
+      val currentConfiguration = Waterfall.responseV1(waterfallToken)
+      findLatest(waterfallToken) match {
+        case Some(latestGeneration) if (latestGeneration.configuration != currentConfiguration) => {
+          insert(waterfallID, waterfallToken, currentConfiguration, latestGeneration.generationNumber + 1).executeInsert()
+        }
+        case None => {
+          insert(waterfallID, waterfallToken, currentConfiguration, 0).executeInsert()
+        }
+        case _ => None
+      }
     }
+  }
+
+  /**
+   * Executes SQL insert within a database transaction.
+   * @param waterfallID The ID of the Waterfall to which the WaterfallGeneration belongs.
+   * @param waterfallToken The unique identifier for a Waterfall.
+   * @param connection DB connection for transaction.
+   * @return
+   */
+  def createWithTransaction(waterfallID: Long, waterfallToken: String)(implicit connection: Connection): Option[Long] = {
+    insert(waterfallID, waterfallToken, Waterfall.testResponseV1, 0).executeInsert()
+  }
+
+  /**
+   * SQL statement for inserting a new record into the waterfall_generations table.
+   * @param waterfallID The ID of the Waterfall to which the WaterfallGeneration belongs.
+   * @param waterfallToken The unique identifier for a Waterfall.
+   * @param currentConfiguration The JSON configuration of ad providers used in the APIController.
+   * @param generationNumber A number to track revisions to the Waterfall.
+   * @return A SQL statement to be executed by the create and createWithTransaction methods.
+   */
+  def insert(waterfallID: Long, waterfallToken: String, currentConfiguration: JsValue, generationNumber: Long): SimpleSql[Row] = {
+    SQL(
+      """
+        INSERT INTO waterfall_generations (generation_number, waterfall_id, waterfall_token, configuration)
+        VALUES ({generation_number}, {waterfall_id}, {waterfall_token}, CAST({configuration} AS json));
+      """
+    ).on("waterfall_id" -> waterfallID, "waterfall_token" -> waterfallToken,
+        "configuration" -> Json.stringify(currentConfiguration), "generation_number" -> generationNumber)
   }
 
   /**

@@ -109,6 +109,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
     "reorder the waterfall in the same configuration as the drag and drop list" in new WithFakeBrowser with WaterfallEditSetup {
       val originalGeneration = generationNumber(currentWaterfall.id)
+      clearGeneration(currentWaterfall.id)
       val firstProvider = Waterfall.order(currentWaterfall.token)(0).providerName
 
       logInUser()
@@ -221,6 +222,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newAppID = App.create(distributorID, "New App").get
       val newWaterfallID = Waterfall.create(newAppID, "New App").get
       val originalGeneration = generationNumber(newWaterfallID)
+      clearGeneration(newWaterfallID)
       VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
 
       logInUser()
@@ -236,13 +238,13 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#wap-edit-success").areDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
-      generationNumber(newWaterfallID) must beEqualTo(generation + 1)
     }
 
     "create a WaterfallAdProvider with an eCPM value if an AdProvider with a default eCPM is activated" in new WithFakeBrowser with WaterfallEditSetup {
       val newAppID = App.create(distributorID, "New App").get
       val newWaterfallID = Waterfall.create(newAppID, "New App").get
       val originalGeneration = generationNumber(newWaterfallID)
+      clearGeneration(newWaterfallID)
       VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
 
       val defaultEcpm = Some(20.0)
@@ -258,7 +260,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "create an inactive WaterfallAdProvider when an AdProvider is configured before being activated" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
       val newAppID = App.create(distributorID, "New App").get
       val newWaterfallID = Waterfall.create(newAppID, "New App").get
-      val originalGeneration = generationNumber(newWaterfallID)
+      clearGeneration(newWaterfallID)
       VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
       val configKey = "some key"
 
@@ -267,7 +269,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.$(".configure.inactive-button").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
-      generationNumber(newWaterfallID) must beEqualTo(originalGeneration + 1)
       val generation = generationNumber(newWaterfallID)
       browser.fill("input").`with`(configKey)
       browser.click("button[name=update-ad-provider]")
@@ -276,7 +277,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       wap.active.get must beEqualTo(false)
       (wap.configurationData \ "requiredParams" \ "distributorID").as[String] must beEqualTo(configKey)
       (wap.configurationData \ "requiredParams" \ "appID").as[String] must beEqualTo(configKey)
-      generationNumber(newWaterfallID) must beEqualTo(generation + 1)
     }
   }
 
