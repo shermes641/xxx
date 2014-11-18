@@ -1,12 +1,12 @@
 package controllers
 
+import java.sql.Connection
+import models._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.DB
 import play.api.mvc._
 import play.api.Play.current
-import anorm._
-import models._
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with CustomFormValidation {
@@ -38,7 +38,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       "rewardMax" -> optional(longNumber),
       "roundUp" -> optional(checked("")),
       "callbackURL" -> optional(text),
-      "serverToServerEnabled" -> optional(checked(""))
+      "serverToServerEnabled" -> optional(checked("")),
+      "generationNumber" -> optional(longNumber)
     )(EditAppMapping.apply)(EditAppMapping.unapply)
   )
 
@@ -74,8 +75,12 @@ object AppsController extends Controller with Secured with CustomFormValidation 
           try {
             App.createWithTransaction(distributorID, newApp.appName) match {
               case Some(appID) => {
-                Waterfall.createWithTransaction(appID, newApp.appName)
+                Waterfall.create(appID, newApp.appName)
                 VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
+                App.findWithTransaction(appID) match {
+                  case Some(app) => AppConfig.create(appID, app.token, 0)
+                  case None => None
+                }
                 Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
               }
               case _ => {
@@ -84,7 +89,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
             }
           }
           catch {
-            case error: Throwable => {
+            case error: org.postgresql.util.PSQLException => {
               connection.rollback()
               Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
             }
@@ -104,7 +109,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     App.findAppWithVirtualCurrency(appID) match {
       case Some(appInfo) => {
         val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled)))
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber))
         Ok(views.html.Apps.edit(form, distributorID, appID))
       }
       case None => {
@@ -125,32 +130,48 @@ object AppsController extends Controller with Secured with CustomFormValidation 
         BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID))
       },
       appInfo => {
-        val newAppValues = new App(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
-        App.update(newAppValues) match {
-          case 1 => {
-            VirtualCurrency.update(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
-              appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
+        val newAppValues = new UpdatableApp(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
+        DB.withTransaction { implicit connection =>
+          try {
+            App.updateWithTransaction(newAppValues) match {
               case 1 => {
-                Waterfall.findByAppID(appID) match {
-                  case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
-                    val waterfall = waterfalls(0)
-                    WaterfallGeneration.create(waterfall.id, waterfall.token)
+                VirtualCurrency.updateWithTransaction(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
+                  appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
+                  case 1 => {
+                    Waterfall.findByAppID(appID) match {
+                      case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
+                        val waterfall = waterfalls(0)
+                        AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
+                      }
+                    }
+                    Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
+                  }
+                  case _ => {
+                    NotModified.flashing("error" -> "App could not be updated.")
                   }
                 }
-                Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
+                Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
               }
               case _ => {
-                NotModified.flashing("error" -> "Virtual Currency could not be updated.")
+                NotModified.flashing("error" -> "App could not be updated.")
               }
             }
-            Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
-          }
-          case _ => {
-            NotModified.flashing("error" -> "App could not be updated.")
+          } catch {
+            case error: org.postgresql.util.PSQLException => rollback
+            case error: IllegalArgumentException => rollback
           }
         }
       }
     )
+  }
+
+  /**
+   * Rolls back the transaction and flashes an error message to the user.
+   * @param connection The shared connection for the database transaction.
+   */
+  def rollback(implicit connection: Connection) = {
+    connection.rollback
+    NotModified.flashing("error" -> "App could not be updated.")
   }
 }
 
@@ -177,5 +198,6 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  * @param callbackURL Maps to the callback_url field in the apps table.
  * @param serverToServerEnabled Maps to the server_to_server_enabled field in the apps table.
+ * @param generationNumber The revision number which tracks the state of the corresponding AppConfig model at the time the page renders.
  */
-case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean])
+case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean], generationNumber: Option[Long])

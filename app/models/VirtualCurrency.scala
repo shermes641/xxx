@@ -1,9 +1,8 @@
 package models
 
-import java.sql.Connection
-
 import anorm._
 import anorm.SqlParser._
+import java.sql.Connection
 import play.api.db.DB
 import play.api.Play.current
 import scala.language.postfixOps
@@ -130,14 +129,22 @@ object VirtualCurrency {
    */
   def update(virtualCurrency: VirtualCurrency): Int = {
     DB.withConnection { implicit connection =>
-      SQL(
-        """
+      updateSQL(virtualCurrency).executeUpdate()
+    }
+  }
+
+  def updateSQL(virtualCurrency: VirtualCurrency): SimpleSql[Row] = {
+    SQL(
+      """
           UPDATE virtual_currencies
           SET app_id={app_id}, name={name}, exchange_rate={exchange_rate}, reward_min={reward_min}, reward_max={reward_max}, round_up={round_up}
           WHERE id={id};
-        """
-      ).on("app_id" -> virtualCurrency.appID, "name" -> virtualCurrency.name, "exchange_rate" -> virtualCurrency.exchangeRate,
-           "reward_min" -> virtualCurrency.rewardMin, "reward_max" -> virtualCurrency.rewardMax, "round_up" -> virtualCurrency.roundUp, "id" -> virtualCurrency.id).executeUpdate()
-    }
+      """
+    ).on("app_id" -> virtualCurrency.appID, "name" -> virtualCurrency.name, "exchange_rate" -> virtualCurrency.exchangeRate,
+        "reward_min" -> virtualCurrency.rewardMin, "reward_max" -> virtualCurrency.rewardMax, "round_up" -> virtualCurrency.roundUp, "id" -> virtualCurrency.id)
+  }
+
+  def updateWithTransaction(virtualCurrency: VirtualCurrency)(implicit connection: Connection): Int = {
+    updateSQL(virtualCurrency).executeUpdate()
   }
 }

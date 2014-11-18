@@ -8,7 +8,7 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper {
-  val WATERFALL_REFRESH_INTERVAL = 1800 // The SDK expects this value to be in seconds.
+  val APP_CONFIG_REFRESH_INTERVAL = 1800 // The SDK expects this value to be in seconds.
   val LOG_FULL_CONFIG = true
 
   /**
@@ -16,7 +16,7 @@ object JsonBuilder extends ValueToJsonHelper {
    * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
    * @return JSON object with an ordered array of ad providers and their respective configuration info.
    */
-  def waterfallResponse(adProviders: List[AdProviderInfo]): JsValue = {
+  def appConfigResponseV1(adProviders: List[AdProviderInfo]): JsValue = {
     val adProviderConfigurations = {
       JsObject(
         Seq(
@@ -61,7 +61,7 @@ object JsonBuilder extends ValueToJsonHelper {
   def sdkConfiguration: JsObject = {
     JsObject(
       Seq(
-        "waterfallRefreshInterval" -> JsNumber(WATERFALL_REFRESH_INTERVAL),
+        "appConfigRefreshInterval" -> JsNumber(APP_CONFIG_REFRESH_INTERVAL),
         "logFullConfig" -> JsBoolean(LOG_FULL_CONFIG)
       )
     )

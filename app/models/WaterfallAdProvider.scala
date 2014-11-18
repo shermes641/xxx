@@ -2,6 +2,7 @@ package models
 
 import anorm._
 import anorm.SqlParser._
+import java.sql.Connection
 import play.api.db.DB
 import play.api.Play.current
 import play.api.libs.json._
@@ -38,47 +39,64 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
+   * SQL to update the fields for a particular record in the waterfall_ad_providers table.
+   * @param waterfallAdProvider WaterfallAdProvider instance with update attributes.
+   * @return SQL to be executed by update and updateWithTransaction methods.
+   */
+  def updateSQL(waterfallAdProvider: WaterfallAdProvider): SimpleSql[Row] = {
+    SQL(
+      """
+          UPDATE waterfall_ad_providers
+          SET waterfall_order={waterfall_order}, cpm={cpm}, active={active}, fill_rate={fill_rate},
+          configuration_data=CAST({configuration_data} AS json), reporting_active={reporting_active}
+          WHERE id={id};
+      """
+    ).on(
+        "waterfall_order" -> waterfallAdProvider.waterfallOrder, "cpm" -> waterfallAdProvider.cpm,
+        "active" -> waterfallAdProvider.active, "fill_rate" -> waterfallAdProvider.fillRate,
+        "configuration_data" -> Json.stringify(waterfallAdProvider.configurationData),
+        "reporting_active" -> waterfallAdProvider.reportingActive, "id" -> waterfallAdProvider.id
+      )
+  }
+
+
+  /**
    * Updates the fields for a particular record in waterfall_ad_providers table.
    * @param waterfallAdProvider WaterfallAdProvider instance with updated attributes
    * @return Number of rows updated
    */
   def update(waterfallAdProvider: WaterfallAdProvider): Int = {
     DB.withConnection { implicit connection =>
-      SQL(
-        """
-          UPDATE waterfall_ad_providers
-          SET waterfall_order={waterfall_order}, cpm={cpm}, active={active}, fill_rate={fill_rate},
-          configuration_data=CAST({configuration_data} AS json), reporting_active={reporting_active}
-          WHERE id={id};
-        """
-      ).on(
-          "waterfall_order" -> waterfallAdProvider.waterfallOrder, "cpm" -> waterfallAdProvider.cpm,
-          "active" -> waterfallAdProvider.active, "fill_rate" -> waterfallAdProvider.fillRate,
-          "configuration_data" -> Json.stringify(waterfallAdProvider.configurationData),
-          "reporting_active" -> waterfallAdProvider.reportingActive, "id" -> waterfallAdProvider.id
-        ).executeUpdate()
+      updateSQL(waterfallAdProvider).executeUpdate()
     }
+  }
+
+  /**
+   * Updates the fields for a particular record, within a transaction, in waterfall_ad_providers table.
+   * @param waterfallAdProvider WaterfallAdProvider instance with updated attributes
+   * @return Number of rows updated
+   */
+  def updateWithTransaction(waterfallAdProvider: WaterfallAdProvider)(implicit connection: Connection): Int = {
+    updateSQL(waterfallAdProvider).executeUpdate()
   }
 
   /**
    * Updates the eCPM field for a given WaterfallAdProvider ID.
    * @param id The ID of the WaterfallAdProvider to be updated.
    * @param eCPM The new eCPM value calculated in RevenueDataActor.
-   * @return 1 if the update is successful; otherwise, None.
+   * @return the new generation number if the update is successful; otherwise, None.
    */
-  def updateEcpm(id: Long, eCPM: Double): Option[Long] = {
-    DB.withConnection { implicit connection =>
-      SQL(
-        """
-          UPDATE waterfall_ad_providers
-          SET cpm={cpm}
-          WHERE id={id};
-        """
-      ).on("cpm" -> eCPM, "id" -> id).executeUpdate()
-    } match {
+  def updateEcpm(id: Long, eCPM: Double)(implicit connection: Connection): Option[Long] = {
+    SQL(
+      """
+      UPDATE waterfall_ad_providers
+      SET cpm={cpm}
+      WHERE id={id};
+      """
+    ).on("cpm" -> eCPM, "id" -> id).executeUpdate() match {
       case 1 => {
-        WaterfallAdProvider.find(id) match {
-          case Some(wap) => WaterfallGeneration.createWithWaterfallID(wap.waterfallID)
+        WaterfallAdProvider.findWithTransaction(id) match {
+          case Some(wap) => AppConfig.createWithWaterfallIDInTransaction(wap.waterfallID, None)
           case None => None
         }
       }
@@ -110,48 +128,89 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
+   * SQL for inserting a new record in the waterfall_ad_providers table.
+   * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
+   * @param adProviderID ID of the Ad Provider to which the new WaterfallAdProvider belongs
+   * @param cpm The estimated cost per thousand completions for an AdProvider.
+   * @param configurable Determines if the cpm value can be edited for the WaterfallAdProvider.
+   * @param active Boolean value determining if the WaterfallAdProvider can be included in the AppConfig list of AdProviders.
+   * @return SQL to be executed by create and createWithTransaction methods.
+   */
+  def insert(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean, active: Boolean = false): SimpleSql[Row] = {
+    SQL(
+      """
+        INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order, cpm, configurable, active)
+        VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order}, {cpm}, {configurable}, {active});
+      """
+    ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder, "cpm" -> cpm, "configurable" -> configurable, "active" -> active)
+  }
+
+  /**
    * Creates a new WaterfallAdProvider record in the database unless a similar record exists.
    * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
    * @param adProviderID ID of the Ad Provider to which the new WaterfallAdProvider belongs
    * @param cpm The estimated cost per thousand completions for an AdProvider.
    * @param configurable Determines if the cpm value can be edited for the WaterfallAdProvider.
+   * @param active Boolean value determining if the WaterfallAdProvider can be included in the AppConfig list of AdProviders.
    * @return ID of new record if insert is successful, otherwise None.
    */
   def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean, active: Boolean = false): Option[Long] = {
     DB.withConnection { implicit connection =>
-      try{
-        SQL(
-          """
-          INSERT INTO waterfall_ad_providers (waterfall_id, ad_provider_id, waterfall_order, cpm, configurable, active)
-          VALUES ({waterfall_id}, {ad_provider_id}, {waterfall_order}, {cpm}, {configurable}, {active});
-          """
-        ).on("waterfall_id" -> waterfallID, "ad_provider_id" -> adProviderID, "waterfall_order" -> waterfallOrder, "cpm" -> cpm, "configurable" -> configurable, "active" -> active).executeInsert()
-      } catch {
-        case exception: org.postgresql.util.PSQLException => {
-          None
-        }
-      }
+      insert(waterfallID, adProviderID, waterfallOrder, cpm, configurable, active).executeInsert()
     }
   }
 
   /**
-   * Finds waterfall_ad_provider record by ID.
+   * Creates a new WaterfallAdProvider record, within a transaction, unless a similar record exists.
+   * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
+   * @param adProviderID ID of the Ad Provider to which the new WaterfallAdProvider belongs
+   * @param cpm The estimated cost per thousand completions for an AdProvider.
+   * @param configurable Determines if the cpm value can be edited for the WaterfallAdProvider.
+   * @param active Boolean value determining if the WaterfallAdProvider can be included in the AppConfig list of AdProviders.
+   * @return ID of new record if insert is successful, otherwise None.
+   */
+  def createWithTransaction(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean, active: Boolean = false)(implicit connection: Connection): Option[Long] = {
+    insert(waterfallID, adProviderID, waterfallOrder, cpm, configurable, active).executeInsert()
+  }
+
+  /**
+   * SQL to select a particular WaterfallAdProvider record from the database.
+   * @param waterfallAdProviderID The ID of the WaterfallAdProvider for which to query.
+   * @return SQL to be executed by find and findWithTransaction methods.
+   */
+  def findSQL(waterfallAdProviderID: Long): SimpleSql[Row] = {
+    SQL(
+      """
+          SELECT waterfall_ad_providers.*
+          FROM waterfall_ad_providers
+          WHERE id = {id};
+      """
+    ).on("id" -> waterfallAdProviderID)
+  }
+
+  /**
+   * Finds WaterfallAdProvider record by ID.
    * @param waterfallAdProviderID ID of WaterfallAdProvider
    * @return WaterfallAdProvider instance if one exists. Otherwise, returns None.
    */
   def find(waterfallAdProviderID: Long): Option[WaterfallAdProvider] = {
     DB.withConnection { implicit connection =>
-      val query = SQL(
-        """
-          SELECT waterfall_ad_providers.*
-          FROM waterfall_ad_providers
-          WHERE id = {id};
-        """
-      ).on("id" -> waterfallAdProviderID)
-      query.as(waterfallAdProviderParser*) match {
+      findSQL(waterfallAdProviderID).as(waterfallAdProviderParser*) match {
         case List(waterfallAdProvider) => Some(waterfallAdProvider)
         case _ => None
       }
+    }
+  }
+
+  /**
+   * Finds WaterfallAdProvider record, within transaction, by ID within a database transaction.
+   * @param waterfallAdProviderID ID of WaterfallAdProvider
+   * @return WaterfallAdProvider instance if one exists. Otherwise, returns None.
+   */
+  def findWithTransaction(waterfallAdProviderID: Long)(implicit connection: Connection): Option[WaterfallAdProvider] = {
+    findSQL(waterfallAdProviderID).as(waterfallAdProviderParser*) match {
+      case List(waterfallAdProvider) => Some(waterfallAdProvider)
+      case _ => None
     }
   }
 
@@ -235,22 +294,23 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
-   * Find a WaterfallAdProvider record by AdProvider name and Waterfall token.
-   * @param waterfallToken The token for the Waterfall to which the WaterfallAdProvider belongs.
+   * Find a WaterfallAdProvider record by AdProvider name and App token.
+   * @param appToken The token for the App to which the WaterfallAdProvider belongs.
    * @param adProviderName The name of the AdProvider stored in the ad_providers table.
    * @return a WaterfallAdProvider instance if one exists; otherwise, returns None.
    */
-  def findByAdProvider(waterfallToken: String, adProviderName: String): Option[WaterfallAdProviderCallbackInfo] = {
+  def findByAdProvider(appToken: String, adProviderName: String): Option[WaterfallAdProviderCallbackInfo] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
            SELECT wap.configuration_data, wap.cpm, vc.exchange_rate FROM waterfalls
+           JOIN apps ON apps.id = waterfalls.app_id
            JOIN waterfall_ad_providers wap ON wap.waterfall_id = waterfalls.id
            JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
            JOIN virtual_currencies vc ON vc.app_id = waterfalls.app_id
-           WHERE token={waterfall_token} AND ad_providers.name={ad_provider_name};
+           WHERE apps.token={app_token} AND ad_providers.name={ad_provider_name};
         """
-      ).on("waterfall_token" -> waterfallToken, "ad_provider_name" -> adProviderName)
+      ).on("app_token" -> appToken, "ad_provider_name" -> adProviderName)
       query.as(waterfallAdProviderCallbackInfoParser*) match {
         case List(waterfallAdProviderCallbackInfo) => Some(waterfallAdProviderCallbackInfo)
         case _ => None

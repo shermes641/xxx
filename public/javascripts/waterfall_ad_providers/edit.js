@@ -12,10 +12,11 @@ var postUpdate = function() {
         contentType: "application/json",
         data: updatedData(),
         success: function(result) {
-            flashMessage(result.message, $("#wap-edit-success"))
+            $(".content").attr("data-generation-number", result.newGenerationNumber);
+            flashMessage(result.message, $("#waterfall-edit-success"))
         },
         error: function(result) {
-            flashMessage(result.message, $("#wap-edit-error"))
+            flashMessage(result.responseJSON.message, $("#waterfall-edit-error"))
         }
     });
 };
@@ -45,8 +46,9 @@ var updatedData = function() {
                 callbackParams: retrieveFields("callback-waterfall-ad-provider-field")
             },
             reportingActive: reportingActiveToggleButton.prop("checked").toString(),
-            waterfallToken: waterfallToken,
-            waterfallID: waterfallID
+            appToken: appToken,
+            waterfallID: waterfallID,
+            generationNumber: $(".content").attr("data-generation-number")
         }
     ));
 };

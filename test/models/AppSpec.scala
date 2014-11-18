@@ -41,7 +41,7 @@ class AppSpec extends SpecificationWithFixtures {
     "update the field(s) for a given App" in new WithDB{
       withApp()(app => {
         val newAppName = "New App Name"
-        val updatedAppClass = new App(app.id, false, app.distributorID, newAppName, None, false)
+        val updatedAppClass = new UpdatableApp(app.id, false, app.distributorID, newAppName, None, false)
         App.update(updatedAppClass)
         val updatedApp = App.find(app.id).get
         updatedApp.name must beEqualTo(newAppName)

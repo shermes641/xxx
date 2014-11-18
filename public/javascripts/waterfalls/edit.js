@@ -6,8 +6,8 @@ var distributorID = $(".content").attr("data-distributor-id");
 // Waterfall ID to be used in AJAX calls.
 var waterfallID = $('.content').attr("data-waterfall-id");
 
-// Waterfall Token to be used in AJAX calls.
-var waterfallToken = $(".waterfall-token").attr("data-waterfall-token");
+// App Token to be used in AJAX calls.
+var appToken = $(".app-token").attr("data-app-token");
 
 // Selector for button which toggles waterfall optimization.
 var optimizeToggleButton = $(":checkbox[name=optimized-order]");
@@ -48,10 +48,11 @@ var postUpdate = function() {
         contentType: "application/json",
         data: updatedData(),
         success: function(result) {
+            $(".content").attr("data-generation-number", result.newGenerationNumber);
             flashMessage(result.message, $("#waterfall-edit-success"));
         },
         error: function(result) {
-            flashMessage(result.message, $("#waterfall-edit-error"));
+            flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
         }
     });
 };
@@ -62,14 +63,14 @@ var retrieveConfigData = function(waterfallAdProviderID) {
     $(".content.waterfall_list").toggleClass("modal-inactive", true);
     $.ajax({
         url: path,
-        data: {waterfall_token: waterfallToken},
+        data: {app_token: appToken},
         type: 'GET',
         success: function(data) {
             $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");
             $(".ui-dialog-titlebar").hide();
         },
         error: function(data) {
-            flashMessage(data.message, $("#waterfall-edit-error"));
+            flashMessage(data.responseJSON.message, $("#waterfall-edit-error"));
         }
     });
 };
@@ -78,9 +79,11 @@ var retrieveConfigData = function(waterfallAdProviderID) {
 // Creates waterfall ad provider via AJAX.
 var createWaterfallAdProvider = function(params, newRecord) {
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers";
+    var generationNumber = $(".content").attr("data-generation-number");
     params["waterfallID"] = waterfallID;
-    params["waterfallToken"] = waterfallToken;
+    params["appToken"] = appToken;
     params["waterfallOrder"] = "";
+    params["generationNumber"] = generationNumber;
     $.ajax({
         url: path,
         type: 'POST',
@@ -96,6 +99,7 @@ var createWaterfallAdProvider = function(params, newRecord) {
             if(newRecord) {
                 retrieveConfigData(result.wapID);
             }
+            $(".content").attr("data-generation-number", result.newGenerationNumber)
             flashMessage(result.message, $("#waterfall-edit-success"))
         },
         error: function(result) {
@@ -109,6 +113,7 @@ var updatedData = function() {
     var adProviderList = providersByActive("true");
     var optimizedOrder = optimizeToggleButton.prop("checked").toString();
     var testMode = testModeButton.prop("checked").toString();
+    var generationNumber = $(".content").attr("data-generation-number");
     adProviderList.push.apply(adProviderList, providersByActive("false").length > 0 ? providersByActive("false") : []);
     var order = adProviderList.map(function(index, el) {
         return({
@@ -120,7 +125,7 @@ var updatedData = function() {
             configurable: $(this).attr("data-configurable")
         });
     }).get();
-    return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, waterfallToken: waterfallToken}));
+    return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, appToken: appToken, generationNumber: generationNumber}));
 };
 
 // Displays success or error of AJAX request.
@@ -133,7 +138,8 @@ $("#waterfall-list").sortable({containment: ".content"});
 $("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false, minHeight: 500});
 
 if(optimizeToggleButton.prop("checked")) {
-    // Disable sortable list and hide draggable icon if waterfall has optimized_order set to true.
+    // Order ad providers by eCPM, disable sortable list, and hide draggable icon if waterfall has optimized_order set to true.
+    orderList("data-cpm", false);
     $("#waterfall-list").sortable("disable");
     $(".waterfall-drag").hide();
 } else {

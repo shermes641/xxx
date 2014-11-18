@@ -3,10 +3,11 @@ package functional
 import models._
 import org.specs2.runner._
 import org.junit.runner._
+import play.api.db.DB
 import play.api.libs.json._
+import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
-import controllers.APIController
 
 @RunWith(classOf[JUnitRunner])
 class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
@@ -23,8 +24,14 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     AdProvider.create("Vungle", "{\"requiredParams\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", vungleCallbackUrl).get
   }
 
+  val completionApp = running(FakeApplication(additionalConfiguration = testDB)) {
+    val id = App.create(distributor.id.get, "App 1").get
+    App.find(id).get
+  }
+
   val completionWaterfall = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallID = Waterfall.create(app1.id, app1.name).get
+    val vcID = VirtualCurrency.create(completionApp.id, "Gold", 10, None, None, Some(true)).get
+    val waterfallID = DB.withTransaction{ implicit connection => createWaterfallWithConfig(completionApp.id, "Completion Waterfall") }
     Waterfall.find(waterfallID).get
   }
 
@@ -32,30 +39,30 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "respond with 400 if token is not valid" in new WithFakeBrowser {
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.waterfallV1("some-fake-token").url,
+        controllers.routes.APIController.appConfigV1("some-fake-token").url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
-      contentAsString(result) must contain("Waterfall not found.")
+      contentAsString(result) must contain("App Configuration not found.")
     }
 
     "respond with the HyprMX test distributor configuration when waterfall is in test mode" in new WithFakeBrowser {
       Waterfall.update(waterfall.get.id, false, true)
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(Waterfall.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(Waterfall.TEST_MODE_APP_ID),
-        "providerName" -> JsString(Waterfall.TEST_MODE_PROVIDER_NAME),"providerID" -> JsNumber(Waterfall.TEST_MODE_PROVIDER_ID), "eCPM" -> JsNumber(5.0)))
+      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(AppConfig.TEST_MODE_APP_ID),
+        "providerName" -> JsString(AppConfig.TEST_MODE_PROVIDER_NAME),"providerID" -> JsNumber(AppConfig.TEST_MODE_PROVIDER_ID), "eCPM" -> JsNumber(5.0)))
       val testConfigData: JsValue = JsArray(JsObject(Seq("requiredParams" -> requiredParams)) :: Nil)
       val jsonResponse: JsValue = Json.parse(contentAsString(result)) \ "adProviderConfigurations"
-      val vcAttributes = Waterfall.TEST_MODE_VIRTUAL_CURRENCY
+      val vcAttributes = AppConfig.TEST_MODE_VIRTUAL_CURRENCY
       val expectedVCJson = JsObject(Seq("name" -> JsString(vcAttributes.name), "exchangeRate" -> JsNumber(vcAttributes.exchangeRate),
         "rewardMin" -> JsNumber(vcAttributes.rewardMin.get), "rewardMax" -> JsNumber(vcAttributes.rewardMax.get), "roundUp" -> JsBoolean(vcAttributes.roundUp)))
       val vcJson = Json.parse(contentAsString(result)) \ "virtualCurrency"
@@ -67,10 +74,10 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       Waterfall.update(waterfall.get.id, true, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      WaterfallGeneration.createWithWaterfallID(waterfall.get.id)
+      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token).url,
         FakeHeaders(),
         ""
       )
@@ -87,13 +94,13 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      WaterfallGeneration.createWithWaterfallID(waterfall.get.id)
+      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val jsonResponse: JsValue = Json.parse(contentAsString(result))
       val adProviderConfigs: List[JsValue] = (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index))}
@@ -107,7 +114,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(50.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
+        controllers.routes.APIController.appConfigV1(completionApp.token).url,
         FakeHeaders(),
         ""
       )
@@ -124,10 +131,10 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(100.toLong), None, false))
       Waterfall.update(waterfall.get.id, true, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      WaterfallGeneration.createWithWaterfallID(waterfall.get.id)
+      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.waterfallV1(waterfall.get.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token).url,
         FakeHeaders(),
         ""
       )
@@ -154,7 +161,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val digest = Some("bf80d53f84df22bb91b48acc7606bc0909876f6fe981b1610a0352433ae16a63")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.vungleCompletionV1(completionWaterfall.token, transactionID, digest, Some(1), None).url,
+        controllers.routes.APIController.vungleCompletionV1(completionApp.token, transactionID, digest, Some(1), None).url,
         FakeHeaders(),
         ""
       )
