@@ -6,7 +6,7 @@
                 <h1>Welcome to HyprMX Mediation</h1>
                 <a href="@routes.AppsController.newApp(distributorID)">Begin by creating an app</a>
         } else {
-            @views.html.Partials.subHeader("", distributorID, None, None)
+            @views.html.Partials.subHeader("apps", distributorID, None, None)
             <div class="content app_list">
             <h1>My Apps</h1>
             <div class="description">Here are the apps connected to your account.</div>

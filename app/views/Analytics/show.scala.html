@@ -1,6 +1,6 @@
 @(app: App, distributorID: Long, appID: Long, apps: List[App], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
-@main("Analytics", distributorID) {
+@main("Analytics", distributorID, Some(appID)) {
     @views.html.Partials.subHeader("analytics", distributorID, Some(appID), None)
 
     <div class="content dashboard">
@@ -12,8 +12,6 @@
             </div>
             <input type="hidden" value="@keenProject" id="keen_project">
             <input type="hidden" value="@scopedKey" id="scoped_key">
-            <!-- Temporary until ecpm is implemented, just replace this value with the correct eCPM -->
-            <input type="hidden" value="1" id="ecpm">
             <input type="hidden" value="@appID" id="app_id">
             <div class="row">
                 <div class="col-sm-6">
@@ -298,13 +296,27 @@
                 <div class="col-sm-4">
                     <div class="chart-wrapper">
                         <div class="chart-title">
-                            Requests
+                            Fill Rate
                         </div>
                         <div class="chart-stage">
-                            <div id="inventory_requests"></div>
+                            <div id="fill_rate"></div>
                         </div>
                         <div class="chart-notes">
-                            Requests to all ad networks.
+                            Current app fill rate
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">
+                            eCPM
+                        </div>
+                        <div class="chart-stage">
+                            <div id="ecpm_metric"></div>
+                        </div>
+                        <div class="chart-notes">
+                            Average eCPM
                         </div>
                     </div>
                 </div>
@@ -319,20 +331,6 @@
                         </div>
                         <div class="chart-notes">
                             Average Revenue By Day based on eCPM
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-4">
-                    <div class="chart-wrapper">
-                        <div class="chart-title">
-                            Fill Rate
-                        </div>
-                        <div class="chart-stage">
-                            <div id="fill_rate"></div>
-                        </div>
-                        <div class="chart-notes">
-                            Current app fill rate
                         </div>
                     </div>
                 </div>
@@ -377,7 +375,7 @@
 
     </div>
 }
-<script src="https://d26b395fwzu5fz.cloudfront.net/3.0.5/keen.min.js"></script>
+<script src="https://d26b395fwzu5fz.cloudfront.net/3.1.0/keen.min.js" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/datepicker.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/selectize.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/analytics/dashboard.js")" type="text/javascript"></script>

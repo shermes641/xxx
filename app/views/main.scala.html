@@ -1,4 +1,4 @@
-@(title: String, distributorID: Long = 0)(content: Html)(implicit flash: Flash, session: Session)
+@(title: String, distributorID: Long = 0, appID: Option[Long] = None)(content: Html)(implicit flash: Flash, session: Session)
 <!DOCTYPE html>
 
 <html>
@@ -14,7 +14,7 @@
     </head>
     <body>
         <header>
-            <a href="@routes.AppsController.index(distributorID)" class=@{if(title == "") "inactive-link" else ""}>
+            <a href="@routes.AnalyticsController.show(distributorID, appID)" class=@{if(title == "") "inactive-link" else ""}>
                 <img height="34" src="@routes.Assets.at("images/hypr_logo_rgb.jpeg")">
             </a>
             <div class="actions">

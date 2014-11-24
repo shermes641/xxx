@@ -18,6 +18,13 @@ define([], function() {
 
                 equal( appId.property_value, 1, 'App ID Should be 1' );
 
+                var filters = analytics.buildFilters( [ 'all' ], [ "United States" ], [ 10 ] );
+                var appId = _.find( filters, function( filter ) {
+                    return filter.property_name === "app_id";
+                } );
+
+                equal( typeof appId, "undefined", 'App ID Should be undefined' );
+
                 var country = _.find( filters, function( filter ) {
                     return filter.property_name === "ip_geo_info.country";
                 } );
@@ -25,7 +32,7 @@ define([], function() {
                 equal( country.property_value, "United States", 'Country Should be United States' );
 
                 var ad_provider = _.find( filters, function( filter ) {
-                    return filter.property_name === "ad_provider";
+                    return filter.property_name === "ad_provider_id";
                 } );
 
                 equal( ad_provider.property_value, 10, 'Ad Provider Should be 10' );

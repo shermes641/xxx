@@ -116,7 +116,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
       user => {
         val currentUser = DistributorUser.findByEmail(user.email).get
-        Redirect(routes.AppsController.index(currentUser.id.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+        Redirect(routes.AppsController.index(currentUser.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
       }
     )
   }

@@ -12,16 +12,19 @@ CREATE TABLE ad_providers (
   PRIMARY KEY (id)
 );
 
+CREATE SEQUENCE waterfalls_id_seq;
+
 CREATE TABLE waterfalls (
-  id bigserial,
+  id bigint PRIMARY KEY DEFAULT pseudo_encrypt(nextval('waterfalls_id_seq')),
   app_id bigint NOT NULL,
   name varchar(255) NOT NULL,
   token varchar(255) NOT NULL,
   optimized_order BOOL NOT NULL DEFAULT TRUE,
   test_mode BOOL NOT NULL DEFAULT TRUE,
-  PRIMARY KEY (id),
   FOREIGN KEY (app_id) REFERENCES apps(id)
 );
+
+ALTER SEQUENCE waterfalls_id_seq OWNED BY waterfalls.id;
 
 CREATE INDEX app_id_index on waterfalls(app_id);
 CREATE INDEX token_index on waterfalls(token);
@@ -29,4 +32,6 @@ CREATE INDEX token_index on waterfalls(token);
 # --- !Downs
  
 DROP TABLE waterfalls;
+DROP SEQUENCE waterfalls_id_seq;
+
 DROP TABLE ad_providers;
