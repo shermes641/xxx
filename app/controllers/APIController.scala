@@ -17,7 +17,7 @@ object APIController extends Controller {
     AppConfig.findLatest(appToken) match {
       case Some(response) if((response.configuration \ "status").isInstanceOf[JsUndefined]) => Ok(response.configuration)
       case Some(response) => BadRequest(response.configuration)
-      case None => BadRequest(Json.obj("status" -> "error", "message" -> "App Configuration not found."))
+      case None => NotFound(Json.obj("status" -> "error", "message" -> "App Configuration not found."))
     }
   }
 
