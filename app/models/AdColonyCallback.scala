@@ -27,8 +27,7 @@ class AdColonyCallback(appToken: String, transactionID: String, uid: String, amo
    * @return If a transaction ID is present, return a hashed String; otherwise, returns None.
    */
   override def generatedVerification: String = {
-    val digest = MessageDigest.getInstance("MD5")
-    val verifierString = " . " + List(transactionID, uid, amount, currency, udid, secretKey("APIKey"), odin1, macSha1).mkString(" . ")
-    digest.digest(verifierString.getBytes).map("%02x".format(_)).mkString
+    val verifierString = List(transactionID, uid, amount, currency, secretKey("APIKey"), openUDID, udid, odin1, macSha1).mkString("")
+    MessageDigest.getInstance("MD5").digest(verifierString.getBytes).map("%02x".format(_)).mkString
   }
 }

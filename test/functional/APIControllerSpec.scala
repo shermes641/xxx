@@ -24,6 +24,11 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     AdProvider.create("Vungle", "{\"requiredParams\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", vungleCallbackUrl).get
   }
 
+  val adColonyCallbackUrl = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
+  val adColonyAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
+    AdProvider.create("AdColony", "{\"requiredParams\":[{\"description\": \"Your AdColony App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your AdColony Zones\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", adColonyCallbackUrl, true, None).get
+  }
+
   val completionApp = running(FakeApplication(additionalConfiguration = testDB)) {
     val id = App.create(distributor.id.get, "App 1").get
     App.find(id).get
@@ -217,6 +222,65 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appLovinCompletionV1(completionWaterfall.token, None, None, None, None, None, None).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+  }
+
+  "APIController.adColonyCompletionV1" should {
+    val amount = Some(1)
+    val currency = Some("Credits")
+    val macSha1 = Some("")
+    val odin1 = Some("")
+    val openUDID = Some("")
+    val udid = Some("")
+    val uid = Some("")
+    val verifier = Some("15c16e889f382cb60d5b4550380bd5f7")
+    val transactionID = Some("0123456789")
+    val wap = running(FakeApplication(additionalConfiguration = testDB)) {
+      val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyAdProviderID, None, None, true, true).get
+      WaterfallAdProvider.find(id).get
+    }
+    val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
+      "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
+
+    "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      tableCount("completions") must beEqualTo(completionCount + 1)
+    }
+
+    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, Some("invalid-transaction-id"), uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+
+    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, None, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
         FakeHeaders(),
         ""
       )
