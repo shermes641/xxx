@@ -62,7 +62,17 @@ var retrieveConfigData = function(waterfallAdProviderID) {
         data: {waterfall_token: $(".waterfall-token").attr("data-waterfall-token")},
         type: 'GET',
         success: function(data) {
-            $("#edit-waterfall-ad-provider").html(data).dialog({modal: true}).dialog("open");
+            $("#edit-waterfall-ad-provider").html(data).dialog({
+                modal: true,
+                open: function() {
+                    $(".content.waterfall_list").addClass("unclickable");
+                    $("#modal-overlay").toggle();
+                },
+                close: function() {
+                    $(".content.waterfall_list").removeClass("unclickable");
+                    $("#modal-overlay").toggle();
+                }
+            }).dialog("open");
             $(".ui-dialog-titlebar").hide();
         },
         error: function(data) {
