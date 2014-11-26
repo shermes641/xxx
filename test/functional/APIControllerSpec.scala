@@ -36,7 +36,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   }
 
   "APIController.waterfall" should {
-    "respond with 400 if token is not valid" in new WithFakeBrowser {
+    "respond with 404 if token is not valid" in new WithFakeBrowser {
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1("some-fake-token").url,
@@ -44,7 +44,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
         ""
       )
       val Some(result) = route(request)
-      status(result) must equalTo(400)
+      status(result) must equalTo(404)
       contentAsString(result) must contain("App Configuration not found.")
     }
 
