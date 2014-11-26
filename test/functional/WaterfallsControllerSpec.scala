@@ -4,6 +4,7 @@ import models._
 import org.specs2.runner._
 import org.junit.runner._
 import play.api.libs.json._
+import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
 import anorm.SQL
@@ -22,7 +23,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
   val waterfallID = running(FakeApplication(additionalConfiguration = testDB)) {
     val appID = App.create(distributorID, "App 1").get
-    Waterfall.create(appID, "New Waterfall").get
+    val app = App.find(appID).get
+    VirtualCurrency.create(appID, "Coins", 100.toLong, None, None, Some(true))
+    DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "New Waterfall") }
   }
 
   val waterfallAdProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -47,6 +50,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
   "Waterfall.update" should {
     "respond with a 200 if update is successful" in new WithFakeBrowser {
+      val waterfall = Waterfall.find(waterfallID).get
+      val appToken = App.find(waterfall.app_id).get.token
+      val originalGeneration = generationNumber(waterfall.app_id)
       val configInfo1 = JsObject(
         Seq(
           "id" -> JsString(waterfallAdProviderID1.toString),
@@ -75,7 +81,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
               configInfo2
             )),
           "optimizedOrder" -> JsString("false"),
-          "testMode" -> JsString("false")
+          "testMode" -> JsString("false"),
+          "appToken" -> JsString(appToken),
+          "waterfallID" -> JsString(waterfallID.toString),
+          "generationNumber" -> JsString((generationNumber(waterfall.app_id)).toString)
         )
       )
       val request = FakeRequest(
@@ -86,9 +95,11 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       )
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString(), "username" -> email))
       status(result) must equalTo(200)
+      generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "respond with 400 if JSON is not formed properly" in new WithFakeBrowser {
+      val originalGeneration = generationNumber(waterfallID)
       val request = FakeRequest(
         POST,
         controllers.routes.WaterfallsController.update(distributorID, waterfallID).url,
@@ -97,10 +108,15 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       )
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString(), "username" -> email))
       status(result) must equalTo(400)
+      generationNumber(Waterfall.find(waterfallID).get.app_id) must beEqualTo(originalGeneration)
     }
 
     "reorder the waterfall in the same configuration as the drag and drop list" in new WithFakeBrowser with WaterfallEditSetup {
-      val firstProvider = Waterfall.order(currentWaterfall.token)(0).providerName
+      clearGeneration(currentWaterfall.app_id)
+      val originalGeneration = generationNumber(currentWaterfall.app_id)
+      val appToken = App.find(currentWaterfall.app_id).get.token
+      val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
+      val firstProvider = waterfallOrder(0).providerName
 
       logInUser()
 
@@ -108,26 +124,32 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("$('ul').prepend($('li').last());")
       browser.executeScript("postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
-      Waterfall.order(currentWaterfall.token)(0).providerName must not equalTo(firstProvider)
+      val newOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
+      newOrder(0).providerName must not equalTo(firstProvider)
+      generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "remove an ad provider from the order when a user clicks the Deactivate button" in new WithFakeBrowser with WaterfallEditSetup {
-      val listSize = Waterfall.order(currentWaterfall.token).size
+      val originalGeneration = generationNumber(currentWaterfall.app_id)
+      val appToken = App.find(currentWaterfall.app_id).get.token
+      val originalOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
 
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
       browser.$("button[name=status]").first().click()
-      browser.executeScript("postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
-      Waterfall.order(currentWaterfall.token).filter(adProvider => adProvider.active.get).size must equalTo(listSize - 1)
+      val newOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
+      newOrder.filter(adProvider => adProvider.active.get).size must equalTo(originalOrder.size - 1)
+      generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "return waterfall edit page with one waterfall" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
       logInUser()
 
       val appID = App.create(distributorID, "App List").get
-      Waterfall.create(appID, "New Waterfall").get
+      VirtualCurrency.create(appID, "Coins", 100.toLong, None, None, Some(true))
+      DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "New Waterfall") }
 
       browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID, None).url)
       browser.pageSource must contain("Edit Waterfall")
@@ -137,14 +159,18 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       val appID = App.create(distributorID, "App List").get
-      Waterfall.create(appID, "New Waterfall").get
-      Waterfall.create(appID, "Second Waterfall").get
+      VirtualCurrency.create(appID, "Coins", 100.toLong, None, None, Some(true))
+      DB.withTransaction { implicit connection =>
+        createWaterfallWithConfig(appID, "New Waterfall")
+        createWaterfallWithConfig(appID, "Second Waterfall")
+      }
 
       browser.goTo(controllers.routes.WaterfallsController.list(distributorID, appID, None).url)
       browser.pageSource must contain("Waterfall could not be found.")
     }
 
     "configure an ad provider from the waterfall edit page" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
+      val originalGeneration = generationNumber(currentWaterfall.app_id)
       DB.withConnection { implicit connection =>
         SQL("update ad_providers set configuration_data = CAST({configuration_data} AS json) where id = {wap2_id};").on("configuration_data" -> configurationData, "wap2_id" -> wap2.id).executeInsert()
       }
@@ -159,9 +185,11 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").isPresent()
       val waterfallAdProviderParams = WaterfallAdProvider.find(wap2.id).get.configurationData \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configKey)
+      generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "toggle waterfall optimization on and off" in new WithFakeBrowser with WaterfallEditSetup {
+      val originalGeneration = generationNumber(currentWaterfall.app_id)
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
@@ -169,9 +197,11 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(currentWaterfall.id).get.optimizedOrder must beEqualTo(true)
+      generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "toggle waterfall test mode on and off" in new WithFakeBrowser with WaterfallEditSetup {
+      val originalGeneration = generationNumber(currentWaterfall.app_id)
       Waterfall.update(currentWaterfall.id, false, false)
       logInUser()
 
@@ -180,11 +210,14 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
+      generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "not set waterfall to live mode when no ad providers are configured" in new WithFakeBrowser {
       val newAppID = App.create(distributorID, "New App").get
-      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
+      val originalGeneration = generationNumber(newAppID)
 
       logInUser()
 
@@ -193,14 +226,17 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
       Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
+      generationNumber(newAppID) must beEqualTo(originalGeneration)
     }
 
     "update the status of reporting for a waterfall ad provider" in new WithFakeBrowser {
       val newAppID = App.create(distributorID, "New App").get
-      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
 
       logInUser()
 
+      DB.withTransaction { implicit connection => AppConfig.create(newAppID, App.find(newAppID).get.token, generationNumber(newAppID)) }
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
       browser.$(".configure.inactive-button").first().click()
@@ -208,30 +244,21 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newWap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
       newWap.reportingActive must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#wap-edit-success").areDisplayed()
-      WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
-    }
-
-    "create a WaterfallAdProvider with an eCPM value if an AdProvider with a default eCPM is activated" in new WithFakeBrowser with WaterfallEditSetup {
-      val newAppID = App.create(distributorID, "New App").get
-      val newWaterfallID = Waterfall.create(newAppID, "New App").get
-
-      val defaultEcpm = Some(20.0)
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, None, false, defaultEcpm).get
-      logInUser()
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
-      browser.executeScript("$('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('.inactive-waterfall-content').children('.status.inactive-button').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
-      WaterfallAdProvider.findAllByWaterfallID(newWaterfallID).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
+      browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areNotDisplayed()
+      WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
     }
 
     "create an inactive WaterfallAdProvider when an AdProvider is configured before being activated" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
       val newAppID = App.create(distributorID, "New App").get
-      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
       val configKey = "some key"
 
       logInUser()
 
+      DB.withTransaction { implicit connection => AppConfig.create(newAppID, Waterfall.find(newWaterfallID).get.token, generationNumber(newAppID)) }
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.$(".configure.inactive-button").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
@@ -243,12 +270,30 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       (wap.configurationData \ "requiredParams" \ "distributorID").as[String] must beEqualTo(configKey)
       (wap.configurationData \ "requiredParams" \ "appID").as[String] must beEqualTo(configKey)
     }
+
+    "create a WaterfallAdProvider with an eCPM value if an AdProvider with a default eCPM is activated" in new WithFakeBrowser with WaterfallEditSetup {
+      val newAppID = App.create(distributorID, "New App").get
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
+      Waterfall.update(newWaterfallID, true, false)
+      val originalGeneration = generationNumber(newAppID)
+
+      val defaultEcpm = Some(20.0)
+      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, None, false, defaultEcpm).get
+      logInUser()
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      browser.executeScript("$('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('.inactive-waterfall-content').children('.status.inactive-button').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      WaterfallAdProvider.findAllByWaterfallID(newWaterfallID).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
+      generationNumber(newAppID) must beEqualTo(originalGeneration + 1)
+    }
   }
 
   "Waterfall.edit" should {
     "display default eCPM values for Ad Providers" in new WithFakeBrowser with WaterfallEditSetup {
       val newAppID = App.create(distributorID, "New App").get
-      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
 
       val defaultEcpm = "20.0"
       val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfiguration, None, false, Some(defaultEcpm.toDouble)).get
@@ -260,7 +305,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "automatically select the name of the app in the drop down menu" in new WithFakeBrowser with WaterfallEditSetup {
       val appName = "New App"
       val newAppID = App.create(distributorID, "New App").get
-      val newWaterfallID = Waterfall.create(newAppID, "New App").get
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
       logInUser()
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.find("#waterfall-selection").getValue.contains(appName)

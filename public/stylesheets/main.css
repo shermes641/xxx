@@ -638,7 +638,7 @@ div [class^="col-"] {
 }
 
 .flash-message {
-    z-index: 999;
+    z-index: 2001;
     position: fixed;
     top: 50px;
     left: 50%;
@@ -793,7 +793,7 @@ div [class^="col-"] {
     cursor: default;
 }
 
-.waterfall-token {
+.app-token {
     font-size: 14px;
     font-weight: bold;
     padding: 18px 0px 18px 0px;

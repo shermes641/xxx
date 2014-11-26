@@ -1,16 +1,19 @@
 package models
 
 import models.Waterfall.AdProviderInfo
+import play.api.db.DB
 import play.api.libs.json._
 
 class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallSpecSetup {
-  "JsonBuilder.waterfallResponse" should {
+  "JsonBuilder.appConfigResponseV1" should {
     "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {
       val wapID1 = WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, Some(0), None, true, true)
       val wap = WaterfallAdProvider.find(wapID1.get).get
       val configData = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("value1")))))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, configData, wap.reportingActive))
-      val adProviderConfigs = (JsonBuilder.waterfallResponse(Waterfall.order(waterfall.get.token)) \ "adProviderConfigurations").as[List[JsValue]]
+      val appToken = App.find(waterfall.get.app_id).get.token
+      val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
+      val adProviderConfigs = (JsonBuilder.appConfigResponseV1(waterfallOrder) \ "adProviderConfigurations").as[List[JsValue]]
       adProviderConfigs.map { config =>
         adProviders must contain((config \ "providerName").as[String])
       }
@@ -52,7 +55,7 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     "create a JSON object containing the appropriate SDK configuration info" in new WithDB {
       val expectedSdkConfigurationJson = JsObject(
         Seq(
-          "waterfallRefreshInterval" -> JsNumber(JsonBuilder.WATERFALL_REFRESH_INTERVAL),
+          "appConfigRefreshInterval" -> JsNumber(JsonBuilder.APP_CONFIG_REFRESH_INTERVAL),
           "logFullConfig" -> JsBoolean(JsonBuilder.LOG_FULL_CONFIG)
         )
       )

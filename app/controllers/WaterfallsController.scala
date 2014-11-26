@@ -1,9 +1,11 @@
 package controllers
 
+import java.sql.Connection
+import play.api.db.DB
 import play.api.mvc._
 import models._
 import play.api.libs.json._
-import play.api.Play
+import play.api.Play.current
 import scala.language.implicitConversions
 
 object WaterfallsController extends Controller with Secured with JsonToValueHelper {
@@ -45,7 +47,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
             new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, adProvider.configurable)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
-        Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls))
+        Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
       }
       case None => {
         Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")
@@ -76,30 +78,49 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    */
   def update(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
-      val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
-      val adProviderConfigList = listOrder.map { jsArray =>
-        new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean)
-      }
-      val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
-      val testMode: Boolean = (json \ "testMode").as[String].toBoolean
-      Waterfall.update(waterfallID, optimizedOrder, testMode) match {
-        case 1 => {
-          Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
-            case true => {
-              Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!"))
+      DB.withTransaction { implicit connection =>
+        try {
+          val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
+          val adProviderConfigList = listOrder.map { jsArray =>
+            new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean)
+          }
+          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
+          val testMode: Boolean = (json \ "testMode").as[String].toBoolean
+          val generationNumber: Long = (json \ "generationNumber").as[String].toLong
+          Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode) match {
+            case 1 => {
+              Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
+                case true => {
+                  val appToken = (json \ "appToken").as[String]
+                  val newGenerationNumber: Option[Long] = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
+                  Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber.getOrElse(0).toString))
+                }
+                case _ => {
+                  BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
+                }
+              }
             }
             case _ => {
               BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
             }
           }
-        }
-        case _ => {
-          BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
+        } catch {
+          case error: org.postgresql.util.PSQLException => rollback
+          case error: IllegalArgumentException => rollback
         }
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
     }
+  }
+
+  /**
+   * Rolls back the transaction and sends a JSON error message to the user.
+   * @param connection The shared connection for the database transaction.
+   */
+  def rollback(implicit connection: Connection) = {
+    connection.rollback()
+    BadRequest(Json.obj("status" -> "error", "message" -> "The Waterfall could not be edited. Please refresh the browser."))
   }
 }
 

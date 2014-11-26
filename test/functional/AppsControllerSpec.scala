@@ -19,7 +19,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     "display all apps" in new WithFakeBrowser {
       val app2Name = "App 2"
       val appID = App.create(user.distributorID.get, app2Name).get
-      Waterfall.create(appID, app2Name)
+      DB.withTransaction { implicit connection => Waterfall.create(appID, app2Name) }
       val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps"
 
       logInUser()
@@ -123,12 +123,13 @@ class AppsControllerSpec extends SpecificationWithFixtures {
   "AppsController.edit" should {
     "update the app record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
-      Waterfall.create(appID, "App 1")
+      val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "App 1") }.get
       VirtualCurrency.create(appID, "Gold", 100, None, None, Some(true))
       val newAppName = "New App Name"
       val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID + "/edit"
 
       logInUser()
+      DB.withTransaction { implicit connection => AppConfig.create(appID, App.find(appID).get.token, generationNumber(appID))}
       browser.goTo(url)
       browser.fill("#appName").`with`(newAppName)
       browser.$("button[name=submit]").first.click()
@@ -137,8 +138,15 @@ class AppsControllerSpec extends SpecificationWithFixtures {
 
     "update the virtual currency record in the database" in new WithFakeBrowser {
       val appID = App.create(user.distributorID.get, "App 1").get
+      val appToken = App.find(appID).get.token
       val vcID = VirtualCurrency.create(appID, "App 1", 100, None, None, Some(true)).get
+      val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "App 1") }.get
+      Waterfall.update(waterfallID, true, false)
+      val adProviderID = AdProvider.create("test ad provider", "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      WaterfallAdProvider.create(waterfallID, adProviderID.get, None, Some(5.0), false, true)
       val virtualCurrency = VirtualCurrency.find(vcID).get
+      DB.withTransaction { implicit connection => AppConfig.create(appID, appToken, generationNumber(appID)) }
+      val originalGeneration = generationNumber(appID)
       val rewardMin = 1
       val rewardMax = 100
 
@@ -152,6 +160,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       val updatedVC = VirtualCurrency.find(virtualCurrency.id).get
       updatedVC.rewardMin.get must beEqualTo(rewardMin)
       updatedVC.rewardMax.get must beEqualTo(rewardMax)
+      AppConfig.findLatest(appToken).get.generationNumber must beEqualTo(originalGeneration + 1)
     }
   }
   step(clean)

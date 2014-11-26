@@ -23,6 +23,8 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
   "updateRevenueData" should {
     "updates the cpm field of the WaterfallAdProvider if the HyprMX API call is successful" in new WithDB {
+      val originalGeneration = generationNumber(waterfall.get.app_id)
+      Waterfall.update(waterfallAdProvider1.waterfallID, true, false)
       waterfallAdProvider1.cpm must beNone
       val globalStats = JsObject(Seq("revenue" -> JsString("10.00"), "impressions" -> JsString("1000"), "completions" -> JsString("200")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
@@ -31,15 +33,18 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       callAPI
       val revenueData = new RevenueData(globalStats)
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(10.00)
+      generationNumber(waterfall.get.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "does not update the WaterfallAdProvider if the HyprMX API call is unsuccessful" in new WithDB {
+      val originalGeneration = generationNumber(waterfall.get.app_id)
       val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
       val jsonResponse = JsObject(Seq("message" -> JsString("Bad Request."), "details" -> JsString("Some error message")))
       response.body returns jsonResponse.toString
       response.status returns 401
       callAPI
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      generationNumber(waterfall.get.app_id) must beEqualTo(originalGeneration)
     }
   }
 

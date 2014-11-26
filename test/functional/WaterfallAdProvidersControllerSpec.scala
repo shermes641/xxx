@@ -4,6 +4,7 @@ import models._
 import org.specs2.runner._
 import org.junit.runner._
 import play.api.libs.json._
+import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
 import anorm.SQL
@@ -29,7 +30,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
   val waterfallID = running(FakeApplication(additionalConfiguration = testDB)) {
     val appID = App.create(distributorUser.distributorID.get, "App 1").get
-    Waterfall.create(appID, "New Waterfall").get
+    VirtualCurrency.create(appID, "Coins", 100.toLong, None, None, Some(true))
+    DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "New Waterfall") }
   }
 
   val waterfallAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -64,8 +66,13 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
   "WaterfallAdProvidersController.update" should {
     "update the configuration_data field of the waterfall_ad_providers record" in new WithFakeBrowser {
+      val waterfall = Waterfall.find(waterfallID).get
+      val currentApp = App.find(waterfall.app_id).get
+      clearGeneration(waterfall.app_id)
+      val originalGeneration = generationNumber(waterfall.app_id)
       val updatedParam = "Some new value"
-      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"))
+      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"),
+        "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(waterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString))
       val body = JsObject(configurationData)
       val postRequest = FakeRequest(
         POST,
@@ -77,6 +84,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       status(result) must equalTo(200)
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
       wap.configurationData must beEqualTo(body \ "configurationData")
+      generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "respond with a 400 if proper JSON is not received" in new WithFakeBrowser {

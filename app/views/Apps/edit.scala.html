@@ -50,6 +50,7 @@
 
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"), Some(form("roundUp")))
             @helper.inputText(form("currencyID"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
+            @helper.inputText(form("generationNumber"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
             <button type="submit" name="submit">Save Changes</button>
         }
     </div>

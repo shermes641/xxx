@@ -28,7 +28,11 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures {
   }
 
   val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallID = Waterfall.create(app1.id, app1.name).get
+    val waterfallID = DB.withTransaction { implicit connection =>
+      val id = Waterfall.create(app1.id, app1.name)
+      AppConfig.create(app1.id, app1.token, generationNumber(app1.id))
+      id.get
+    }
     Waterfall.find(waterfallID)
   }
 

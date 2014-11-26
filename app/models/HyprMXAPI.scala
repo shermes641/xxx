@@ -1,15 +1,15 @@
 package models
 
-import play.api.libs.json._
-import scala.concurrent.Future
-import play.api.Play.current
-import play.api.libs.Codecs
-import java.util.Calendar
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import play.api.db.DB
+import play.api.libs.json._
+import play.api.libs.Codecs
 import play.api.libs.ws._
+import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.language.postfixOps
-import play.api.libs.json.{JsArray, JsValue}
 
 case class HyprMXAPI(waterfallAdProviderID: Long, configurationData: JsValue) {
   val HYPRMX_BASE_URL = "https://live.hyprmx.com/fyber/v1"
@@ -31,7 +31,16 @@ case class HyprMXAPI(waterfallAdProviderID: Long, configurationData: JsValue) {
               case _:JsUndefined => None
               case stats => {
                 val revenueData = new RevenueData(stats)
-                WaterfallAdProvider.updateEcpm(waterfallAdProviderID, revenueData.eCPM)
+                DB.withTransaction { implicit connection =>
+                  try {
+                    WaterfallAdProvider.updateEcpm(waterfallAdProviderID, revenueData.eCPM)
+                  } catch {
+                    case error: org.postgresql.util.PSQLException => {
+                      connection.rollback()
+                      Some(false)
+                    }
+                  }
+                }
               }
             }
           }
