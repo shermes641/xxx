@@ -410,6 +410,7 @@ span#viewTerms:hover {
 
 .content.waterfall_list {
     margin-top: 120px;
+    overflow: hidden;
 }
 
 .waterfall-sort {
