@@ -100,7 +100,7 @@ var Analytics = function () {
         // Empty styled metric
         var empty_metric = function ( element_id, title ) {
             var element = $( "#" + element_id );
-            var template = '<div class="keen-widget keen-metric" style="background-color: #aaaaaa; width:' + el.width() + 'px;"><span class="keen-metric-value"><span class="keen-metric-suffix">N/A</span></span><span class="keen-metric-title">' + title + '</span></div>';
+            var template = '<div class="keen-widget keen-metric" style="background-color: #aaaaaa; width:' + element.width() + 'px;"><span class="keen-metric-value"><span class="keen-metric-suffix">N/A</span></span><span class="keen-metric-title">' + title + '</span></div>';
             element.html( template );
         };
 

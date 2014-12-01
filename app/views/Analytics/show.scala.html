@@ -32,9 +32,9 @@
             <div class="row">
                 <div class="col-sm-6">
                     <select id="apps" class="input-sm form-control" name="apps">
-                        <option value="all">All Apps</option>
+                       <option value="all">All Apps</option>
                         @for(app <- apps) {
-                            <option value="@app.id">@app.name</option>
+                            <option value="@app.id" @if(app.id == appID.getOrElse(false)) { selected }>@app.name</option>
                         }
                     </select>
                 </div>
