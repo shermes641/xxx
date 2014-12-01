@@ -106,6 +106,10 @@ header .actions a {
     font-weight: bold;
 }
 
+.unclickable {
+    pointer-events: none;
+}
+
 span#viewTerms:hover {
     text-decoration: underline;
 }
@@ -598,13 +602,26 @@ div [class^="col-"] {
     transform: translate(-50%, -50%);
     background: #DEDEDE;
     padding: 25px;
-    z-index: 20;
+    z-index: 2000;
     overflow-y: auto;
     min-width: 550px;
+    margin-top: 20px;
     -webkit-border-top-right-radius: 10px 10px;
     -webkit-border-bottom-right-radius: 10px 10px;
     -webkit-border-top-left-radius: 10px 10px;
     -webkit-border-bottom-left-radius: 10px 10px;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    background-color: #000000;
+    opacity: 0.75;
+    display: none;
 }
 
 .modal-text {
@@ -638,7 +655,7 @@ div [class^="col-"] {
 }
 
 .flash-message {
-    z-index: 999;
+    z-index: 2001;
     position: fixed;
     top: 50px;
     left: 50%;
@@ -793,7 +810,7 @@ div [class^="col-"] {
     cursor: default;
 }
 
-.waterfall-token {
+.app-token {
     font-size: 14px;
     font-weight: bold;
     padding: 18px 0px 18px 0px;

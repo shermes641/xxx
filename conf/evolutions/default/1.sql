@@ -2,6 +2,8 @@
  
 # --- !Ups
 
+CREATE EXTENSION "uuid-ossp";
+
 CREATE OR REPLACE FUNCTION pseudo_encrypt(VALUE bigint) returns bigint AS $$
 DECLARE
 l1 bigint;;
@@ -36,6 +38,7 @@ CREATE SEQUENCE apps_id_seq;
 
 CREATE TABLE apps (
   id bigint PRIMARY KEY DEFAULT pseudo_encrypt(nextval('apps_id_seq')),
+  token varchar(255) NOT NULL UNIQUE,
   active BOOL NOT NULL DEFAULT TRUE,
   distributor_id bigint NOT NULL,
   name varchar(255) NOT NULL,
@@ -49,7 +52,9 @@ ALTER SEQUENCE apps_id_seq OWNED BY apps.id;
 CREATE INDEX distributor_id_index on apps(distributor_id);
  
 # --- !Downs
- 
+
+DROP EXTENSION IF EXISTS "uuid-ossp";
+
 DROP TABLE apps;
 DROP SEQUENCE apps_id_seq;
 

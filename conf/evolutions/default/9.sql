@@ -1,7 +1,14 @@
 # --- !Ups
 
-ALTER TABLE distributor_users ADD COLUMN active BOOL NOT NULL DEFAULT FALSE;
+CREATE TABLE completions (
+    id bigserial,
+    app_token varchar(255) NOT NULL,
+    ad_provider_name varchar(255) NOT NULL,
+    transaction_id varchar(255) NOT NULL,
+    offer_profit numeric,
+    PRIMARY KEY (id)
+);
 
 # --- !Downs
 
-ALTER TABLE distributor_users DROP COLUMN active;
+DROP TABLE completions;

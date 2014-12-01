@@ -6,17 +6,23 @@ import play.api.db.DB
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.libs.json.{JsString, JsObject, JsValue}
+import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
 import play.libs.Json
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting {
-  val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
+  val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
     val distributorID = Distributor.create("New Company").get
     val distributor = Distributor.find(distributorID).get
-    val appID = App.create(distributorID, "New App").get
-    val waterfallID = Waterfall.create(appID, "New App Waterfall").get
+    val id = App.create(distributorID, "New App").get
+    App.find(id).get
+  }
+
+  val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
+    VirtualCurrency.create(currentApp.id, "Coins", 100, None, None, Some(true))
+    val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New App Waterfall") }
     Waterfall.find(waterfallID).get
   }
 
@@ -56,7 +62,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
 
     "should not create a new record if another shares the same ad_provider_id and waterfall_id" in new WithDB {
-      WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true) must beNone
+      WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true) must throwA[org.postgresql.util.PSQLException]
     }
   }
 
@@ -129,12 +135,11 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
 
   "WaterfallAdProvider.findByAdProvider" should {
     "return the configuration data JSON if a record is found" in new WithDB {
-      VirtualCurrency.create(waterfall.app_id, "Coins", 100, None, None, Some(true))
-      WaterfallAdProvider.findByAdProvider(waterfall.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.WaterfallAdProviderCallbackInfo]
+      WaterfallAdProvider.findByAdProvider(currentApp.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.WaterfallAdProviderCallbackInfo]
     }
 
     "return None if the configuration data does not exist" in new WithDB {
-      WaterfallAdProvider.findByAdProvider(waterfall.token, "Some fake ad provider name") must beNone
+      WaterfallAdProvider.findByAdProvider(currentApp.token, "Some fake ad provider name") must beNone
     }
   }
   step(clean)

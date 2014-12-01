@@ -1,16 +1,26 @@
 package models
 
-import java.sql.Connection
-
 import anorm._
 import anorm.SqlParser._
-import play.api.db.DB
-import play.api.Play.current
 import controllers.ConfigInfo
-import play.api.libs.json.{JsValue}
+import java.sql.Connection
+import play.api.db.DB
+import play.api.libs.json._
+import play.api.Play.current
 import scala.language.postfixOps
 
-case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean)
+/**
+ * Encapsulates information for the waterfalls table.
+ * @param id Maps to the id field in the waterfalls table.
+ * @param app_id The ID of the App to which the Waterfall belongs.
+ * @param name A non-unique identifier for the Waterfall displayed on the Waterfall edit page.
+ * @param token A unique identifier used for looking up Waterfall information in the APIController.
+ * @param optimizedOrder A Boolean value indicating if the WaterfallAdProviders associated with a Waterfall should be ordered by eCPM descending.
+ * @param testMode A Boolean value indicating if the Waterfall will always show a test video or not.
+ * @param appToken A unique identifier used to identify an App in API calls.
+ * @param generationNumber A number which indicates how many times the Waterfall and associated elements have been edited.  This number is retrieved from the app_configs table.
+ */
+case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, generationNumber: Option[Long], appToken: String)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
@@ -20,47 +30,44 @@ object Waterfall extends JsonConversion {
     get[String]("name") ~
     get[String]("token") ~
     get[Boolean]("optimized_order") ~
-    get[Boolean]("test_mode") map {
-      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode => Waterfall(id, app_id, name, token, optimized_order, test_mode)
+    get[Boolean]("test_mode") ~
+    get[Option[Long]]("generation_number") ~
+    get[String]("app_token") map {
+      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, generation_number, app_token)
     }
   }
 
   /**
-   * SQL statement for inserting a new record into the waterfalls table.
-   * @param appID ID of the App to which the new Waterfall belongs
-   * @param name Name of the new Waterfall
-   * @return A SQL statement to be executed by create or createWithTransaction methods.
-   */
-  def insert(appID: Long, name: String): SimpleSql[Row] = {
-    SQL(
-      """
-        INSERT INTO waterfalls (app_id, name, token)
-        VALUES ({app_id}, {name}, {token});
-      """
-    ).on("app_id" -> appID, "name" -> name, "token" -> generateToken)
-  }
-
-  /**
-   * Creates a new Waterfall record in the database.
-   * @param appID ID of the App to which the new Waterfall belongs
-   * @param name Name of the new Waterfall
-   * @return ID of new record if insert is successful, otherwise None.
-   */
-  def create(appID: Long, name: String): Option[Long] = {
-    DB.withConnection { implicit connection =>
-      insert(appID, name).executeInsert()
-    }
-  }
-
-  /**
-   * Executes SQL from insert method within a database transaction.
+   * Creates a new record in the waterfalls table within a database transaction.
    * @param appID ID of the App to which the new Waterfall belongs
    * @param name Name of the new Waterfall
    * @param connection Database transaction
    * @return ID of new record if insert is successful, otherwise None.
    */
-  def createWithTransaction(appID: Long, name: String)(implicit connection: Connection): Option[Long] = {
-    insert(appID, name).executeInsert()
+  def create(appID: Long, name: String)(implicit connection: Connection): Option[Long] = {
+    SQL(
+      """
+        INSERT INTO waterfalls (app_id, name, token)
+        VALUES ({app_id}, {name}, uuid_generate_v4());
+      """
+    ).on("app_id" -> appID, "name" -> name).executeInsert()
+  }
+
+  /**
+   * SQL for updating the fields for a particular record in waterfalls table.
+   * @param id ID field of the waterfall to be updated.
+   * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
+   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @return SQL to be executed by update and updateWithTransaction methods.
+   */
+  def updateSQL(id: Long, optimizedOrder: Boolean, testMode: Boolean): SimpleSql[Row] = {
+    SQL(
+      """
+          UPDATE waterfalls
+          SET optimized_order={optimized_order}, test_mode={test_mode}
+          WHERE id={id};
+      """
+    ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "id" -> id)
   }
 
   /**
@@ -72,14 +79,19 @@ object Waterfall extends JsonConversion {
    */
   def update(id: Long, optimizedOrder: Boolean, testMode: Boolean): Int = {
     DB.withConnection { implicit connection =>
-      SQL(
-        """
-          UPDATE waterfalls
-          SET optimized_order={optimized_order}, test_mode={test_mode}
-          WHERE id={id};
-        """
-      ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "id" -> id).executeUpdate()
+      updateSQL(id, optimizedOrder, testMode).executeUpdate()
     }
+  }
+
+  /**
+   * Updates the fields, within a transaction, for a particular record in waterfalls table.
+   * @param id ID field of the waterfall to be updated.
+   * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
+   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @return Number of rows updated
+   */
+  def updateWithTransaction(id: Long, optimizedOrder: Boolean, testMode: Boolean)(implicit connection: Connection): Int = {
+    updateSQL(id, optimizedOrder, testMode).executeUpdate()
   }
 
   /**
@@ -91,9 +103,13 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT waterfalls.*
+          SELECT waterfalls.*, apps.token as app_token, generation_number
           FROM waterfalls
-          WHERE id={id};
+          JOIN apps ON apps.id = waterfalls.app_id
+          JOIN app_configs ON app_configs.app_id = waterfalls.app_id
+          WHERE waterfalls.id={id}
+          ORDER BY generation_number DESC
+          LIMIT 1;
         """
       ).on("id" -> waterfallID)
       query.as(waterfallParser*) match {
@@ -112,9 +128,13 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT waterfalls.*
+          SELECT waterfalls.*, apps.token as app_token, generation_number
           FROM waterfalls
-          WHERE app_id={app_id};
+          JOIN apps ON apps.id = waterfalls.app_id
+          JOIN app_configs ON app_configs.app_id = waterfalls.app_id
+          WHERE waterfalls.app_id={app_id}
+          ORDER BY generation_number DESC
+          LIMIT 1;
         """
       ).on("app_id" -> appID)
       query.as(waterfallParser*).toList
@@ -137,20 +157,20 @@ object Waterfall extends JsonConversion {
   }
 
   /**
-   * Finds the callback information for an app based on the waterfall token.
-   * @param waterfallToken Maps to the token field of the waterfalls table.
+   * Finds the callback information for an app based on the app token.
+   * @param appToken Maps to the token field of the apps table.
    * @return An instance of the WaterfallCallbackInfo if the token is found; otherwise, returns None.
    */
-  def findCallbackInfo(waterfallToken: String): Option[WaterfallCallbackInfo] = {
+  def findCallbackInfo(appToken: String): Option[WaterfallCallbackInfo] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.callback_url, apps.server_to_server_enabled
           FROM waterfalls
           JOIN apps ON apps.id = waterfalls.app_id
-          WHERE waterfalls.token={waterfall_token};
+          WHERE apps.token={app_token};
         """
-      ).on("waterfall_token" -> waterfallToken)
+      ).on("app_token" -> appToken)
       query.as(waterfallCallbackInfoParser*) match {
         case List(waterfallCallbackInfo) => Some(waterfallCallbackInfo)
         case _ => None
@@ -159,28 +179,26 @@ object Waterfall extends JsonConversion {
   }
 
   /**
-   * Retrieves the order of ad providers with their respective configuration data.
-   * @param token API token used to authenticate a request and find a particular waterfall.
+   * Retrieves the order of ad providers, within a transaction, with their respective configuration data.
+   * @param appToken API token used to authenticate a request and find AppConfig information.
    * @return A list containing instances of AdProviderInfo if any active WaterfallAdProviders exist.
    */
-  def order(token: String): List[AdProviderInfo] = {
-    DB.withConnection { implicit connection =>
-      val query = SQL(
-        """
-          SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, distributors.id as distributor_id, distributors.name as distributor_name,
-          wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
-          FROM waterfalls w
-          FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
-          FULL OUTER JOIN ad_providers ap on ap.id = wap.ad_provider_id
-          FULL OUTER JOIN virtual_currencies vc on vc.app_id = w.app_id
-          FULL OUTER JOIN apps on apps.id = vc.app_id
-          FULL OUTER JOIN distributors on apps.distributor_id = distributors.id
-          WHERE w.token={token}
-          ORDER BY wap.waterfall_order ASC
-        """
-      ).on("token" -> token)
-      query.as(adProviderParser*).toList
-    }
+  def order(appToken: String)(implicit connection: Connection): List[AdProviderInfo] = {
+    val query = SQL(
+      """
+        SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, distributors.id as distributor_id, distributors.name as distributor_name,
+        wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
+        FROM waterfalls w
+        FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
+        FULL OUTER JOIN ad_providers ap on ap.id = wap.ad_provider_id
+        FULL OUTER JOIN virtual_currencies vc on vc.app_id = w.app_id
+        FULL OUTER JOIN apps on apps.id = vc.app_id
+        FULL OUTER JOIN distributors on apps.distributor_id = distributors.id
+        WHERE apps.token={app_token}
+        ORDER BY wap.waterfall_order ASC
+      """
+    ).on("app_token" -> appToken)
+    query.as(adProviderParser*).toList
   }
 
   // Used to convert SQL row into an instance of the AdProviderInfo class in Waterfall.order.
@@ -251,12 +269,12 @@ object Waterfall extends JsonConversion {
    * @param adProviderConfigList List of attributes to update for each WaterfallAdProvider.
    * @return True if the update is successful; otherwise, false.
    */
-  def reconfigureAdProviders(waterfallID: Long, adProviderConfigList: List[ConfigInfo]): Boolean = {
+  def reconfigureAdProviders(waterfallID: Long, adProviderConfigList: List[ConfigInfo])(implicit connection: Connection): Boolean = {
     var successful = true
     adProviderConfigList.map { adProviderConfig =>
       if(adProviderConfig.active && adProviderConfig.newRecord) {
         // If a Distributor wants to add a new AdProvider to the current waterfall, create a new WaterfallAdProvider record.
-        WaterfallAdProvider.create(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder), adProviderConfig.cpm, adProviderConfig.configurable) match {
+        WaterfallAdProvider.createWithTransaction(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder), adProviderConfig.cpm, adProviderConfig.configurable) match {
           case Some(id) => {}
           case None => successful = false
         }
@@ -266,7 +284,7 @@ object Waterfall extends JsonConversion {
           case Some(record) => {
             val newOrder = if(adProviderConfig.active) Some(adProviderConfig.waterfallOrder) else None
             val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, Some(adProviderConfig.active), record.fillRate, record.configurationData, record.reportingActive)
-            WaterfallAdProvider.update(updatedValues)
+            WaterfallAdProvider.updateWithTransaction(updatedValues)
           }
           case _ => {
             successful = false
@@ -275,13 +293,5 @@ object Waterfall extends JsonConversion {
       }
     }
     successful
-  }
-
-  /**
-   * Generates token field for waterfall.  This is called once on waterfall creation.
-   * @return Random string to be saved as token.
-   */
-  def generateToken = {
-    java.util.UUID.randomUUID.toString
   }
 }

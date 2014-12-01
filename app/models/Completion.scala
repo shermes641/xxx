@@ -15,21 +15,21 @@ object Completion extends Completion
 class Completion {
   /**
    * Creates a new record in the completions table.
-   * @param waterfallToken The token for the waterfall to which the completion belongs.
+   * @param appToken The token for the App to which the completion belongs.
    * @param adProviderName The name of the ad provider to which the completion belongs.
    * @param transactionID A unique ID that verifies a completion.
    * @param offerProfit The estimated revenue earned by a Distributor for a Completion.
    * @return The ID of the new completion record if the insertion succeeds; otherwise, returns None.
    */
-  def create(waterfallToken: String, adProviderName: String, transactionID: String, offerProfit: Option[Double]): Option[Long] = {
+  def create(appToken: String, adProviderName: String, transactionID: String, offerProfit: Option[Double]): Option[Long] = {
     DB.withConnection { implicit connection =>
       try{
         SQL(
           """
-          INSERT INTO completions (waterfall_token, ad_provider_name, transaction_id, offer_profit)
-          VALUES ({waterfall_token}, {ad_provider_name}, {transaction_id}, {offer_profit});
+          INSERT INTO completions (app_token, ad_provider_name, transaction_id, offer_profit)
+          VALUES ({app_token}, {ad_provider_name}, {transaction_id}, {offer_profit});
           """
-        ).on("waterfall_token" -> waterfallToken, "ad_provider_name" -> adProviderName, "transaction_id" -> transactionID, "offer_profit" -> offerProfit).executeInsert()
+        ).on("app_token" -> appToken, "ad_provider_name" -> adProviderName, "transaction_id" -> transactionID, "offer_profit" -> offerProfit).executeInsert()
       } catch {
         case exception: org.postgresql.util.PSQLException => {
           None
@@ -45,7 +45,7 @@ class Completion {
    * @return A boolean future indicating the success of the call to the App's reward callback.
    */
   def createWithNotification(verificationInfo: CallbackVerificationInfo, requestBody: String = ""): Future[Boolean] = {
-    (create(verificationInfo.waterfallToken, verificationInfo.adProviderName, verificationInfo.transactionID, verificationInfo.offerProfit), Waterfall.findCallbackInfo(verificationInfo.waterfallToken)) match {
+    (create(verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID, verificationInfo.offerProfit), Waterfall.findCallbackInfo(verificationInfo.appToken)) match {
       case (Some(id: Long), Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
         postCallback(callbackInfo.callbackURL, "Completion successful.", requestBody, verificationInfo)
       }

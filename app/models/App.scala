@@ -15,8 +15,20 @@ import scala.language.postfixOps
  * @param name Maps to the name column in the apps table
  * @param callbackURL Maps to the callback_url column in the apps table
  * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
+ * @param token The unique identifier for an App.  This is used for API calls.
  */
-case class App(id: Long, active: Boolean, distributorID: Long, name: String, callbackURL: Option[String], serverToServerEnabled: Boolean)
+case class App(id: Long, active: Boolean, distributorID: Long, name: String, callbackURL: Option[String], serverToServerEnabled: Boolean, token: String)
+
+/**
+ * Maps to the apps table in the database.
+ * @param id Maps to the id column in the apps table
+ * @param active Maps to the active column in apps table
+ * @param distributorID Maps to the distributor_id column in the apps table
+ * @param name Maps to the name column in the apps table
+ * @param callbackURL Maps to the callback_url column in the apps table
+ * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
+ */
+case class UpdatableApp(id: Long, active: Boolean, distributorID: Long, name: String, callbackURL: Option[String], serverToServerEnabled: Boolean)
 
 /**
  * Maps to App table in the database.
@@ -40,8 +52,9 @@ case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, na
  * @param rewardMin Maps to the reward_min field in the virtual_currencies table.
  * @param rewardMax Maps to the reward_max field in the virtual_currencies table.
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
+ * @param generationNumber A number identifying the current AppConfig state.
  */
-case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Boolean)
+case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Boolean, generationNumber: Option[Long])
 
 object App {
   // Used to convert SQL row into an instance of the App class.
@@ -51,8 +64,9 @@ object App {
       get[Long]("apps.distributor_id") ~
       get[String]("apps.name") ~
       get[Option[String]]("apps.callback_url") ~
-      get[Boolean]("apps.server_to_server_enabled") map {
-      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled => App(id, active, distributor_id, name, callback_url, server_to_server_enabled)
+      get[Boolean]("apps.server_to_server_enabled") ~
+      get[String]("apps.token") map {
+      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ token => App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token)
     }
   }
 
@@ -78,8 +92,9 @@ object App {
     get[Long]("virtual_currencies.exchange_rate") ~
     get[Option[Long]]("virtual_currencies.reward_min") ~
     get[Option[Long]]("virtual_currencies.reward_max") ~
-    get[Boolean]("virtual_currencies.round_up") map {
-      case currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp => AppWithVirtualCurrency(currencyID, active, appName, callbackURL, serverToServerEnabled, currencyName, exchangeRate, rewardMin, rewardMax, roundUp)
+    get[Boolean]("virtual_currencies.round_up") ~
+    get[Option[Long]]("generation_number") map {
+      case currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber => AppWithVirtualCurrency(currencyID, active, appName, callbackURL, serverToServerEnabled, currencyName, exchangeRate, rewardMin, rewardMax, roundUp, generationNumber)
     }
   }
 
@@ -92,10 +107,13 @@ object App {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up
+          SELECT apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number
           FROM apps
           JOIN virtual_currencies vc ON vc.app_id = apps.id
-          WHERE apps.id = {app_id};
+          JOIN app_configs ON app_configs.app_id = apps.id
+          WHERE apps.id = {app_id}
+          ORDER BY generation_number DESC
+          LIMIT 1;
         """
       ).on("app_id" -> appID)
       query.as(AppsWithVirtualCurrencyParser*) match {
@@ -125,8 +143,8 @@ object App {
   }
 
   /**
-   * Retrieves all records from the App table for a particular distributor_id
-   * @param distributorID ID of the current Distributor
+   * Retrieves all records from the apps table along with Waterfall ID for a particular App ID.
+   * @param appID The ID of the App to which the Waterfall belongs.
    * @return List of App instances
    */
   def findAppWithWaterfalls(appID: Long): Option[AppWithWaterfallID] = {
@@ -147,7 +165,7 @@ object App {
   }
 
   /**
-   * Retrieves all records from the App table for a particular distributor_id
+   * Retrieves all records from the apps table for a particular Distributor ID.
    * @param distributorID ID of the current Distributor
    * @return List of App instances
    */
@@ -165,19 +183,61 @@ object App {
   }
 
   /**
-   * Finds a record in the App table by ID
+   * SQL to retrieve an App from the database by ID.
+   * @param appID The ID of the App to be selected.
+   * @return SQL to be executed by find and findWithTransaction.
+   */
+  def findSQL(appID: Long): SimpleSql[Row] = {
+    SQL(
+      """
+          SELECT apps.*
+          FROM apps
+          WHERE id = {id};
+      """
+    ).on("id" -> appID)
+  }
+
+  /**
+   * Finds a record in the apps table by ID
    * @param appID ID of current App
-   * @return App instance
+   * @return App instance if one exists; otherwise, None.
    */
   def find(appID: Long): Option[App] = {
+    DB.withConnection { implicit connection =>
+      findSQL(appID).as(AppParser*) match {
+        case List(app) => Some(app)
+        case _ => None
+      }
+    }
+  }
+
+  /**
+   * Within a transaction, finds a record in the apps table by ID
+   * @param appID ID of current App
+   * @return App instance if one exists; otherwise, None.
+   */
+  def findWithTransaction(appID: Long)(implicit connection: Connection): Option[App] = {
+    findSQL(appID).as(AppParser*) match {
+      case List(app) => Some(app)
+      case _ => None
+    }
+  }
+
+  /**
+   * Finds the App which owns the Waterfall ID.
+   * @param waterfallID The ID of the Waterfall owned by the App.
+   * @return An instance of the App class, if one exists; otherwise, None.
+   */
+  def findByWaterfallID(waterfallID: Long): Option[App] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*
-          FROM apps
-          WHERE id = {id};
+          FROM waterfalls
+          JOIN apps ON apps.id = waterfalls.app_id
+          WHERE waterfalls.id = {id};
         """
-      ).on("id" -> appID)
+      ).on("id" -> waterfallID)
       query.as(AppParser*) match {
         case List(app) => Some(app)
         case _ => None
@@ -186,20 +246,38 @@ object App {
   }
 
   /**
-   * Updates the fields for a particular record in App table.
-   * @param app App instance with updated attributes
-   * @return Number of rows updated
+   * SQL statement that updates the fields for a particular record in apps table.
+   * @param app UpdatableApp instance with updated attributes
+   * @return SQL to be executed by update and updateWithTransaction methods.
    */
-  def update(app: App): Int = {
-    DB.withConnection { implicit connection =>
-      SQL(
-        """
+  def updateSQL(app: UpdatableApp): SimpleSql[Row] = {
+    SQL(
+      """
           UPDATE apps
           SET name={name}, active={active}, callback_url={callback_url}, server_to_server_enabled={server_to_server_enabled}
           WHERE id={id};
-        """
-      ).on("name" -> app.name, "active" -> app.active, "callback_url" -> app.callbackURL, "server_to_server_enabled" -> app.serverToServerEnabled, "id" -> app.id).executeUpdate()
+      """
+    ).on("name" -> app.name, "active" -> app.active, "callback_url" -> app.callbackURL, "server_to_server_enabled" -> app.serverToServerEnabled, "id" -> app.id)
+  }
+
+  /**
+   * Updates the fields for a particular record in apps table.
+   * @param app UpdatableApp instance with updated attributes
+   * @return Number of rows updated
+   */
+  def update(app: UpdatableApp): Int = {
+    DB.withConnection { implicit connection =>
+      updateSQL(app).executeUpdate()
     }
+  }
+
+  /**
+   * Updates the fields, within a transaction, for a particular record in apps table.
+   * @param app UpdatableApp instance with updated attributes
+   * @return Number of rows updated
+   */
+  def updateWithTransaction(app: UpdatableApp)(implicit connection: Connection): Int = {
+    updateSQL(app).executeUpdate()
   }
 
   /**
@@ -211,8 +289,8 @@ object App {
   def insert(distributorID: Long, name: String): SimpleSql[Row] = {
     SQL(
       """
-      INSERT INTO apps (name, distributor_id)
-      VALUES ({name}, {distributor_id});
+      INSERT INTO apps (name, distributor_id, token)
+      VALUES ({name}, {distributor_id}, uuid_generate_v4());
       """
     ).on("name" -> name, "distributor_id" -> distributorID)
   }

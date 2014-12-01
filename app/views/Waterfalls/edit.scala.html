@@ -1,8 +1,9 @@
-@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider], appsWithWaterfalls: List[AppWithWaterfallID])(implicit flash: Flash, session: Session)
+@(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider], appsWithWaterfalls: List[AppWithWaterfallID], generationNumber: Option[Long])(implicit flash: Flash, session: Session)
 
+    <div id="modal-overlay" class="modal-overlay"></div>
     @main("Edit Waterfall", distributorID, Some(waterfall.app_id)) {
         @views.html.Partials.subHeader("waterfall", distributorID, Some(waterfall.app_id), Some(waterfall.id))
-        <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID">
+        <div class="content waterfall_list" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID" data-generation-number="@{generationNumber match {case Some(id) => id; case None => 0}}">
             <div id="waterfall-edit-success" class="flash-message success"></div>
             <div id="waterfall-edit-error" class="flash-message error"></div>
             <h1 class="header-dropdown">Edit Waterfall for</h1>
@@ -17,8 +18,8 @@
                 }
                 </select>
             </div>
-            <div class="waterfall-token" data-waterfall-token="@waterfall.token">API Token:
-                <code>@waterfall.token</code>
+            <div class="app-token" data-app-token="@waterfall.appToken">API Token:
+                <code>@waterfall.appToken</code>
             </div>
             <table>
                 <td class="td-waterfall-config">
