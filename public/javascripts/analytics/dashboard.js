@@ -16,7 +16,6 @@ var Analytics = function () {
         country: $( '#countries' ),
         adProvider: $( '#ad_providers' ),
         apps: $( '#apps' ),
-        appID: $( '#app_id' ),
         startDate: $( '#start_date' ),
         endDate: $( '#end_date' )
     };

@@ -1,7 +1,7 @@
-@(app: App, distributorID: Long, appID: Long, apps: List[App], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
+@(distributorID: Long, appID: Option[Long], apps: List[App], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
-@main("Analytics", distributorID, Some(appID)) {
-    @views.html.Partials.subHeader("analytics", distributorID, Some(appID), None)
+@main("Analytics", distributorID, appID) {
+    @views.html.Partials.subHeader("analytics", distributorID, appID, None)
 
     <div class="content dashboard">
         <div class="fluid-container">
@@ -12,7 +12,6 @@
             </div>
             <input type="hidden" value="@keenProject" id="keen_project">
             <input type="hidden" value="@scopedKey" id="scoped_key">
-            <input type="hidden" value="@appID" id="app_id">
             <div class="row">
                 <div class="col-sm-6">
                     <div class="input-daterange input-group" id="datepicker">
