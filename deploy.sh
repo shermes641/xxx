@@ -7,6 +7,7 @@ else
 fi
 
 error_condition=.*error\:\ failed\ to\ push*.
+echo The result of the deploy is as follows: $result
 if [[ $result =~ $error_condition ]]; then
     echo Deploy Failed.  SHA and Branch name were not updated.
 else
