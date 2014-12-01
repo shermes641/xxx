@@ -580,7 +580,7 @@ div [class^="col-"] {
     border-radius: 5px;
     bottom: 26px;
     color: #fff;
-    content: attr(title);
+    content: attr(data-title);
     left: 20%;
     padding: 5px 15px;
     position: absolute;
