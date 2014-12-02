@@ -1,13 +1,18 @@
-@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], callbackParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean, callbackUrl: Option[String], appDomain: String)(implicit flash: Flash, session: Session)
-<div class="contents" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID">
+@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], callbackParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean, callbackUrl: Option[String], cpm: Option[Double], appDomain: String)(implicit flash: Flash, session: Session)
+<div class="contents" data-waterfall-ad-provider-id="@waterfallAdProviderID" data-distributor-id="@distributorID" data-provider-name="@adProviderName">
     <div class="flash-message success" id="wap-edit-success"></div>
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure @adProviderName</h1>
     @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
+        <div class="edit-waterfall-ad-provider-field">
+            <label class="modal-label">eCPM</label>
+            <input name="eCPM" type="text" value="@cpm.getOrElse(None)"></input>
+            <h4 class="tooltip" title="The eCPM value is not configurable while Reporting is active.">?</h4>
+        </div>
         @for(param <- reqParams) {
             <div class="edit-waterfall-ad-provider-field">
                 <label class="modal-label">@param.key</label>
-                <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
+                <input data-param-type="@param.dataType" data-refresh-on-app-restart="@param.refreshOnAppRestart" type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>
         }

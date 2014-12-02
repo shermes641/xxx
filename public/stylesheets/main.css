@@ -864,3 +864,7 @@ footer {
 .push {
     height: 15px;
 }
+
+.inactive-input {
+    background-color: #CCCCCC;
+}
