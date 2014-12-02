@@ -403,7 +403,7 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
    * @param param The original optional String value.
    * @return The String value converted to a Boolean if a String value is present; otherwise, returns false.
    */
-  implicit def optionalStringToOptionalBoolean(param: Option[String]): Boolean = {
+  implicit def optionalStringToBoolean(param: Option[String]): Boolean = {
     param match {
       case Some(value) => value.toBoolean
       case None => false
