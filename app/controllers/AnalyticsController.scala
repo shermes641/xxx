@@ -12,21 +12,7 @@ import collection.JavaConversions._
 
 object AnalyticsController extends Controller with Secured {
   def show(distributorID: Long, currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
-    currentAppID match {
-      case Some(appID) => {
-        App.find(appID) match {
-          case Some(app) => {
-            Ok(views.html.Analytics.show(app, distributorID, appID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
-          }
-          case None => {
-            Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
-          }
-        }
-      }
-      case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
-      }
-    }
+    Ok(views.html.Analytics.show(distributorID, currentAppID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
   }
 
   // Uses the keen library to get a scoped read key
