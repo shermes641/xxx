@@ -65,7 +65,12 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * @return Form for sign up
    */
   def signup = Action { implicit request =>
-    Ok(views.html.DistributorUsers.signup(signupForm))
+    request.session.get("username").map { user =>
+      val currentUser = DistributorUser.findByEmail(user).get
+      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+    }.getOrElse {
+      Ok(views.html.DistributorUsers.signup(signupForm))
+    }
   }
 
   // Form mapping used in login and authenticate actions.
@@ -95,7 +100,12 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * @return Log in form
    */
   def login = Action { implicit request =>
-    Ok(views.html.DistributorUsers.login(loginForm))
+    request.session.get("username").map { user =>
+      val currentUser = DistributorUser.findByEmail(user).get
+      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+    }.getOrElse {
+      Ok(views.html.DistributorUsers.login(loginForm))
+    }
   }
 
   /**
