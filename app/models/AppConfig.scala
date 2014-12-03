@@ -208,7 +208,7 @@ object AppConfig extends JsonConversion {
   def testResponseV1: JsValue = {
     val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
     val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_PROVIDER_ID), Some(TEST_MODE_APP_NAME), Some(TEST_MODE_HYPRMEDIATE_APP_ID),
-      Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
+      0, Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
       Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, Some(false))
     JsonBuilder.appConfigResponseV1(List(testAdProviderConfig))
   }
