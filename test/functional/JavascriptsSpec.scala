@@ -29,15 +29,7 @@ class JavascriptsSpec extends SpecificationWithFixtures {
         println("##teamcity[testFinished name='" + testName + "' duration='0']")
       }
 
-      val nbErrors = Integer.parseInt(browser.$("span.failed")
-        .getTexts
-        .get(0)
-        .trim())
-
-      val errors = Array()
-      nbErrors must beEqualTo(0)
-      println("##teamcity[testSuiteFinished name='Qunit Tests']")
-      browser.takeScreenShot("/tmp/screenshot.png")
+      browser.pageSource must contain("qunit-pass")
     }
   }
 
