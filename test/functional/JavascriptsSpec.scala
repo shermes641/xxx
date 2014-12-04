@@ -8,6 +8,8 @@ import play.api.test.FakeApplication
 import play.api.Play
 import io.keen.client.java.ScopedKeys
 import collection.JavaConversions._
+import org.fluentlenium.core.domain.FluentList
+import org.fluentlenium.core.domain.FluentWebElement
 
 class JavascriptsSpec extends SpecificationWithFixtures {
 
@@ -17,9 +19,22 @@ class JavascriptsSpec extends SpecificationWithFixtures {
       browser.goTo("/assets/javascripts/test/index.html")
 
       browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").containsText("completed");
-      browser.pageSource must contain("qunit-pass")
+      //browser.pageSource must contain("qunit-pass")
 
-      println("##teamcity[testFailed name='#{result[ 'name' ]}' type='comparisonFailure' expected='#{firstFailedAssertion[ 'expected' ]}' actual='#{firstFailedAssertion[ 'actual' ]}' message='#{message}' details='#{source}']")
+      val fls = browser.$("#qunit-tests > li > strong")
+      val iterator = fls.iterator()
+      val index = 0
+      while (iterator.hasNext) {
+        println("##teamcity[testStarted name='" + iterator.next.getText + "']")
+      }
+
+      val nbErrors = Integer.parseInt(browser.$("span.failed")
+        .getTexts
+        .get(0)
+        .trim())
+
+      val errors = Array()
+      nbErrors must beEqualTo(0)
     }
   }
 
