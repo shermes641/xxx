@@ -13,10 +13,13 @@ class JavascriptsSpec extends SpecificationWithFixtures {
 
   "Javascript Tests" should {
     "Javascript QUnit Tests" in new WithFakeBrowser {
+      println("##teamcity[testSuiteStarted name='Qunit Tests']")
       browser.goTo("/assets/javascripts/test/index.html")
 
       browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").containsText("completed");
       browser.pageSource must contain("qunit-pass")
+
+      println("##teamcity[testFailed name='#{result[ 'name' ]}' type='comparisonFailure' expected='#{firstFailedAssertion[ 'expected' ]}' actual='#{firstFailedAssertion[ 'actual' ]}' message='#{message}' details='#{source}']")
     }
   }
 
