@@ -18,14 +18,15 @@ class JavascriptsSpec extends SpecificationWithFixtures {
       println("##teamcity[testSuiteStarted name='Qunit Tests']")
       browser.goTo("/assets/javascripts/test/index.html")
 
-      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").containsText("completed");
-      //browser.pageSource must contain("qunit-pass")
+      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#qunit-testresult").containsText("completed")
 
       val fls = browser.$("#qunit-tests > li > strong")
       val iterator = fls.iterator()
       val index = 0
       while (iterator.hasNext) {
-        println("##teamcity[testStarted name='" + iterator.next.getText + "']")
+        val testName = iterator.next.getText
+        println("##teamcity[testStarted name='" + testName + "']")
+        println("##teamcity[testFinished name='" + testName + "' duration='0']")
       }
 
       val nbErrors = Integer.parseInt(browser.$("span.failed")
@@ -35,6 +36,8 @@ class JavascriptsSpec extends SpecificationWithFixtures {
 
       val errors = Array()
       nbErrors must beEqualTo(0)
+      println("##teamcity[testSuiteFinished name='Qunit Tests']")
+      browser.takeScreenShot("/tmp/screenshot.png")
     }
   }
 
