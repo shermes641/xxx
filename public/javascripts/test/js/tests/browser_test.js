@@ -4,12 +4,12 @@ define([], function() {
         
         var run = function() {
             $( '#qunit-fixture' ).html('<div id="browser_support" style="display: none;">The browser you are using is not actively supported.<div id="dismiss_browser">Dismiss</div></div>');
-            var browserSupport = new BrowserSupport();
 
 
             QUnit.module( "Browser Test" );
 
             test( 'Test browser checks', function() {
+                var browserSupport = new BrowserSupport();
                 var samplePassingBrowsers = [
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36",
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
@@ -34,6 +34,9 @@ define([], function() {
             } );
 
             test( 'Test popup functionality', function() {
+                $.browserTest( "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36" );
+                var browserSupport = new BrowserSupport();
+
                 equal( browserSupport.popupElement.css( 'display' ), "none", "browser popup should be hidden at start." );
 
                 equal( document.cookie.indexOf( browserSupport.cookieString ), -1, "Cookie should not be set" );
