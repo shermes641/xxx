@@ -93,6 +93,29 @@ header .actions {
 header .actions a {
     padding-left: 20px;
 }
+
+#browser_support {
+    z-index: 2002;
+    position: fixed;
+    top: 50px;
+    left: 50%;
+    background: #fff;
+    width: 460px;
+    padding: 5px;
+    text-align: center;
+    margin-left: -235px;
+    font-size: 14px;
+    box-shadow: 0px 0px 4px rgba(0,0,0,.2);
+    display: none;
+}
+
+#dismiss_browser {
+    float: right;
+    color: #4285f4;
+    padding-right: 10px;
+    cursor: pointer;
+}
+
 #registration-link {
     padding-top: 20px;
 }
