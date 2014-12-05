@@ -62,6 +62,14 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   }
 
   "Authenticated actions" should {
+    "redirect to pending if the user account is not active" in new WithFakeBrowser {
+      val baseURL = "http://localhost:" + port
+      val user = DistributorUser.findByEmail(email).get
+      logInUser()
+      browser.goTo(baseURL + "/distributors/" + user.distributorID.get + "/apps")
+      browser.pageSource must contain("pending")
+    }
+
     "redirect to login if the user is not authenticated" in new WithFakeBrowser {
       val baseURL = "http://localhost:" + port
       val email1 = "Email 1"
@@ -70,17 +78,24 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       DistributorUser.create(email2, password, companyName)
       val user1 = DistributorUser.findByEmail(email1).get
       val user2 = DistributorUser.findByEmail(email2).get
-      logInUser()
       browser.goTo(baseURL + "/distributors/" + user2.distributorID.get + "/apps")
       browser.pageSource must contain("Log In")
     }
 
-    "redirect to pending if the user account is not active" in new WithFakeBrowser {
+    "redirect to app index from login if user is authenticated" in new WithFakeBrowser {
+      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
       val baseURL = "http://localhost:" + port
-      val user = DistributorUser.findByEmail(email).get
       logInUser()
-      browser.goTo(baseURL + "/distributors/" + user.distributorID.get + "/apps")
-      browser.pageSource must contain("pending")
+      browser.goTo(baseURL + "/login")
+      browser.pageSource must contain("Begin by creating an app")
+    }
+
+    "redirect to app index from signup if user is authenticated" in new WithFakeBrowser {
+      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
+      val baseURL = "http://localhost:" + port
+      logInUser()
+      browser.goTo(baseURL + "/signup")
+      browser.pageSource must contain("Begin by creating an app")
     }
   }
   step(clean)
