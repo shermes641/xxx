@@ -36,8 +36,16 @@ case class JunGroupAPI() {
   /**
    * Sends failure email to account specified in application config
    */
-  def sendFailureEmail(distributorUser: DistributorUser) {
+  def sendFailureEmail(distributorUser: DistributorUser, failureReason: String) {
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor))
+    emailActor ! distributorUser.email + ". Error: " + failureReason
+  }
+
+  /**
+   * Sends success email on ad network creation
+   */
+  def sendSuccessEmail(distributorUser: DistributorUser) {
+    val emailActor = Akka.system.actorOf(Props(new JunGroupSuccessEmailActor))
     emailActor ! distributorUser.email
   }
 
@@ -81,6 +89,7 @@ class JunGroupAPIActor() extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
   private val RETRY_FREQUENCY = 3 seconds
+  private var lastFailure = ""
 
   def retry(distributorUser: DistributorUser) = {
     context.system.scheduler.scheduleOnce(RETRY_FREQUENCY, self, CreateAdNetwork(distributorUser))
@@ -90,7 +99,7 @@ class JunGroupAPIActor() extends Actor {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       counter += 1
       if(counter > RETRY_COUNT){
-        JunGroupAPI().sendFailureEmail(distributorUser)
+        JunGroupAPI().sendFailureEmail(distributorUser, lastFailure)
         context.stop(self)
       } else {
         val adNetwork = JunGroupAPI().adNetworkConfiguration(distributorUser)
@@ -105,7 +114,10 @@ class JunGroupAPIActor() extends Actor {
                   val success: JsValue = results \ "success"
                   if(success.as[JsBoolean] != JsBoolean(false)) {
                     DistributorUser.setActive(distributorUser)
+                    JunGroupAPI().sendSuccessEmail(distributorUser)
                   } else {
+                    val error: JsValue = results \ "error"
+                    lastFailure = error.as[String]
                     retry(distributorUser)
                   }
                 }
@@ -133,11 +145,34 @@ class JunGroupEmailActor extends Actor with Mailer {
 
   /**
    * Sends email to new DistributorUser.  This is called on a successful sign up.
-   * @param email Email of the new DistributorUser.
+   * @param description Description of failure
    */
-  def sendJunGroupEmail(email: String): Unit = {
+  def sendJunGroupEmail(description: String): Unit = {
     val subject = "Distribution Sign Up Failure"
-    val body = email + " did not have an account created successfully on JunGroup Ad Server."
+    val body = "Jun group ad network account was not created successfully for " + description
     sendEmail(Play.current.configuration.getString("jungroup.email").get, subject, body)
   }
 }
+
+
+/**
+ * Sends email on success.  Called by sendSuccessEmail
+ */
+class JunGroupSuccessEmailActor extends Actor with Mailer {
+  def receive = {
+    case email: String => {
+      sendJunGroupEmail(email)
+    }
+  }
+
+  /**
+   * Sends email to new DistributorUser.  This is called on a successful sign up.
+   * @param description Description of failure
+   */
+  def sendJunGroupEmail(email: String): Unit = {
+    val subject = "Account has been activated"
+    val body = "Your account has been activated you can now begin creating apps."
+    sendEmail(email, subject, body)
+  }
+}
+
