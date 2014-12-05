@@ -14,6 +14,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
+    DistributorUser.setActive(DistributorUser.findByEmail(email).get)
     DistributorUser.findByEmail(email).get
   }
 
@@ -21,6 +22,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
 
   "Analytics show action" should {
     def userLogin(browser: TestBrowser) = {
+
       browser.goTo(controllers.routes.DistributorUsersController.login().url)
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
@@ -30,7 +32,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
     "show analytics for an app" in new WithFakeBrowser {
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
-
       userLogin(browser)
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)

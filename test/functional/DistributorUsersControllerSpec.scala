@@ -14,7 +14,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   )
 
   "Sign up page" should {
-    "render apps index page when sign up is successful" in new WithFakeBrowser {
+    "render pending page when sign up is successful" in new WithFakeBrowser {
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
@@ -23,9 +23,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.$("#terms").click()
       browser.find("button").first().isEnabled must beEqualTo(true)
       browser.click("button")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").areDisplayed()
-      val user = DistributorUser.findByEmail(email).get
-      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/apps")
+      browser.pageSource must contain("pending")
     }
 
     "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
@@ -64,6 +62,13 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   }
 
   "Authenticated actions" should {
+    "redirect to pending if the user account is not active" in new WithFakeBrowser {
+      val baseURL = "http://localhost:" + port
+      val user = DistributorUser.findByEmail(email).get
+      logInUser()
+      browser.goTo(baseURL + "/distributors/" + user.distributorID.get + "/apps")
+      browser.pageSource must contain("pending")
+    }
 
     "redirect to login if the user is not authenticated" in new WithFakeBrowser {
       val baseURL = "http://localhost:" + port
@@ -77,14 +82,16 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("Log In")
     }
 
-    "redirect to app index if user is authenticated" in new WithFakeBrowser {
+    "redirect to app index from login if user is authenticated" in new WithFakeBrowser {
+      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
       val baseURL = "http://localhost:" + port
       logInUser()
       browser.goTo(baseURL + "/login")
       browser.pageSource must contain("Begin by creating an app")
     }
 
-    "redirect to app index if user is authenticated" in new WithFakeBrowser {
+    "redirect to app index from signup if user is authenticated" in new WithFakeBrowser {
+      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
       val baseURL = "http://localhost:" + port
       logInUser()
       browser.goTo(baseURL + "/signup")

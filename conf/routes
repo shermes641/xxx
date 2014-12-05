@@ -13,6 +13,7 @@ GET         /logout                                                             
 # Sign up
 GET         /signup                                                                                    controllers.DistributorUsersController.signup
 POST        /distributor_users                                                                         controllers.DistributorUsersController.create
+GET         /pending                                                                                   controllers.DistributorUsersController.pending
 
 # Apps
 GET         /distributors/:distributor_id/apps                                                         controllers.AppsController.index(distributor_id: Long)

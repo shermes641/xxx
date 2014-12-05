@@ -1,6 +1,6 @@
 package controllers
 
-import models.{WelcomeEmailActor, DistributorUser}
+import models.{JunGroupAPI, WelcomeEmailActor, DistributorUser}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
@@ -41,6 +41,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       signup => {
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
+            new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(id).get)
             val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
             emailActor ! signup.email
             DistributorUser.find(id) match {
@@ -58,6 +59,14 @@ object DistributorUsersController extends Controller with Secured with CustomFor
         }
       }
     )
+  }
+
+  /**
+   * Renders Pending page if user account is not active.
+   * @return Pending page
+   */
+  def pending = Action { implicit request =>
+    Ok(views.html.DistributorUsers.pending())
   }
 
   /**
@@ -141,6 +150,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
  * @param confirmation Password confirmation for new DistributorUser.
  * @param agreeToTerms Boolean checkbox for terms of service.
  */
+
 case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean)
 
 /**
@@ -180,7 +190,11 @@ trait Secured {
             request.session.get("distributorID") match {
               // Check if Distributor ID from session matches the ID passed from the controller
               case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
-                controllerAction(user)(request)
+                if (DistributorUser.isNotActive(ctrlDistID)) {
+                  Results.Redirect(routes.DistributorUsersController.pending)
+                } else {
+                  controllerAction(user)(request)
+                }
               }
               case _ => Results.Redirect(routes.DistributorUsersController.login)
             }
