@@ -109,6 +109,7 @@ class JunGroupAPIActor() extends Actor {
                     retry(distributorUser)
                   }
                 }
+                case _ => retry(distributorUser)
               }
             } else {
               retry(distributorUser)
@@ -116,7 +117,6 @@ class JunGroupAPIActor() extends Actor {
           }
         }
       }
-
     }
   }
 }
