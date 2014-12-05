@@ -44,6 +44,7 @@ CREATE TABLE apps (
   name varchar(255) NOT NULL,
   callback_url varchar(255),
   server_to_server_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  app_config_refresh_interval bigint NOT NULL DEFAULT 0,
   FOREIGN KEY (distributor_id) REFERENCES distributors(id)
 );
 

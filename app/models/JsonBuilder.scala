@@ -8,7 +8,6 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper {
-  val APP_CONFIG_REFRESH_INTERVAL = 1800 // The SDK expects this value to be in seconds.
   val LOG_FULL_CONFIG = true
 
   /**
@@ -48,7 +47,8 @@ object JsonBuilder extends ValueToJsonHelper {
         )
       )
     }
-    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)), distributorConfiguration(adProviders(0)), sdkConfiguration)
+    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)),
+      distributorConfiguration(adProviders(0)), sdkConfiguration(adProviders(0).appConfigRefreshInterval))
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
@@ -56,12 +56,13 @@ object JsonBuilder extends ValueToJsonHelper {
 
   /**
    * Creates a JSON object for SDK configuration info.
+   * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
    * @return A JsObject containing SDK configuration info.
    */
-  def sdkConfiguration: JsObject = {
+  def sdkConfiguration(appConfigRefreshInterval: Long): JsObject = {
     JsObject(
       Seq(
-        "appConfigRefreshInterval" -> JsNumber(APP_CONFIG_REFRESH_INTERVAL),
+        "appConfigRefreshInterval" -> JsNumber(appConfigRefreshInterval),
         "logFullConfig" -> JsBoolean(LOG_FULL_CONFIG)
       )
     )

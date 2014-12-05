@@ -62,7 +62,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           case None => None
         }
         Ok(views.html.WaterfallAdProviders.edit(distributorID, waterfallAdProviderID, configData.mappedFields("requiredParams"), configData.mappedFields("reportingParams"),
-          configData.mappedFields("callbackParams"), configData.name, configData.reportingActive, callbackUrl, Play.current.configuration.getString("app_domain").get))
+          configData.mappedFields("callbackParams"), configData.name, configData.reportingActive, callbackUrl, configData.cpm, Play.current.configuration.getString("app_domain").get))
       }
       case _ => {
         Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Could not find ad provider.")
@@ -88,7 +88,8 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               val configData = (jsonResponse \ "configurationData").as[JsValue]
               val reportingActive = (jsonResponse \ "reportingActive").as[String].toBoolean
               val generationNumber = (jsonResponse \ "generationNumber").as[String].toLong
-              val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, record.cpm, record.active, record.fillRate, configData, reportingActive)
+              val eCPM = (jsonResponse \ "eCPM").as[String].toDouble
+              val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(eCPM), record.active, record.fillRate, configData, reportingActive)
               WaterfallAdProvider.updateWithTransaction(newValues) match {
                 case 1 => {
                   val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))

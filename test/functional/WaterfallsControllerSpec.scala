@@ -45,9 +45,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     WaterfallAdProvider.find(waterfallAdProviderID2).get
   }
 
-  val adProviderConfiguration = "{\"requiredParams\":[{\"description\": \"Your Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, " +
-    "{\"description\": \"Your App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, " +
-    "{\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}"
+  val adProviderConfiguration = "{\"requiredParams\":[{\"description\": \"Your Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}, " +
+    "{\"description\": \"Your App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}], \"reportingParams\": [{\"description\": \"Your API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
+    "{\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}]}"
 
   "Waterfall.update" should {
     "respond with a 200 if update is successful" in new WithFakeBrowser {
@@ -181,11 +181,25 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.$("button[name=configure-wap]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val configKey = "some key"
-      browser.fill("input").`with`(configKey)
+      browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").isPresent()
       val waterfallAdProviderParams = WaterfallAdProvider.find(wap2.id).get.configurationData \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configKey)
+      generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
+    }
+
+    "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithFakeBrowser with WaterfallEditSetup with JsonTesting {
+      val originalGeneration = generationNumber(currentWaterfall.app_id)
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, waterfallID).url)
+      browser.find("button[name=configure-wap]", 2).click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      val configKey = "some key"
+      browser.fill("input").`with`("5.0", configKey)
+      browser.executeScript("$('button[name=update-ad-provider]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").withText().contains("Your App must be restarted")
       generationNumber(currentWaterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -244,6 +258,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
       newWap.reportingActive must beEqualTo(false)
+      browser.fill("input").`with`("5.0", "Some key")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
@@ -263,7 +278,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
       browser.$(".configure.inactive-button").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
-      browser.fill("input").`with`(configKey)
+      browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").isPresent()
       val wap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)

@@ -317,4 +317,54 @@ object App {
   def createWithTransaction(distributorID: Long, name: String)(implicit connection: Connection): Option[Long] = {
     insert(distributorID, name).executeInsert()
   }
+
+  /**
+   * Helper method to update the appConfigRefreshInterval for an App and create a new generation in the app_configs table.
+   * @param appID The ID of the App to be updated.
+   * @param appConfigRefreshInterval The new TTL value in seconds.
+   * @return Prints a success or error message to the console depending on the success or error of the update.
+   */
+  def updateAppConfigRefreshInterval(appID: Long, appConfigRefreshInterval: Long): Boolean = {
+    def printFailure(failureMessage: String = "App was not updated.")(implicit connection: Connection): Boolean = {
+      connection.rollback()
+      println(failureMessage)
+      false
+    }
+
+    App.find(appID) match {
+      case Some(app) => {
+        DB.withTransaction { implicit connection =>
+          try {
+            val update = SQL(
+              """
+                UPDATE apps
+                SET app_config_refresh_interval={app_config_refresh_interval}
+                WHERE id={id};
+              """
+            ).on("app_config_refresh_interval" -> appConfigRefreshInterval, "id" -> appID).executeUpdate()
+            val appConfig = AppConfig.findLatestWithTransaction(app.token)
+            (update, appConfig) match {
+              case (1, Some(config)) =>  {
+                AppConfig.create(app.id, app.token, config.generationNumber) match {
+                  case Some(newGenerationNumber) if (newGenerationNumber == config.generationNumber + 1) => {
+                    println("App was updated successfully!")
+                    true
+                  }
+                  case _ => printFailure("App was not updated because the app config has not changed.  Check if the waterfall for this app is in Test mode.")
+                }
+              }
+              case (_, _) => printFailure()
+            }
+          } catch {
+            case error: org.postgresql.util.PSQLException => printFailure()
+            case error: IllegalArgumentException => printFailure()
+          }
+        }
+      }
+      case None => {
+        println("App could not be found.")
+        false
+      }
+    }
+  }
 }

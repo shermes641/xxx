@@ -29,6 +29,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     DistributorUser.findByEmail(email).get
   }
 
+  val distributorID = distributorUser.distributorID.get
+
   val waterfallID = running(FakeApplication(additionalConfiguration = testDB)) {
     val appID = App.create(distributorUser.distributorID.get, "App 1").get
     VirtualCurrency.create(appID, "Coins", 100.toLong, None, None, Some(true))
@@ -73,7 +75,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val originalGeneration = generationNumber(waterfall.app_id)
       val updatedParam = "Some new value"
       val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("true"),
-        "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(waterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString))
+        "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(waterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "eCPM" -> JsString("5.0"))
       val body = JsObject(configurationData)
       val postRequest = FakeRequest(
         POST,
@@ -97,6 +99,46 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       )
       val Some(result) = route(postRequest.withSession("distributorID" -> distributorUser.distributorID.get.toString(), "username" -> email))
       status(result) must equalTo(400)
+    }
+
+    "update the eCPM value for a WaterfallAdProvider if the eCPM is valid" in new WithFakeBrowser {
+      val newAppID = App.create(distributorID, "New App").get
+      val validEcpm = "5.0"
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
+
+      logInUser()
+
+      DB.withTransaction { implicit connection => AppConfig.create(newAppID, App.find(newAppID).get.token, generationNumber(newAppID)) }
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
+      browser.$(".configure.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      val newWap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
+      browser.fill("input").`with`(validEcpm, "Some key")
+      browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      val updatedWap = WaterfallAdProvider.find(newWap.id).get
+      updatedWap.cpm.get.toString must beEqualTo(validEcpm)
+    }
+
+    "not update the WaterfallAdProvider if the eCPM is not valid" in new WithFakeBrowser {
+      val newAppID = App.create(distributorID, "New App").get
+      val invalidEcpm = " "
+      VirtualCurrency.create(newAppID, "Coins", 100.toLong, None, None, Some(true))
+      val newWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New App") }
+
+      logInUser()
+
+      DB.withTransaction { implicit connection => AppConfig.create(newAppID, App.find(newAppID).get.token, generationNumber(newAppID)) }
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorID, newWaterfallID).url)
+      Waterfall.find(newWaterfallID).get.testMode must beEqualTo(true)
+      browser.$(".configure.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      val newWap = WaterfallAdProvider.findAllByWaterfallID(newWaterfallID)(0)
+      browser.fill("input").`with`(invalidEcpm, "Some key")
+      browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("eCPM must be a valid number.")
     }
   }
   step(clean)

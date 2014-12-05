@@ -186,7 +186,7 @@ object Waterfall extends JsonConversion {
   def order(appToken: String)(implicit connection: Connection): List[AdProviderInfo] = {
     val query = SQL(
       """
-        SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, distributors.id as distributor_id, distributors.name as distributor_name,
+        SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, apps.app_config_refresh_interval, distributors.id as distributor_id, distributors.name as distributor_name,
         wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
         FROM waterfalls w
         FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
@@ -207,6 +207,7 @@ object Waterfall extends JsonConversion {
     get[Option[Long]]("provider_id") ~
     get[Option[String]]("app_name") ~
     get[Option[Long]]("app_id") ~
+    get[Long]("app_config_refresh_interval") ~
     get[Option[String]]("distributor_name") ~
     get[Option[Long]]("distributor_id") ~
     get[Option[JsValue]]("configuration_data") ~
@@ -219,10 +220,10 @@ object Waterfall extends JsonConversion {
     get[Boolean]("test_mode") ~
     get[Boolean]("optimized_order") ~
     get[Option[Boolean]]("active") map {
-      case provider_name ~ provider_id ~ app_name ~ app_id ~ distributor_name ~ distributor_id ~ configuration_data ~ cpm ~
-           vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ optimized_order ~ active => {
-        AdProviderInfo(provider_name, provider_id, app_name, app_id, distributor_name, distributor_id, configuration_data,
-                       cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, optimized_order, active)
+      case provider_name ~ provider_id ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
+           configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ optimized_order ~ active => {
+        AdProviderInfo(provider_name, provider_id, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
+                       configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, optimized_order, active)
       }
     }
   }
@@ -233,6 +234,7 @@ object Waterfall extends JsonConversion {
    * @param providerID Maps to the id field in the ad_providers table.
    * @param appName Maps to the name field in the apps table.
    * @param appID Maps to the id field in the apps table.
+   * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
    * @param distributorName Maps to the name field in the distributors table.
    * @param distributorID Maps to the id field in the distributors table.
    * @param configurationData Maps to the configuration_data field in the waterfall_ad_providers table.
@@ -246,9 +248,9 @@ object Waterfall extends JsonConversion {
    * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
    * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
-  case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], appName: Option[String], appID: Option[Long], distributorName: Option[String], distributorID: Option[Long],
-                            configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String], exchangeRate: Option[Long],
-                            rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
+  case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
+                            distributorName: Option[String], distributorID: Option[Long], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String],
+                            exchangeRate: Option[Long], rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
     lazy val meetsRewardThreshold: Boolean = {
       (roundUp, cpm, rewardMin) match {
         case (Some(roundUpValue: Boolean), _, _) if(roundUpValue) => true

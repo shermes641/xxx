@@ -5,6 +5,7 @@ var postUpdate = function() {
     var waterfallAdProviderID = $('.contents').attr("data-waterfall-ad-provider-id");
     var distributorID = $('.contents').attr("data-distributor-id");
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID;
+    var providerName = $(".contents").attr("data-provider-name");
     $.ajax({
         url: path,
         type: 'POST',
@@ -12,11 +13,27 @@ var postUpdate = function() {
         contentType: "application/json",
         data: updatedData(),
         success: function(result) {
+            var listItem = $("li[data-id=" + waterfallAdProviderID + "]");
+            var params = changedAppRestartParams();
+            var newEcpm = JSON.parse(updatedData())["eCPM"];
             $(".content").attr("data-generation-number", result.newGenerationNumber);
-            flashMessage(result.message, $("#waterfall-edit-success"))
+            if(params.length > 0) {
+                var paramMessage = params.length == 1 ? params[0] : params.slice(0, params.length-1).join(", ") + ", and " + params[params.length-1];
+                var message = "You changed " + paramMessage + " for " + providerName + ". Your App must be restarted for this change to take effect.";
+                flashMessage(message, $("#waterfall-edit-success"));
+            } else {
+                flashMessage(result.message, $("#waterfall-edit-success"));
+            }
+            clearAppRestartParams();
+            listItem.children(".hideable").children("div").children("div[name=cpm]").html(newEcpm);
+            listItem.attr("data-cpm", newEcpm);
+            if(optimizeToggleButton.is(":checked")) {
+                orderList("data-cpm", false);
+            }
         },
         error: function(result) {
-            flashMessage(result.responseJSON.message, $("#waterfall-edit-error"))
+            flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
+            clearAppRestartParams();
         }
     });
 };
@@ -48,6 +65,7 @@ var updatedData = function() {
             reportingActive: reportingActiveToggleButton.prop("checked").toString(),
             appToken: appToken,
             waterfallID: waterfallID,
+            eCPM: $(":input[name=eCPM]").val(),
             generationNumber: $(".content").attr("data-generation-number")
         }
     ));
@@ -68,12 +86,46 @@ var closeModal = function() {
 // Selector for reporting active toggle.
 var reportingActiveToggleButton = $(":checkbox[name=reporting-active]");
 
+// Prevents tracking of previously changed params after a user has either submitted or cancelled the changes.
+var clearAppRestartParams = function() {
+    appRestartParams = {};
+};
+
+// Returns all params which have been changed and require an app restart to take effect.
+var changedAppRestartParams = function() {
+    return(Object.keys(appRestartParams));
+};
+
+// Input field for eCPM.
+var eCPMInput = $(":input[name=eCPM]");
+
+// Enables and disables input field for eCPM.
+var toggleConfigurableEcpm = function() {
+    var reportingStatus = reportingActiveToggleButton.is(":checked");
+    eCPMInput.attr("disabled", reportingStatus);
+    eCPMInput.toggleClass("inactive-input");
+};
+
+// Checks eCPM input is a number.
+var validEcpm = function() {
+    return($.isNumeric(eCPMInput.val()));
+};
+
+if(reportingActiveToggleButton.is(":checked")) {
+    eCPMInput.attr("disabled", true);
+    eCPMInput.addClass("inactive-input");
+}
+
 $(document).ready(function() {
     // Initiates AJAX request to update WaterfallAdProvider.
     $(":button[name=update-ad-provider]").click(function(event) {
         event.preventDefault();
-        postUpdate();
-        closeModal();
+        if(validEcpm()) {
+            postUpdate();
+            closeModal();
+        } else {
+            flashMessage("eCPM must be a valid number.", $("#waterfall-edit-error"));
+        }
     });
 
     // Closes waterfall ad provider editing modal.
@@ -86,9 +138,11 @@ $(document).ready(function() {
     $(":button[name=cancel]").click(function(event) {
         event.preventDefault();
         closeModal();
+        clearAppRestartParams();
     });
 
     reportingActiveToggleButton.click(function(event) {
         postUpdate();
+        toggleConfigurableEcpm();
     });
 });

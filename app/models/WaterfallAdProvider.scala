@@ -6,6 +6,7 @@ import java.sql.Connection
 import play.api.db.DB
 import play.api.Play.current
 import play.api.libs.json._
+import scala.language.implicitConversions
 import scala.language.postfixOps
 
 /**
@@ -280,7 +281,7 @@ object WaterfallAdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, ad_providers.configuration_data as ad_provider_configuration, ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
+          SELECT name, cpm, ad_providers.configuration_data as ad_provider_configuration, ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
           FROM waterfall_ad_providers wap
           JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
           WHERE wap.id = {id};
@@ -350,11 +351,12 @@ object WaterfallAdProvider extends JsonConversion {
   // Used to convert result of findConfigurationData SQL query.
   val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
     get[String]("name") ~
+    get[Option[Double]]("cpm") ~
     get[JsValue]("ad_provider_configuration") ~
     get[Option[String]]("callback_url_format") ~
     get[JsValue]("wap_configuration") ~
     get[Boolean]("reporting_active") map {
-      case name ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
+      case name ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
     }
   }
 
@@ -389,26 +391,39 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
 /**
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
  * @param name name field from ad_providers table.
+ * @param cpm cpm field from waterfall_ad_providers table.
  * @param adProviderConfiguration Configuration data from AdProvider record.
  * @param callbackUrlFormat General format for an AdProvider's reward callback URL.
  * @param waterfallAdProviderConfiguration Configuration data form WaterfallAdProvider record.
  * @param reportingActive Boolean value indicating if we are collecting revenue data from third-parties.
  */
-case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) {
+case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) {
+  /**
+   * Converts an optional String value to a Boolean.
+   * @param param The original optional String value.
+   * @return The String value converted to a Boolean if a String value is present; otherwise, returns false.
+   */
+  implicit def optionalStringToOptionalBoolean(param: Option[String]): Boolean = {
+    param match {
+      case Some(value) => value.toBoolean
+      case None => false
+    }
+  }
+
   /**
    * Maps required info from AdProviders to actual values stored in WaterfallAdProviders.
    * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.
    */
   def mappedFields(paramType: String): List[RequiredParam] = {
     val reqParams = (this.adProviderConfiguration \ paramType).as[List[Map[String, String]]].map(el =>
-      new RequiredParam(el.get("key"), el.get("dataType"), el.get("description"), el.get("value"))
+      new RequiredParam(el.get("key"), el.get("dataType"), el.get("description"), el.get("value"), el.get("refreshOnAppRestart"))
     )
     val waterfallAdProviderParams = this.waterfallAdProviderConfiguration \ paramType
     // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
     // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     reqParams.map( param =>
       (waterfallAdProviderParams \ param.key.get) match {
-        case _: JsUndefined => new RequiredParam(param.key, param.dataType, param.description, None)
+        case _: JsUndefined => new RequiredParam(param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
         case value: JsValue => {
           var paramValue: Option[String] = None
           if(param.dataType.get == "Array") {
@@ -416,9 +431,9 @@ case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsVa
           } else {
             paramValue = Some(value.as[String])
           }
-          new RequiredParam(param.key, param.dataType, param.description, paramValue)
+          new RequiredParam(param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart)
         }
-        case _ => new RequiredParam(param.key, param.dataType, param.description, None)
+        case _ => new RequiredParam(param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
       }
     )
   }
@@ -430,5 +445,6 @@ case class WaterfallAdProviderConfig(name: String, adProviderConfiguration: JsVa
  * @param dataType Data type of param.  Currently, only Strings and Arrays are supported.
  * @param description Description of the required param.  This is used in the UI to direct the distributor user on how to configure an ad provider.
  * @param value The actual value of the param.
+ * @param refreshOnAppRestart Boolean value to indicate if changing the param only takes effect on app restart.
  */
-case class RequiredParam(key: Option[String], dataType: Option[String], description: Option[String], value: Option[String] = None)
+case class RequiredParam(key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean)

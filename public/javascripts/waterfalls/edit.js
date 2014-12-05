@@ -18,11 +18,26 @@ var testModeButton = $(":checkbox[name=test-mode]");
 // Drop down menu to select the desired waterfall edit page.
 var waterfallSelection = $(":input[id=waterfall-selection]");
 
+// Indicates if the user should be notified that the app must be restarted when the AppConfig changes.
+var appRestartParams = {};
+
+// Prevents tracking of previously changed params after a user has either submitted or cancelled the changes.
+var clearAppRestartParams = function() {
+    appRestartParams = {};
+};
+
+// Returns all params which have been changed and require an app restart to take effect.
+var changedAppRestartParams = function() {
+    return(Object.keys(appRestartParams));
+};
+
 // Rearranges the waterfall order list either by eCPM or original order.
 var orderList = function(orderAttr, ascending) {
-    var newOrder = $("#waterfall-list").children("li").sort(function(li1, li2) {
-        return (ascending ? $(li1).attr(orderAttr) - $(li2).attr(orderAttr) : $(li2).attr(orderAttr) - $(li1).attr(orderAttr))
+    var newOrder = providersByActive("true").sort(function(li1, li2) {
+        return (ascending ? Number($(li1).attr(orderAttr)) - Number($(li2).attr(orderAttr)) : Number($(li2).attr(orderAttr)) - Number($(li1).attr(orderAttr)))
     });
+    var inactive = providersByActive("false");
+    newOrder.push.apply(newOrder, inactive);
     appendNewList(newOrder);
 };
 
@@ -50,6 +65,9 @@ var postUpdate = function() {
         success: function(result) {
             $(".content").attr("data-generation-number", result.newGenerationNumber);
             flashMessage(result.message, $("#waterfall-edit-success"));
+            if(optimizeToggleButton.is(":checked")) {
+                orderList("data-cpm", false);
+            }
         },
         error: function(result) {
             flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
@@ -58,7 +76,7 @@ var postUpdate = function() {
 };
 
 // Retrieves configuration data for a waterfall ad provider.
-var retrieveConfigData = function(waterfallAdProviderID) {
+var retrieveConfigData = function(waterfallAdProviderID, newRecord) {
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
     $(".content.waterfall_list").toggleClass("modal-inactive", true);
     $.ajax({
@@ -77,6 +95,9 @@ var retrieveConfigData = function(waterfallAdProviderID) {
                     $("#modal-overlay").toggle();
                 }
             }).dialog("open");
+            if(!newRecord) {
+                setRefreshOnRestartListeners();
+            }
             $(".ui-dialog-titlebar").hide();
         },
         error: function(data) {
@@ -107,7 +128,7 @@ var createWaterfallAdProvider = function(params, newRecord) {
             item.attr("data-id", result.wapID);
             configureButton.show();
             if(newRecord) {
-                retrieveConfigData(result.wapID);
+                retrieveConfigData(result.wapID, newRecord);
             }
             $(".content").attr("data-generation-number", result.newGenerationNumber)
             flashMessage(result.message, $("#waterfall-edit-success"))
@@ -156,6 +177,14 @@ if(optimizeToggleButton.prop("checked")) {
     // Enable sortable list if waterfall has optimized_order set to true.
     $("#waterfall-list").sortable("enable");
 }
+
+// Adds event listeners to appropriate inputs when the WaterfallAdProvider edit modal pops up.
+var setRefreshOnRestartListeners = function() {
+    $(":input[data-refresh-on-app-restart=true]").change(function(event) {
+        var param = $(event.target.parentElement).children("label").html();
+        appRestartParams[param] = true;
+    });
+};
 
 $(document).ready(function() {
     // Initiates AJAX request to update waterfall.
