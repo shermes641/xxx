@@ -14,7 +14,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   )
 
   "Sign up page" should {
-    "render apps index page when sign up is successful" in new WithFakeBrowser {
+    "render pending page when sign up is successful" in new WithFakeBrowser {
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
@@ -23,9 +23,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.$("#terms").click()
       browser.find("button").first().isEnabled must beEqualTo(true)
       browser.click("button")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").areDisplayed()
-      val user = DistributorUser.findByEmail(email).get
-      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/apps")
+      browser.pageSource must contain("pending")
     }
 
     "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
@@ -75,6 +73,14 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       logInUser()
       browser.goTo(baseURL + "/distributors/" + user2.distributorID.get + "/apps")
       browser.pageSource must contain("Log In")
+    }
+
+    "redirect to pending if the user account is not active" in new WithFakeBrowser {
+      val baseURL = "http://localhost:" + port
+      val user = DistributorUser.findByEmail(email).get
+      logInUser()
+      browser.goTo(baseURL + "/distributors/" + user.distributorID.get + "/apps")
+      browser.pageSource must contain("pending")
     }
   }
   step(clean)
