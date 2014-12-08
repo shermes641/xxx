@@ -9,8 +9,8 @@ import scala.language.postfixOps
 
 object APIController extends Controller {
   /**
-   * Responds with waterfall order in JSON form.
-   * @param appToken Random string which both authenticates the request and identifies the waterfall.
+   * Responds with configuration JSON from the app_configs table.
+   * @param appToken Random string which both authenticates the request and identifies the app.
    * @return If an AppConfig is found, return the configuration field.  Otherwise, return a JSON error message.
    */
   def appConfigV1(appToken: String) = Action { implicit request =>

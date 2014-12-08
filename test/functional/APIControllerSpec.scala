@@ -19,16 +19,6 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     WaterfallAdProvider.create(waterfall.get.id, adProviderID2.get, None, None, true, true).get
   }
 
-  val vungleCallbackUrl = Some("http://mediation-staging.herokuapp.com/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
-  val vungleAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create("Vungle", "{\"requiredParams\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", vungleCallbackUrl).get
-  }
-
-  val adColonyCallbackUrl = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
-  val adColonyAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create("AdColony", "{\"requiredParams\":[{\"description\": \"Your AdColony App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your AdColony Zones\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", adColonyCallbackUrl, true, None).get
-  }
-
   val completionApp = running(FakeApplication(additionalConfiguration = testDB)) {
     val id = App.create(distributor.id.get, "App 1").get
     App.find(id).get
@@ -40,7 +30,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     Waterfall.find(waterfallID).get
   }
 
-  "APIController.waterfall" should {
+  "APIController.appConfigV1" should {
     "respond with 404 if token is not valid" in new WithFakeBrowser {
       val request = FakeRequest(
         GET,
@@ -53,8 +43,9 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       contentAsString(result) must contain("App Configuration not found.")
     }
 
-    "respond with the HyprMX test distributor configuration when waterfall is in test mode" in new WithFakeBrowser {
+    "respond with the HyprMarketplace test distributor configuration when waterfall is in test mode" in new WithFakeBrowser {
       Waterfall.update(waterfall.get.id, false, true)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.get.id, None) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(app1.token).url,
@@ -63,16 +54,22 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val requiredParams: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(AppConfig.TEST_MODE_APP_ID),
+      val appConfig = Json.parse(contentAsString(result))
+      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(AppConfig.TEST_MODE_APP_ID),
         "providerName" -> JsString(AppConfig.TEST_MODE_PROVIDER_NAME),"providerID" -> JsNumber(AppConfig.TEST_MODE_PROVIDER_ID), "eCPM" -> JsNumber(5.0)))
-      val testConfigData: JsValue = JsArray(JsObject(Seq("requiredParams" -> requiredParams)) :: Nil)
-      val jsonResponse: JsValue = Json.parse(contentAsString(result)) \ "adProviderConfigurations"
       val vcAttributes = AppConfig.TEST_MODE_VIRTUAL_CURRENCY
       val expectedVCJson = JsObject(Seq("name" -> JsString(vcAttributes.name), "exchangeRate" -> JsNumber(vcAttributes.exchangeRate),
         "rewardMin" -> JsNumber(vcAttributes.rewardMin.get), "rewardMax" -> JsNumber(vcAttributes.rewardMax.get), "roundUp" -> JsBoolean(vcAttributes.roundUp)))
-      val vcJson = Json.parse(contentAsString(result)) \ "virtualCurrency"
-      jsonResponse must beEqualTo(JsArray(requiredParams :: Nil))
-      vcJson must beEqualTo(expectedVCJson)
+      (appConfig \ "adProviderConfigurations") must beEqualTo(JsArray(testAdProviderConfig :: Nil))
+      (appConfig \ "analyticsConfiguration") must beEqualTo(JsonBuilder.analyticsConfiguration \ "analyticsConfiguration")
+      (appConfig \ "virtualCurrency") must beEqualTo(expectedVCJson)
+      (appConfig \ "appName").as[String] must beEqualTo(AppConfig.TEST_MODE_APP_NAME)
+      (appConfig \ "appID").as[Long] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_APP_ID)
+      (appConfig \ "distributorName").as[String] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME)
+      (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID)
+      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TEST_MODE_APP_CONFIG_REFRESH_INTERVAL)
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
+      (appConfig \ "generationNumber") must haveClass[JsNumber]
     }
 
     "respond with ad providers ordered by eCPM when the waterfall is in optimized mode" in new WithFakeBrowser {
@@ -88,15 +85,16 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val jsonResponse: List[JsValue] = (Json.parse(contentAsString(result)) \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
-      jsonResponse.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index))}
-      Json.parse(contentAsString(result)) \ "virtualCurrency" must haveClass[JsObject]
+      val appConfig = Json.parse(contentAsString(result))
+      val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
+      adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index)) }
     }
 
     "respond with the current waterfall order when waterfall is live and not optimized" in new WithFakeBrowser {
       Waterfall.update(waterfall.get.id, false, false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, Some(0), Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, Some(1), Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(app1.token).url,
@@ -105,18 +103,18 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
-      val jsonResponse: JsValue = Json.parse(contentAsString(result))
-      val adProviderConfigs: List[JsValue] = (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
-      adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index))}
-      jsonResponse \ "virtualCurrency" must haveClass[JsObject]
+      val appConfig: JsValue = Json.parse(contentAsString(result))
+      val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
+      adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index)) }
     }
 
     "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
-      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(1.toLong), None, false))
+      val roundUp = false
+      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(1.toLong), None, roundUp))
       Waterfall.update(waterfall.get.id, true, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.get.id, adProviderID2.get, None, Some(50.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.get.id, None) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(completionApp.token).url,
@@ -125,15 +123,15 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val jsonResponse: JsValue = Json.parse(contentAsString(result))
-      val adProviderConfigs: List[JsValue] = (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
+      val appConfig: JsValue = Json.parse(contentAsString(result))
+      val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must contain(adProviders(0).name)
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
-      jsonResponse \ "virtualCurrency" must haveClass[JsObject]
     }
 
     "respond with an error when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
-      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(100.toLong), None, false))
+      val roundUp = false
+      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, Some(100.toLong), None, roundUp))
       Waterfall.update(waterfall.get.id, true, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.get.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
@@ -145,13 +143,17 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
-      val jsonResponse: JsValue = (Json.parse(contentAsString(result)))
+      val jsonResponse: JsValue = Json.parse(contentAsString(result))
       (jsonResponse \ "status").as[String] must beEqualTo("error")
       (jsonResponse \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
     }
   }
 
   "APIController.vungleCompletionV1" should {
+    val vungleCallbackUrl = Some("http://mediation-staging.herokuapp.com/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
+    val vungleAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
+      AdProvider.create("Vungle", "{\"requiredParams\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", vungleCallbackUrl).get
+    }
     val transactionID = Some("0123456789")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
       val id = WaterfallAdProvider.create(completionWaterfall.id, vungleAdProviderID, None, None, true, true).get
@@ -232,6 +234,10 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   }
 
   "APIController.adColonyCompletionV1" should {
+    val adColonyCallbackUrl = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
+    val adColonyAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
+      AdProvider.create("AdColony", "{\"requiredParams\":[{\"description\": \"Your AdColony App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your AdColony Zones\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", adColonyCallbackUrl, true, None).get
+    }
     val amount = Some(1)
     val currency = Some("Credits")
     val macSha1 = Some("")
