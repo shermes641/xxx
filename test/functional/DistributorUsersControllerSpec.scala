@@ -42,7 +42,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.find("#termsContainer").first().isDisplayed must beEqualTo(true)
     }
 
-    "redirect to the sign up page if the user's email is taken" in new WithFakeBrowser {
+    "if the user's email is taken, render the sign up page with all fields filled except the password fields" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
       browser.goTo("http://localhost:" + port + "/signup")
       browser.fill("#company").`with`(companyName)
@@ -51,7 +51,11 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.fill("#confirmation").`with`(password)
       browser.$("#terms").click()
       browser.click("button")
-      browser.pageSource must contain("Sign Up")
+      browser.pageSource must contain("This email has been registered already")
+      browser.find("#company").getValue must beEqualTo(companyName)
+      browser.find("#email").getValue must beEqualTo(email)
+      browser.find("#password").getValue must beEqualTo("")
+      browser.find("#confirmation").getValue must beEqualTo("")
     }
 
     "respond with a 303 when email is taken" in new WithFakeBrowser {

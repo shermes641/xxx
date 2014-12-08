@@ -54,7 +54,9 @@ object DistributorUsersController extends Controller with Secured with CustomFor
             }
           }
           case _ => {
-            Redirect(routes.DistributorUsersController.signup).flashing("error" -> "This email has been registered already. Try logging in.")
+            val emailError = Seq(new play.api.data.FormError("email", "This email has been registered already. Try logging in."))
+            val form = Form(signupForm.mapping, signupForm.data, emailError, signupForm.value).fill(signup)
+            BadRequest(views.html.DistributorUsers.signup(form))
           }
         }
       }
