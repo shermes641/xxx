@@ -7,6 +7,8 @@ import play.api.data.Forms._
 import play.api.db.DB
 import play.api.mvc._
 import play.api.Play.current
+import play.api.Play
+import play.api.libs.json.{JsBoolean, JsString, JsObject, JsValue}
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with CustomFormValidation {
@@ -75,8 +77,10 @@ object AppsController extends Controller with Secured with CustomFormValidation 
           try {
             App.createWithTransaction(distributorID, newApp.appName) match {
               case Some(appID) => {
-                Waterfall.create(appID, newApp.appName)
+                val waterfallID = Waterfall.create(appID, newApp.appName)
                 VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
+                // Setup up HyprMarketplace ad provider
+                WaterfallAdProvider.createHyprMarketplace(distributorID, waterfallID.get)
                 App.findWithTransaction(appID) match {
                   case Some(app) => AppConfig.create(appID, app.token, 0)
                   case None => None

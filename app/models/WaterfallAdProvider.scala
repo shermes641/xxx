@@ -174,6 +174,23 @@ object WaterfallAdProvider extends JsonConversion {
     insert(waterfallID, adProviderID, waterfallOrder, cpm, configurable, active).executeInsert()
   }
 
+  def createHyprMarketplace(distributorID: Long, waterfallID: Long)(implicit connection: Connection) = {
+      val waterfallAdProviderId = createWithTransaction(waterfallID, 2, Option(0), Option(20), false, true)
+      val record = findWithTransaction(waterfallAdProviderId.get).get
+      val distributorUser = DistributorUser.find(distributorID).get
+      val hyprConfig = JsObject(
+        Seq(
+          "requiredParams" -> JsObject(
+            Seq(
+              "distributorID" -> JsString(distributorUser.hyprMarketplaceID.get.toString)
+            )
+          )
+        )
+      )
+      val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(20), record.active, record.fillRate, hyprConfig, false)
+      WaterfallAdProvider.updateWithTransaction(newValues)
+  }
+
   /**
    * SQL to select a particular WaterfallAdProvider record from the database.
    * @param waterfallAdProviderID The ID of the WaterfallAdProvider for which to query.

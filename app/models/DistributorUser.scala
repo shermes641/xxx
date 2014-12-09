@@ -13,8 +13,9 @@ import scala.language.postfixOps
  * @param email Email for DistributorUser
  * @param hashedPassword Hashed password for DistributorUser
  * @param distributorID Foreign key to maintain relationship with Distributor (Distributor has many DistributorUsers).
+ * @param hyprMarketplaceID HyprMarketplace ID
  */
-case class DistributorUser (id: Option[Long], email: String, hashedPassword: String, distributorID: Option[Long]) {
+case class DistributorUser (id: Option[Long], email: String, hashedPassword: String, hyprMarketplaceID: Option[Long], distributorID: Option[Long]) {
   /**
    * Stores hashed password in database for DistributorUser.
    * @param password Password for current DistributorUser
@@ -66,8 +67,9 @@ object DistributorUser {
     get[Option[Long]]("distributor_users.id") ~
     get[String]("distributor_users.email") ~
     get[String]("distributor_users.hashed_password") ~
+    get[Option[Long]]("distributor_users.hypr_marketplace_id") ~
     get[Option[Long]]("distributor_users.distributor_id") map {
-      case id ~ email ~ hashed_password ~ distributor_id => DistributorUser(id, email, hashed_password, distributor_id)
+      case id ~ email ~ hashed_password ~ hypr_marketplace_id ~ distributor_id => DistributorUser(id, email, hashed_password, hypr_marketplace_id, distributor_id)
     }
   }
 
