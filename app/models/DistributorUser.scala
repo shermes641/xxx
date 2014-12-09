@@ -50,10 +50,11 @@ object DistributorUser {
         """
           SELECT distributor_users.*
           FROM distributor_users
-          WHERE distributor_users.id = {id}
+          WHERE distributor_users.distributor_id = {id}
           AND active = true
         """
       ).on("id" -> id)
+    println(query)
       query.as(userParser*) match {
         case List(user) => false
         case List() => true

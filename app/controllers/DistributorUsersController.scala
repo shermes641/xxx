@@ -63,10 +63,15 @@ object DistributorUsersController extends Controller with Secured with CustomFor
 
   /**
    * Renders Pending page if user account is not active.
+   * @param distributorID ID associated with current DistributorUser
    * @return Pending page
    */
-  def pending = Action { implicit request =>
-    Ok(views.html.DistributorUsers.pending())
+  def pending(distributorID: Long) = Action { implicit request =>
+    if (DistributorUser.isNotActive(distributorID)) {
+      Ok(views.html.DistributorUsers.pending())
+    } else {
+      Redirect(routes.AppsController.index(distributorID))
+    }
   }
 
   /**
@@ -191,7 +196,7 @@ trait Secured {
               // Check if Distributor ID from session matches the ID passed from the controller
               case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
                 if (DistributorUser.isNotActive(ctrlDistID)) {
-                  Results.Redirect(routes.DistributorUsersController.pending)
+                  Results.Redirect(routes.DistributorUsersController.pending(ctrlDistID))
                 } else {
                   controllerAction(user)(request)
                 }
