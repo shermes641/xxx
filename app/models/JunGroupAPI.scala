@@ -37,16 +37,20 @@ case class JunGroupAPI() {
    * Sends failure email to account specified in application config
    */
   def sendFailureEmail(distributorUser: DistributorUser, failureReason: String) {
-    val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor))
-    emailActor ! distributorUser.email + ". Error: " + failureReason
+    val subject = "Distribution Sign Up Failure"
+    val body = "Jun group ad network account was not created successfully for " + distributorUser.email + ". Error: " + failureReason
+    val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(Play.current.configuration.getString("jungroup.email").get, subject, body)))
+    emailActor ! "email"
   }
 
   /**
    * Sends success email on ad network creation
    */
   def sendSuccessEmail(distributorUser: DistributorUser) {
-    val emailActor = Akka.system.actorOf(Props(new JunGroupSuccessEmailActor))
-    emailActor ! distributorUser.email
+    val subject = "Account has been activated"
+    val body = "Your account has been activated you can now begin creating apps."
+    val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(distributorUser.email, subject, body)))
+    emailActor ! "email"
   }
 
   /**
@@ -136,7 +140,7 @@ class JunGroupAPIActor() extends Actor {
 /**
  * Sends email on failure.  Called by sendFailureEmail
  */
-class JunGroupEmailActor extends Actor with Mailer {
+class JunGroupEmailActor(toAddress: String, subject: String, body: String) extends Actor with Mailer {
   def receive = {
     case email: String => {
       sendJunGroupEmail(email)
@@ -148,31 +152,6 @@ class JunGroupEmailActor extends Actor with Mailer {
    * @param description Description of failure
    */
   def sendJunGroupEmail(description: String): Unit = {
-    val subject = "Distribution Sign Up Failure"
-    val body = "Jun group ad network account was not created successfully for " + description
-    sendEmail(Play.current.configuration.getString("jungroup.email").get, subject, body)
+    sendEmail(toAddress, subject, body)
   }
 }
-
-
-/**
- * Sends email on success.  Called by sendSuccessEmail
- */
-class JunGroupSuccessEmailActor extends Actor with Mailer {
-  def receive = {
-    case email: String => {
-      sendJunGroupEmail(email)
-    }
-  }
-
-  /**
-   * Sends email to new DistributorUser.  This is called on a successful sign up.
-   * @param description Description of failure
-   */
-  def sendJunGroupEmail(email: String): Unit = {
-    val subject = "Account has been activated"
-    val body = "Your account has been activated you can now begin creating apps."
-    sendEmail(email, subject, body)
-  }
-}
-

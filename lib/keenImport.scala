@@ -16,16 +16,16 @@ val client = new Client(
 
 var date = DateTime.now
 
-var inventory_requests = Array.fill(4620) {
+var inventory_requests = Array.fill(2100) {
   date = date - 8.minute
   Json.obj(
-    "distributor_id" -> 11,
+    "distributor_id" -> "4609241023451518870",
     "distributor_name" -> "Test Company",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 28,
-    "ad_provider_id" -> 3,
-    "ad_provider_name" -> "Vungle",
+    "app_id" -> "169769968641019729",
+    "ad_provider_id" -> 2,
+    "ad_provider_name" -> "HyprMarketplace",
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -36,15 +36,15 @@ var inventory_requests = Array.fill(4620) {
 }
 date = DateTime.now
 
-var inventory_available = Array.fill(3303) {
+var inventory_available = Array.fill(1900) {
   date = date - 8.minute
   Json.obj(
     "distributor_name" -> "Test Company",
-    "distributor_id" -> 11,
+    "distributor_id" -> "4609241023451518870",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 28,
-    "ad_provider_id" -> 3,
+    "app_id" -> "169769968641019729",
+    "ad_provider_id" -> 2,
     "ad_provider_name" -> "AppLovin",
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
@@ -56,14 +56,14 @@ var inventory_available = Array.fill(3303) {
 }
 date = DateTime.now
 
-var mediation_inventory_requests = Array.fill(4620) {
+var mediation_inventory_requests = Array.fill(1800) {
   date = date - 8.minute
   Json.obj(
-    "distributor_id" -> 11,
+    "distributor_id" -> "4609241023451518870",
     "distributor_name" -> "Test Company",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 28,
+    "app_id" -> "169769968641019729",
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -74,18 +74,18 @@ var mediation_inventory_requests = Array.fill(4620) {
 }
 date = DateTime.now
 
-var mediation_inventory_available = Array.fill(3303) {
+var mediation_inventory_available = Array.fill(1200) {
   date = date - 8.minute
   Json.obj(
-    "distributor_id" -> 11,
+    "distributor_id" -> "4609241023451518870",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 28,
+    "app_id" -> "169769968641019729",
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
-    "ad_provider_id" -> 3,
-    "ad_provider_name" -> "AppLovin",
+    "ad_provider_id" -> 2,
+    "ad_provider_name" -> "HyprMarketplace",
     "keen" -> Json.obj(
       "timestamp" -> date.toString()
     )
@@ -93,16 +93,16 @@ var mediation_inventory_available = Array.fill(3303) {
 }
 date = DateTime.now
 
-var ad_displayed = Array.fill(3120) {
+var ad_displayed = Array.fill(1100) {
   date = date - 8.minute
   Json.obj(
     "distributor_name" -> "Test Company",
-    "distributor_id" -> 11,
+    "distributor_id" -> "4609241023451518870",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 28,
-    "ad_provider_name" -> "Testing",
-    "ad_provider_id" -> 3,
+    "app_id" -> "169769968641019729",
+    "ad_provider_name" -> "HyprMarketplace",
+    "ad_provider_id" -> 2,
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -113,14 +113,14 @@ var ad_displayed = Array.fill(3120) {
 }
 date = DateTime.now
 
-var ad_completed = Array.fill(3000) {
+var ad_completed = Array.fill(1000) {
   date = date - 9.minute
   Json.obj(
-    "distributor_id" -> 11,
+    "distributor_id" -> "4609241023451518870",
     "distributor_name" -> "Test Distributor",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> 28,
+    "app_id" -> "169769968641019729",
     "ad_provider_id" -> 3,
     "ad_provider_name" -> "HyprMarketplace",
     "device_type" -> "iphone",
@@ -128,7 +128,7 @@ var ad_completed = Array.fill(3000) {
     "ip_address" -> "${keen.ip}",
     "virtual_currency_awarded" -> 1,
     "virtual_currency_reward_max" -> 100,
-    "ad_provider_eCPM" -> 5,
+    "ad_provider_eCPM" -> 2,
     "virtual_currency_round_up" -> "yes",
     "offer_reward_id" -> 0,
     "offer_reward_text" -> "1 reward",
