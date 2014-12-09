@@ -156,6 +156,24 @@ object DistributorUser {
   }
 
   /**
+   * Sets Distributor User HyprMarketplace ID
+   * @param user Instance of DistributorUser class.
+   * @param hyprMarketplaceID ID to set
+   * @return Number of rows successfully updated.
+   */
+  def setHyprMarketplaceID(user: DistributorUser, hyprMarketplaceID: Int) = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          UPDATE distributor_users
+          SET hypr_marketplace_id={hypr_marketplace_id}
+          WHERE id = {id};
+        """
+      ).on("id" -> user.id, "hypr_marketplace_id" -> hyprMarketplaceID).executeUpdate()
+    }
+  }
+
+  /**
    * Updates fields for a particular DistributorUser instance.
    * @param user Instance of DistributorUser class.
    * @return Number of rows successfully updated.
