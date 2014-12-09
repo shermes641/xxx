@@ -212,6 +212,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       logInUser()
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
       browser.pageSource must contain(currentVirtualCurrency.name)
+      browser.pageSource must contain(currentVirtualCurrency.name)
       browser.fill("#rewardMin").`with`(rewardMin.toString())
       browser.fill("#rewardMax").`with`(rewardMax.toString())
       browser.$("button[name=submit]").first.click()

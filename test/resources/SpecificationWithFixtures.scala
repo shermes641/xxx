@@ -8,7 +8,6 @@ import play.api.db.DB
 import play.api.test._
 import resources._
 
-
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
   /**
    * Drops and recreates database schema after tests are run.
@@ -34,7 +33,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB))
 
   /**
-   * Creates application for functional tests using a test database and a Firefox web browser.
+   * Creates application for functional tests using a test database and Firefox browser.
    */
   abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) with DefaultUserValues {
     /**

@@ -1,7 +1,5 @@
 package models
 
-import play.api.libs.json.JsValue
-
 /**
  * Encapsulates information to create a completion if a callback is valid.
  * @param isValid True if the callback is valid; otherwise, false.

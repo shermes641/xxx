@@ -54,6 +54,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
     "create a new WaterfallAdProvider instance" in new WithAppBrowser(distributorUser.distributorID.get) {
       Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false)
       val configurationData = Seq("configurable" -> JsString("true"), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token),
         "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(currentAppConfig.generationNumber.toString), "cpm" -> JsString("5.0"),
         "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
