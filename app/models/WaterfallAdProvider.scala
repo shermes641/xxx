@@ -8,6 +8,7 @@ import play.api.Play.current
 import play.api.libs.json._
 import scala.language.implicitConversions
 import scala.language.postfixOps
+import play.api.Play
 
 /**
  * Encapsulates information for a record in the waterfall_ad_providers table.
@@ -175,7 +176,7 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   def createHyprMarketplace(distributorID: Long, waterfallID: Long)(implicit connection: Connection) = {
-      val waterfallAdProviderId = createWithTransaction(waterfallID, 2, Option(0), Option(20), false, true)
+      val waterfallAdProviderId = createWithTransaction(waterfallID, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), false, true)
       val record = findWithTransaction(waterfallAdProviderId.get).get
       val distributorUser = DistributorUser.find(distributorID).get
       val hyprConfig = JsObject(
