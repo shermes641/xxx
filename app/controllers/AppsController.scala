@@ -65,8 +65,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   /**
-   * Creates a new App in the database.
-   * @param distributorID ID associated with current DistributorUser
+   * Creates a new App in the database along with an associated Waterfall, VirtualCurrency, and AppConfig.
+   * @param distributorID ID associated with current Distributor.
    * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
    */
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
@@ -105,7 +105,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
 
   /**
    * Renders form for editing App.
-   * @param distributorID ID associated with current DistributorUser
+   * @param distributorID ID associated with current Distributor
    * @param appID ID associated with current App
    * @return Form for editing Apps
    */
@@ -123,8 +123,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   /**
-   * Updates attributes for current App.
-   * @param distributorID ID associated with current DistributorUser
+   * Updates attributes for current App/VirtualCurrency and generates a new AppConfig.
+   * @param distributorID ID associated with current Distributor
    * @param appID ID associated with current App
    * @return Responds with 200 if App is successfully updated.  Otherwise, flash error and respond with 304.
    */
