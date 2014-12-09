@@ -41,12 +41,11 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       signup => {
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
-            new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(id).get)
             val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
             emailActor ! signup.email
             DistributorUser.find(id) match {
               case Some(user: DistributorUser) => {
-                Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString()).flashing("success" -> "Your confirmation email will arrive shortly.")
+                Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString).flashing("success" -> "Your confirmation email will arrive shortly.")
               }
               case None => {
                 Redirect(routes.DistributorUsersController.signup).flashing("error" -> "User was not found.")
@@ -61,19 +60,6 @@ object DistributorUsersController extends Controller with Secured with CustomFor
         }
       }
     )
-  }
-
-  /**
-   * Renders Pending page if user account is not active.
-   * @param distributorID ID associated with current DistributorUser
-   * @return Pending page
-   */
-  def pending(distributorID: Long) = Action { implicit request =>
-    if (DistributorUser.isNotActive(distributorID)) {
-      Ok(views.html.DistributorUsers.pending())
-    } else {
-      Redirect(routes.AppsController.index(distributorID))
-    }
   }
 
   /**
@@ -196,11 +182,7 @@ trait Secured {
             request.session.get("distributorID") match {
               // Check if Distributor ID from session matches the ID passed from the controller
               case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
-                if (DistributorUser.isNotActive(ctrlDistID)) {
-                  Results.Redirect(routes.DistributorUsersController.pending(ctrlDistID))
-                } else {
-                  controllerAction(user)(request)
-                }
+                controllerAction(user)(request)
               }
               case _ => Results.Redirect(routes.DistributorUsersController.login)
             }

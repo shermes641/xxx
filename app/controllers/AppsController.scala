@@ -77,29 +77,47 @@ object AppsController extends Controller with Secured with CustomFormValidation 
             App.createWithTransaction(distributorID, newApp.appName) match {
               case Some(appID) => {
                 val waterfallID = Waterfall.create(appID, newApp.appName)
-                VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
-                // Setup up HyprMarketplace ad provider
-                WaterfallAdProvider.createHyprMarketplace(distributorID, waterfallID.get)
-                App.findWithTransaction(appID) match {
-                  case Some(app) => AppConfig.create(appID, app.token, 0)
-                  case None => None
+                val virtualCurrencyID = VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
+                val persistedApp = App.findWithTransaction(appID)
+                (waterfallID, virtualCurrencyID, persistedApp) match {
+                  case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
+                    AppConfig.create(appID, app.token, 0)
+                    // Set up HyprMarketplace ad provider
+                    val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), false, false, true)
+                    val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
+                    (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
+                      case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
+                        new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(distributorID).get, waterfallIDVal, hyprWaterfallAdProviderInstance, app.token)
+                        Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
+                      }
+                      case (_, _) => onCreateRollback(distributorID)
+                    }
+                  }
+                  case (_, _, _) => onCreateRollback(distributorID)
                 }
-                Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
               }
-              case _ => {
-                Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
-              }
+              case _ => onCreateRollback(distributorID)
             }
           }
           catch {
             case error: org.postgresql.util.PSQLException => {
-              connection.rollback()
-              Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
+              onCreateRollback(distributorID)
             }
           }
         }
       }
     )
+  }
+
+  /**
+   * Rolls back database and renders error message for App creation action.
+   * @param distributorID The ID of the Distributor to which the new App belongs.
+   * @param connection A shared database connection
+   * @return Redirect back to the Apps index page.
+   */
+  def onCreateRollback(distributorID: Long)(implicit connection: Connection) = {
+    connection.rollback()
+    Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
   }
 
   /**
@@ -149,19 +167,15 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                     }
                     Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
                   }
-                  case _ => {
-                    NotModified.flashing("error" -> "App could not be updated.")
-                  }
+                  case _ => onUpdateRollback
                 }
                 Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
               }
-              case _ => {
-                NotModified.flashing("error" -> "App could not be updated.")
-              }
+              case _ => onUpdateRollback
             }
           } catch {
-            case error: org.postgresql.util.PSQLException => rollback
-            case error: IllegalArgumentException => rollback
+            case error: org.postgresql.util.PSQLException => onUpdateRollback
+            case error: IllegalArgumentException => onUpdateRollback
           }
         }
       }
@@ -172,8 +186,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
    * Rolls back the transaction and flashes an error message to the user.
    * @param connection The shared connection for the database transaction.
    */
-  def rollback(implicit connection: Connection) = {
-    connection.rollback
+  def onUpdateRollback(implicit connection: Connection) = {
+    connection.rollback()
     NotModified.flashing("error" -> "App could not be updated.")
   }
 }

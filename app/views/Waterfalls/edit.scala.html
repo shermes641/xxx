@@ -75,7 +75,7 @@
                 <h1>Waterfall Order</h1>
                 <ul id="waterfall-list" class="waterfall-sort">
                     @for((adProviderConfig) <- adProviderOrder) {
-                        <li class="@{if(adProviderConfig.active) "waterfall" else "inactive"}" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
+                        <li class="@{if(adProviderConfig.active) "waterfall" else "inactive"}" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" data-pending="@adProviderConfig.pending" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
                             <div class="@{if(adProviderConfig.active) "hideable hideable-wap-info" else "hideable hidden-wap-info" }">
                                 <h3>@adProviderConfig.name</h3>
                                 <div class="waterfall ul li b">
@@ -94,16 +94,21 @@
                                 <div class="waterfall-drag-2"></div>
                                 <div class="waterfall-drag-3"></div>
                             </div>
-                            <div class="inactive-waterfall">
-                            </div>
                             <div class="inactive-waterfall-content">
-                                <h3>@adProviderConfig.name</h3>
-                                <button class="status inactive-button" type="submit" name="status">
-                                    Activate
-                                </button>
-                                <button class="configure inactive-button" name="configure-wap" type="submit">
-                                    Configure
-                                </button>
+                                <h3 class="@{if(adProviderConfig.pending) "pending-ad-provider" else "" }">@adProviderConfig.name</h3>
+                                @if(adProviderConfig.pending) {
+                                    <div class="pending-ad-provider">
+                                        <h4>Pending</h4>
+                                        <h5>To check the status for @{adProviderConfig.name}, please refresh your browser.</h5>
+                                    </div>
+                                } else {
+                                    <button class="status inactive-button" type="submit" name="status">
+                                        Activate
+                                    </button>
+                                    <button class="configure inactive-button" name="configure-wap" type="submit">
+                                        Configure
+                                    </button>
+                                }
                             </div>
                         </li>
                     }

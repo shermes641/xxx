@@ -14,43 +14,17 @@ class DistributorUserSpec extends SpecificationWithFixtures {
   val unknownEmail = "SomeUnknownEmail@mail.com"
 
   "DistributorUser.create" should {
-    "add a DistributorUser to the database" in new WithDB {
-      DistributorUser.create(email, password, companyName).must(not).beNone
-    }
-
-    "create a Distributor" in new WithDB {
-      DistributorUser.create(email, password, companyName)
-      val user = DistributorUser.findByEmail(email)
-      user match {
-        case Some(user) => {
-          val distributor = Distributor.find(user.distributorID.get)
-          distributor match {
-            case Some(distributor) => distributor.name must beEqualTo(companyName)
-            case _ => distributor must beSome[Distributor]
-          }
-        }
-        case _ => user must beSome[DistributorUser]
-      }
-    }
-
-    "properly save a DistributorUser's information" in new WithDB {
-      DistributorUser.create(email, password, companyName)
-      val user = DistributorUser.findByEmail(email)
-      user match {
-        case Some(user) => {
-          user.email must beEqualTo(email)
-          user.hashedPassword.must(not).beNull
-        }
-        case _ => user must beSome[DistributorUser]
-      }
+    "add a DistributorUser to the database and return the new ID" in new WithDB {
+      DistributorUser.create("newemail1@gmail.com", password, companyName) must haveClass[Some[Long]]
     }
 
     "not create another DistributorUser if the email is already taken" in new WithDB {
-      DistributorUser.create(email, password, companyName)
-      DistributorUser.create(email, password, companyName) must beNone
+      val userEmail = "newemail2@gmail.com"
+      DistributorUser.create(userEmail, password, companyName) must haveClass[Some[Long]]
+      DistributorUser.create(userEmail, password, companyName) must beNone
     }
 
-    "not create a DistributorUser for a duplicate email with alternate capitalization" in new WithDB {
+      "not create a DistributorUser for a duplicate email with alternate capitalization" in new WithDB {
       val newUserEmail = "someNewUser@mail.com"
       DistributorUser.create(newUserEmail, password, companyName) must haveClass[Some[Long]]
       DistributorUser.create(newUserEmail.toUpperCase, password, companyName) must beNone
@@ -118,34 +92,6 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       val updatedUser = new DistributorUser(distributorUser.id, newEmail, distributorUser.hashedPassword, distributorUser.distributorID)
       DistributorUser.update(updatedUser) must beEqualTo(1)
       DistributorUser.find(distributorUser.id.get).get.email must beEqualTo(newEmail)
-    }
-  }
-
-  "DistributorUser.isNotActive" should {
-    "return true if the DistributorUser is not active" in new WithDB {
-      val distributorUserID = DistributorUser.create("newemail11@gmail.com", "password", "New Company").get
-      DistributorUser.isNotActive(distributorUserID) must beTrue
-    }
-
-    "return false if the DistributorUser is active" in new WithDB with DistributorUserSetup {
-      val (distributorUser, _) = newDistributorUser("newemail12@gmail.com")
-      DistributorUser.setActive(distributorUser)
-      DistributorUser.isNotActive(distributorUser.id.get) must beFalse
-    }
-  }
-
-  "DistributorUser.setActive" should {
-    "return 1 and set the active attribute to true for the DistributorUser" in new WithDB with DistributorUserSetup {
-      val (distributorUser, _) = newDistributorUser("newemail13@gmail.com")
-      DistributorUser.setActive(distributorUser) must beEqualTo(1)
-      DistributorUser.isNotActive(distributorUser.id.get) must beFalse
-    }
-
-    "return 0 and not set the active attribute to true for the DistributorUser" in new WithDB with DistributorUserSetup {
-      val (distributorUser, _) = newDistributorUser("newemail14@gmail.com")
-      val fakeDistributorID = Some(12345L)
-      val fakeDistributorUser = new DistributorUser(fakeDistributorID, "fake-email", "password", None)
-      DistributorUser.setActive(fakeDistributorUser) must beEqualTo(0)
     }
   }
 

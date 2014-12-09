@@ -24,20 +24,6 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   }
 
   "DistributorUsersController.create" should {
-    "create a pending DistributorUser and render pending page when sign up is successful" in new WithFakeBrowser {
-      browser.goTo(controllers.routes.DistributorUsersController.signup.url)
-      browser.fill("#company").`with`(companyName)
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.fill("#confirmation").`with`(password)
-      browser.$("#terms").click()
-      browser.find("button").first().isEnabled must beEqualTo(true)
-      browser.click("button")
-      browser.pageSource must contain("pending")
-      val userID = DistributorUser.findByEmail(email).get.id.get
-      DistributorUser.isNotActive(userID) must beEqualTo(true)
-    }
-
     "if the user's email is taken, render the sign up page with all fields filled except the password fields" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
       browser.goTo(controllers.routes.DistributorUsersController.signup.url)
@@ -79,33 +65,13 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   }
 
   "Authenticated actions" should {
-    "redirect to pending if the user account is not active" in new WithFakeBrowser {
-      val user = DistributorUser.findByEmail(email).get
-      logInUser()
-      browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
-      browser.pageSource must contain("pending")
-    }
-
-    "redirect to login if the user is not authenticated" in new WithFakeBrowser {
-      val email1 = "Email 1"
-      val email2 = "Email 2"
-      DistributorUser.create(email1, password, companyName)
-      DistributorUser.create(email2, password, companyName)
-      val user1 = DistributorUser.findByEmail(email1).get
-      val user2 = DistributorUser.findByEmail(email2).get
-      browser.goTo(controllers.routes.AppsController.index(user2.distributorID.get).url)
-      browser.pageSource must contain("Log In")
-    }
-
     "redirect to app index from login if user is authenticated" in new WithFakeBrowser {
-      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.login.url)
       browser.pageSource must contain("Begin by creating an app")
     }
 
     "redirect to app index from signup if user is authenticated" in new WithFakeBrowser {
-      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.signup.url)
       browser.pageSource must contain("Begin by creating an app")

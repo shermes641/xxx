@@ -6,7 +6,6 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.Play.current
 import play.api.test._
 import play.api.test.Helpers._
 import resources._
@@ -81,7 +80,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
           "active" -> JsString("true"),
           "waterfallOrder" -> JsString("0"),
           "cpm" -> JsString(""),
-          "configurable" -> JsString("true")
+          "configurable" -> JsString("true"),
+          "pending" -> JsString("true")
         )
       )
       val configInfo2 = JsObject(
@@ -91,7 +91,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
           "active" -> JsString("true"),
           "waterfallOrder" -> JsString("1"),
           "cpm" -> JsString(""),
-          "configurable" -> JsString("true")
+          "configurable" -> JsString("true"),
+          "pending" -> JsString("true")
         )
       )
       val body = JsObject(

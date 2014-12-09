@@ -143,7 +143,8 @@ var updatedData = function() {
             active: $(this).attr("data-active"),
             waterfallOrder: index.toString(),
             cpm: $(this).attr("data-cpm"),
-            configurable: $(this).attr("data-configurable")
+            configurable: $(this).attr("data-configurable"),
+            pending: $(this).attr("data-pending")
         });
     }).get();
     return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, appToken: appToken, generationNumber: generationNumber}));

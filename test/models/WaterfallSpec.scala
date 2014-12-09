@@ -31,7 +31,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   "Waterfall.reconfigureAdProviders" should {
     "create a new WaterfallAdProvider if one doesn't exist and ConfigInfo is a new record" in new WithDB {
       WaterfallAdProvider.findAllByWaterfallID(waterfall.id).size must beEqualTo(0)
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, 0, None, true))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(waterfall.id, configList) }
       WaterfallAdProvider.findAllByWaterfallID(waterfall.id).size must beEqualTo(1)
     }
@@ -41,7 +41,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID).size must beEqualTo(0)
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, false, true, 0, None, true))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, false, true, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) }
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID).size must beEqualTo(0)
     }
@@ -51,7 +51,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val waterfallOrder = 0
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, waterfallOrder, None, true))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, waterfallOrder, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) }
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID)(0).waterfallOrder.get must beEqualTo(waterfallOrder)
     }
@@ -62,7 +62,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true, true).get
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true)(0).waterfallAdProviderID must beEqualTo(wapID)
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) }
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true).size must beEqualTo(0)
     }
@@ -72,7 +72,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val someFakeID = 100
-      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(someFakeID, false, false, 0, None, true))
+      val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(someFakeID, false, false, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) must beEqualTo(false) }
     }
   }

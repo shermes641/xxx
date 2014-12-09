@@ -107,7 +107,7 @@ object APIController extends Controller {
   }
 
   /**
-   * Accepts server to server callback info from HyprMX, then starts the reward completion process.
+   * Accepts server to server callback info from HyprMarketplace, then starts the reward completion process.
    * @param appToken The token for the App to which the completion will belong.
    * @param time The timestamp for the callback.
    * @param sig A hashed value to authenticate the origin of the request.
@@ -118,10 +118,10 @@ object APIController extends Controller {
    * @param subID A unique ID to verify the transaction.
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
-  def hyprMXCompletionV1(appToken: String, time: Option[String], sig: Option[String], quantity: Option[Int], offerProfit: Option[Double], rewardID: Option[String], uid: Option[String], subID: Option[String]) = Action { implicit request =>
+  def hyprMarketplaceCompletionV1(appToken: String, time: Option[String], sig: Option[String], quantity: Option[Int], offerProfit: Option[Double], rewardID: Option[String], uid: Option[String], subID: Option[String]) = Action { implicit request =>
     (uid, sig, time, subID, quantity) match {
       case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String), Some(quantityValue: Int)) => {
-        val callback = new HyprMXCallback(appToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
+        val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
         callbackResponse(callback.verificationInfo, request.toString)
       }
       case (_, _, _, _, _) => BadRequest

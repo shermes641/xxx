@@ -89,7 +89,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         try {
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean)
+            new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean, (jsArray \ "pending").as[String].toBoolean)
           }
           val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
           val testMode: Boolean = (json \ "testMode").as[String].toBoolean
@@ -139,6 +139,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
  * @param waterfallOrder The position of this WaterfallAdProvider in the waterfall.
  * @param cpm Maps to the cpm value in the waterfall_ad_providers table.
  * @param configurable Determines if the cpm value can be edited by a DistributorUser.
+ * @param pending Determines if we are still waiting for a response from Player with the appropriate configuration info.
  */
-case class ConfigInfo(id: Long, newRecord: Boolean, active: Boolean, waterfallOrder: Long, cpm: Option[Double], configurable: Boolean)
+case class ConfigInfo(id: Long, newRecord: Boolean, active: Boolean, waterfallOrder: Long, cpm: Option[Double], configurable: Boolean, pending: Boolean)
 

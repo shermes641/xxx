@@ -30,7 +30,8 @@ trait AdProviderSpecSetup extends SpecificationWithFixtures {
 
   val adColonyID = running(FakeApplication(additionalConfiguration = testDB)) {
     val adColonyConfig = buildAdProviderConfig(Array(("appID", None, None, Some("true")), ("zoneIds", None, None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None)))
-    AdProvider.create("AdColony", adColonyConfig, None).get
+    val adColonyCallbackUrl = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
+    AdProvider.create("AdColony", adColonyConfig, adColonyCallbackUrl).get
   }
 
   val appLovinID = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -45,7 +46,8 @@ trait AdProviderSpecSetup extends SpecificationWithFixtures {
 
   val vungleID = running(FakeApplication(additionalConfiguration = testDB)) {
     val vungleConfig = buildAdProviderConfig(Array(("appID", None, None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None)))
-    AdProvider.create("Vungle", vungleConfig, None).get
+    val vungleCallbackUrl = Some("/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
+    AdProvider.create("Vungle", vungleConfig, vungleCallbackUrl).get
   }
 
   val hyprMarketplaceID = running(FakeApplication(additionalConfiguration = testDB)) {

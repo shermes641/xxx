@@ -1,50 +1,68 @@
 package models
 
 import akka.actor.{Props, Actor}
-import play.api.libs.json._
-import scala.concurrent.Future
-import play.api.Play.current
-import play.api.libs.ws._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.language.postfixOps
-import play.api.libs.json.{JsArray, JsValue}
-import play.api.{Play}
+import play.api.db.DB
 import play.api.libs.concurrent.Akka
+import play.api.libs.json._
+import play.api.libs.ws._
+import play.api.Play
+import play.api.Play.current
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.language.postfixOps
 
+/**
+ * Encapsulates DistributorUser information for creating a new AdNetwork in Player.
+ * @param distributorUser The DistributorUser who owns the new AdNetwork.
+ */
 case class CreateAdNetwork(distributorUser: DistributorUser)
 
+/**
+ * Encapsulates interactions with Player.
+ */
 case class JunGroupAPI() {
   /**
    * Sends request to Jungroup API using settings in the config
+   * @param distributorUser The DistributorUser who is creating a new WaterfallAdProvider.
+   * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
+   * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance.
+   * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
    */
-  def createJunGroupAdNetwork(distributorUser: DistributorUser) = {
-    val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor()))
+  def createJunGroupAdNetwork(distributorUser: DistributorUser, waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String) = {
+    val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallID, hyprWaterfallAdProvider, appToken)))
     actor ! CreateAdNetwork(distributorUser)
   }
 
 
   /**
    * Creates the request using the config passed.
+   * @param adNetwork JSON containing the appropriate information to create a new AdNetwork in Player.
    * @return Future[WSResponse]
    */
   def createRequest(adNetwork: JsObject): Future[WSResponse] = {
     val config = Play.current.configuration
-    WS.url("http://" + config.getString("jungroup.url").get + "/admin/ad_network/create").withAuth(config.getString("jungroup.user").get, config.getString("jungroup.password").get, WSAuthScheme.DIGEST).post(adNetwork)
+    WS.url("http://" + config.getString("jungroup.url").get + "/admin/ad_network").withAuth(config.getString("jungroup.user").get, config.getString("jungroup.password").get, WSAuthScheme.DIGEST).post(adNetwork)
   }
 
   /**
-   * Sends failure email to account specified in application config
+   * Sends failure email to account specified in application config.
+   * @param distributorUser The DistributorUser who created the App/Waterfall.
+   * @param waterfallAdProviderID The ID of the HyprMarketplace WaterfallAdProvider instance.
+   * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
+   * @param failureReason The error from Player.
    */
-  def sendFailureEmail(distributorUser: DistributorUser, failureReason: String) {
+  def sendFailureEmail(distributorUser: DistributorUser, waterfallAdProviderID: Long, appToken: String, failureReason: String) {
     val subject = "Distribution Sign Up Failure"
-    val body = "Jun group ad network account was not created successfully for " + distributorUser.email + ". Error: " + failureReason
+    val body = "Jun group ad network account was not created successfully for Email: " + distributorUser.email +
+      ", WaterfallAdProviderID: " + waterfallAdProviderID + ", AppToken: " + appToken + ". Error: " + failureReason
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(Play.current.configuration.getString("jungroup.email").get, subject, body)))
     emailActor ! "email"
   }
 
   /**
    * Sends success email on ad network creation
+   * @param distributorUser The DistributorUser who will receive a success email when a new AdNetwork is created in Player.
    */
   def sendSuccessEmail(distributorUser: DistributorUser) {
     val subject = "Account has been activated"
@@ -54,27 +72,32 @@ case class JunGroupAPI() {
   }
 
   /**
-   * Creates a JSON object of the adnetwork configuration
+   * Creates a JSON object of the adNetwork configuration
    * @param distributorUser An instance of the distributorUser with the information need to create an ad network account
+   * @param appToken The unique identifier for an app.
    * @return A JsObject with ad network information.
    */
-  def adNetworkConfiguration(distributorUser: DistributorUser): JsObject = {
+  def adNetworkConfiguration(distributorUser: DistributorUser, appToken: String): JsObject = {
+    val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
+    val adNetworkName = appToken + "." + distributorUser.email
     JsObject(
       Seq(
         "ad_network" -> JsObject(
           Seq(
-            "name" -> JsString(distributorUser.email),
+            "name" -> JsString(adNetworkName),
             // Always set to true due to mediation being SDK only
             "mobile" -> JsBoolean(true)
           )
         ),
         "payout_url" -> JsObject(
           Seq(
-            "url" -> JsString(Play.current.configuration.getString("jungroup.callbackurl").get),
+            "url" -> JsString(hyprMarketplacePayoutUrl),
+            "method" -> JsString("get"),
             "environment" -> JsString("production"),
             "signature" -> JsArray(
               Seq(
                 JsString("UID"),
+                JsString("SID"),
                 JsString("EPOCH_SECONDS"),
                 JsString(Play.current.configuration.getString("jungroup.token").get)
               )
@@ -88,13 +111,21 @@ case class JunGroupAPI() {
 
 /**
  * Actor that creates requests and retries on failure up to RETRY_COUNT times every RETRY_FREQUENCY
+ * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
+ * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance that was just created.
+ * @param appToken The unique identifier of the App to which the Waterfall and WaterfallAdProvider belong.
  */
-class JunGroupAPIActor() extends Actor {
+class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
-  private val RETRY_FREQUENCY = 3 seconds
+  private val RETRY_FREQUENCY = 3.seconds
   private var lastFailure = ""
 
+  /**
+   * Retries the API call to Player.
+   * @param distributorUser The DistributorUser who owns the new WaterfallAdProvider.
+   * @return A scheduled retry of the JunGroupAPIActor.
+   */
   def retry(distributorUser: DistributorUser) = {
     context.system.scheduler.scheduleOnce(RETRY_FREQUENCY, self, CreateAdNetwork(distributorUser))
   }
@@ -103,12 +134,12 @@ class JunGroupAPIActor() extends Actor {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       counter += 1
       if(counter > RETRY_COUNT){
-        JunGroupAPI().sendFailureEmail(distributorUser, lastFailure)
+        JunGroupAPI().sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
         context.stop(self)
       } else {
-        val adNetwork = JunGroupAPI().adNetworkConfiguration(distributorUser)
+        val adNetwork = JunGroupAPI().adNetworkConfiguration(distributorUser, appToken)
         JunGroupAPI().createRequest(adNetwork) map {
-          case response => {
+          response => {
             if(response.status != 500) {
               Json.parse(response.body) match {
                 case _:JsUndefined => {
@@ -116,12 +147,24 @@ class JunGroupAPIActor() extends Actor {
                 }
                 case results if(response.status == 200 || response.status == 304) => {
                   val success: JsValue = results \ "success"
-                  val ad_network_id: JsValue = results \ "ad_network" \ "ad_network" \ "id"
+                  val adNetworkID: Long = (results \ "ad_network" \ "ad_network" \ "id").as[Long]
                   if(success.as[JsBoolean] != JsBoolean(false)) {
-                    DistributorUser.setActive(distributorUser)
-                    val distributor = Distributor.find(distributorUser.distributorID.get).get
-                    Distributor.setHyprMarketplaceID(distributor, ad_network_id.as[Int])
-                    JunGroupAPI().sendSuccessEmail(distributorUser)
+                    DB.withTransaction { implicit connection =>
+                      try {
+                        val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID)
+                        AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
+                        updateResult match {
+                          case 1 => {
+                            JunGroupAPI().sendSuccessEmail(distributorUser)
+                          }
+                          case _ => None
+                        }
+                      } catch {
+                        case error: org.postgresql.util.PSQLException => {
+                          connection.rollback()
+                        }
+                      }
+                    }
                   } else {
                     val error: JsValue = results \ "error"
                     lastFailure = error.as[String]
@@ -142,6 +185,9 @@ class JunGroupAPIActor() extends Actor {
 
 /**
  * Sends email on failure.  Called by sendFailureEmail
+ * @param toAddress The address where the email will be sent.
+ * @param subject The subject of the email.
+ * @param body The body of the email.
  */
 class JunGroupEmailActor(toAddress: String, subject: String, body: String) extends Actor with Mailer {
   def receive = {

@@ -19,8 +19,6 @@ class ApplicationSpec extends SpecificationWithFixtures {
 
     "redirect a logged in user to the Apps index page" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
-      DistributorUser.setActive(DistributorUser.findByEmail(email).get)
-
       val user = DistributorUser.findByEmail(email).get
       browser.goTo("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)

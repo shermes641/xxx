@@ -12,8 +12,6 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, companyName)
-    DistributorUser.setActive(DistributorUser.findByEmail(email).get)
-    Distributor.setHyprMarketplaceID(Distributor.find(DistributorUser.findByEmail(email).get.distributorID.get).get, 123)
     DistributorUser.findByEmail(email).get
   }
 
@@ -119,7 +117,6 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val newUserPassword = "password"
       DistributorUser.create(newUserEmail, newUserPassword, companyName)
       val newUser = DistributorUser.findByEmail(newUserEmail).get
-      DistributorUser.setActive(newUser)
       val appsCount = tableCount("apps")
       val waterfallsCount = tableCount("waterfalls")
       val currenciesCount = tableCount("virtual_currencies")
@@ -145,6 +142,26 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       waterfallsCount must beEqualTo(tableCount("waterfalls"))
       currenciesCount must beEqualTo(tableCount("virtual_currencies"))
       appConfigsCount must beEqualTo(tableCount("app_configs"))
+    }
+
+    "should create a pending HyprMarketplace WaterfallAdProvider instance" in new WithFakeBrowser {
+      logInUser()
+
+      val newAppName = "My new test app"
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.fill("#appName").`with`(newAppName)
+      browser.fill("#currencyName").`with`("Gold")
+      browser.fill("#exchangeRate").`with`("100")
+      browser.fill("#rewardMin").`with`("1")
+      browser.fill("#rewardMax").`with`("10")
+      browser.$("button[name=new-app-form]").first.click()
+      browser.pageSource must contain("Edit Waterfall")
+      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
+      val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
+      val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
+      val hyprMarketplace = waterfallAdProviders(0)
+      waterfallAdProviders.size must beEqualTo(1)
+      hyprMarketplace.pending must beEqualTo(true)
     }
   }
 

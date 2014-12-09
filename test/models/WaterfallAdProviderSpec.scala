@@ -1,15 +1,13 @@
 package models
 
 import anorm.SQL
-import play.api.Play.current
-import play.api.db.DB
 import org.junit.runner._
 import org.specs2.runner._
-import play.api.libs.json.{JsString, JsObject, JsValue}
+import play.api.db.DB
+import play.api.libs.json.JsObject
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import play.libs.Json
 import resources.JsonTesting
 
 @RunWith(classOf[JUnitRunner])
@@ -141,6 +139,31 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
 
     "return None if the configuration data does not exist" in new WithDB {
       WaterfallAdProvider.findByAdProvider(currentApp.token, "Some fake ad provider name") must beNone
+    }
+  }
+
+  "WaterfallAdProvider.updateHyprMarketplaceConfig" should {
+    val distributionChannelID: Long = 12345
+
+    "set the appropriate JSON configuration for the HyprMarketplace WaterfallAdProvider" in new WithDB {
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID) }
+      val updatedWap = WaterfallAdProvider.find(waterfallAdProvider1.id).get
+      val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[String].toLong
+      hyprDistributionChannelID must beEqualTo(distributionChannelID)
+    }
+
+    "set the pending attribute to false" in new WithDB {
+      WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.pending must beTrue
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID) }
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.pending must beFalse
+    }
+
+    "activate the WaterfallAdProvider" in new WithDB {
+      WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.active.get must beFalse
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID) }
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.active.get must beTrue
     }
   }
 }
