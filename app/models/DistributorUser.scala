@@ -54,7 +54,6 @@ object DistributorUser {
           AND active = true
         """
       ).on("id" -> id)
-    println(query)
       query.as(userParser*) match {
         case List(user) => false
         case List() => true
