@@ -55,6 +55,13 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     }
   }
 
+  /**
+   * Renders form for editing Waterfall if an App/Waterfall has been previously selected.
+   * @param distributorID ID of Distributor who owns the current Waterfall.
+   * @param currentWaterfallID ID of the Waterfall being edited.
+   * @param currentAppID ID of the App whose Waterfall is being edited.
+   * @return Form for editing Waterfall if a Waterfall ID or App ID is passed as a param.  Otherwise, renders a drop down list to select a Waterfall.
+   */
   def editAll(distributorID: Long, currentWaterfallID: Option[Long], currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
     (currentWaterfallID, currentAppID) match {
       case (Some(waterfallID), _) => {
