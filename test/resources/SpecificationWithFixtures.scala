@@ -6,15 +6,10 @@ import anorm._
 import org.specs2.mutable._
 import play.api.Play.current
 import play.api.db.DB
-import play.api.libs.json.{Json, JsString, JsObject}
-import play.api.test.Helpers._
 import play.api.test._
+import resources._
 
-abstract class SpecificationWithFixtures extends Specification with cleanDB {
-  val email = "tdepplito@jungroup.com"
-  val password = "password"
-  val companyName = "Some Company"
-
+abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues {
   /**
    * Retrieve the count of all records in a particular table.
    * @param tableName The table on which the count is performed.
@@ -77,7 +72,7 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB)) {
   }
 
-  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) {
+  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) with DefaultUserValues {
     /**
      * Logs in a distributor user for automated browser tests
      * @param email A distributor user's email; defaults to the email value within the SpecificationWithFixtures class.
@@ -91,49 +86,4 @@ abstract class SpecificationWithFixtures extends Specification with cleanDB {
       browser.click("button")
     }
   }
-
-  trait AppSpecSetup {
-    /**
-     * Helper function to create a new App, VirtualCurrency, Waterfall, and AppConfig in tests.
-     * @param distributorID The ID of the Distributor to which all models in setUpApp belong.
-     * @param appName The name of the new App.
-     * @param currencyName The name of the new VirtualCurrency.
-     * @return A tuple consisting of an App, VirtualCurrency, and Waterfall.
-     */
-    def setUpApp(distributorID: Long, appName: String = "App 1", currencyName: String = "Coins") = {
-      val currentApp = {
-        val id = App.create(distributorID, "App 1").get
-        App.find(id).get
-      }
-      val virtualCurrency = {
-        val id = VirtualCurrency.create(currentApp.id, "Gold", 100, None, None, Some(true)).get
-        VirtualCurrency.find(id).get
-      }
-      val currentWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, appName) }
-      val currentWaterfall = Waterfall.find(currentWaterfallID).get
-      (currentApp, currentWaterfall, virtualCurrency)
-    }
-  }
 }
-
-trait cleanDB {
-  val testDB = Map("db.default.url" -> "jdbc:postgresql://localhost/mediation_test", "db.default.user" -> "postgres", "db.default.password" -> "postgres")
-
-  def clean = {
-    running(FakeApplication(additionalConfiguration = testDB)) {
-      DB.withConnection { implicit connection =>
-        SQL("DROP SCHEMA PUBLIC CASCADE;").execute()
-        SQL("CREATE SCHEMA PUBLIC;").execute()
-      }
-    }
-  }
-}
-
-trait JsonTesting {
-  val configurationParams = List("key1", "key2")
-  val configurationValues = List("value1", "value2")
-  def paramJson(paramKey: Int) = "{\"key\":\"" + configurationParams(paramKey) + "\", \"value\":\"\", \"dataType\": \"String\", \"description\": \"some description\"}"
-  val configurationData = "{\"requiredParams\": [" + paramJson(0) + ", " + paramJson(1) + "], \"reportingParams\": [], \"callbackParams\": []}"
-  val configurationJson = JsObject(Seq("requiredParams" -> JsObject(Seq(configurationParams(0) -> JsString(configurationValues(0)), configurationParams(1) -> JsString(configurationValues(1))))))
-}
-

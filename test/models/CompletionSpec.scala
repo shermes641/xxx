@@ -4,6 +4,7 @@ import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
 import play.api.libs.json.{JsNumber, JsValue}
+import resources.WaterfallSpecSetup
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 

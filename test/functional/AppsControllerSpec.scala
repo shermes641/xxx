@@ -7,7 +7,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.Play.current
 
-class AppsControllerSpec extends SpecificationWithFixtures {
+class AppsControllerSpec extends SpecificationWithFixtures with AppSpecSetup {
   val appName = "App 1"
 
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -140,8 +140,8 @@ class AppsControllerSpec extends SpecificationWithFixtures {
   }
 
   "AppsController.edit" should {
-    "find the app with virtual currency and render the edit form" in new WithFakeBrowser with AppSpecSetup {
-      val (currentApp, currentWaterfall, virtualCurrency) = setUpApp(user.distributorID.get)
+    "find the app with virtual currency and render the edit form" in new WithFakeBrowser {
+      val (currentApp, _, virtualCurrency, _) = setUpApp(user.distributorID.get)
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
@@ -149,8 +149,8 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain(virtualCurrency.name)
     }
 
-    "not submit the form if a required field is missing" in new WithFakeBrowser with AppSpecSetup {
-      val (currentApp, currentWaterfall, virtualCurrency) = setUpApp(user.distributorID.get)
+    "not submit the form if a required field is missing" in new WithFakeBrowser {
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
@@ -163,8 +163,8 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("Currency name is required")
     }
 
-    "notify the user if server to server callbacks are enabled without a valid callback URL" in new WithFakeBrowser with AppSpecSetup {
-      val (currentApp, currentWaterfall, virtualCurrency) = setUpApp(user.distributorID.get)
+    "notify the user if server to server callbacks are enabled without a valid callback URL" in new WithFakeBrowser {
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
@@ -188,8 +188,8 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       AdProvider.create("test ad provider", adProviderConfig, None)
     }
 
-    "update the app record in the database" in new WithFakeBrowser with AppSpecSetup {
-      val (currentApp, currentWaterfall, virtualCurrency) = setUpApp(user.distributorID.get)
+    "update the app record in the database" in new WithFakeBrowser {
+      val (currentApp, currentWaterfall, _, _) = setUpApp(user.distributorID.get)
       Waterfall.update(currentWaterfall.id, true, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
       VirtualCurrency.create(currentApp.id, "Gold", 100, None, None, Some(true))
@@ -206,8 +206,8 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
-    "update the virtual currency record in the database" in new WithFakeBrowser with AppSpecSetup {
-      val (currentApp, currentWaterfall, virtualCurrency) = setUpApp(user.distributorID.get)
+    "update the virtual currency record in the database" in new WithFakeBrowser {
+      val (currentApp, currentWaterfall, virtualCurrency, _) = setUpApp(user.distributorID.get)
       Waterfall.update(currentWaterfall.id, true, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }

@@ -1,39 +1,17 @@
-package models
+package resources
 
-import anorm._
+import models._
 import play.api.Play.current
-import play.api.db.DB
-import play.api.libs.json.{JsObject, JsString}
 import play.api.test.Helpers._
 import play.api.test._
 
-trait WaterfallSpecSetup extends SpecificationWithFixtures {
-  val user = running(FakeApplication(additionalConfiguration = testDB)) {
-    DistributorUser.create(email, password, "Company Name")
-    DistributorUser.findByEmail(email).get
+trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserSetup with AppSpecSetup {
+  val (user, distributor) = running(FakeApplication(additionalConfiguration = testDB)) {
+    newDistributorUser()
   }
 
-  val distributor = running(FakeApplication(additionalConfiguration = testDB)) {
-    Distributor.find(user.distributorID.get).get
-  }
-
-  val app1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val appID = App.create(distributor.id.get, "App 1").get
-    App.find(appID).get
-  }
-
-  val virtualCurrency1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val vcID = VirtualCurrency.create(app1.id, "Gold", 10, None, None, Some(true)).get
-    VirtualCurrency.find(vcID).get
-  }
-
-  val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallID = DB.withTransaction { implicit connection =>
-      val id = Waterfall.create(app1.id, app1.name)
-      AppConfig.create(app1.id, app1.token, generationNumber(app1.id))
-      id.get
-    }
-    Waterfall.find(waterfallID)
+  val (app1, waterfall, virtualCurrency1, _) = running(FakeApplication(additionalConfiguration = testDB)) {
+    setUpApp(distributor.id.get)
   }
 
   val adProviders = List("test ad provider 1", "test ad provider 2")

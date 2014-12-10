@@ -2,9 +2,21 @@ package models
 
 import org.junit.runner._
 import org.specs2.runner._
+import play.api.test._
+import play.api.test.Helpers._
+import resources.DistributorUserSetup
 
 @RunWith(classOf[JUnitRunner])
-class VirtualCurrencySpec extends SpecificationWithFixtures with AppSpecSetup {
+class VirtualCurrencySpec extends SpecificationWithFixtures with DistributorUserSetup {
+  val (distributorUser, _) = running(FakeApplication(additionalConfiguration = testDB)) {
+    newDistributorUser()
+  }
+
+  val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
+    val id = App.create(distributorUser.distributorID.get, "App 1").get
+    App.find(id).get
+  }
+
   "VirtualCurrency.create" should {
     "add a record to the virtual_currencies table" in new WithDB {
       VirtualCurrency.create(currentApp.id, "Coins", 100, Some(500), Some(100), Some(true)) must not beNone

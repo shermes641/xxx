@@ -1,14 +1,15 @@
 package functional
 
+import anorm.SQL
 import models._
 import org.specs2.runner._
 import org.junit.runner._
+import play.api.db.DB
 import play.api.libs.json._
 import play.api.Play.current
-import play.api.test.Helpers._
 import play.api.test._
-import anorm.SQL
-import play.api.db.DB
+import play.api.test.Helpers._
+import resources._
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
