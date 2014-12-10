@@ -12,6 +12,7 @@
         <script src="@routes.Assets.at("javascripts/jquery.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/jquery-ui.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/underscore.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/browser_support.js")" type="text/javascript"></script>
     </head>
     <body>
         <div class="content-wrapper">
@@ -35,6 +36,7 @@
                     </div>
                 }
             }
+            <div id="browser_support">The browser you are using is not actively supported.<div id="dismiss_browser">Dismiss</div></div>
             @content
             <div class="push"></div>
         </div>
