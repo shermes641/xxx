@@ -5,9 +5,9 @@
     <h1 class="modal-text">Configure @adProviderName</h1>
     @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
         <div class="edit-waterfall-ad-provider-field">
-            <label class="modal-label">eCPM</label>
+            <label class="modal-label">eCPM $</label>
             <input name="eCPM" type="text" value="@cpm.getOrElse(None)"></input>
-            <h4 class="tooltip" title="The eCPM value is not configurable while Reporting is active.">?</h4>
+            <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
         </div>
         @for(param <- reqParams) {
             <div class="edit-waterfall-ad-provider-field">

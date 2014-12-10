@@ -18,18 +18,8 @@ var testModeButton = $(":checkbox[name=test-mode]");
 // Drop down menu to select the desired waterfall edit page.
 var waterfallSelection = $(":input[id=waterfall-selection]");
 
-// Indicates if the user should be notified that the app must be restarted when the AppConfig changes.
+// Stores params that have been changed which require an app restart.
 var appRestartParams = {};
-
-// Prevents tracking of previously changed params after a user has either submitted or cancelled the changes.
-var clearAppRestartParams = function() {
-    appRestartParams = {};
-};
-
-// Returns all params which have been changed and require an app restart to take effect.
-var changedAppRestartParams = function() {
-    return(Object.keys(appRestartParams));
-};
 
 // Rearranges the waterfall order list either by eCPM or original order.
 var orderList = function(orderAttr, ascending) {
