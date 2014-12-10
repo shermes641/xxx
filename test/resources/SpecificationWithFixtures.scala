@@ -49,6 +49,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       browser.click("button")
     }
   }
+<<<<<<< HEAD
 
   /**
    * Creates application for unit tests with set up code for a new App/Waterfall/VirtualCurrency/AppConfig combination.
@@ -65,4 +66,6 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   abstract class WithAppBrowser(distributorID: Long) extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
     lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID)
   }
+=======
+>>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
 }

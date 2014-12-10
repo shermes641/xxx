@@ -9,14 +9,40 @@ class DistributorUserSpec extends SpecificationWithFixtures {
   val unknownEmail = "SomeUnknownEmail@mail.com"
 
   "DistributorUser.create" should {
-    "add a DistributorUser to the database and return the new ID" in new WithDB {
-      DistributorUser.create("newemail1@gmail.com", password, companyName) must haveClass[Some[Long]]
+    "add a DistributorUser to the database" in new WithDB {
+      DistributorUser.create(email, password, companyName).must(not).beNone
+    }
+
+    "create a Distributor" in new WithDB {
+      DistributorUser.create(email, password, companyName)
+      val user = DistributorUser.findByEmail(email)
+      user match {
+        case Some(user) => {
+          val distributor = Distributor.find(user.distributorID.get)
+          distributor match {
+            case Some(distributor) => distributor.name must beEqualTo(companyName)
+            case _ => distributor must beSome[Distributor]
+          }
+        }
+        case _ => user must beSome[DistributorUser]
+      }
+    }
+
+    "properly save a DistributorUser's information" in new WithDB {
+      DistributorUser.create(email, password, companyName)
+      val user = DistributorUser.findByEmail(email)
+      user match {
+        case Some(user) => {
+          user.email must beEqualTo(email)
+          user.hashedPassword.must(not).beNull
+        }
+        case _ => user must beSome[DistributorUser]
+      }
     }
 
     "not create another DistributorUser if the email is already taken" in new WithDB {
-      val userEmail = "newemail2@gmail.com"
-      DistributorUser.create(userEmail, password, companyName) must haveClass[Some[Long]]
-      DistributorUser.create(userEmail, password, companyName) must beNone
+      DistributorUser.create(email, password, companyName)
+      DistributorUser.create(email, password, companyName) must beNone
     }
 
     "not create a DistributorUser for a duplicate email with alternate capitalization" in new WithDB {
