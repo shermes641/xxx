@@ -183,7 +183,21 @@ object WaterfallAdProvider extends JsonConversion {
         Seq(
           "requiredParams" -> JsObject(
             Seq(
-              "distributorID" -> JsString(distributor.hyprMarketplaceID.get.toString)
+              "distributorID" -> JsString(distributor.hyprMarketplaceID.get.toString),
+              "eCPM" -> JsString(""),
+              "appID" -> JsString("")
+            )
+          ),
+          "reportingParams" -> JsObject(
+            Seq(
+              "APIKey" -> JsString(""),
+              "placementID" -> JsString(""),
+              "appID" -> JsString("")
+            )
+          ),
+          "callbackParams" -> JsObject(
+            Seq(
+              "APIKey" -> JsString("")
             )
           )
         )
