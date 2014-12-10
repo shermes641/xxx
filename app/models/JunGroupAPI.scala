@@ -119,7 +119,8 @@ class JunGroupAPIActor() extends Actor {
                   val ad_network_id: JsValue = results \ "ad_network" \ "ad_network" \ "id"
                   if(success.as[JsBoolean] != JsBoolean(false)) {
                     DistributorUser.setActive(distributorUser)
-                    DistributorUser.setHyprMarketplaceID(distributorUser, ad_network_id.as[Int])
+                    val distributor = Distributor.find(distributorUser.distributorID.get).get
+                    Distributor.setHyprMarketplaceID(distributor, ad_network_id.as[Int])
                     JunGroupAPI().sendSuccessEmail(distributorUser)
                   } else {
                     val error: JsValue = results \ "error"
