@@ -13,11 +13,13 @@ class AppsControllerSpec extends SpecificationWithFixtures {
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, companyName)
     DistributorUser.setActive(DistributorUser.findByEmail(email).get)
+
+    Distributor.setHyprMarketplaceID(Distributor.find(DistributorUser.findByEmail(email).get.distributorID.get).get, 123)
+
     DistributorUser.findByEmail(email).get
   }
 
   val distributorID = user.distributorID.get
-  Distributor.setHyprMarketplaceID(Distributor.find(distributorID).get, 123)
 
   "AppsController.index" should {
     "display all apps" in new WithFakeBrowser {
