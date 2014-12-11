@@ -18,7 +18,7 @@ object Distributor {
   val DistributorParser: RowParser[Distributor] = {
       get[Option[Long]]("distributors.id") ~
       get[String]("distributors.name") ~
-      get[Option[Long]]("distributor_users.hypr_marketplace_id") map {
+      get[Option[Long]]("distributors.hypr_marketplace_id") map {
       case id ~ name ~ hypr_marketplace_id => Distributor(id, name, hypr_marketplace_id)
     }
   }
@@ -60,7 +60,7 @@ object Distributor {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          UPDATE distributor_users
+          UPDATE distributors
           SET hypr_marketplace_id={hypr_marketplace_id}
           WHERE id = {id};
         """
