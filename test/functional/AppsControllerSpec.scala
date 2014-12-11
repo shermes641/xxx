@@ -16,6 +16,9 @@ class AppsControllerSpec extends SpecificationWithFixtures {
     DistributorUser.findByEmail(email).get
   }
 
+  val distributorID = user.distributorID.get
+  Distributor.setHyprMarketplaceID(Distributor.find(distributorID).get, 123)
+
   "AppsController.index" should {
     "display all apps" in new WithFakeBrowser {
       val app2Name = "App 2"
