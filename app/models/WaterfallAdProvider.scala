@@ -8,6 +8,7 @@ import play.api.Play.current
 import play.api.libs.json._
 import scala.language.implicitConversions
 import scala.language.postfixOps
+import play.api.Play
 
 /**
  * Encapsulates information for a record in the waterfall_ad_providers table.
@@ -172,6 +173,37 @@ object WaterfallAdProvider extends JsonConversion {
    */
   def createWithTransaction(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean, active: Boolean = false)(implicit connection: Connection): Option[Long] = {
     insert(waterfallID, adProviderID, waterfallOrder, cpm, configurable, active).executeInsert()
+  }
+
+  def createHyprMarketplace(distributorID: Long, waterfallID: Long)(implicit connection: Connection) = {
+      val waterfallAdProviderId = createWithTransaction(waterfallID, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), false, true)
+      val record = findWithTransaction(waterfallAdProviderId.get).get
+      val distributor = Distributor.find(distributorID).get
+      val hyprConfig = JsObject(
+        Seq(
+          "requiredParams" -> JsObject(
+            Seq(
+              "distributorID" -> JsString(distributor.hyprMarketplaceID.get.toString),
+              "eCPM" -> JsString(""),
+              "appID" -> JsString("")
+            )
+          ),
+          "reportingParams" -> JsObject(
+            Seq(
+              "APIKey" -> JsString(""),
+              "placementID" -> JsString(""),
+              "appID" -> JsString("")
+            )
+          ),
+          "callbackParams" -> JsObject(
+            Seq(
+              "APIKey" -> JsString("")
+            )
+          )
+        )
+      )
+      val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(20), record.active, record.fillRate, hyprConfig, false)
+      WaterfallAdProvider.updateWithTransaction(newValues)
   }
 
   /**

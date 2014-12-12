@@ -52,10 +52,9 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   "JunGroup Email Actor" should {
     "exist and accept email message" in new WithDB {
       implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
-      val emailActor = TestActorRef(new JunGroupEmailActor()).underlyingActor
+      val emailActor = TestActorRef(new JunGroupEmailActor("test@test.com", "subject", "body")).underlyingActor
       emailActor.receive("test@test.com")
       emailActor must haveClass[JunGroupEmailActor]
-
     }
   }
 

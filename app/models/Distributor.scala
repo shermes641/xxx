@@ -6,13 +6,20 @@ import play.api.db.DB
 import play.api.Play.current
 import scala.language.postfixOps
 
-case class Distributor(id: Option[Long], name: String) {}
+/**
+ * Encapsulates information for Distributors.
+ * @param id Distributor ID stored in database
+ * @param name Distributor name stored in database
+ * @param hyprMarketplaceID HyprMarketplace ID
+ */
+case class Distributor(id: Option[Long], name: String, hyprMarketplaceID: Option[Long]) {}
 
 object Distributor {
   val DistributorParser: RowParser[Distributor] = {
       get[Option[Long]]("distributors.id") ~
-      get[String]("distributors.name") map {
-      case id ~ name => Distributor(id, name)
+      get[String]("distributors.name") ~
+      get[Option[Long]]("distributors.hypr_marketplace_id") map {
+      case id ~ name ~ hypr_marketplace_id => Distributor(id, name, hypr_marketplace_id)
     }
   }
 
@@ -40,6 +47,24 @@ object Distributor {
           VALUES ({name});
         """
       ).on("name" -> name).executeInsert()
+    }
+  }
+
+  /**
+   * Sets Distributor HyprMarketplace ID
+   * @param distributor Instance of Distributor class.
+   * @param hyprMarketplaceID ID to set
+   * @return Number of rows successfully updated.
+   */
+  def setHyprMarketplaceID(distributor: Distributor, hyprMarketplaceID: Int) = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          UPDATE distributors
+          SET hypr_marketplace_id={hypr_marketplace_id}
+          WHERE id = {id};
+        """
+      ).on("id" -> distributor.id, "hypr_marketplace_id" -> hyprMarketplaceID).executeUpdate()
     }
   }
 }
