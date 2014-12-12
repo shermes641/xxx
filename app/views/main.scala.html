@@ -43,7 +43,11 @@
         <footer>
             SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
             <div class="footer-text-format"></div>
-            Branch: @{ Play.current.configuration.getString("latestBranch").getOrElse("") }
+            @if(play.api.Play.isDev(play.api.Play.current) || Play.current.configuration.getString("staging").getOrElse("false") == "true") {
+                Branch: @{
+                    Play.current.configuration.getString("latestBranch").getOrElse("")
+                }
+            }
         </footer>
     </body>
 </html>
