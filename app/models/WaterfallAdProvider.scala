@@ -176,20 +176,9 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   def createHyprMarketplace(distributorID: Long, waterfallID: Long)(implicit connection: Connection) = {
-    println("=================")
-    println("=================")
-    println(Play.current.configuration.getLong("hyprmarketplace.ad_provider_id"))
-    println("=================")
-    println("=================")
       val waterfallAdProviderId = createWithTransaction(waterfallID, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), false, true)
       val record = findWithTransaction(waterfallAdProviderId.get).get
       val distributor = Distributor.find(distributorID).get
-
-    println(distributor.hyprMarketplaceID.get.toString)
-    println("=================")
-    println("=================")
-    println(distributorID)
-    println(distributor)
       val hyprConfig = JsObject(
         Seq(
           "requiredParams" -> JsObject(

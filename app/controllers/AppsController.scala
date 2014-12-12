@@ -77,12 +77,6 @@ object AppsController extends Controller with Secured with CustomFormValidation 
           try {
             App.createWithTransaction(distributorID, newApp.appName) match {
               case Some(appID) => {
-                println("-----------")
-                println("-----------")
-                println("-----------")
-                println("-----------")
-                println("-----------")
-                println("-----------")
                 val waterfallID = Waterfall.create(appID, newApp.appName)
                 VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
                 // Setup up HyprMarketplace ad provider
