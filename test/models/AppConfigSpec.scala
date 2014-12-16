@@ -3,15 +3,23 @@ package models
 import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
-import play.api.libs.json.{JsArray, JsNumber, JsObject}
-import play.api.test.Helpers._
-import play.api.test._
-import resources.WaterfallSpecSetup
+import play.api.libs.json.{Json, JsArray, JsNumber, JsObject}
+import resources._
 
 @RunWith(classOf[JUnitRunner])
-class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup with JsonConversion {
-  val virtualCurrency = running(FakeApplication(additionalConfiguration = testDB)) {
-    VirtualCurrency.create(app1.id, "Coins", 100, None, None, Some(true))
+class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup with JsonConversion with AdProviderSpecSetup {
+  "AppConfig.configurationDiffers" should {
+    "return true if the old configuration does not match the new configuration" in new WithDB {
+      val oldConfig = Json.parse(buildAdProviderConfig(Array(("appID", Some("appID1"), None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None))))
+      val newConfig = Json.parse(buildAdProviderConfig(Array(("appID", Some("appID2"), None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None))))
+      AppConfig.configurationDiffers(oldConfig, newConfig) must beTrue
+    }
+
+    "return false if the old configuration matches the new configuration" in new WithDB {
+      val oldConfig = Json.parse(buildAdProviderConfig(Array(("appID", Some("appID1"), None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None))))
+      val newConfig = Json.parse(buildAdProviderConfig(Array(("appID", Some("appID1"), None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None))))
+      AppConfig.configurationDiffers(oldConfig, newConfig) must beFalse
+    }
   }
 
   "AppConfig.create" should {
@@ -76,19 +84,31 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     }
   }
 
+  "AppConfig.findLatest" should {
+    "return the latest instance of AppConfig for a given App token" in new WithDB {
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true)
+      val originalGeneration = generationNumber(currentApp.id)
+      clearGeneration(currentApp.id)
+      val latestConfig = AppConfig.findLatest(currentApp.token).get
+      latestConfig must haveClass[AppConfig]
+      latestConfig.generationNumber must beEqualTo(originalGeneration + 1)
+    }
+
+    "return None if the App token is not found" in new WithDB {
+      val fakeAppToken = "some-fake-token"
+      AppConfig.findLatest(fakeAppToken) must beNone
+    }
+  }
+
   "AppConfig.responseV1" should {
     "return the ad provider configuration info" in new WithDB {
-      val appID = App.create(distributor.id.get, "New App").get
-      val currentApp = App.find(appID).get
-      VirtualCurrency.create(appID, "Coins", 100, None, None, Some(true))
-      val currentWaterfallID = DB.withTransaction { implicit connection =>
-        createWaterfallWithConfig(appID, "New Waterfall")
-      }
-      val wap1ID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, None, None, true, true).get
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+      val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
-      Waterfall.update(currentWaterfallID, false, false)
+      Waterfall.update(currentWaterfall.id, false, false)
       DB.withTransaction { implicit connection =>
-        AppConfig.create(appID, currentApp.token, generationNumber(appID))
+        AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         val configs = (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray]
         (configs(0) \ "providerID").as[JsNumber].toString.toLong must beEqualTo(wap1.adProviderID)
       }
@@ -101,29 +121,19 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     }
 
     "return the test mode response when the Waterfall is in test mode" in new WithDB {
-      val appID = App.create(distributor.id.get, "New App").get
-      val currentApp = App.find(appID).get
-      VirtualCurrency.create(appID, "Coins", 100, None, None, Some(true))
-      val currentWaterfallID = DB.withTransaction { implicit connection =>
-        createWaterfallWithConfig(appID, "New Waterfall")
-      }
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
       DB.withTransaction { implicit connection =>
         AppConfig.responseV1(currentApp.token) must beEqualTo(AppConfig.testResponseV1)
       }
     }
 
     "return an error message indicating that no ad providers are active or meet the reward threshold when all ad providers are either deactivated or below the minimum eCPM" in new WithDB {
-      val appID = App.create(distributor.id.get, "New App").get
-      val currentApp = App.find(appID).get
-      VirtualCurrency.create(appID, "Coins", 100, None, None, Some(true))
-      val currentWaterfallID = DB.withTransaction { implicit connection =>
-        createWaterfallWithConfig(appID, "New Waterfall")
-      }
-      val wap1ID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, None, None, true, false).get
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+      val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, false).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
-      Waterfall.update(currentWaterfallID, false, false)
+      Waterfall.update(currentWaterfall.id, false, false)
       DB.withTransaction { implicit connection =>
-        AppConfig.create(appID, currentApp.token, generationNumber(appID))
+        AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         (AppConfig.responseV1(currentApp.token) \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
       }
     }
