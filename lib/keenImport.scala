@@ -19,11 +19,11 @@ var date = DateTime.now
 var inventory_requests = Array.fill(2100) {
   date = date - 8.minute
   Json.obj(
-    "distributor_id" -> "4609241023451518870",
+    "distributor_id" -> "2572905832331718479",
     "distributor_name" -> "Test Company",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> "169769968641019729",
+    "app_id" -> "4609241023451518870",
     "ad_provider_id" -> 2,
     "ad_provider_name" -> "HyprMarketplace",
     "device_type" -> "iphone",
@@ -40,10 +40,10 @@ var inventory_available = Array.fill(1900) {
   date = date - 8.minute
   Json.obj(
     "distributor_name" -> "Test Company",
-    "distributor_id" -> "4609241023451518870",
+    "distributor_id" -> "2572905832331718479",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> "169769968641019729",
+    "app_id" -> "4609241023451518870",
     "ad_provider_id" -> 2,
     "ad_provider_name" -> "AppLovin",
     "device_type" -> "iphone",
@@ -59,11 +59,11 @@ date = DateTime.now
 var mediation_inventory_requests = Array.fill(1800) {
   date = date - 8.minute
   Json.obj(
-    "distributor_id" -> "4609241023451518870",
+    "distributor_id" -> "2572905832331718479",
     "distributor_name" -> "Test Company",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> "169769968641019729",
+    "app_id" -> "4609241023451518870",
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -77,10 +77,10 @@ date = DateTime.now
 var mediation_inventory_available = Array.fill(1200) {
   date = date - 8.minute
   Json.obj(
-    "distributor_id" -> "4609241023451518870",
+    "distributor_id" -> "2572905832331718479",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> "169769968641019729",
+    "app_id" -> "4609241023451518870",
     "device_type" -> "iphone",
     "device_unique_id" -> "UUID",
     "ip_address" -> "${keen.ip}",
@@ -97,10 +97,10 @@ var ad_displayed = Array.fill(1100) {
   date = date - 8.minute
   Json.obj(
     "distributor_name" -> "Test Company",
-    "distributor_id" -> "4609241023451518870",
+    "distributor_id" -> "2572905832331718479",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> "169769968641019729",
+    "app_id" -> "4609241023451518870",
     "ad_provider_name" -> "HyprMarketplace",
     "ad_provider_id" -> 2,
     "device_type" -> "iphone",
@@ -116,11 +116,11 @@ date = DateTime.now
 var ad_completed = Array.fill(1000) {
   date = date - 9.minute
   Json.obj(
-    "distributor_id" -> "4609241023451518870",
+    "distributor_id" -> "2572905832331718479",
     "distributor_name" -> "Test Distributor",
     "app_name" -> "The Video Game",
     "platform" -> "iOS",
-    "app_id" -> "169769968641019729",
+    "app_id" -> "4609241023451518870",
     "ad_provider_id" -> 3,
     "ad_provider_name" -> "HyprMarketplace",
     "device_type" -> "iphone",
