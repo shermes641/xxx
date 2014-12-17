@@ -12,9 +12,11 @@
         <script src="@routes.Assets.at("javascripts/jquery.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/jquery-ui.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/underscore.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/angular.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/main.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/browser_support.js")" type="text/javascript"></script>
     </head>
-    <body>
+    <body ng-app="MediationModule">
         <div class="content-wrapper">
             <header>
                 <a href="@routes.AnalyticsController.show(distributorID, appID)" class=@{if(title == "") "inactive-link" else ""}>
@@ -36,7 +38,7 @@
                     </div>
                 }
             }
-            <div id="browser_support">The browser you are using is not actively supported.<div id="dismiss_browser">Dismiss</div></div>
+            <div id="browser_support" ng-controller="BrowserSupportController">The browser you are using is not actively supported.<div id="dismiss_browser">Dismiss</div></div>
             @content
             <div class="push"></div>
         </div>

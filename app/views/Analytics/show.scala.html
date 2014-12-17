@@ -3,7 +3,7 @@
 @main("Analytics", distributorID, appID) {
     @views.html.Partials.subHeader("analytics", distributorID, appID, None)
 
-    <div class="content dashboard">
+    <div class="content dashboard" ng-controller="AnalyticsController">
         <div class="fluid-container">
             <div class="row">
                 <div class="col-sm-4">
@@ -378,7 +378,4 @@
 <script src="@routes.Assets.at("javascripts/datepicker.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/selectize.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/analytics/dashboard.js")" type="text/javascript"></script>
-<script>
-    new Analytics();
-</script>
 
