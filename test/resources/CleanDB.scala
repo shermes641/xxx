@@ -1,6 +1,7 @@
 package resources
 
 import anorm._
+import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
 import play.api.test.Helpers._
