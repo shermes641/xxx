@@ -13,11 +13,11 @@ trait AppSpecSetup extends SpecificationWithFixtures {
    */
   def setUpApp(distributorID: Long, appName: String = "App 1", currencyName: String = "Coins"): (App, Waterfall, VirtualCurrency, AppConfig) = {
     val currentApp = {
-      val id = App.create(distributorID, "App 1").get
+      val id = App.create(distributorID, appName).get
       App.find(id).get
     }
     val virtualCurrency = {
-      val id = VirtualCurrency.create(currentApp.id, "Gold", 100, None, None, Some(true)).get
+      val id = VirtualCurrency.create(currentApp.id, currencyName, 100, None, None, Some(true)).get
       VirtualCurrency.find(id).get
     }
     val currentWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, appName) }

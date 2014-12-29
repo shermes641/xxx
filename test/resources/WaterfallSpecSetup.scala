@@ -1,7 +1,6 @@
 package resources
 
 import models._
-import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
 
