@@ -139,12 +139,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
   }
 
   "AppsController.edit" should {
-<<<<<<< HEAD
     "find the app with virtual currency and render the edit form" in new WithAppBrowser(user.distributorID.get) {
-=======
-    "find the app with virtual currency and render the edit form" in new WithFakeBrowser {
-      val (currentApp, _, virtualCurrency, _) = setUpApp(user.distributorID.get)
->>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
@@ -152,12 +147,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain(currentVirtualCurrency.name)
     }
 
-<<<<<<< HEAD
     "not submit the form if a required field is missing" in new WithAppBrowser(user.distributorID.get) {
-=======
-    "not submit the form if a required field is missing" in new WithFakeBrowser {
-      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
->>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
@@ -170,12 +160,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("Currency name is required")
     }
 
-<<<<<<< HEAD
     "notify the user if server to server callbacks are enabled without a valid callback URL" in new WithAppBrowser(user.distributorID.get) {
-=======
-    "notify the user if server to server callbacks are enabled without a valid callback URL" in new WithFakeBrowser {
-      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
->>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
@@ -199,12 +184,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       AdProvider.create("test ad provider", adProviderConfig, None)
     }
 
-<<<<<<< HEAD
     "update the app record in the database" in new WithAppBrowser(user.distributorID.get) {
-=======
-    "update the app record in the database" in new WithFakeBrowser {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(user.distributorID.get)
->>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
       Waterfall.update(currentWaterfall.id, true, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
       VirtualCurrency.create(currentApp.id, "Gold", 100, None, None, Some(true))
@@ -221,12 +201,7 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
-<<<<<<< HEAD
     "update the virtual currency record in the database" in new WithAppBrowser(user.distributorID.get) {
-=======
-    "update the virtual currency record in the database" in new WithFakeBrowser {
-      val (currentApp, currentWaterfall, virtualCurrency, _) = setUpApp(user.distributorID.get)
->>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
       Waterfall.update(currentWaterfall.id, true, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
@@ -236,7 +211,6 @@ class AppsControllerSpec extends SpecificationWithFixtures {
 
       logInUser()
       browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
-      browser.pageSource must contain(currentVirtualCurrency.name)
       browser.pageSource must contain(currentVirtualCurrency.name)
       browser.fill("#rewardMin").`with`(rewardMin.toString())
       browser.fill("#rewardMax").`with`(rewardMax.toString())

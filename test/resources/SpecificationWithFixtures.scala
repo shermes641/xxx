@@ -33,7 +33,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   abstract class WithDB extends WithApplication(FakeApplication(additionalConfiguration = testDB))
 
   /**
-   * Creates application for functional tests using a test database and Firefox browser.
+   * Creates application for functional tests using a test database and a Firefox web browser.
    */
   abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) with DefaultUserValues {
     /**
@@ -49,7 +49,6 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       browser.click("button")
     }
   }
-<<<<<<< HEAD
 
   /**
    * Creates application for unit tests with set up code for a new App/Waterfall/VirtualCurrency/AppConfig combination.
@@ -66,6 +65,4 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   abstract class WithAppBrowser(distributorID: Long) extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
     lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID)
   }
-=======
->>>>>>> dea346c... [MED-336] Refactored WaterfallAdProvidersControllerSpec
 }
