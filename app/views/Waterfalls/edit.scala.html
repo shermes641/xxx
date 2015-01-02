@@ -19,7 +19,18 @@
                 </select>
             </div>
             <div class="app-token" data-app-token="@waterfall.appToken">API Token:
-                <code>@waterfall.appToken</code>
+                <code class="copy-paste-code">@waterfall.appToken</code>
+            </div>
+            <div class="app-token">Initialize HyprMediate in your SDK:</div>
+            <div class="code-block">
+                <div class="waterfall-edit-description">
+                    Copy and paste the following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
+                </div>
+                <code class="waterfall-edit-description copy-paste-code">
+                    // Be sure to replace "USER ID" with whatever method you choose to generate a user ID.
+                    <br/>
+                    @{"[HYPRMediate initialize:@\"" + waterfall.appToken + "\" userId:@\"USER ID\"];"}
+                </code>
             </div>
             <table>
                 <td class="td-waterfall-config">
