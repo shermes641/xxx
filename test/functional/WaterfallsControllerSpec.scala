@@ -24,21 +24,19 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   }
 
   "WaterfallsController.list" should {
-    "return waterfall edit page with one waterfall" in new WithFakeBrowser {
+    "return waterfall edit page with one waterfall" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      val (newApp, newWaterfall, _, _) = setUpApp(distributor.id.get)
-      browser.goTo(controllers.routes.WaterfallsController.list(distributor.id.get, newApp.id, None).url)
+      browser.goTo(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
       browser.pageSource must contain("Edit Waterfall")
-      browser.pageSource must contain(newWaterfall.name)
+      browser.pageSource must contain(currentWaterfall.name)
     }
 
-    "return to app list if multiple waterfalls are found" in new WithFakeBrowser {
+    "return to app list if multiple waterfalls are found" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      val (newApp, _, _, _) = setUpApp(distributor.id.get)
-      DB.withTransaction { implicit connection => createWaterfallWithConfig(newApp.id, "New Waterfall") }
-      browser.goTo(controllers.routes.WaterfallsController.list(distributor.id.get, newApp.id, None).url)
+      DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New Waterfall") }
+      browser.goTo(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
       browser.pageSource must contain("Waterfall could not be found.")
     }
   }
@@ -219,30 +217,28 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
-    "not set waterfall to live mode when no ad providers are configured" in new WithFakeBrowser {
-      val (newApp, newWaterfall, _, _) = setUpApp(distributor.id.get)
-      val originalGeneration = generationNumber(newApp.id)
+    "not set waterfall to live mode when no ad providers are configured" in new WithAppBrowser(distributor.id.get) {
+      val originalGeneration = generationNumber(currentApp.id)
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
-      Waterfall.find(newWaterfall.id).get.testMode must beEqualTo(true)
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
-      Waterfall.find(newWaterfall.id).get.testMode must beEqualTo(true)
-      generationNumber(newApp.id) must beEqualTo(originalGeneration)
+      Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
+      generationNumber(currentApp.id) must beEqualTo(originalGeneration)
     }
   }
 
   "WaterfallsController.edit" should {
-    "display default eCPM values for Ad Providers" in new WithFakeBrowser {
-      val (_, newWaterfall, _, _) = setUpApp(distributor.id.get)
+    "display default eCPM values for Ad Providers" in new WithAppBrowser(distributor.id.get) {
       val defaultEcpm = "20.0"
       val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfigData, None, false, Some(defaultEcpm.toDouble)).get
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.$("li[id=true-" + adProviderWithDefaultEcpmID + "]").getAttribute("data-cpm") must beEqualTo(defaultEcpm)
     }
 
@@ -256,5 +252,4 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.find("#waterfall-selection").getValue.contains(appName)
     }
   }
-  step(clean)
 }

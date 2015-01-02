@@ -8,7 +8,6 @@ import play.api.db.DB
 import play.api.mvc._
 import play.api.Play.current
 import play.api.Play
-import play.api.libs.json.{JsBoolean, JsString, JsObject, JsValue}
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with CustomFormValidation {

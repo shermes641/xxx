@@ -289,5 +289,4 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       tableCount("completions") must beEqualTo(completionCount)
     }
   }
-  step(clean)
 }

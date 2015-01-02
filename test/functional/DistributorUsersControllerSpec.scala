@@ -111,5 +111,4 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("Begin by creating an app")
     }
   }
-  step(clean)
 }

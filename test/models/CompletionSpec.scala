@@ -38,5 +38,4 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
   }
-  step(clean)
 }

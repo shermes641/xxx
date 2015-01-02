@@ -4,7 +4,7 @@ import models._
 import play.api.test.Helpers._
 import play.api.test._
 
-trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserSetup with AppSpecSetup {
+trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
   val (user, distributor) = running(FakeApplication(additionalConfiguration = testDB)) {
     newDistributorUser()
   }

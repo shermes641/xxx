@@ -102,6 +102,4 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
       decrypted must contain("property_value="+distributorID.toString)
     }
   }
-
-  step(clean)
 }

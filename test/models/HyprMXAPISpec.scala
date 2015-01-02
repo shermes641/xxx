@@ -53,6 +53,4 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     hyprMX.retrieveHyprMXData(configurationData) returns Future { response }
     Await.result(hyprMX.updateRevenueData, Duration(5000, "millis"))
   }
-
-  step(clean)
 }

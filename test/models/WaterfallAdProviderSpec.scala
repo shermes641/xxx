@@ -13,7 +13,7 @@ import play.libs.Json
 import resources.JsonTesting
 
 @RunWith(classOf[JUnitRunner])
-class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting {
+class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallCreationHelper {
   val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
     val distributorID = Distributor.create("New Company").get
     val distributor = Distributor.find(distributorID).get
@@ -143,5 +143,4 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
       WaterfallAdProvider.findByAdProvider(currentApp.token, "Some fake ad provider name") must beNone
     }
   }
-  step(clean)
 }

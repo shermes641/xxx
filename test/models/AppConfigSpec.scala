@@ -128,5 +128,4 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
   }
-  step(clean)
 }

@@ -58,7 +58,4 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       emailActor must haveClass[JunGroupEmailActor]
     }
   }
-
-  step(clean)
 }
-

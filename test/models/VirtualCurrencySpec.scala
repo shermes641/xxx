@@ -45,5 +45,4 @@ class VirtualCurrencySpec extends SpecificationWithFixtures with DistributorUser
       updatedRecord.name must beEqualTo(newName)
     }
   }
-  step(clean)
 }

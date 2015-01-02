@@ -87,5 +87,4 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       DistributorUser.findByEmail(unknownEmail) must beNone
     }
   }
-  step(clean)
 }

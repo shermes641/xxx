@@ -29,5 +29,4 @@ class ApplicationSpec extends SpecificationWithFixtures {
       browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/apps")
     }
   }
-  step(clean)
 }

@@ -3,8 +3,6 @@ package models
 import play.api.db.DB
 import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
-import play.api.libs.json.JsObject
-import play.api.Play.current
 import resources.WaterfallSpecSetup
 import org.specs2.runner._
 
@@ -105,5 +103,4 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       Waterfall.findCallbackInfo("some fake token") must beNone
     }
   }
-  step(clean)
 }

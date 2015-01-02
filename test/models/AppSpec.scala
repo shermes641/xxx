@@ -80,6 +80,5 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long] must beEqualTo(newAppConfigRefreshInterval)
     }
   }
-  step(clean)
 }
 

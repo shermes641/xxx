@@ -12,11 +12,9 @@ import play.api.test._
  */
 trait CleanDB {
   val testDB = {
-    running(FakeApplication()) {
-      Map("db.default.url" -> Play.current.configuration.getString("db.test.url").getOrElse("jdbc:postgresql://localhost/mediation_test"),
-          "db.default.user" -> Play.current.configuration.getString("db.test.user").getOrElse("postgres"),
-          "db.default.password" -> Play.current.configuration.getString("db.test.password").getOrElse("postgres"))
-    }
+    Map("db.default.url" -> sys.env.getOrElse("TEST_DATABASE_URL", "jdbc:postgresql://localhost/mediation_test"),
+        "db.default.user" -> sys.env.getOrElse("TEST_DATABASE_USER", "postgres"),
+        "db.default.password" -> sys.env.getOrElse("TEST_DATABASE_PASSWORD", "postgres"))
   }
 
   // Helper function to drop and recreate the schema for the test database.

@@ -1,9 +1,9 @@
 package models
 
-import play.api.Play.current
 import play.api.db.DB
+import play.api.Play.current
 
-trait AppSpecSetup extends SpecificationWithFixtures {
+trait AppCreationHelper extends WaterfallCreationHelper {
   /**
    * Helper function to create a new App, VirtualCurrency, Waterfall, and AppConfig in tests.
    * @param distributorID The ID of the Distributor to which all models in setUpApp belong.

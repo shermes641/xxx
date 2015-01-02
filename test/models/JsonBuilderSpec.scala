@@ -64,5 +64,4 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       JsonBuilder.sdkConfiguration(expectedAppConfigRefreshInterval) must beEqualTo(expectedSdkConfigurationJson)
     }
   }
-  step(clean)
 }
