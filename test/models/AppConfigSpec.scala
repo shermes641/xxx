@@ -6,6 +6,7 @@ import play.api.db.DB
 import play.api.libs.json.{JsArray, JsNumber, JsObject}
 import play.api.test.Helpers._
 import play.api.test._
+import resources.WaterfallSpecSetup
 
 @RunWith(classOf[JUnitRunner])
 class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup with JsonConversion {
@@ -24,8 +25,8 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
     "increment the generation number for an existing waterfall ID each time the configuration has changed" in new WithDB {
       val originalGeneration = generationNumber(app1.id)
-      Waterfall.update(waterfall.get.id, true, false)
-      WaterfallAdProvider.create(waterfall.get.id, adProviderID1.get, None, Some(5.0), false, true)
+      Waterfall.update(waterfall.id, true, false)
+      WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
@@ -49,7 +50,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
       DB.withTransaction { implicit connection =>
-        val newGeneration = AppConfig.createWithWaterfallIDInTransaction(waterfall.get.id, Some(originalGeneration)).get
+        val newGeneration = AppConfig.createWithWaterfallIDInTransaction(waterfall.id, Some(originalGeneration)).get
         newGeneration must beEqualTo(originalGeneration + 1)
       }
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -59,7 +60,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
       DB.withTransaction { implicit connection =>
-        AppConfig.createWithWaterfallIDInTransaction(waterfall.get.id, Some(originalGeneration - 1)) must throwA[IllegalArgumentException]
+        AppConfig.createWithWaterfallIDInTransaction(waterfall.id, Some(originalGeneration - 1)) must throwA[IllegalArgumentException]
       }
       generationNumber(app1.id) must beEqualTo(originalGeneration)
     }
@@ -68,7 +69,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
       DB.withTransaction { implicit connection =>
-        val newGeneration = AppConfig.createWithWaterfallIDInTransaction(waterfall.get.id, None).get
+        val newGeneration = AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None).get
         newGeneration must beEqualTo(originalGeneration + 1)
       }
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -127,5 +128,4 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
   }
-  step(clean)
 }

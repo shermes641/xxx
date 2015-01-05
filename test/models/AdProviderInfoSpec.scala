@@ -3,6 +3,7 @@ package models
 import models.Waterfall.AdProviderInfo
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import resources.WaterfallSpecSetup
 
 @RunWith(classOf[JUnitRunner])
 class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
@@ -49,5 +50,4 @@ class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSet
       adProviderInfo.meetsRewardThreshold must beEqualTo(false)
     }
   }
-  step(clean)
 }

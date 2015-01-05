@@ -1,11 +1,10 @@
 package models
 
+import play.api.db.DB
 import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
+import resources.WaterfallSpecSetup
 import org.specs2.runner._
-import play.api.db.DB
-import play.api.Play.current
-import play.api.libs.json.JsObject
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
@@ -22,8 +21,8 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
     "update a Waterfall record in the database" in new WithDB {
       val optimizedOrder = false
       val testMode = true
-      Waterfall.update(waterfall.get.id, optimizedOrder, testMode)
-      val currentWaterfall = Waterfall.find(waterfall.get.id).get
+      Waterfall.update(waterfall.id, optimizedOrder, testMode)
+      val currentWaterfall = Waterfall.find(waterfall.id).get
       currentWaterfall.optimizedOrder must beEqualTo(optimizedOrder)
       currentWaterfall.testMode must beEqualTo(testMode)
     }
@@ -31,10 +30,10 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
   "Waterfall.reconfigureAdProviders" should {
     "create a new WaterfallAdProvider if one doesn't exist and ConfigInfo is a new record" in new WithDB {
-      WaterfallAdProvider.findAllByWaterfallID(waterfall.get.id).size must beEqualTo(0)
+      WaterfallAdProvider.findAllByWaterfallID(waterfall.id).size must beEqualTo(0)
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, 0, None, true))
-      DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(waterfall.get.id, configList) }
-      WaterfallAdProvider.findAllByWaterfallID(waterfall.get.id).size must beEqualTo(1)
+      DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(waterfall.id, configList) }
+      WaterfallAdProvider.findAllByWaterfallID(waterfall.id).size must beEqualTo(1)
     }
 
     "should not create a new WaterfallAdProvider if one doesn't exist and ConfigInfo is not active" in new WithDB {
@@ -104,5 +103,4 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       Waterfall.findCallbackInfo("some fake token") must beNone
     }
   }
-  step(clean)
 }

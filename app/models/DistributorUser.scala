@@ -113,13 +113,13 @@ object DistributorUser {
    * @param email Email to be stored for DistributorUser
    * @param password Password to be hashed and stored for DistributorUser
    * @param company Company name to be used for creation of Distributor.
-   * @return ID of the new record if the insert is successful.  Otherwise, returns false.
+   * @return ID of the new record if the insert is successful.  Otherwise, returns None.
    */
-  def create(email: String, password: String, company: String) = {
+  def create(email: String, password: String, company: String): Option[Long] = {
     val salt = generateSalt
     val hashedPassword = password.bcrypt(salt)
     findByEmail(email) match {
-      case Some(user) => false
+      case Some(user) => None
       case _ => {
         Distributor.create(company) match {
           case Some(distributorID) => {
@@ -132,7 +132,7 @@ object DistributorUser {
               ).on("email" -> email, "hashed_password" -> hashedPassword, "distributor_id" -> distributorID).executeInsert()
             }
           }
-          case _ => false
+          case _ => None
         }
       }
     }

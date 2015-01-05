@@ -20,5 +20,4 @@ class DistributorSpec extends SpecificationWithFixtures {
       }
     }
   }
-  step(clean)
 }

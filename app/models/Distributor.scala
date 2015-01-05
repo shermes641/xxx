@@ -39,7 +39,7 @@ object Distributor {
     }
   }
 
-  def create(name: String) = {
+  def create(name: String): Option[Long] = {
     DB.withConnection { implicit connection =>
       SQL(
         """

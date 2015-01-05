@@ -11,7 +11,7 @@ class DistributorUserSpec extends SpecificationWithFixtures {
 
   "DistributorUser.create" should {
     "add a DistributorUser to the database" in new WithDB {
-      DistributorUser.create(email, password, companyName) must not equalTo(false)
+      DistributorUser.create(email, password, companyName).must(not).beNone
     }
 
     "create a Distributor" in new WithDB {
@@ -35,7 +35,7 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       user match {
         case Some(user) => {
           user.email must beEqualTo(email)
-          user.hashedPassword must not beNull
+          user.hashedPassword.must(not).beNull
         }
         case _ => user must beSome[DistributorUser]
       }
@@ -43,13 +43,13 @@ class DistributorUserSpec extends SpecificationWithFixtures {
 
     "not create another DistributorUser if the email is already taken" in new WithDB {
       DistributorUser.create(email, password, companyName)
-      DistributorUser.create(email, password, companyName) must equalTo(false)
+      DistributorUser.create(email, password, companyName) must beNone
     }
 
     "not create a DistributorUser for a duplicate email with alternate capitalization" in new WithDB {
       val newUserEmail = "someNewUser@mail.com"
       DistributorUser.create(newUserEmail, password, companyName)
-      DistributorUser.create(newUserEmail.toUpperCase, password, companyName) must equalTo(false)
+      DistributorUser.create(newUserEmail.toUpperCase, password, companyName) must beNone
     }
   }
 
@@ -87,5 +87,4 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       DistributorUser.findByEmail(unknownEmail) must beNone
     }
   }
-  step(clean)
 }

@@ -7,6 +7,7 @@ import play.api.db.DB
 import play.api.libs.json.{JsNumber, JsObject}
 import play.api.test._
 import play.api.test.Helpers._
+import resources.WaterfallSpecSetup
 
 @RunWith(classOf[JUnitRunner])
 class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
@@ -79,6 +80,5 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long] must beEqualTo(newAppConfigRefreshInterval)
     }
   }
-  step(clean)
 }
 

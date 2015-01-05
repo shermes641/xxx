@@ -5,7 +5,6 @@ import anorm._
 import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
-import play.api.Play.current
 
 class AppsControllerSpec extends SpecificationWithFixtures {
   val appName = "App 1"
@@ -30,27 +29,65 @@ class AppsControllerSpec extends SpecificationWithFixtures {
   val distributorID = user.distributorID.get
 
   "AppsController.index" should {
-    "display all apps" in new WithFakeBrowser {
+    "display all apps for a given distributor ID" in new WithFakeBrowser {
       val app2Name = "App 2"
       val appID = App.create(user.distributorID.get, app2Name).get
       DB.withTransaction { implicit connection => Waterfall.create(appID, app2Name) }
-      val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps"
 
       logInUser()
 
-      browser.goTo(url)
+      browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
+      browser.pageSource must contain("My Apps")
       browser.pageSource must contain(app2Name)
     }
   }
 
   "AppsController.newApp" should {
-    "create a new app with a corresponding waterfall and virtual currency" in new WithFakeBrowser {
+    "not create a new app with a virtual currency Reward Minimum that is greater than the Reward Maximum" in new WithFakeBrowser {
+      val appCount = App.findAll(user.distributorID.get).size
+
+      logInUser()
+
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.fill("#appName").`with`(appName)
+      browser.fill("#currencyName").`with`("Gold")
+      browser.fill("#exchangeRate").`with`("100")
+      browser.fill("#rewardMin").`with`("100")
+      browser.fill("#rewardMax").`with`("1")
+      browser.$("button[name=new-app-form]").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
+      App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+    }
+
+    "not allow a new app to be created unless all required fields are filled" in new WithFakeBrowser {
+      val appCount = App.findAll(user.distributorID.get).size
+
+      logInUser()
+
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
+
+      browser.fill("#appName").`with`(appName)
+      browser.fill("#currencyName").`with`("Gold")
+      browser.fill("#exchangeRate").`with`("100")
+      browser.fill("#rewardMin").`with`("1")
+      browser.fill("#rewardMax").`with`("10")
+
+      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(true)
+      browser.$("button[name=new-app-form]").first.click()
+      browser.pageSource must contain("Edit Waterfall")
+      App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
+    }
+  }
+
+  "AppsController.create" should {
+    "create a new app with a corresponding waterfall, virtual currency, and app config" in new WithFakeBrowser {
       val appCount = App.findAll(user.distributorID.get).size
       val currencyName = "Gold"
 
       logInUser()
 
-      browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.fill("#appName").`with`(appName)
       browser.fill("#currencyName").`with`(currencyName)
       browser.fill("#exchangeRate").`with`("100")
@@ -63,11 +100,11 @@ class AppsControllerSpec extends SpecificationWithFixtures {
 
       apps.size must beEqualTo(appCount + 1)
       Waterfall.findByAppID(firstApp.id).size must beEqualTo(1)
-      VirtualCurrency.findByAppID(firstApp.id) must not beNone
+      AppConfig.findLatest(firstApp.token).must(not).beNone
+      VirtualCurrency.findByAppID(firstApp.id).must(not).beNone
     }
 
-    "rollback the database if there is an error creating a new app, waterfall, or virtual currency" in new WithFakeBrowser {
-      val appCount = App.findAll(user.distributorID.get).size
+    "rollback the database if there is an error creating a new app, waterfall, virtual currency, or app config" in new WithFakeBrowser {
       val newUserEmail = "test@gmail.com"
       val newUserPassword = "password"
       DistributorUser.create(newUserEmail, newUserPassword, companyName)
@@ -76,9 +113,10 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       val appsCount = tableCount("apps")
       val waterfallsCount = tableCount("waterfalls")
       val currenciesCount = tableCount("virtual_currencies")
+      val appConfigsCount = tableCount("app_configs")
 
       logInUser(newUserEmail, newUserPassword)
-      browser.goTo("http://localhost:" + port + "/distributors/" + newUser.distributorID.get + "/apps/new")
+      browser.goTo(controllers.routes.AppsController.newApp(newUser.distributorID.get).url)
 
       // Remove the distributor from the database just before attempting to create a new app.  This will cause a SQL error in AppsController.create
       DB.withConnection { implicit connection =>
@@ -96,88 +134,92 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       appsCount must beEqualTo(tableCount("apps"))
       waterfallsCount must beEqualTo(tableCount("waterfalls"))
       currenciesCount must beEqualTo(tableCount("virtual_currencies"))
-    }
-
-    "not create a new app with a virtual currency Reward Minimum that is greater than the Reward Maximum" in new WithFakeBrowser {
-      val appCount = App.findAll(user.distributorID.get).size
-
-      logInUser()
-
-      browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
-      browser.fill("#appName").`with`(appName)
-      browser.fill("#currencyName").`with`("Gold")
-      browser.fill("#exchangeRate").`with`("100")
-      browser.fill("#rewardMin").`with`("100")
-      browser.fill("#rewardMax").`with`("1")
-      browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
-      App.findAll(user.distributorID.get).size must beEqualTo(appCount)
-    }
-
-    "not allow a new app to be created unless all required fields are filled" in new WithFakeBrowser {
-      val appCount = App.findAll(user.distributorID.get).size
-
-      logInUser()
-
-      browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/new")
-      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
-
-      browser.fill("#appName").`with`(appName)
-      browser.fill("#currencyName").`with`("Gold")
-      browser.fill("#exchangeRate").`with`("100")
-      browser.fill("#rewardMin").`with`("1")
-      browser.fill("#rewardMax").`with`("10")
-
-      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(true)
-      browser.$("button[name=new-app-form]").first.click()
-      browser.pageSource must contain("Edit Waterfall")
-      App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
+      appConfigsCount must beEqualTo(tableCount("app_configs"))
     }
   }
 
   "AppsController.edit" should {
-    "update the app record in the database" in new WithFakeBrowser {
-      val appID = App.create(user.distributorID.get, "App 1").get
-      val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "App 1") }.get
-      VirtualCurrency.create(appID, "Gold", 100, None, None, Some(true))
+    "find the app with virtual currency and render the edit form" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      browser.pageSource must contain(currentApp.name)
+      browser.pageSource must contain(currentVirtualCurrency.name)
+    }
+
+    "not submit the form if a required field is missing" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      browser.fill("#exchangeRate").`with`("")
+      browser.fill("#appName").`with`("")
+      browser.fill("#currencyName").`with`("")
+      browser.$("button[name=submit]").first.click()
+      browser.pageSource must contain("Numeric value expected")
+      browser.pageSource must contain("App name is required")
+      browser.pageSource must contain("Currency name is required")
+    }
+
+    "notify the user if server to server callbacks are enabled without a valid callback URL" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.$("button[name=submit]").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("A valid HTTP or HTTPS callback URL is required.")
+    }
+  }
+
+  "AppsController.update" should {
+    val adProviderConfig = "{\"requiredParams\":[" +
+      "{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, " +
+      "{\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], " +
+      "\"reportingParams\": [" +
+      "{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, " +
+      "{\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, " +
+      "{\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], " +
+      "\"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}"
+
+    val adProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
+      AdProvider.create("test ad provider", adProviderConfig, None)
+    }
+
+    "update the app record in the database" in new WithAppBrowser(user.distributorID.get) {
+      Waterfall.update(currentWaterfall.id, true, false)
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
+      VirtualCurrency.create(currentApp.id, "Gold", 100, None, None, Some(true))
       val newAppName = "New App Name"
-      val url = "http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID + "/edit"
 
       logInUser()
-      DB.withTransaction { implicit connection => AppConfig.create(appID, App.find(appID).get.token, generationNumber(appID))}
-      browser.goTo(url)
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      val originalGeneration = generationNumber(currentApp.id)
+      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
       browser.fill("#appName").`with`(newAppName)
       browser.$("button[name=submit]").first.click()
       browser.pageSource must contain(newAppName)
+      App.find(currentApp.id).get.name must beEqualTo(newAppName)
+      generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
-    "update the virtual currency record in the database" in new WithFakeBrowser {
-      val appID = App.create(user.distributorID.get, "App 1").get
-      val appToken = App.find(appID).get.token
-      val vcID = VirtualCurrency.create(appID, "App 1", 100, None, None, Some(true)).get
-      val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "App 1") }.get
-      Waterfall.update(waterfallID, true, false)
-      val adProviderID = AdProvider.create("test ad provider", "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      WaterfallAdProvider.create(waterfallID, adProviderID.get, None, Some(5.0), false, true)
-      val virtualCurrency = VirtualCurrency.find(vcID).get
-      DB.withTransaction { implicit connection => AppConfig.create(appID, appToken, generationNumber(appID)) }
-      val originalGeneration = generationNumber(appID)
+    "update the virtual currency record in the database" in new WithAppBrowser(user.distributorID.get) {
+      Waterfall.update(currentWaterfall.id, true, false)
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      val originalGeneration = generationNumber(currentApp.id)
       val rewardMin = 1
       val rewardMax = 100
 
       logInUser()
-      browser.goTo("http://localhost:" + port + "/distributors/" + user.distributorID.get + "/apps/" + appID + "/edit")
-      browser.pageSource must contain(virtualCurrency.name)
+      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      browser.pageSource must contain(currentVirtualCurrency.name)
       browser.fill("#rewardMin").`with`(rewardMin.toString())
       browser.fill("#rewardMax").`with`(rewardMax.toString())
       browser.$("button[name=submit]").first.click()
 
-      val updatedVC = VirtualCurrency.find(virtualCurrency.id).get
+      val updatedVC = VirtualCurrency.find(currentVirtualCurrency.id).get
       updatedVC.rewardMin.get must beEqualTo(rewardMin)
       updatedVC.rewardMax.get must beEqualTo(rewardMax)
-      AppConfig.findLatest(appToken).get.generationNumber must beEqualTo(originalGeneration + 1)
+      AppConfig.findLatest(currentApp.token).get.generationNumber must beEqualTo(originalGeneration + 1)
     }
   }
-  step(clean)
 }
-
