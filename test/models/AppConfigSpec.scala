@@ -4,8 +4,6 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.test.Helpers._
-import play.api.test._
 import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
 
 @RunWith(classOf[JUnitRunner])
@@ -87,8 +85,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
   }
 
   "AppConfig.findLatest" should {
-    "return the latest instance of AppConfig for a given App token" in new WithDB {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+    "return the latest instance of AppConfig for a given App token" in new WithAppDB(distributor.id.get) {
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true)
       val originalGeneration = generationNumber(currentApp.id)
       clearGeneration(currentApp.id)
@@ -104,8 +101,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
   }
 
   "AppConfig.responseV1" should {
-    "return the ad provider configuration info" in new WithDB {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+    "return the ad provider configuration info" in new WithAppDB(distributor.id.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
       Waterfall.update(currentWaterfall.id, false, false)
@@ -122,15 +118,13 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
 
-    "return the test mode response when the Waterfall is in test mode" in new WithDB {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+    "return the test mode response when the Waterfall is in test mode" in new WithAppDB(distributor.id.get) {
       DB.withTransaction { implicit connection =>
         AppConfig.responseV1(currentApp.token) must beEqualTo(AppConfig.testResponseV1)
       }
     }
 
-    "return an error message indicating that no ad providers are active or meet the reward threshold when all ad providers are either deactivated or below the minimum eCPM" in new WithDB {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+    "return an error message indicating that no ad providers are active or meet the reward threshold when all ad providers are either deactivated or below the minimum eCPM" in new WithAppDB(distributor.id.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, false).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
       Waterfall.update(currentWaterfall.id, false, false)

@@ -65,5 +65,4 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
       verification.isValid must beEqualTo(false)
     }
   }
-  step(clean)
 }

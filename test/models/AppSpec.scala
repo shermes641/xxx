@@ -5,35 +5,33 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.db.DB
 import play.api.libs.json.{JsNumber, JsObject}
-import play.api.test._
-import play.api.test.Helpers._
-import resources.WaterfallSpecSetup
+import resources.{DistributorUserSetup, WaterfallSpecSetup}
 
 @RunWith(classOf[JUnitRunner])
-class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
+class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with DistributorUserSetup {
   val appName = "App 1"
 
   "App.findAppWithVirtualCurrency" should {
-    "return an instance of the AppWithVirtualCurrency class" in new WithDB {
-      val(currentApp, _, currentCurrency, _) = setUpApp(distributor.id.get)
+    "return an instance of the AppWithVirtualCurrency class" in new WithAppDB(distributor.id.get) {
       App.findAppWithVirtualCurrency(currentApp.id).get must haveClass[AppWithVirtualCurrency]
     }
 
-    "return attributes for both App and VirtualCurrency" in new WithDB {
-      val(currentApp, _, currentCurrency, _) = setUpApp(distributor.id.get)
+    "return attributes for both App and VirtualCurrency" in new WithAppDB(distributor.id.get) {
       val appWithCurrency = App.findAppWithVirtualCurrency(currentApp.id).get
       appWithCurrency.appName must beEqualTo(currentApp.name)
-      appWithCurrency.currencyID must beEqualTo(currentCurrency.id)
-      appWithCurrency.currencyName must beEqualTo(currentCurrency.name)
+      appWithCurrency.currencyID must beEqualTo(currentVirtualCurrency.id)
+      appWithCurrency.currencyName must beEqualTo(currentVirtualCurrency.name)
     }
   }
 
   "App.findAllAppsWithWaterfalls" should {
     "return a list of Apps containing the Waterfall ID for each App" in new WithDB {
-      val(currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
-      val appWithWaterfallID = App.findAllAppsWithWaterfalls(distributor.id.get)(0)
-      appWithWaterfallID.id must beEqualTo(currentApp.id)
-      appWithWaterfallID.waterfallID must beEqualTo(currentWaterfall.id)
+      val (newUser, newDistributor) = newDistributorUser("newemail@gmail.com")
+      val appID = App.create(newDistributor.id.get, "New App").get
+      val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "New Waterfall") }.get
+      val appWithWaterfallID = App.findAllAppsWithWaterfalls(newDistributor.id.get)(0)
+      appWithWaterfallID.id must beEqualTo(appID)
+      appWithWaterfallID.waterfallID must beEqualTo(waterfallID)
     }
 
     "return an empty list if no Apps could be found" in new WithDB {
@@ -43,8 +41,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   }
 
   "App.findAppWithWaterfalls" should {
-    "return an App containing the Waterfall ID for the App" in new WithDB {
-      val(currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+    "return an App containing the Waterfall ID for the App" in new WithAppDB(distributor.id.get) {
       val appWithWaterfallID = App.findAppWithWaterfalls(currentApp.id).get
       appWithWaterfallID.id must beEqualTo(currentApp.id)
       appWithWaterfallID.waterfallID must beEqualTo(currentWaterfall.id)
@@ -92,8 +89,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   }
 
   "App.find" should {
-    "return an instance of the App class if the ID is found" in new WithDB {
-      val(currentApp, _, _, _) = setUpApp(distributor.id.get)
+    "return an instance of the App class if the ID is found" in new WithAppDB(distributor.id.get) {
       App.find(currentApp.id).get must haveClass[App]
     }
 
@@ -104,8 +100,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   }
 
   "App.findByWaterfallID" should {
-    "return an instance of the App class if the Waterfall ID is found" in new WithDB {
-      val(currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get)
+    "return an instance of the App class if the Waterfall ID is found" in new WithAppDB(distributor.id.get) {
       App.findByWaterfallID(currentWaterfall.id).get must beEqualTo(currentApp)
     }
 
@@ -127,9 +122,8 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   }
 
   "App.updateAppConfigRefreshInterval" should {
-    "update the appConfigRefreshInterval attribute for an App" in new WithDB {
+    "update the appConfigRefreshInterval attribute for an App" in new WithAppDB(distributor.id.get) {
       val newAppConfigRefreshInterval = 500
-      val(currentApp, currentWaterfall, _, currentConfig) = setUpApp(distributor.id.get)
       Waterfall.update(currentWaterfall.id, false, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, Some(5.0), true, true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
@@ -142,16 +136,15 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long] must beEqualTo(newAppConfigRefreshInterval)
     }
 
-    "not update the appConfigRefreshInterval if the App is in test mode" in new WithDB {
-      val(currentApp, currentWaterfall, _, currentConfig) = setUpApp(distributor.id.get)
+    "not update the appConfigRefreshInterval if the App is in test mode" in new WithAppDB(distributor.id.get) {
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, Some(5.0), true, true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalConfig = AppConfig.findLatest(currentApp.token).get
       App.updateAppConfigRefreshInterval(currentApp.id, 500) must beEqualTo(false)
       val latestConfig = AppConfig.findLatest(currentApp.token).get
       latestConfig.generationNumber must beEqualTo(originalConfig.generationNumber)
-      latestConfig.configuration.as[JsObject] must beEqualTo(currentConfig.configuration)
-      (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long] must beEqualTo(currentConfig.generationNumber)
+      latestConfig.configuration.as[JsObject] must beEqualTo(currentAppConfig.configuration)
+      (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long] must beEqualTo(currentAppConfig.generationNumber)
     }
 
     "return false if the App ID is not found" in new WithDB {

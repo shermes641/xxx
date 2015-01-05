@@ -71,5 +71,4 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
       verification.isValid must beEqualTo(false)
     }
   }
-  step(clean)
 }

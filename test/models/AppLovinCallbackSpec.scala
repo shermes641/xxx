@@ -51,5 +51,4 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
       verification.isValid must beEqualTo(true)
     }
   }
-  step(clean)
 }
