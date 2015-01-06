@@ -8,7 +8,6 @@ import play.api.db.DB
 import play.api.test._
 import resources._
 
-
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
   /**
    * Drops and recreates database schema after tests are run.
