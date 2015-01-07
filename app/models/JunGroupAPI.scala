@@ -74,7 +74,9 @@ class JunGroupAPI {
           Seq(
             "name" -> JsString(adNetworkName),
             // Always set to true due to mediation being SDK only
-            "mobile" -> JsBoolean(true)
+            "mobile" -> JsBoolean(true),
+            "fyber_api_key" -> JsString(appToken),
+            "fyber_placement_id" -> JsString(appToken)
           )
         ),
         "payout_url" -> JsObject(
@@ -142,7 +144,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                     if(success.as[JsBoolean] != JsBoolean(false)) {
                       DB.withTransaction { implicit connection =>
                         try {
-                          val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID)
+                          val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, appToken)
                           AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
                           updateResult match {
                             case 1 => {

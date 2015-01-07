@@ -97,9 +97,9 @@ object WaterfallAdProvider extends JsonConversion {
   def updateEcpm(id: Long, eCPM: Double)(implicit connection: Connection): Option[Long] = {
     SQL(
       """
-      UPDATE waterfall_ad_providers
-      SET cpm={cpm}
-      WHERE id={id};
+        UPDATE waterfall_ad_providers
+        SET cpm={cpm}
+        WHERE id={id};
       """
     ).on("cpm" -> eCPM, "id" -> id).executeUpdate() match {
       case 1 => {
@@ -188,35 +188,34 @@ object WaterfallAdProvider extends JsonConversion {
    * Updates a HyprMarketplace WaterfallAdProvider instance with the distributor_channel_id from Player.
    * @param hyprWaterfallAdProvider The WaterfallAdProvider instance for HyprMarketplace.
    * @param distributionChannelID The AdNetwork ID created in Player.
+   * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
    * @param connection A shared database connection.
    * @return 1 if the creation and update is successful; otherwise, returns 0.
    */
-  def updateHyprMarketplaceConfig(hyprWaterfallAdProvider: WaterfallAdProvider, distributionChannelID: Long)(implicit connection: Connection) = {
+  def updateHyprMarketplaceConfig(hyprWaterfallAdProvider: WaterfallAdProvider, distributionChannelID: Long, appToken: String)(implicit connection: Connection) = {
     val hyprConfig = JsObject(
       Seq(
         "requiredParams" -> JsObject(
           Seq(
             "distributorID" -> JsString(distributionChannelID.toString),
-            "eCPM" -> JsString(""),
-            "appID" -> JsString("")
+            "appID" -> JsString(appToken)
           )
         ),
         "reportingParams" -> JsObject(
           Seq(
-            "APIKey" -> JsString(""),
-            "placementID" -> JsString(""),
-            "appID" -> JsString("")
+            "APIKey" -> JsString(appToken),
+            "placementID" -> JsString(appToken),
+            "appID" -> JsString(distributionChannelID.toString)
           )
         ),
         "callbackParams" -> JsObject(
           Seq(
-            "APIKey" -> JsString("")
           )
         )
       )
     )
     val newValues = new WaterfallAdProvider(hyprWaterfallAdProvider.id, hyprWaterfallAdProvider.waterfallID, hyprWaterfallAdProvider.adProviderID,
-      hyprWaterfallAdProvider.waterfallOrder, hyprWaterfallAdProvider.cpm, Some(true), hyprWaterfallAdProvider.fillRate, hyprConfig, false, false)
+      hyprWaterfallAdProvider.waterfallOrder, hyprWaterfallAdProvider.cpm, active = Some(true), hyprWaterfallAdProvider.fillRate, hyprConfig, reportingActive = true, pending = false)
     WaterfallAdProvider.updateWithTransaction(newValues)
   }
 
