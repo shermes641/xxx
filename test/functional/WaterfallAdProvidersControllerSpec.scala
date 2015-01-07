@@ -186,7 +186,9 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
-      WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
+      val wapID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
+      val wap = WaterfallAdProvider.find(wapID).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wapID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
       Waterfall.update(currentWaterfall.id, true, false)
       clearGeneration(currentApp.id)
       val originalGeneration = generationNumber(currentApp.id)
@@ -205,6 +207,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
     "update the status of reporting for a waterfall ad provider" in new WithAppBrowser(distributorUser.distributorID.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
+      val wap = WaterfallAdProvider.find(wap1ID).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
       Waterfall.update(currentWaterfall.id, true, false)
       clearGeneration(currentApp.id)
 
@@ -253,6 +257,22 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
+    }
+
+    "flash an error message and not update the WaterfallAdProvider if all required fields are not filled" in new WithAppBrowser(distributorUser.distributorID.get) {
+      Waterfall.update(currentWaterfall.id, true, false)
+
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.$(".configure.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input[name=eCPM]").`with`("5.0")
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
+      val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
+      wap.cpm must beNone
+      wap.configurationData must beEqualTo(JsObject(Seq()))
     }
   }
 }

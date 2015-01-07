@@ -13,13 +13,11 @@ import resources._
 @RunWith(classOf[JUnitRunner])
 class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   val wap1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
-    WaterfallAdProvider.find(id).get
+    createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, None, true, true)
   }
 
   val wap2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, true, true).get
-    WaterfallAdProvider.find(id).get
+    createWaterfallAdProvider(waterfall.id, adProviderID2.get, None, None, true, true)
   }
 
   "WaterfallsController.list" should {
@@ -145,7 +143,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("$('ul').prepend($('li').last());")
-      browser.executeScript("postUpdate();")
+      browser.executeScript("postWaterfallUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder(0).providerName must not equalTo(firstProvider)
@@ -198,7 +196,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
-      browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); postUpdate();")
+      browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); postWaterfallUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -212,7 +210,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
-      browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); postUpdate();")
+      browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); postWaterfallUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -281,22 +279,55 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.fill("#currencyName").`with`("New Currency")
       browser.fill("#exchangeRate").`with`("100")
       browser.fill("#rewardMin").`with`("1")
+      browser.fill("#rewardMax").`with`("10")
       browser.$("button[name=new-app-form]").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App created!")
-      browser.pageSource must contain ("To check the status for " + adProviders(1) + ", please refresh your browser.")
+      browser.pageSource must contain("To check the status for " + adProviders(1) + ", please refresh your browser.")
 
-      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
+      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName}(0)
       val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
       val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
       val hyprMarketplaceID = waterfallAdProviders(0).waterfallAdProviderID
       val hyprMarketplace = WaterfallAdProvider.find(hyprMarketplaceID).get
       hyprMarketplace.pending must beEqualTo(true)
 
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(hyprMarketplace, 12345) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(hyprMarketplace, 12345)}
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
 
       browser.pageSource must not contain ("To check the status for " + adProviders(1) + ", please refresh your browser.")
       WaterfallAdProvider.find(hyprMarketplaceID).get.pending must beFalse
+    }
+
+    "not display the activate button for WaterfallAdProviders that have not yet been configured" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.find(".inactive-waterfall-content").getText must not contain("Activate")
+    }
+
+    "not display the activate button if the user cancels out of the configuration" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.find(".inactive-waterfall-content").getText must not contain("Activate")
+      browser.$(".configure.inactive-button").first().click()
+      browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
+      browser.find(".inactive-waterfall-content").getText must not contain("Activate")
+    }
+
+    "display the Activate button after a WaterfallAdProvider has been configured" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.$(".configure.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input").`with`("5.0", "some key")
+      browser.executeScript("$('button[name=update-ad-provider]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      browser.findFirst(".inactive-waterfall-content").getText must contain("Activate")
+      browser.$(".status.inactive-button").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").hasText("Waterfall updated!")
+      WaterfallAdProvider.findAllOrdered(currentWaterfall.id).size must beEqualTo(1)
     }
   }
 }

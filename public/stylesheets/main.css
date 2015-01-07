@@ -874,6 +874,10 @@ dd.error {
     visibility: hidden;
 }
 
+.undisplayed-wap-info {
+    display: none;
+}
+
 .modal-centered {
     margin: auto;
 }

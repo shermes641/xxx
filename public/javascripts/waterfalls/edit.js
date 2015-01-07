@@ -21,6 +21,12 @@ var waterfallSelection = $(":input[id=waterfall-selection]");
 // Stores params that have been changed which require an app restart.
 var appRestartParams = {};
 
+// Default div for error flash messages.
+var waterfallErrorDiv = $("#waterfall-edit-error");
+
+// Default div for success flash messages.
+var waterfallSuccessDiv = $("#waterfall-edit-success");
+
 // Rearranges the waterfall order list either by eCPM or original order.
 var orderList = function(orderAttr, ascending) {
     var newOrder = providersByActive("true").sort(function(li1, li2) {
@@ -45,22 +51,22 @@ var providersByActive = function(active) {
 };
 
 // Updates waterfall properties via AJAX.
-var postUpdate = function() {
+var postWaterfallUpdate = function() {
     var path = "/distributors/" + distributorID + "/waterfalls/" + waterfallID;
     $.ajax({
         url: path,
         type: 'POST',
         contentType: "application/json",
-        data: updatedData(),
+        data: updatedWaterfallData(),
         success: function(result) {
             $(".content").attr("data-generation-number", result.newGenerationNumber);
-            flashMessage(result.message, $("#waterfall-edit-success"));
+            flashMessage(result.message, waterfallSuccessDiv);
             if(optimizeToggleButton.is(":checked")) {
                 orderList("data-cpm", false);
             }
         },
         error: function(result) {
-            flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
+            flashMessage(result.responseJSON.message, waterfallErrorDiv);
         }
     });
 };
@@ -91,7 +97,7 @@ var retrieveConfigData = function(waterfallAdProviderID, newRecord) {
             $(".ui-dialog-titlebar").hide();
         },
         error: function(data) {
-            flashMessage(data.responseJSON.message, $("#waterfall-edit-error"));
+            flashMessage(data.responseJSON.message, waterfallErrorDiv);
         }
     });
 };
@@ -120,17 +126,17 @@ var createWaterfallAdProvider = function(params, newRecord) {
             if(newRecord) {
                 retrieveConfigData(result.wapID, newRecord);
             }
-            $(".content").attr("data-generation-number", result.newGenerationNumber)
-            flashMessage(result.message, $("#waterfall-edit-success"))
+            $(".content").attr("data-generation-number", result.newGenerationNumber);
+            flashMessage(result.message, waterfallSuccessDiv)
         },
         error: function(result) {
-            flashMessage(result.message, $("#waterfall-edit-error"));
+            flashMessage(result.message, waterfallErrorDiv);
         }
     });
 };
 
 // Retrieves current list order and value of waterfall name field.
-var updatedData = function() {
+var updatedWaterfallData = function() {
     var adProviderList = providersByActive("true");
     var optimizedOrder = optimizeToggleButton.prop("checked").toString();
     var testMode = testModeButton.prop("checked").toString();
@@ -148,12 +154,6 @@ var updatedData = function() {
         });
     }).get();
     return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, appToken: appToken, generationNumber: generationNumber}));
-};
-
-// Displays success or error of AJAX request.
-var flashMessage = function(message, div) {
-    div.html(message).fadeIn();
-    div.delay(3000).fadeOut("slow");
 };
 
 $("#waterfall-list").sortable({containment: ".content"});
@@ -180,7 +180,7 @@ var setRefreshOnRestartListeners = function() {
 $(document).ready(function() {
     // Initiates AJAX request to update waterfall.
     $(":button[name=submit]").click(function() {
-        postUpdate();
+        postWaterfallUpdate();
     });
 
     // Direct the user to the selected Waterfall edit page.
@@ -198,7 +198,7 @@ $(document).ready(function() {
         if(listItem.attr("data-new-record") === "true") {
             createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: true});
         } else {
-            postUpdate();
+            postWaterfallUpdate();
         }
     });
 
@@ -224,7 +224,7 @@ $(document).ready(function() {
             sortableOption = "enable";
         }
         $("#waterfall-list").sortable(sortableOption);
-        postUpdate();
+        postWaterfallUpdate();
     });
 
     // Click event for when Test Mode is toggled.
@@ -235,14 +235,14 @@ $(document).ready(function() {
         // Prevent the user from setting the waterfall to live without configuring any ad providers.
         if(newRecords == allRecords) {
             event.preventDefault();
-            flashMessage("You must activate an ad provider before the waterfall can go live.", $("#waterfall-edit-error"));
+            flashMessage("You must activate an ad provider before the waterfall can go live.", waterfallErrorDiv);
         } else {
-            postUpdate();
+            postWaterfallUpdate();
         }
     });
 
     // Sends AJAX request when waterfall order is changed via drag and drop.
     $("#waterfall-list").on("sortdeactivate", function(event, ui) {
-        postUpdate();
+        postWaterfallUpdate();
     });
 });

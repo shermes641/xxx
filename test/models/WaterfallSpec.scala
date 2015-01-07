@@ -3,6 +3,7 @@ package models
 import play.api.db.DB
 import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
+import play.api.libs.json.{JsString, JsObject}
 import resources.WaterfallSpecSetup
 import org.specs2.runner._
 
@@ -61,6 +62,8 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true, true).get
+      val wap = WaterfallAdProvider.find(wapID).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wapID, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true)(0).waterfallAdProviderID must beEqualTo(wapID)
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) }
