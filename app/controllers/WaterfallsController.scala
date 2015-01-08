@@ -17,7 +17,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return Redirects to edit page if app with waterfall exists.
    */
   def list(distributorID: Long, appID: Long, flashMessage: Option[String] = None) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.findAppWithWaterfalls(appID) match {
+    App.findAppWithWaterfalls(appID, distributorID) match {
       case Some(app) => {
         flashMessage match {
           case Some(message: String) => {
@@ -41,7 +41,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return Form for editing Waterfall
    */
   def edit(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    Waterfall.find(waterfallID) match {
+    Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
             new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, adProvider.configurable)
@@ -55,6 +55,13 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     }
   }
 
+  /**
+   * Renders form for editing Waterfall if an App/Waterfall has been previously selected.
+   * @param distributorID ID of Distributor who owns the current Waterfall.
+   * @param currentWaterfallID ID of the Waterfall being edited.
+   * @param currentAppID ID of the App whose Waterfall is being edited.
+   * @return Form for editing Waterfall if a Waterfall ID or App ID is passed as a param.  Otherwise, renders a drop down list to select a Waterfall.
+   */
   def editAll(distributorID: Long, currentWaterfallID: Option[Long], currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
     (currentWaterfallID, currentAppID) match {
       case (Some(waterfallID), _) => {

@@ -3,7 +3,7 @@ package models
 import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
-import play.api.libs.json.{JsNumber, JsValue}
+import resources.WaterfallSpecSetup
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future}
 class CompletionSpec extends SpecificationWithFixtures with Mockito with WaterfallSpecSetup {
   "Completion.create" should {
     "create a new record in the database if the transaction ID is valid" in new WithDB {
-      Completion.create("some app token", "some ad provider name", "some transaction ID", None) must not beNone
+      Completion.create("some app token", "some ad provider name", "some transaction ID", None).must(not).beNone
     }
   }
 
@@ -37,5 +37,12 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
   }
-  step(clean)
+
+  "Completion.postCallback" should {
+    "not POST to a callback URL if one does not exist" in new WithDB {
+      val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", None, 1))
+      val callbackURL = None
+      Await.result(Completion.postCallback(callbackURL, "success", "body", verification), Duration(5000, "millis")) must beEqualTo(false)
+    }
+  }
 }

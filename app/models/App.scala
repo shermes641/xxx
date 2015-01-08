@@ -101,9 +101,10 @@ object App {
   /**
    * Finds all editable app and virtual currency information for a particular app's ID.
    * @param appID The ID of the app to be edited.
+   * @param distributorID ID of the Distributor to which the App belongs.
    * @return An instance of the AppWithVirtualCurrency class if the app ID is found; otherwise, None.
    */
-  def findAppWithVirtualCurrency(appID: Long): Option[AppWithVirtualCurrency] = {
+  def findAppWithVirtualCurrency(appID: Long, distributorID: Long): Option[AppWithVirtualCurrency] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
@@ -111,11 +112,11 @@ object App {
           FROM apps
           JOIN virtual_currencies vc ON vc.app_id = apps.id
           JOIN app_configs ON app_configs.app_id = apps.id
-          WHERE apps.id = {app_id}
+          WHERE apps.id = {app_id} AND apps.distributor_id = {distributor_id}
           ORDER BY generation_number DESC
           LIMIT 1;
         """
-      ).on("app_id" -> appID)
+      ).on("app_id" -> appID, "distributor_id" -> distributorID)
       query.as(AppsWithVirtualCurrencyParser*) match {
         case List(appInfo) => Some(appInfo)
         case _ => None
@@ -145,18 +146,19 @@ object App {
   /**
    * Retrieves all records from the apps table along with Waterfall ID for a particular App ID.
    * @param appID The ID of the App to which the Waterfall belongs.
+   * @param distributorID The ID of the Distributor to which the Waterfall belongs.
    * @return List of App instances
    */
-  def findAppWithWaterfalls(appID: Long): Option[AppWithWaterfallID] = {
+  def findAppWithWaterfalls(appID: Long, distributorID: Long): Option[AppWithWaterfallID] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*, waterfalls.id as waterfall_id
           FROM apps
           JOIN waterfalls ON waterfalls.app_id = apps.id
-          WHERE apps.id = {app_id};
+          WHERE apps.id = {app_id} AND apps.distributor_id = {distributor_id};
         """
-      ).on("app_id" -> appID)
+      ).on("app_id" -> appID, "distributor_id" -> distributorID)
       query.as(AppsWithWaterfallsParser*) match {
         case List(app) => Some(app)
         case _ => None

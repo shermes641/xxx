@@ -97,9 +97,10 @@ object Waterfall extends JsonConversion {
   /**
    * Finds a record in the Waterfall table by ID.
    * @param waterfallID ID of current Waterfall
+   * @param distributorID ID of Distributor to which the Waterfall belongs.
    * @return Waterfall instance
    */
-  def find(waterfallID: Long): Option[Waterfall] = {
+  def find(waterfallID: Long, distributorID: Long): Option[Waterfall] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
@@ -107,11 +108,11 @@ object Waterfall extends JsonConversion {
           FROM waterfalls
           JOIN apps ON apps.id = waterfalls.app_id
           JOIN app_configs ON app_configs.app_id = waterfalls.app_id
-          WHERE waterfalls.id={id}
+          WHERE waterfalls.id = {waterfall_id} AND apps.distributor_id = {distributor_id}
           ORDER BY generation_number DESC
           LIMIT 1;
         """
-      ).on("id" -> waterfallID)
+      ).on("waterfall_id" -> waterfallID, "distributor_id" -> distributorID)
       query.as(waterfallParser*) match {
         case List(waterfall) => Some(waterfall)
         case _ => None

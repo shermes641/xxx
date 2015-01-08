@@ -157,7 +157,6 @@ object DistributorUsersController extends Controller with Secured with CustomFor
  * @param confirmation Password confirmation for new DistributorUser.
  * @param agreeToTerms Boolean checkbox for terms of service.
  */
-
 case class Signup(company: String, email: String, password: String, confirmation: String, agreeToTerms: Boolean)
 
 /**

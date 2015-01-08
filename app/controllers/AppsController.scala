@@ -8,7 +8,6 @@ import play.api.db.DB
 import play.api.mvc._
 import play.api.Play.current
 import play.api.Play
-import play.api.libs.json.{JsBoolean, JsString, JsObject, JsValue}
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with CustomFormValidation {
@@ -65,8 +64,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   /**
-   * Creates a new App in the database.
-   * @param distributorID ID associated with current DistributorUser
+   * Creates a new App in the database along with an associated Waterfall, VirtualCurrency, and AppConfig.
+   * @param distributorID ID associated with current Distributor.
    * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
    */
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
@@ -105,26 +104,26 @@ object AppsController extends Controller with Secured with CustomFormValidation 
 
   /**
    * Renders form for editing App.
-   * @param distributorID ID associated with current DistributorUser
+   * @param distributorID ID associated with current Distributor
    * @param appID ID associated with current App
    * @return Form for editing Apps
    */
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.findAppWithVirtualCurrency(appID) match {
+    App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
         val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
           appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber))
         Ok(views.html.Apps.edit(form, distributorID, appID))
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Could not find App.")
+        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
       }
     }
   }
 
   /**
-   * Updates attributes for current App.
-   * @param distributorID ID associated with current DistributorUser
+   * Updates attributes for current App/VirtualCurrency and generates a new AppConfig.
+   * @param distributorID ID associated with current Distributor
    * @param appID ID associated with current App
    * @return Responds with 200 if App is successfully updated.  Otherwise, flash error and respond with 304.
    */

@@ -1,17 +1,18 @@
 package models
 
-import org.specs2.mock.Mockito
-import play.api.libs.json._
-import play.api.libs.ws.WSResponse
-import play.api.test.Helpers._
-import play.api.test.FakeApplication
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
-import scala.concurrent.{Future}
 import org.junit.runner._
+import org.specs2.mock.Mockito
 import org.specs2.runner._
+import play.api.libs.json._
+import play.api.libs.ws.WSResponse
 import play.api.Play
+import play.api.test.Helpers._
+import play.api.test.FakeApplication
+import resources.WaterfallSpecSetup
+import scala.concurrent.{Future}
 
 @RunWith(classOf[JUnitRunner])
 class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
@@ -22,7 +23,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   "adNetworkConfiguration" should {
     "Build the correct configuration using the created distributor user" in new WithDB {
       val config = junGroup.adNetworkConfiguration(user)
-      config \ "ad_network" \ "name" must beEqualTo(JsString("tdepplito@jungroup.com"))
+      config \ "ad_network" \ "name" must beEqualTo(JsString(user.email))
       config \ "ad_network" \ "mobile" must beEqualTo(JsBoolean(true))
 
       config \ "payout_url" \ "url" must beEqualTo(JsString(Play.current.configuration.getString("jungroup.callbackurl").get))
@@ -57,7 +58,4 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       emailActor must haveClass[JunGroupEmailActor]
     }
   }
-
-  step(clean)
 }
-

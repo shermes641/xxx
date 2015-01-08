@@ -844,15 +844,25 @@ dd.error {
 }
 
 .app-token {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
-    padding: 18px 0px 18px 0px;
+    padding-top: 14px;
     clear: left;
 }
 
-code {
-    background-color: #4285f4;
-    color: #FFFFFF;
+.code-block {
+    padding-bottom: 24px;
+}
+
+.waterfall-edit-description {
+    max-width: 800px;
+}
+
+.copy-paste-code {
+    font-weight: 100;
+    color: #000000;
+    background: #E8E8E8;
+    display: inline-block;
 }
 
 .hidden-wap-info {

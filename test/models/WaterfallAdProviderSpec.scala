@@ -10,9 +10,10 @@ import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
 import play.libs.Json
+import resources.JsonTesting
 
 @RunWith(classOf[JUnitRunner])
-class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting {
+class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallCreationHelper {
   val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
     val distributorID = Distributor.create("New Company").get
     val distributor = Distributor.find(distributorID).get
@@ -23,7 +24,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
     VirtualCurrency.create(currentApp.id, "Coins", 100, None, None, Some(true))
     val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New App Waterfall") }
-    Waterfall.find(waterfallID).get
+    Waterfall.find(waterfallID, currentApp.distributorID).get
   }
 
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -142,5 +143,4 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
       WaterfallAdProvider.findByAdProvider(currentApp.token, "Some fake ad provider name") must beNone
     }
   }
-  step(clean)
 }

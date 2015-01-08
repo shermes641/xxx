@@ -8,9 +8,10 @@ import com.github.nscala_time.time.Imports._
 import play.api.test.FakeApplication
 import play.api.Play
 import io.keen.client.java.ScopedKeys
+import resources.DistributorUserSetup
 import collection.JavaConversions._
 
-class AnalyticsControllerSpec extends SpecificationWithFixtures {
+class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup {
 
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
@@ -101,7 +102,23 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures {
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
     }
-  }
 
-  step(clean)
+    "not display analytics data for an App ID not owned by the current Distributor User" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, Some(currentApp.id)).url)
+      browser.pageSource() must not contain currentApp.name
+    }
+
+    "redirect the distributor user to their own apps index page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
+      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+    }
+  }
 }

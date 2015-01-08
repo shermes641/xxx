@@ -32,6 +32,4 @@ class JavascriptsSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("qunit-pass")
     }
   }
-
-  step(clean)
 }
