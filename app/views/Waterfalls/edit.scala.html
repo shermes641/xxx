@@ -27,9 +27,11 @@
                     Copy and paste the following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
                 </div>
                 <code class="waterfall-edit-description copy-paste-code">
-                    // Be sure to replace "USER ID" with whatever method you choose to generate a user ID.
+                    // Be sure to define myUsersUniqueId() using whatever strategy you choose to generate a user ID.
                     <br/>
-                    @{"[HYPRMediate initialize:@\"" + waterfall.appToken + "\" userId:@\"USER ID\"];"}
+                    @{"NSString *userId = myUsersUniqueId();"}
+                    <br/>
+                    @{"[HYPRMediate initialize:@\"" + waterfall.appToken + "\" userId:userId];"}
                 </code>
             </div>
             <table>
