@@ -13,11 +13,11 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
 
   "App.findAppWithVirtualCurrency" should {
     "return an instance of the AppWithVirtualCurrency class" in new WithAppDB(distributor.id.get) {
-      App.findAppWithVirtualCurrency(currentApp.id).get must haveClass[AppWithVirtualCurrency]
+      App.findAppWithVirtualCurrency(currentApp.id, distributor.id.get).get must haveClass[AppWithVirtualCurrency]
     }
 
     "return attributes for both App and VirtualCurrency" in new WithAppDB(distributor.id.get) {
-      val appWithCurrency = App.findAppWithVirtualCurrency(currentApp.id).get
+      val appWithCurrency = App.findAppWithVirtualCurrency(currentApp.id, distributor.id.get).get
       appWithCurrency.appName must beEqualTo(currentApp.name)
       appWithCurrency.currencyID must beEqualTo(currentVirtualCurrency.id)
       appWithCurrency.currencyName must beEqualTo(currentVirtualCurrency.name)
@@ -42,14 +42,14 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
 
   "App.findAppWithWaterfalls" should {
     "return an App containing the Waterfall ID for the App" in new WithAppDB(distributor.id.get) {
-      val appWithWaterfallID = App.findAppWithWaterfalls(currentApp.id).get
+      val appWithWaterfallID = App.findAppWithWaterfalls(currentApp.id, distributor.id.get).get
       appWithWaterfallID.id must beEqualTo(currentApp.id)
       appWithWaterfallID.waterfallID must beEqualTo(currentWaterfall.id)
     }
 
     "return an empty list if no Apps could be found" in new WithDB {
       val fakeAppID = 12345
-      App.findAppWithWaterfalls(fakeAppID) must beNone
+      App.findAppWithWaterfalls(fakeAppID, distributor.id.get) must beNone
     }
   }
 

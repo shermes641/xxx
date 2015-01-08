@@ -176,7 +176,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
+      Waterfall.find(currentWaterfall.id, distributorUser.distributorID.get).get.testMode must beEqualTo(true)
       browser.$(".configure.inactive-button").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)

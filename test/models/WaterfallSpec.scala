@@ -13,7 +13,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       val appID = App.create(distributor.id.get, "App 1").get
       VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
       val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "Waterfall") }
-      Waterfall.find(waterfallID).get must haveClass[Waterfall]
+      Waterfall.find(waterfallID, distributor.id.get).get must haveClass[Waterfall]
     }
   }
 
@@ -22,7 +22,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       val optimizedOrder = false
       val testMode = true
       Waterfall.update(waterfall.id, optimizedOrder, testMode)
-      val currentWaterfall = Waterfall.find(waterfall.id).get
+      val currentWaterfall = Waterfall.find(waterfall.id, distributor.id.get).get
       currentWaterfall.optimizedOrder must beEqualTo(optimizedOrder)
       currentWaterfall.testMode must beEqualTo(testMode)
     }

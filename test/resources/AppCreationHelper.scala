@@ -21,7 +21,7 @@ trait AppCreationHelper extends WaterfallCreationHelper {
       VirtualCurrency.find(id).get
     }
     val currentWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, appName) }
-    val currentWaterfall = Waterfall.find(currentWaterfallID).get
+    val currentWaterfall = Waterfall.find(currentWaterfallID, distributorID).get
     val appConfig = AppConfig.findLatest(currentApp.token).get
     (currentApp, currentWaterfall, virtualCurrency, appConfig)
   }

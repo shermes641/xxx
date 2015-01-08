@@ -17,7 +17,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return Redirects to edit page if app with waterfall exists.
    */
   def list(distributorID: Long, appID: Long, flashMessage: Option[String] = None) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.findAppWithWaterfalls(appID) match {
+    App.findAppWithWaterfalls(appID, distributorID) match {
       case Some(app) => {
         flashMessage match {
           case Some(message: String) => {
@@ -41,7 +41,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return Form for editing Waterfall
    */
   def edit(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    Waterfall.find(waterfallID) match {
+    Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
             new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, adProvider.configurable)
