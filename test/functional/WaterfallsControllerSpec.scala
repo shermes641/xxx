@@ -196,10 +196,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id).get.optimizedOrder must beEqualTo(false)
+      Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
-      Waterfall.find(waterfall.id).get.optimizedOrder must beEqualTo(true)
+      Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -210,10 +210,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id).get.testMode must beEqualTo(false)
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
-      Waterfall.find(waterfall.id).get.testMode must beEqualTo(true)
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -223,10 +223,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
+      Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
-      Waterfall.find(currentWaterfall.id).get.testMode must beEqualTo(true)
+      Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration)
     }
   }
@@ -240,6 +240,25 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.$("li[id=true-" + adProviderWithDefaultEcpmID + "]").getAttribute("data-cpm") must beEqualTo(defaultEcpm)
+    }
+
+    "redirect the distributor user to their own apps index page if they try to edit a Waterfall they do not own" in new WithAppBrowser(distributor.id.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(maliciousDistributor.id.get, currentWaterfall.id).url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("Waterfall could not be found.")
+      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+    }
+
+    "redirect the distributor user to their own apps index page if they try to edit a Waterfall using another distributor ID" in new WithAppBrowser(distributor.id.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
     }
 
     "automatically select the name of the app in the drop down menu" in new WithFakeBrowser {

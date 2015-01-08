@@ -109,14 +109,14 @@ object AppsController extends Controller with Secured with CustomFormValidation 
    * @return Form for editing Apps
    */
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.findAppWithVirtualCurrency(appID) match {
+    App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
         val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
           appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber))
         Ok(views.html.Apps.edit(form, distributorID, appID))
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Could not find App.")
+        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
       }
     }
   }

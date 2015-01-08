@@ -5,8 +5,9 @@ import anorm._
 import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
+import resources.DistributorUserSetup
 
-class AppsControllerSpec extends SpecificationWithFixtures {
+class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup {
   val appName = "App 1"
 
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -39,6 +40,15 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
       browser.pageSource must contain("My Apps")
       browser.pageSource must contain(app2Name)
+    }
+
+    "redirect the distributor user to their own apps index page if they try to access the apps index page using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
+      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
     }
   }
 
@@ -167,6 +177,25 @@ class AppsControllerSpec extends SpecificationWithFixtures {
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
       browser.$("button[name=submit]").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("A valid HTTP or HTTPS callback URL is required.")
+    }
+
+    "redirect the distributor user to their own apps index page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.AppsController.edit(maliciousDistributor.id.get, currentApp.id).url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App could not be found.")
+      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+    }
+
+    "redirect the distributor user to their own apps index page if they try to edit an App using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
+      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail3@gmail.com")
+
+      logInUser(maliciousUser.email, password)
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
+      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
     }
   }
 
