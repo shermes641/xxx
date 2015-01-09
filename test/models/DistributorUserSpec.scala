@@ -5,6 +5,7 @@ import org.specs2.runner._
 import play.api.test.Helpers._
 import play.api.test._
 import akka.actor.ActorSystem
+import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
 import resources.DistributorUserSetup
 
