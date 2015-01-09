@@ -2,6 +2,11 @@ package models
 
 import org.junit.runner._
 import org.specs2.runner._
+import play.api.test.Helpers._
+import play.api.test._
+import akka.actor.ActorSystem
+import akka.testkit.TestActorRef
+import com.typesafe.config.ConfigFactory
 import resources.DistributorUserSetup
 
 @RunWith(classOf[JUnitRunner])
@@ -141,6 +146,15 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       val fakeDistributorID = Some(12345L)
       val fakeDistributorUser = new DistributorUser(fakeDistributorID, "fake-email", "password", None)
       DistributorUser.setActive(fakeDistributorUser) must beEqualTo(0)
+    }
+  }
+
+  "Welcome Email Actor" should {
+    "exist and accept email message to both user and Hypr Team" in new WithDB {
+      implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
+      val emailActor = TestActorRef(new WelcomeEmailActor()).underlyingActor
+      emailActor.receive("test@test.com")
+      emailActor must haveClass[WelcomeEmailActor]
     }
   }
 }
