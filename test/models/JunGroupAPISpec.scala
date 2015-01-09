@@ -49,7 +49,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
         val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, false, true).get
         WaterfallAdProvider.find(id).get
       }
-      val junActor = TestActorRef(new JunGroupAPIActor(waterfall.id, hyprWaterfallAdProvider, "app-token")).underlyingActor
+      val junActor = TestActorRef(new JunGroupAPIActor(waterfall.id, hyprWaterfallAdProvider, "app-token", "app-name")).underlyingActor
       junActor.receive(CreateAdNetwork(user))
       junActor must haveClass[JunGroupAPIActor]
     }

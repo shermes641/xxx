@@ -87,7 +87,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                     val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
                     (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                       case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
-                        new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(distributorID).get, waterfallIDVal, hyprWaterfallAdProviderInstance, app.token)
+                        new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(distributorID).get, waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name)
                         Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
                       }
                       case (_, _) => onCreateRollback(distributorID)

@@ -28,9 +28,10 @@ case class JunGroupAPI() {
    * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
    * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance.
    * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
+   * @param appName The name of the newly created App.
    */
-  def createJunGroupAdNetwork(distributorUser: DistributorUser, waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String) = {
-    val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallID, hyprWaterfallAdProvider, appToken)))
+  def createJunGroupAdNetwork(distributorUser: DistributorUser, waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String) = {
+    val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallID, hyprWaterfallAdProvider, appToken, appName)))
     actor ! CreateAdNetwork(distributorUser)
   }
 
@@ -63,10 +64,11 @@ case class JunGroupAPI() {
   /**
    * Sends success email on ad network creation
    * @param distributorUser The DistributorUser who will receive a success email when a new AdNetwork is created in Player.
+   * @param appName The name of the newly created App.
    */
-  def sendSuccessEmail(distributorUser: DistributorUser) {
-    val subject = "Account has been activated"
-    val body = "Your account has been activated you can now begin creating apps."
+  def sendSuccessEmail(distributorUser: DistributorUser, appName: String) {
+    val subject = "HyprMarketplace is ready for use in " + appName + "!"
+    val body = "HyprMarketplace is now ready to use in the waterfall for " + appName + "."
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(distributorUser.email, subject, body)))
     emailActor ! "email"
   }
@@ -114,8 +116,9 @@ case class JunGroupAPI() {
  * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
  * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance that was just created.
  * @param appToken The unique identifier of the App to which the Waterfall and WaterfallAdProvider belong.
+ * @param appName The name of the newly created App.
  */
-class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String) extends Actor {
+class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
   private val RETRY_FREQUENCY = 3.seconds
@@ -155,7 +158,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                         AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
                         updateResult match {
                           case 1 => {
-                            JunGroupAPI().sendSuccessEmail(distributorUser)
+                            JunGroupAPI().sendSuccessEmail(distributorUser, appName)
                           }
                           case _ => None
                         }
