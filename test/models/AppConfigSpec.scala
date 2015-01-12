@@ -124,10 +124,21 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
 
-    "return an error message indicating that no ad providers are active or meet the reward threshold when all ad providers are either deactivated or below the minimum eCPM" in new WithAppDB(distributor.id.get) {
+    "return an error message indicating that no ad providers are active when all ad providers are deactivated" in new WithAppDB(distributor.id.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, false).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
       Waterfall.update(currentWaterfall.id, false, false)
+      DB.withTransaction { implicit connection =>
+        AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
+        (AppConfig.responseV1(currentApp.token) \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
+      }
+    }
+
+    "return an error message indicating that no ad providers meet the reward threshold when all ad providers are below the minimum eCPM" in new WithDB {
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, "New App", "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
+      val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
+      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         (AppConfig.responseV1(currentApp.token) \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
