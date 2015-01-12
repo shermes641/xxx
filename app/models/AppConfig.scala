@@ -25,7 +25,7 @@ object AppConfig extends JsonConversion {
   val TEST_MODE_HYPRMEDIATE_APP_ID = 0.toLong
   val TEST_MODE_APP_NAME = "Test App"
   val TEST_MODE_APP_ID = " "
-  val TEST_MODE_VIRTUAL_CURRENCY = new VirtualCurrency(0, 0, "Coins", 100, Some(1), Some(100), true)
+  val TEST_MODE_VIRTUAL_CURRENCY = new VirtualCurrency(0, 0, "Coins", 100, 1, Some(100), true)
   val TEST_MODE_APP_CONFIG_REFRESH_INTERVAL = 0
 
   /**

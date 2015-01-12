@@ -109,7 +109,7 @@ object JsonBuilder extends ValueToJsonHelper {
             "name" -> adProviderInfo.virtualCurrencyName,
             "exchangeRate" -> adProviderInfo.exchangeRate,
             "roundUp" -> JsBoolean(adProviderInfo.roundUp.get),
-            "rewardMin" -> adProviderInfo.rewardMin,
+            "rewardMin" -> JsNumber(adProviderInfo.rewardMin),
             "rewardMax" -> adProviderInfo.rewardMax
           )
         )

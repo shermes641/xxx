@@ -10,21 +10,12 @@ class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSet
   "AdProviderInfo.meetsRewardThreshold" should {
     "return true if the roundUp option is true" in new WithDB {
       val roundUp = Some(true)
-      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, None, None, None, None, None, roundUp, false, false, None)
-      adProviderInfo.meetsRewardThreshold must beEqualTo(true)
-    }
-
-    "return true if roundUp is false, the cpm is lower than the minimum possible calculated reward amount, and there is no rewardMin set" in new WithDB {
-      val rewardMin = None
-      val roundUp = Some(false)
-      val exchangeRate = Some(10L)
-      val cpm = Some(1.0)
-      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, cpm, None, exchangeRate, rewardMin, None, roundUp, false, false, None)
+      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, None, None, None, 1, None, roundUp, false, false, None)
       adProviderInfo.meetsRewardThreshold must beEqualTo(true)
     }
 
     "return true if roundUp is false, rewardMin is set, and cpm is greater than the calculated reward amount" in new WithDB {
-      val rewardMin = Some(1L)
+      val rewardMin = 1
       val roundUp = Some(false)
       val exchangeRate = Some(100L)
       val cpm = Some(50.0)
@@ -33,7 +24,7 @@ class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSet
     }
 
     "return false if roundUp is false, rewardMin is set, and cpm is less than the calculated reward amount" in new WithDB {
-      val rewardMin = Some(1L)
+      val rewardMin = 1
       val roundUp = Some(false)
       val exchangeRate = Some(25L)
       val cpm = Some(25.0)
@@ -44,7 +35,7 @@ class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSet
     "return false if roundUp is false and cpm is not set" in new WithDB {
       val roundUp = Some(false)
       val cpm = None
-      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, cpm, None, None, None, None, roundUp, false, false, None)
+      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, cpm, None, None, 1, None, roundUp, false, false, None)
       adProviderInfo.meetsRewardThreshold must beEqualTo(false)
     }
   }

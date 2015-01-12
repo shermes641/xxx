@@ -20,7 +20,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
-    VirtualCurrency.create(currentApp.id, "Coins", 100, None, None, Some(true))
+    VirtualCurrency.create(currentApp.id, "Coins", 100, 1, None, Some(true))
     val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New App Waterfall") }
     Waterfall.find(waterfallID, currentApp.distributorID).get
   }

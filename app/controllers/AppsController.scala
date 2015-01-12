@@ -21,7 +21,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       "appName" -> text.verifying(nonEmptyConstraint(appNameError)),
       "currencyName" -> text.verifying(nonEmptyConstraint(currencyNameError)),
       "exchangeRate" -> longNumber,
-      "rewardMin" -> optional(longNumber),
+      "rewardMin" -> longNumber,
       "rewardMax" -> optional(longNumber),
       "roundUp" -> optional(checked(""))
     )(NewAppMapping.apply)(NewAppMapping.unapply)
@@ -35,7 +35,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       "appName" -> text.verifying(nonEmptyConstraint(appNameError)),
       "currencyName" -> text.verifying(nonEmptyConstraint(currencyNameError)),
       "exchangeRate" -> longNumber,
-      "rewardMin" -> optional(longNumber),
+      "rewardMin" -> longNumber,
       "rewardMax" -> optional(longNumber),
       "roundUp" -> optional(checked("")),
       "callbackURL" -> optional(text),
@@ -201,7 +201,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
  * @param rewardMax Maps to the reward_max field in the virtual_currencies table.
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  */
-case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean])
+case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean])
 
 /**
  * Used for mapping App and VirtualCurrency attributes in editAppForm.
@@ -217,4 +217,4 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
  * @param serverToServerEnabled Maps to the server_to_server_enabled field in the apps table.
  * @param generationNumber The revision number which tracks the state of the corresponding AppConfig model at the time the page renders.
  */
-case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean], generationNumber: Option[Long])
+case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean], generationNumber: Option[Long])

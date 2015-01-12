@@ -13,11 +13,11 @@ import scala.language.postfixOps
  * @param appID The ID of the app to which the virtual currency belongs.
  * @param name An identifier displayed in the UI.
  * @param exchangeRate The units of virtual currency per $1.
- * @param rewardMin The minimum reward a user can receive.  This is optional.
+ * @param rewardMin The minimum reward a user can receive.
  * @param rewardMax The maximum reward a user can receive.  This is optional.
  * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
  */
-case class VirtualCurrency(id: Long, appID: Long, name: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Boolean)
+case class VirtualCurrency(id: Long, appID: Long, name: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Boolean)
 
 object VirtualCurrency {
   // Used to convert SQL row into an instance of the VirtualCurrency class.
@@ -26,7 +26,7 @@ object VirtualCurrency {
     get[Long]("virtual_currencies.app_id") ~
     get[String]("virtual_currencies.name") ~
     get[Long]("virtual_currencies.exchange_rate") ~
-    get[Option[Long]]("virtual_currencies.reward_min") ~
+    get[Long]("virtual_currencies.reward_min") ~
     get[Option[Long]]("virtual_currencies.reward_max") ~
     get[Boolean]("virtual_currencies.round_up") map {
       case id ~ app_id ~ name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up => VirtualCurrency(id, app_id, name, exchange_rate, reward_min, reward_max, round_up)
@@ -35,9 +35,15 @@ object VirtualCurrency {
 
   /**
    * SQL statement for inserting a new record into the virtual_currencies table.
+   * @param appID ID of the app to which the virtual currency belongs.
+   * @param name An identifier displayed in the UI.
+   * @param exchangeRate The units of virtual currency per $1.
+   * @param rewardMin The minimum reward a user can receive.
+   * @param rewardMax The maximum reward a user can receive.  This is optional.
+   * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
    * @return A SQL statement to be executed by create or createWithTransaction methods.
    */
-  def insert(appID: Long, name: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean]): SimpleSql[Row] = {
+  def insert(appID: Long, name: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean]): SimpleSql[Row] = {
     val roundUpVal = roundUp match {
       case Some(boolVal: Boolean) => boolVal
       case None => false
@@ -55,12 +61,12 @@ object VirtualCurrency {
    * @param appID ID of the app to which the virtual currency belongs.
    * @param name An identifier displayed in the UI.
    * @param exchangeRate The units of virtual currency per $1.
-   * @param rewardMin The minimum reward a user can receive.  This is optional.
+   * @param rewardMin The minimum reward a user can receive.
    * @param rewardMax The maximum reward a user can receive.  This is optional.
    * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
-   * @return
+   * @return ID of the new record if insert is successful; otherwise, None.
    */
-  def createWithTransaction(appID: Long, name: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean])(implicit connection: Connection): Option[Long] = {
+  def createWithTransaction(appID: Long, name: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean])(implicit connection: Connection): Option[Long] = {
     insert(appID, name, exchangeRate, rewardMin, rewardMax, roundUp).executeInsert()
   }
 
@@ -69,12 +75,12 @@ object VirtualCurrency {
    * @param appID ID of the app to which the virtual currency belongs.
    * @param name An identifier displayed in the UI.
    * @param exchangeRate The units of virtual currency per $1.
-   * @param rewardMin The minimum reward a user can receive.  This is optional.
+   * @param rewardMin The minimum reward a user can receive.
    * @param rewardMax The maximum reward a user can receive.  This is optional.
    * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
    * @return ID of the new record if insert is successful; otherwise, None.
    */
-  def create(appID: Long, name: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean]): Option[Long] = {
+  def create(appID: Long, name: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean]): Option[Long] = {
     DB.withConnection { implicit connection =>
       insert(appID, name, exchangeRate, rewardMin, rewardMax, roundUp).executeInsert()
     }

@@ -215,7 +215,7 @@ object Waterfall extends JsonConversion {
     get[Option[Double]]("cpm") ~
     get[Option[String]]("vc_name") ~
     get[Option[Long]]("exchange_rate") ~
-    get[Option[Long]]("reward_min") ~
+    get[Long]("reward_min") ~
     get[Option[Long]]("reward_max") ~
     get[Option[Boolean]]("round_up") ~
     get[Boolean]("test_mode") ~
@@ -251,16 +251,16 @@ object Waterfall extends JsonConversion {
    */
   case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
                             distributorName: Option[String], distributorID: Option[Long], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String],
-                            exchangeRate: Option[Long], rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
+                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
     lazy val meetsRewardThreshold: Boolean = {
-      (roundUp, cpm, rewardMin) match {
-        case (Some(roundUpValue: Boolean), _, _) if(roundUpValue) => true
-        case (Some(roundUpValue: Boolean), Some(cpmVal: Double), Some(minReward: Long)) if(!roundUpValue) => {
-          cpmVal * exchangeRate.get >= minReward * 1000.0
+      (roundUp, cpm) match {
+        case (Some(roundUpValue: Boolean), _) if(roundUpValue) => true
+        case (Some(roundUpValue: Boolean), Some(cpmVal: Double)) if(!roundUpValue) => {
+          cpmVal * exchangeRate.get >= rewardMin * 1000.0
         }
         // If there is no cpm value for an ad provider and the virtual currency does not roundUp, this will ensure it is excluded from the waterfall.
-        case (Some(roundUpValue: Boolean), None, _) if(!roundUpValue) => false
-        case (_, _, _) => true
+        case (Some(roundUpValue: Boolean), None) if(!roundUpValue) => false
+        case (_, _) => true
       }
     }
   }
