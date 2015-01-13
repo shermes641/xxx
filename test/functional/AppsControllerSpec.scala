@@ -7,7 +7,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import resources.DistributorUserSetup
 
-class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup {
+class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
   val appName = "App 1"
 
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -100,6 +100,35 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("Exchange Rate must be 1 or greater.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
+
+    "not allow a new app to be created if the Distributor has already created and enabled an App with the same name" in new WithFakeBrowser {
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
+      val appCount = App.findAll(user.distributorID.get).size
+
+      logInUser()
+
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
+      fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+      browser.$("button[name=new-app-form]").first.click()
+      browser.pageSource must contain("You already have an active App with the same name.")
+      App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+    }
+
+    "allow a new app to be created if the Distributor has already created and deactivated an App with the same name" in new WithFakeBrowser {
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get, "Some unique app name")
+      App.update(new UpdatableApp(currentApp.id, active = false, distributorID = user.distributorID.get, name = currentApp.name, callbackURL = None, serverToServerEnabled = false))
+      val appCount = App.findAll(user.distributorID.get).size
+
+      logInUser()
+
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
+      fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+      browser.$("button[name=new-app-form]").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App created!")
+      App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
+    }
   }
 
   "AppsController.create" should {
@@ -109,9 +138,9 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
 
       browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
-      fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+      fillInAppValues(appName = "Some new unique app name", currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       browser.$("button[name=new-app-form]").first.click()
-      browser.pageSource must contain("Edit Waterfall")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App created!")
 
       val apps = App.findAll(user.distributorID.get)
       val firstApp = apps(0)
@@ -156,11 +185,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       val newAppName = "My new test app"
       browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
-      browser.fill("#appName").`with`(newAppName)
-      browser.fill("#currencyName").`with`("Gold")
-      browser.fill("#exchangeRate").`with`("100")
-      browser.fill("#rewardMin").`with`("1")
-      browser.fill("#rewardMax").`with`("10")
+      fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       browser.$("button[name=new-app-form]").first.click()
       browser.pageSource must contain("Edit Waterfall")
       val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)

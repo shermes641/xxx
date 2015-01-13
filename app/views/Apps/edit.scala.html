@@ -6,7 +6,7 @@
         @helper.form(action = routes.AppsController.update(distributorID, appID)) {
             <h1>App Configuration</h1>
             <button type="submit" name="submit">Save Changes</button>
-            @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "App Name", '_showConstraints -> false)
+            @views.html.Apps.appName(form("appName"), form.error("takenAppName"))
             <dl class="onoff-field" id="active_field">
                 <dt>
                     <label for="active">Active</label>
