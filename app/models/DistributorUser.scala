@@ -44,23 +44,6 @@ object DistributorUser {
     }
   }
 
-  def isNotActive(id: Long): Boolean = {
-    DB.withConnection { implicit connection =>
-      val query = SQL(
-        """
-          SELECT distributor_users.*
-          FROM distributor_users
-          WHERE distributor_users.distributor_id = {id}
-          AND active = true
-        """
-      ).on("id" -> id)
-      query.as(userParser*) match {
-        case List(user) => false
-        case List() => true
-      }
-    }
-  }
-
   // Used to convert SQL row into an instance of DistributorUser class.
   val userParser: RowParser[DistributorUser] = {
     get[Option[Long]]("distributor_users.id") ~
@@ -135,23 +118,6 @@ object DistributorUser {
           case _ => None
         }
       }
-    }
-  }
-
-  /**
-   * Sets Distributor User to Active
-   * @param user Instance of DistributorUser class.
-   * @return Number of rows successfully updated.
-   */
-  def setActive(user: DistributorUser) = {
-    DB.withConnection { implicit connection =>
-      SQL(
-        """
-          UPDATE distributor_users
-          SET active=true
-          WHERE id = {id};
-        """
-      ).on("id" -> user.id).executeUpdate()
     }
   }
 

@@ -16,7 +16,6 @@ trait DistributorUserSetup extends DefaultUserValues {
   def newDistributorUser(email: String = email, password: String = password, companyName: String = companyName): (DistributorUser, Distributor) = {
     val userID = DistributorUser.create(email, password, companyName).get
     val user = DistributorUser.findByEmail(email).get
-    DistributorUser.setActive(user)
     val distributor = Distributor.find(user.distributorID.get).get
     (user, distributor)
   }

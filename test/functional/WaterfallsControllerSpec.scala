@@ -6,7 +6,6 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.Play.current
 import play.api.test._
 import play.api.test.Helpers._
 import resources._
@@ -81,7 +80,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
           "active" -> JsString("true"),
           "waterfallOrder" -> JsString("0"),
           "cpm" -> JsString(""),
-          "configurable" -> JsString("true")
+          "configurable" -> JsString("true"),
+          "pending" -> JsString("true")
         )
       )
       val configInfo2 = JsObject(
@@ -91,7 +91,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
           "active" -> JsString("true"),
           "waterfallOrder" -> JsString("1"),
           "cpm" -> JsString(""),
-          "configurable" -> JsString("true")
+          "configurable" -> JsString("true"),
+          "pending" -> JsString("true")
         )
       )
       val body = JsObject(
@@ -269,6 +270,33 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
       browser.find("#waterfall-selection").getValue.contains(appName)
+    }
+
+    "render the updated pending status, on browser refresh, for HyprMarketplace ad provider" in new WithFakeBrowser {
+      val newAppName = "Some new test app"
+      logInUser()
+
+      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.fill("#appName").`with`(newAppName)
+      browser.fill("#currencyName").`with`("New Currency")
+      browser.fill("#exchangeRate").`with`("100")
+      browser.fill("#rewardMin").`with`("1")
+      browser.$("button[name=new-app-form]").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App created!")
+      browser.pageSource must contain ("To check the status for " + adProviders(1) + ", please refresh your browser.")
+
+      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
+      val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
+      val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
+      val hyprMarketplaceID = waterfallAdProviders(0).waterfallAdProviderID
+      val hyprMarketplace = WaterfallAdProvider.find(hyprMarketplaceID).get
+      hyprMarketplace.pending must beEqualTo(true)
+
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(hyprMarketplace, 12345) }
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+
+      browser.pageSource must not contain ("To check the status for " + adProviders(1) + ", please refresh your browser.")
+      WaterfallAdProvider.find(hyprMarketplaceID).get.pending must beFalse
     }
   }
 }

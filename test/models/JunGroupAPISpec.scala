@@ -9,8 +9,6 @@ import org.specs2.runner._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.Play
-import play.api.test.Helpers._
-import play.api.test.FakeApplication
 import resources.WaterfallSpecSetup
 import scala.concurrent.{Future}
 
@@ -22,18 +20,21 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
   "adNetworkConfiguration" should {
     "Build the correct configuration using the created distributor user" in new WithDB {
-      val config = junGroup.adNetworkConfiguration(user)
-      config \ "ad_network" \ "name" must beEqualTo(JsString(user.email))
+      val appToken = "app-token"
+      val payoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
+      val config = junGroup.adNetworkConfiguration(user, "app-token")
+      val adNetworkName = appToken + "." + user.email
+      config \ "ad_network" \ "name" must beEqualTo(JsString(adNetworkName))
       config \ "ad_network" \ "mobile" must beEqualTo(JsBoolean(true))
 
-      config \ "payout_url" \ "url" must beEqualTo(JsString(Play.current.configuration.getString("jungroup.callbackurl").get))
+      config \ "payout_url" \ "url" must beEqualTo(JsString(payoutUrl))
       config \ "payout_url" \ "environment" must beEqualTo(JsString("production"))
     }
   }
 
   "createRequest" should {
     "create a request correctly using the ad network configuration" in new WithDB {
-      val config = junGroup.adNetworkConfiguration(user)
+      val config = junGroup.adNetworkConfiguration(user, "app-token")
       val successResponse = JsObject(Seq("success" -> JsBoolean(true)))
       response.body returns Json.stringify(successResponse)
       response.status returns 200
@@ -44,7 +45,11 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   "JunGroup API Actor" should {
     "exist and accept Create Ad Network message" in new WithDB {
       implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
-      val junActor = TestActorRef(new JunGroupAPIActor()).underlyingActor
+      val hyprWaterfallAdProvider = {
+        val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, false, true).get
+        WaterfallAdProvider.find(id).get
+      }
+      val junActor = TestActorRef(new JunGroupAPIActor(waterfall.id, hyprWaterfallAdProvider, "app-token", "app-name")).underlyingActor
       junActor.receive(CreateAdNetwork(user))
       junActor must haveClass[JunGroupAPIActor]
     }

@@ -286,7 +286,9 @@ object Waterfall extends JsonConversion {
         WaterfallAdProvider.find(adProviderConfig.id) match {
           case Some(record) => {
             val newOrder = if(adProviderConfig.active) Some(adProviderConfig.waterfallOrder) else None
-            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, Some(adProviderConfig.active), record.fillRate, record.configurationData, record.reportingActive)
+            // In the case that the WaterfallAdProvider's pending status has changed and the user edits the Waterfall without before refreshing the browser, use the most up to date active status from the database.
+            val activeStatus: Option[Boolean] = if(adProviderConfig.pending != record.pending) record.active else Some(adProviderConfig.active)
+            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, activeStatus, record.fillRate, record.configurationData, record.reportingActive, record.pending)
             WaterfallAdProvider.updateWithTransaction(updatedValues)
           }
           case _ => {

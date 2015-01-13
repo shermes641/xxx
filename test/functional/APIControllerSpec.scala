@@ -5,13 +5,12 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
-import resources.WaterfallSpecSetup
+import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
 
 @RunWith(classOf[JUnitRunner])
-class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
+class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
     WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
   }
@@ -144,13 +143,9 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   }
 
   "APIController.vungleCompletionV1" should {
-    val vungleCallbackUrl = Some("http://mediation-staging.herokuapp.com/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
-    val vungleAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-      AdProvider.create("Vungle", "{\"requiredParams\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", vungleCallbackUrl).get
-    }
     val transactionID = Some("0123456789")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleAdProviderID, None, None, true, true).get
+      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleID, None, None, true, true).get
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
@@ -228,10 +223,6 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   }
 
   "APIController.adColonyCompletionV1" should {
-    val adColonyCallbackUrl = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
-    val adColonyAdProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-      AdProvider.create("AdColony", "{\"requiredParams\":[{\"description\": \"Your AdColony App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}, {\"description\": \"Your AdColony Zones\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\"}], \"reportingParams\": [{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}", adColonyCallbackUrl, true, None).get
-    }
     val amount = Some(1)
     val currency = Some("Credits")
     val macSha1 = Some("")
@@ -242,7 +233,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val verifier = Some("15c16e889f382cb60d5b4550380bd5f7")
     val transactionID = Some("0123456789")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyAdProviderID, None, None, true, true).get
+      val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyID, None, None, true, true).get
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
@@ -281,6 +272,61 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.adColonyCompletionV1(completionApp.token, None, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+  }
+
+  "APIController.hyprMarketplaceCompletionV1" should {
+    val uid = Some("abc")
+    val sig = Some("b6125341cbd0393e5b5ab67169964c63aba583982cb44f0bc75a48f2587ab870")
+    val time = Some("1419972045")
+    val subID = Some("1111")
+    val quantity = Some(1)
+
+    val wap = running(FakeApplication(additionalConfiguration = testDB)) {
+      val id = WaterfallAdProvider.create(completionWaterfall.id, hyprMarketplaceID, None, None, true, true).get
+      WaterfallAdProvider.find(id).get
+    }
+
+    "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, subID).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      tableCount("completions") must beEqualTo(completionCount + 1)
+    }
+
+    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+      val badSignature = Some("123")
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, badSignature, quantity, None, None, uid, subID).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+
+    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, None).url,
         FakeHeaders(),
         ""
       )
