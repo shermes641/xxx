@@ -17,29 +17,27 @@ class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSet
     "return true if roundUp is false, the cpm is lower than the minimum possible calculated reward amount, and there is no rewardMin set" in new WithDB {
       val rewardMin = None
       val roundUp = Some(false)
-      val exchangeRate = Some(10.toLong)
+      val exchangeRate = Some(10L)
       val cpm = Some(1.0)
       val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, cpm, None, exchangeRate, rewardMin, None, roundUp, false, false, None)
       adProviderInfo.meetsRewardThreshold must beEqualTo(true)
     }
 
     "return true if roundUp is false, rewardMin is set, and cpm is greater than the calculated reward amount" in new WithDB {
-      val rewardMin = Some(1.toLong)
+      val rewardMin = Some(1L)
       val roundUp = Some(false)
-      val exchangeRate = Some(100.toLong)
+      val exchangeRate = Some(100L)
       val cpm = Some(50.0)
       val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, cpm, None, exchangeRate, rewardMin, None, roundUp, false, false, None)
-      cpm.get must beGreaterThan((rewardMin.get/exchangeRate.get).toDouble)
       adProviderInfo.meetsRewardThreshold must beEqualTo(true)
     }
 
     "return false if roundUp is false, rewardMin is set, and cpm is less than the calculated reward amount" in new WithDB {
-      val rewardMin = Some(10.toLong)
+      val rewardMin = Some(1L)
       val roundUp = Some(false)
-      val exchangeRate = Some(10.toLong)
-      val cpm = Some(50.0)
+      val exchangeRate = Some(25L)
+      val cpm = Some(25.0)
       val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, None, None, None, cpm, None, exchangeRate, rewardMin, None, roundUp, false, false, None)
-      (cpm.get / 1000) must beLessThan((rewardMin.get/exchangeRate.get).toDouble)
       adProviderInfo.meetsRewardThreshold must beEqualTo(false)
     }
 

@@ -256,8 +256,7 @@ object Waterfall extends JsonConversion {
       (roundUp, cpm, rewardMin) match {
         case (Some(roundUpValue: Boolean), _, _) if(roundUpValue) => true
         case (Some(roundUpValue: Boolean), Some(cpmVal: Double), Some(minReward: Long)) if(!roundUpValue) => {
-          val rewardAmount = minReward / exchangeRate.get
-          (cpmVal / 1000) >= rewardAmount
+          cpmVal * exchangeRate.get >= minReward * 1000.0
         }
         // If there is no cpm value for an ad provider and the virtual currency does not roundUp, this will ensure it is excluded from the waterfall.
         case (Some(roundUpValue: Boolean), None, _) if(!roundUpValue) => false
