@@ -2,12 +2,32 @@
 
 @main("Analytics", distributorID, appID) {
     @views.html.Partials.subHeader("analytics", distributorID, appID, None)
-
-    <div class="content dashboard">
+    <div id="email_modal">
+        <div id="csv_email_form">
+            CSV will be emailed to the following email once export is complete.
+            <input type="text" id="export_email" name="export_email" placeholder="Email Address" />
+            <button class="btn btn-primary" id="export_submit">Begin export</button>
+        </div>
+        <div id="csv_requested">
+            CSV has been requested, email will be sent once complete.
+            <button class="btn btn-primary">Close</button>
+        </div>
+        <div id="csv_export_error">
+            There was an error when requesting the export, please try again.
+            <button class="btn btn-primary">Close</button>
+        </div>
+    </div>
+    <div id="analytics_overlay"></div>
+    <div class="content dashboard" data-distributor-id="@distributorID">
         <div class="fluid-container">
             <div class="row">
                 <div class="col-sm-4">
                     <h1>Analytics</h1>
+                </div>
+                <div class="col-sm-4">
+                </div>
+                <div class="col-sm-4">
+                    <button class="btn btn-primary pull-right" id="export_as_csv">Export as CSV</button>
                 </div>
             </div>
             <input type="hidden" value="@keenProject" id="keen_project">

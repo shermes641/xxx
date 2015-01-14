@@ -15,6 +15,11 @@ object AnalyticsController extends Controller with Secured {
     Ok(views.html.Analytics.show(distributorID, currentAppID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
   }
 
+  def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+    KeenExport().exportToCSV(distributorID, request.body.asFormUrlEncoded.get("email").mkString(""))
+    Ok("success")
+  }
+
   // Uses the keen library to get a scoped read key
   def getScopedReadKey(distributorID: Long) = {
     val client = new JavaKeenClientBuilder().build()

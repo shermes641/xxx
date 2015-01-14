@@ -910,3 +910,46 @@ footer {
 .inactive-input {
     background-color: #CCCCCC;
 }
+
+#email_modal {
+    display: none;
+    position: fixed;
+    top: 200px;
+    left: 50%;
+    margin-left: -250px;
+    width: 500px;
+    background: #fff;
+
+    padding: 20px;
+    z-index: 100;
+    text-align: center;
+
+    border: 1px solid #ccc;
+}
+
+#export_email {
+    width: 100%;
+    text-align: center;
+    margin: 10px 0 10px 0;
+}
+
+#analytics_overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    background: #fff;
+    opacity: 0.9;
+    z-index: 90;
+}
+
+#csv_requested {
+    display: none;
+}
+
+#csv_export_error {
+    display: none;
+}

@@ -17,8 +17,72 @@ var Analytics = function () {
         adProvider: $( '#ad_providers' ),
         apps: $( '#apps' ),
         startDate: $( '#start_date' ),
-        endDate: $( '#end_date' )
+        endDate: $( '#end_date' ),
+        exportAsCsv: $( '#export_as_csv' ),
+        emailModal: $( '#email_modal' ),
+        emailForm: $( '#csv_email_form' ),
+        emailInput: $( '#export_email' ),
+        overlay: $( '#analytics_overlay' ),
+        submitExport: $( '#export_submit' ),
+        exportComplete: $( '#csv_requested' ),
+        exportError: $( '#csv_export_error' )
     };
+
+    // Distributor ID to be used in AJAX calls.
+    this.distributorID = $(".content").attr("data-distributor-id");
+    this.exportEndpoint = "/distributors/" + this.distributorID + "/analytics/export";
+
+    /**
+     * Pop up dialog for user to enter email
+     */
+    this.showEmailForm = function () {
+        this.elements.emailModal.show();
+        this.elements.emailForm.show();
+        this.showOverlay();
+    };
+
+    /**
+     * Show overlay
+     */
+    this.showOverlay = function () {
+        this.elements.overlay.show();
+    };
+
+    /**
+     * Show overlay and other modal elements
+     */
+    this.hideOverlay = function () {
+        this.elements.emailInput.val( "" );
+        this.elements.overlay.hide();
+        this.elements.emailModal.hide();
+        this.elements.exportComplete.hide();
+        this.elements.exportError.hide();
+    };
+
+    /**
+     * Begin CSV export and let the user know the export has been requested
+     */
+    this.startExport = function () {
+        this.elements.emailForm.hide();
+        var emailAddress = this.elements.emailInput.val();
+        $.ajax({
+            url: this.exportEndpoint,
+            type: 'POST',
+            data: { email: emailAddress },
+            success: _.bind( function() {
+                this.elements.exportComplete.show();
+            }, this ),
+            error: _.bind( function() {
+                this.elements.exportError.show();
+            }, this )
+        });
+    };
+
+    this.elements.exportAsCsv.click( _.bind( this.showEmailForm, this ) );
+    this.elements.overlay.click( _.bind( this.hideOverlay, this ) );
+    this.elements.exportComplete.click( _.bind( this.hideOverlay, this ) );
+    this.elements.submitExport.click( _.bind( this.startExport, this ) );
+
 
     /**
      * Check if date is valid.  Provide a valid Javascript date object.
