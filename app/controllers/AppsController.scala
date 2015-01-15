@@ -1,10 +1,12 @@
 package controllers
 
 import java.sql.Connection
+import akka.actor.Props
 import models._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.db.DB
+import play.api.libs.concurrent.Akka
 import play.api.mvc._
 import play.api.Play.current
 import play.api.Play
@@ -87,7 +89,10 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                     val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
                     (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                       case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
-                        new JunGroupAPI().createJunGroupAdNetwork(DistributorUser.find(distributorID).get, waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name)
+
+                        val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, new JunGroupAPI)))
+                        actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
+
                         Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
                       }
                       case (_, _) => onCreateRollback(distributorID)
