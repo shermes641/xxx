@@ -25,7 +25,8 @@ var Analytics = function () {
         overlay: $( '#analytics_overlay' ),
         submitExport: $( '#export_submit' ),
         exportComplete: $( '#csv_requested' ),
-        exportError: $( '#csv_export_error' )
+        exportError: $( '#csv_export_error' ),
+        closeButton: $( '.close_button' )
     };
 
     // Distributor ID to be used in AJAX calls.
@@ -81,6 +82,7 @@ var Analytics = function () {
     this.elements.exportAsCsv.click( _.bind( this.showEmailForm, this ) );
     this.elements.overlay.click( _.bind( this.hideOverlay, this ) );
     this.elements.exportComplete.click( _.bind( this.hideOverlay, this ) );
+    this.elements.closeButton.click( _.bind( this.hideOverlay, this ) );
     this.elements.submitExport.click( _.bind( this.startExport, this ) );
 
 

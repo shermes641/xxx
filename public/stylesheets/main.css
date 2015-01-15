@@ -43,21 +43,29 @@ h2 {
 
 input[type="text"], input[type="password"], button[type="submit"] {
     padding: 5px;
-    border: 1px solid #eee;
+    border: 0;
+    border-bottom: 1px solid #c8c7cc;
     -webkit-appearance: none;
+    background: #f9f9f9;
+    height: 35px;
 
-    font-size: 16px;
+    font-size: 13px;
     font-family: "Avenir Book", "Helvetica", sans-serif;
 }
 
 button[type="submit"] {
-    background: #4285f4;
+    width: 100%;
     color: #fff;
-    border: 0;
-    font-size: 14px;
+    background: #4f73e7;
     font-family: "Avenir Book", "Helvetica", sans-serif;
-    font-weight: 400;
-    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 3px;
+    height: 58px;
 }
 
 header {
@@ -117,6 +125,9 @@ header .actions a {
 
 #registration-link {
     padding-top: 20px;
+    width: 400px;
+    margin: 0 auto;
+    text-align: center;
 }
 
 #termsContainer {
@@ -245,7 +256,7 @@ span#viewTerms:hover {
     padding: 20px;
 
     background: #fff;
-    box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+    border: 1px solid #dddde0;
 }
 
 .content a:hover, .content a:focus {
@@ -332,12 +343,18 @@ span#viewTerms:hover {
 }
 
 .registration {
-    width: 600px;
-    margin: 70px auto;
+    width: 400px;
+    padding: 40px;
+    text-align: center;
+    margin: 70px auto 0 auto;
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration button[type="submit"] {
-    width: 560px;
+    width: 100%;
+}
+
+.registration dt {
+    display: none;
 }
 
 .registration h3 {
@@ -350,8 +367,12 @@ span#viewTerms:hover {
 }
 
 .registration dl {
-    margin-top: 20px;
-    margin-bottom: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.registration .modal_text {
+    margin: 20px auto;
 }
 
 .registration input[type="checkbox"] {
@@ -911,26 +932,68 @@ footer {
     background-color: #CCCCCC;
 }
 
+hr {
+    width: 100px;
+    color: #dddde0;
+    margin: 20px auto;
+}
+
+.modal_text {
+    width: 220px;
+    text-align: center;
+    margin: 10px auto;
+}
+
+#csv_email_form h1 {
+    color: #4f73e7;
+    font-size: 36px;
+}
+
 #email_modal {
     display: none;
     position: fixed;
-    top: 200px;
+    top: 180px;
     left: 50%;
-    margin-left: -250px;
-    width: 500px;
+    margin-left: -200px;
+    width: 400px;
     background: #fff;
 
-    padding: 20px;
-    z-index: 100;
+    padding: 40px;
+    z-index: 3000;
     text-align: center;
+    font-size: 13px;
+    color: #333;
 
-    border: 1px solid #ccc;
+    border: 1px solid #dddde0;
+}
+
+.close_button {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    background: url(../images/close.png);
 }
 
 #export_email {
     width: 100%;
-    text-align: center;
     margin: 10px 0 10px 0;
+}
+
+.modal_submit {
+    width: 100%;
+    color: #fff;
+    background: #4f73e7;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 3px;
 }
 
 #analytics_overlay {
@@ -943,7 +1006,8 @@ footer {
 
     background: #fff;
     opacity: 0.9;
-    z-index: 90;
+    z-index: 2000;
+
 }
 
 #csv_requested {
