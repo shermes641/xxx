@@ -1,12 +1,13 @@
 package controllers
 
-import models.{JunGroupAPI, WelcomeEmailActor, DistributorUser}
+import models.{WelcomeEmailActor, DistributorUser}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
 import play.api.libs.concurrent.Akka
 import akka.actor.Props
 import play.api.Play.current
+import play.twirl.api.Html
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {
@@ -55,7 +56,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           case _ => {
             val emailError = Seq(new play.api.data.FormError("email", "This email has been registered already. Try logging in."))
             val form = Form(signupForm.mapping, signupForm.data, emailError, signupForm.value).fill(signup)
-            BadRequest(views.html.DistributorUsers.signup(form))
+            delayedResponse(views.html.DistributorUsers.signup(form))
           }
         }
       }
@@ -116,7 +117,9 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    */
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.DistributorUsers.login(formWithErrors)),
+      formWithErrors => {
+        delayedResponse(views.html.DistributorUsers.login(formWithErrors))
+      },
       user => {
         val currentUser = DistributorUser.findByEmail(user.email).get
         Redirect(routes.AppsController.index(currentUser.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
@@ -132,6 +135,17 @@ object DistributorUsersController extends Controller with Secured with CustomFor
     Redirect(routes.DistributorUsersController.login).withNewSession.flashing(
       "success" -> "You are now logged out."
     )
+  }
+
+  /**
+   * Delays response before rendering a view to discourage brute force attacks.
+   * This is used for failures on the sign up or sign in actions.
+   * @param view The form to be rendered after the delay.
+   * @return a 400 response and render a form with errors.
+   */
+  def delayedResponse(view: Html): Result = {
+    Thread.sleep(1000)
+    BadRequest(view)
   }
 }
 
