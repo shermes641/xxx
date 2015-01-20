@@ -75,9 +75,10 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
 
   /**
    * Creates application for functional tests with set up code for a new App/Waterfall/VirtualCurrency/AppConfig combination.
+   * @param appName The name of the new App.
    * @param distributorID The ID of the Distributor to which the App (and related models) belong.
    */
-  abstract class WithAppBrowser(distributorID: Long) extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
-    lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID)
+  abstract class WithAppBrowser(distributorID: Long, appName: String = "New App") extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
+    lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID, appName)
   }
 }
