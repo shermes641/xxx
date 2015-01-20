@@ -145,7 +145,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("$('ul').prepend($('li').last());")
-      browser.executeScript("postUpdate();")
+      browser.executeScript("angular.element(\"#waterfall-edit\").scope().postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder(0).providerName must not equalTo(firstProvider)
@@ -198,7 +198,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
-      browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); postUpdate();")
+      browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); angular.element(\"#waterfall-edit\").scope().postUpdate();")
+
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -210,9 +211,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
-      browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); postUpdate();")
+      browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); angular.element(\"#waterfall-edit\").scope().postUpdate();")
+
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
