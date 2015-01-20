@@ -22,7 +22,7 @@ trait AppCreationHelper extends WaterfallCreationHelper {
       App.find(id).get
     }
     val virtualCurrency = {
-      val id = VirtualCurrency.create(currentApp.id, currencyName, exchangeRate, Some(rewardMin), rewardMax, Some(roundUp)).get
+      val id = VirtualCurrency.create(currentApp.id, currencyName, exchangeRate, rewardMin, rewardMax, Some(roundUp)).get
       VirtualCurrency.find(id).get
     }
     val currentWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, appName) }

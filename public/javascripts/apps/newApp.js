@@ -1,6 +1,6 @@
 "use strict";
 
-var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]"];
+var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]", ":input[id=rewardMin]"];
 
 
 // Enables or disables the submit button.
@@ -24,7 +24,7 @@ $(document).ready(function() {
     // Submit form if fields are valid.
     $(":button[name=new-app-form]").click(function(event) {
         event.preventDefault();
-        if(validRewardAmounts()) {
+        if(validRewardAmounts() && validExchangeRate()) {
             $("form[name=new-app-form]").submit();
         } else {
             event.preventDefault();

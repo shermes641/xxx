@@ -289,7 +289,7 @@ object WaterfallAdProvider extends JsonConversion {
       val activeClause = if(active) " AND active = true " else ""
       val sqlStatement =
         """
-          SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configurable, pending FROM ad_providers
+          SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable, pending FROM ad_providers
           JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
           WHERE waterfall_id = {waterfall_id}
         """ + activeClause +
@@ -366,6 +366,28 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
+   * Checks if all fields in the configuration JSON are filled.
+   * @param configurationData JSON from the configurationData attribute of the WaterfallAdProvider.
+   * @param paramType the top level key to search for in the configurationData.
+   * @return True if there is a blank field; False, otherwise.
+   */
+  def unconfigured(configurationData: JsValue, paramType: String = "requiredParams"): Boolean = {
+    configurationData \ paramType match {
+      case _: JsUndefined => return true
+      case params: JsValue => {
+        params.as[Map[String, JsValue]].map { param =>
+          param._2 match {
+            case paramValue: JsString if (paramValue == JsString("")) => return true
+            case paramValue: JsArray if (paramValue == JsArray(Seq())) => return true
+            case _ => None
+          }
+        }
+      }
+    }
+    false
+  }
+
+  /**
    * Encapsulates information to be used in callbacks.
    * @param configurationData maps to the configuration_data field in the waterfall_ad_providers table.
    * @param cpm maps to the cpm field in the waterfall_ad_providers table.
@@ -389,9 +411,11 @@ object WaterfallAdProvider extends JsonConversion {
     get[Option[Double]]("cpm") ~
     get[Boolean]("active") ~
     get[Option[Long]]("waterfall_order") ~
+    get[JsValue]("configuration_data") ~
     get[Boolean]("configurable") ~
     get[Boolean]("pending") map {
-      case name ~ id ~ cpm ~ active ~ waterfall_order ~ configurable ~ pending => OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, false, configurable, pending)
+      case name ~ id ~ cpm ~ active ~ waterfall_order ~ configuration_data ~ configurable ~ pending =>
+        OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, unconfigured(configuration_data.as[JsObject], "requiredParams"), false, configurable, pending)
     }
   }
 
@@ -431,10 +455,12 @@ case class WaterfallAdProviderRevenueData(waterfallAdProviderID: Long, name: Str
  * @param waterfallAdProviderID id field from waterfall_ad_providers table
  * @param cpm cpm field from waterfall_ad_providers table
  * @param waterfallOrder waterfall_order field from waterfall_ad_providers table
+ * @param unconfigured Determines if all required params have been filled in.
+ * @param newRecord Determines if there is a corresponding WaterfallAdProvider record.
  * @param configurable Determines if a DistributorUser can edit the cpm value for the WaterfallAdProvider.
  * @param pending Determines if the ad provider has been configured yet.  HyprMarketplace will remains in a pending state until we receive a response from Player with the distributor ID.
  */
-case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long], newRecord: Boolean = false, configurable: Boolean = true, pending: Boolean = false)
+case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long], unconfigured: Boolean, newRecord: Boolean = false, configurable: Boolean = true, pending: Boolean = false)
 
 /**
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.

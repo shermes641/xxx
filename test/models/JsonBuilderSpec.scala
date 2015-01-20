@@ -23,11 +23,11 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
 
   "JsonBuilder.virtualCurrencyConfiguration" should {
     "convert an AdProviderInfo instance into a JSON object containing virtual currency information" in new WithDB {
-      val virtualCurrency = new VirtualCurrency(0, 0, "Coins", 100, Some(1), Some(100), true)
+      val virtualCurrency = new VirtualCurrency(0, 0, "Coins", 100, 1, Some(100), true)
       val adProviderInfo = new AdProviderInfo(Some("ad provider name"), None, None, None, 0, None, None, None, None, Some(virtualCurrency.name), Some(virtualCurrency.exchangeRate),
         virtualCurrency.rewardMin, virtualCurrency.rewardMax, Some(virtualCurrency.roundUp), false, false, None)
       val expectedVCJson = JsObject(Seq("virtualCurrency" -> JsObject(Seq("name" -> JsString(virtualCurrency.name), "exchangeRate" -> JsNumber(virtualCurrency.exchangeRate),
-        "rewardMin" -> JsNumber(virtualCurrency.rewardMin.get), "rewardMax" -> JsNumber(virtualCurrency.rewardMax.get), "roundUp" -> JsBoolean(virtualCurrency.roundUp)))))
+        "rewardMin" -> JsNumber(virtualCurrency.rewardMin), "rewardMax" -> JsNumber(virtualCurrency.rewardMax.get), "roundUp" -> JsBoolean(virtualCurrency.roundUp)))))
       JsonBuilder.virtualCurrencyConfiguration(adProviderInfo) must beEqualTo(expectedVCJson)
     }
   }
@@ -36,7 +36,7 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     "convert an AdProviderInfo instance into a JSON object containing the name of an app" in new WithDB {
       val appName = "Test App"
       val appID = 0.toLong
-      val adProviderInfo = new AdProviderInfo(None, None, Some(appName), Some(appID), 0, None, None, None, None, None, None, None, None, None, false, false, None)
+      val adProviderInfo = new AdProviderInfo(None, None, Some(appName), Some(appID), 0, None, None, None, None, None, None, 1, None, None, false, false, None)
       val expectedAppNameJson = JsObject(Seq("appName" -> JsString(appName), "appID" -> JsNumber(appID)))
       JsonBuilder.appNameConfiguration(adProviderInfo) must beEqualTo(expectedAppNameJson)
     }
@@ -46,7 +46,7 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     "convert an AdProviderInfo instance into a JSON object containing the name and ID of a Distributor" in new WithDB {
       val distributorName = "Test Distributor"
       val distributorID = 10.toLong
-      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, Some(distributorName), Some(distributorID), None, None, None, None, None, None, None, false, false, None)
+      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, Some(distributorName), Some(distributorID), None, None, None, None, 1, None, None, false, false, None)
       val expectedDistributorJson = JsObject(Seq("distributorName" -> JsString(distributorName), "distributorID" -> JsNumber(distributorID)))
       JsonBuilder.distributorConfiguration(adProviderInfo) must beEqualTo(expectedDistributorJson)
     }

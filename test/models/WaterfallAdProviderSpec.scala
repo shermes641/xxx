@@ -4,7 +4,7 @@ import anorm.SQL
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.db.DB
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsArray, JsString, JsObject}
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
@@ -20,7 +20,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   val waterfall = running(FakeApplication(additionalConfiguration = testDB)) {
-    VirtualCurrency.create(currentApp.id, "Coins", 100, None, None, Some(true))
+    VirtualCurrency.create(currentApp.id, "Coins", 100, 1, None, Some(true))
     val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New App Waterfall") }
     Waterfall.find(waterfallID, currentApp.distributorID).get
   }
@@ -146,7 +146,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     val distributionChannelID: Long = 12345
 
     "set the appropriate JSON configuration for the HyprMarketplace WaterfallAdProvider" in new WithDB {
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID)}
       val updatedWap = WaterfallAdProvider.find(waterfallAdProvider1.id).get
       val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[String].toLong
       hyprDistributionChannelID must beEqualTo(distributionChannelID)
@@ -155,15 +155,32 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     "set the pending attribute to false" in new WithDB {
       WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.pending must beTrue
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID)}
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.pending must beFalse
     }
 
     "activate the WaterfallAdProvider" in new WithDB {
       WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.active.get must beFalse
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID)}
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.active.get must beTrue
+    }
+  }
+
+  "WaterfallAdProvider.unconfigured" should {
+    "return false if all fields in the JSON argument have corresponding values" in new WithDB {
+      val jsonConfig = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("value1"), "key2" -> JsArray(Seq(JsString("element1")))))))
+      WaterfallAdProvider.unconfigured(jsonConfig, "requiredParams") must beFalse
+    }
+
+    "return true if any field in the JSON argument has an empty string value" in new WithDB {
+      val jsonConfig = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("")))))
+      WaterfallAdProvider.unconfigured(jsonConfig, "requiredParams") must beTrue
+    }
+
+    "return true if any field in the JSON argument has an empty JsArray value" in new WithDB {
+      val jsonConfig = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsArray(Seq())))))
+      WaterfallAdProvider.unconfigured(jsonConfig, "requiredParams") must beTrue
     }
   }
 }
