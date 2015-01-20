@@ -11,7 +11,7 @@
         </div>
         @for(param <- reqParams) {
             <div data-required-param="true" class="edit-waterfall-ad-provider-field">
-                <label class="modal-label" data-param-name="@param.key">*@param.key</label>
+                <label class="modal-label" data-param-name="@param.key">*@param.displayKey</label>
                 <input data-param-type="@param.dataType" data-refresh-on-app-restart="@param.refreshOnAppRestart" type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>
@@ -35,7 +35,7 @@
         </table>
         @for(param <- reportingParams) {
             <div class="reporting-waterfall-ad-provider-field">
-                <label data-param-name="@param.key" class="modal-label">@param.key</label>
+                <label data-param-name="@param.key" class="modal-label">@param.displayKey</label>
                 <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>
@@ -51,7 +51,7 @@
         </table>
         @for(param <- callbackParams) {
             <div class="callback-waterfall-ad-provider-field">
-                <label data-param-name="@param.key" class="modal-label">@param.key</label>
+                <label data-param-name="@param.key" class="modal-label">@param.displayKey</label>
                 <input data-param-type="@param.dataType"type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>

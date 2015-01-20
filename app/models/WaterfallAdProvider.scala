@@ -490,14 +490,14 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
    */
   def mappedFields(paramType: String): List[RequiredParam] = {
     val reqParams = (this.adProviderConfiguration \ paramType).as[List[Map[String, String]]].map(el =>
-      new RequiredParam(el.get("key"), el.get("dataType"), el.get("description"), el.get("value"), el.get("refreshOnAppRestart"))
+      new RequiredParam(el.get("displayKey"), el.get("key"), el.get("dataType"), el.get("description"), el.get("value"), el.get("refreshOnAppRestart"))
     )
     val waterfallAdProviderParams = this.waterfallAdProviderConfiguration \ paramType
     // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
     // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     reqParams.map( param =>
       (waterfallAdProviderParams \ param.key.get) match {
-        case _: JsUndefined => new RequiredParam(param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
+        case _: JsUndefined => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
         case value: JsValue => {
           var paramValue: Option[String] = None
           if(param.dataType.get == "Array") {
@@ -505,9 +505,9 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
           } else {
             paramValue = Some(value.as[String])
           }
-          new RequiredParam(param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart)
+          new RequiredParam(param.displayKey, param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart)
         }
-        case _ => new RequiredParam(param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
+        case _ => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
       }
     )
   }
@@ -515,10 +515,11 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
 
 /**
  * Encapsulates information for configuration_data fields in ad_providers and waterfall_ad_providers tables.
+ * @param displayKey The name of the param displayed in the UI.
  * @param key Name of param required by Ad Provider.
  * @param dataType Data type of param.  Currently, only Strings and Arrays are supported.
  * @param description Description of the required param.  This is used in the UI to direct the distributor user on how to configure an ad provider.
  * @param value The actual value of the param.
  * @param refreshOnAppRestart Boolean value to indicate if changing the param only takes effect on app restart.
  */
-case class RequiredParam(key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean)
+case class RequiredParam(displayKey: Option[String], key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean)
