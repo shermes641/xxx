@@ -120,7 +120,7 @@ var validDynamicFields = function(requiredFields) {
        var field = requiredFields[i];
        var input = $.trim($(field).children(":input").val());
        if(!input.length > 0) {
-           var paramName = $(field).children("label").attr("data-param-name");
+           var paramName = $(field).children("label").html().replace("*", "");
            flashMessage(paramName + " is required.", waterfallErrorDiv);
            return false;
        }
