@@ -64,4 +64,10 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       JsonBuilder.sdkConfiguration(expectedAppConfigRefreshInterval) must beEqualTo(expectedSdkConfigurationJson)
     }
   }
+
+  "JsonBuilder.testModeConfiguration" should {
+    "create a JSON object containing the testMode boolean, which is false by default" in new WithDB {
+      JsonBuilder.testModeConfiguration  \ "testMode" must beEqualTo(JsBoolean(false))
+    }
+  }
 }
