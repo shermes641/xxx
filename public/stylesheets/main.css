@@ -74,8 +74,8 @@ header {
     right: 0;
     left: 0;
 
-    height: 50px;
-    background: #fff;
+    height: 60px;
+    background: #222;
     padding: 10px;
 
     font-size: 20px;
@@ -85,20 +85,63 @@ header {
     z-index: 2000;
 }
 
+header #logo {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 216px;
+    border-right: 1px solid #000;
+}
+
+header #logo:before {
+    content: " ";
+    position: absolute;
+    z-index: -1;
+    top: 1px;
+    left: 1px;
+    right: -2px;
+    bottom: 1px;
+    border-right: 1px solid #333;
+}
+
 header .actions {
     position: absolute;
     top: 0px;
     right: 0px;
     bottom: 0px;
-    padding: 12px 22px 0 22px;
 
-    font-size: 20px;
+    font-size: 13px;
     font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
     font-weight: 400;
 }
 
+header .actions .header-actions {
+    padding: 21px 22px;
+    border-left: 1px solid #000;
+    float: right;
+    position: relative;
+}
+
+header .actions .header-actions:before {
+    content: " ";
+    position: absolute;
+    z-index: -1;
+    top: 1px;
+    left: 0px;
+    right: 1px;
+    bottom: 1px;
+    border-left: 1px solid #333;
+}
+
 header .actions a {
-    padding-left: 20px;
+    text-decoration: none;
+    color: #666;
+}
+
+header .actions a:hover {
+    color: #fff;
 }
 
 #browser_support {
@@ -154,14 +197,13 @@ span#viewTerms:hover {
 
 .sub_header {
     position: fixed;
-    top: 50px;
-    right: 0;
-    left: 0;
+    top: 0px;
+    width: 414px;
+    left: 217px;
 
-    height: 50px;
+    height: 60px;
 
     background: #222;
-    box-shadow: 1px 2px 2px rgba(0,0,0,.2);
     z-index: 2000;
 }
 
@@ -169,37 +211,46 @@ span#viewTerms:hover {
     display: block;
     position: absolute;
     top: 0;
-    left: 50%;
+    left: 0;
     bottom: 0;
-
-    width: 600px;
-    margin-left: -300px;
 
     list-style: none;
 }
 
 .sub_header .menu li {
     margin: 0;
+    position: relative;
     float: left;
-    width: 200px;
-    padding-top: 16px;
-    height: 50px;
+    width: 138px;
+    padding-top: 22px;
+    height: 60px;
 
     -webkit-transition: 400ms ease all;
 
-    font-family: "Avenir Black", "Arial",sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-family: "Helvetica Bold", "Arial",sans-serif;
+    font-size: 13px;
     color: #fff;
-    text-align: center
+    text-align: center;
+    border-right: 1px solid #000;
+}
+
+.sub_header .menu li:before {
+    content: " ";
+    position: absolute;
+    z-index: -1;
+    top: 1px;
+    left: 1px;
+    right: -2px;
+    bottom: 1px;
+    border-right: 1px solid #333;
 }
 
 .sub_header .menu li.active {
-    background: #4285f4;
+    border-bottom: #4f73e7 5px solid;
 }
 
 .sub_header .menu li.active:hover {
-    background: #689ef8;
+    border-bottom: #4f73e7 5px solid;
 }
 
 .sub_header .menu li:hover {
@@ -250,6 +301,15 @@ span#viewTerms:hover {
     display: block;
 }
 
+.split_content {
+    position: relative;
+    margin: 60px 0 0 215px;
+    padding: 20px;
+
+    background: #fff;
+    border: 1px solid #dddde0;
+}
+
 .content {
     position: relative;
     margin: 70px 20px;
@@ -280,6 +340,72 @@ span#viewTerms:hover {
 .content.settings {
     margin-top: 120px;
 }
+
+#left_content {
+    position: absolute;
+    top: 60px;
+    left: 0px;
+    width: 215px;
+}
+
+#left_apps_list {
+    padding: 20px;
+    border-bottom: 1px solid #c8c7cc;
+}
+
+#left_apps_list h2 {
+    font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
+    color: #6d6d72;
+}
+
+#left_apps_list ul {
+    list-style: none;
+}
+
+#left_apps_list ul a {
+    text-decoration: none;
+}
+
+#left_apps_list ul li {
+    display: block;
+    background: #fff;
+    border-bottom: #c8c7cc 1px solid;
+    border-radius: 2px;
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+#left_apps_list ul li:hover {
+    background: #ccc;
+}
+
+
+#left_apps_list ul li.active {
+    background: #4f73e7;
+    color: #fff;
+}
+
+#create_new_app {
+    width: 173px;
+    color: #fff;
+    background: #333;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    margin: 20px;
+    border-radius: 3px;
+    height: 58px;
+}
+
+#create_new_app:hover {
+    background: #4f73e7;
+}
+
 
 .settings dl {
     margin-top: 20px;
@@ -346,7 +472,7 @@ span#viewTerms:hover {
     width: 400px;
     padding: 40px;
     text-align: center;
-    margin: 70px auto 0 auto;
+    margin: 120px auto 0 auto;
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration button[type="submit"] {
@@ -450,10 +576,50 @@ span#viewTerms:hover {
     cursor: pointer;
 }
 
+#waterfall_sub_header {
+    background: #efeff4;
+    padding: 12px;
+    height: 53px;
+    color: #6d6d72;
+    margin-top: 20px;
+}
+
+.waterfall-buttons {
+    float: right;
+    height: 30px;
+    padding-right:19px;
+}
+
+.waterfall-buttons .text-label {
+    color: #6d6d72;
+    font-size: 12px;
+    margin-top: 7px;
+}
+
+.waterfall-buttons .onoffswitch {
+    margin-left: 20px;
+}
+
+.waterfall-buttons.last {
+    padding-left: 19px;
+    padding-right: 0;
+    border-left: 1px solid #dddde0;
+}
+
+.app-token {
+    width: 455px;
+    float: left;
+}
 
 .content.waterfall_list {
     margin-top: 120px;
     overflow: hidden;
+}
+
+.waterfall_list h1 {
+    text-align: center;
+    font-size: 36px;
+    margin-top: 10px;
 }
 
 .waterfall-sort {
@@ -467,11 +633,33 @@ span#viewTerms:hover {
 
 .waterfall ul li {
     position: relative;
-    margin: 0;
-    padding: 10px;
-    border: 1px solid #eee;
-    margin-top: 10px;
+    margin: 10px 0;
+    padding: 24px;
+    border: 2px solid #eee;
     background: #fff;
+    height: 110px;
+}
+
+.waterfall ul li button {
+    float: right;
+    width: 130px;
+    background: #333;
+    margin: 0 0 0 10px;
+}
+
+.waterfall ul li button.configure {
+    background: #666;
+}
+
+.waterfall ul li .waterfall-app-info {
+    float: left;
+    margin-top: 12px;
+    margin-left: 60px;
+}
+
+.waterfall ul li .waterfall-app-info h3 {
+    color: #4f73e7;
+    font-size: 18px;
 }
 
 .waterfall ul li b {
@@ -495,22 +683,22 @@ span#viewTerms:hover {
 
 .waterfall-drag {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 44px;
+    left: 30px;
     height: 30px;
-    width: 30px;
+    width: 26px;
     cursor: row-resize;
 }
 
 .waterfall-drag-1 {
-    height: 5px;
-    background: #ddd;
+    height: 2px;
+    background: #dddde0;
 }
 
 .waterfall-drag-2, .waterfall-drag-3 {
-    height: 5px;
-    margin-top: 5px;
-    background: #ddd;
+    height: 2px;
+    margin-top: 6px;
+    background: #dddde0;
 }
 
 .inactive-waterfall {
@@ -534,12 +722,6 @@ span#viewTerms:hover {
 
 .inactive .inactive-waterfall-content {
     display: block;
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    margin-left: -100px;
-    color: #222;
-    text-align: center;
 }
 
 .inactive-button {
@@ -552,7 +734,7 @@ span#viewTerms:hover {
 }
 
 button.inactive {
-    background-color: #CCCCCC;
+    background-color: #d3dcf9;
 }
 
 .navbar-inverse {
@@ -597,11 +779,17 @@ div [class^="col-"] {
 }
 
 .tooltip {
-    display: inline;
+    display: inline-block;
     position: relative;
     opacity: 100;
     cursor: pointer;
-    padding-left: 10px;
+    padding-top: 2px;
+    width: 20px;
+    height: 20px;
+    background: #6d6d72;
+    border-radius: 10px;
+    text-align: center;
+    color: #fff;
 }
 
 #datepicker, #ad_providers, #countries {
@@ -738,7 +926,7 @@ dd.error {
 
 .onoffswitch {
     position: relative;
-    width: 70px;
+    width: 50px;
     float: right;
     -webkit-user-select:none;
     -moz-user-select:none;
@@ -753,7 +941,7 @@ dd.error {
     display: block;
     overflow: hidden;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 15px;
 }
 
 .onoffswitch-inner {
@@ -783,29 +971,29 @@ dd.error {
 }
 
 .onoffswitch-inner:before {
-    content: "ON";
+    content: "";
     padding-left: 10px;
-    background-color: #4285F4; color: #FFFFFF;
+    background-color: #CCC; color: #FFFFFF;
 }
 
 .onoffswitch-inner:after {
-    content: "OFF";
+    content: "";
     padding-right: 10px;
-    background-color: #EEEEEE; color: #999999;
+    background-color: #CCC; color: #999999;
     text-align: right;
 }
 
 .onoffswitch-switch {
     display: block;
-    width: 15px;
+    width: 24px;
     height: 24px;
     margin: 3px;
     background: #FFFFFF;
-    border-radius: 5px;
+    border-radius: 15px;
     position: absolute;
     top: 0;
     bottom: 0;
-    right: 48px;
+    right: 20px;
     -moz-transition: all 0.3s ease-in 0s;
     -webkit-transition: all 0.3s ease-in 0s;
     -o-transition: all 0.3s ease-in 0s;
@@ -839,8 +1027,9 @@ dd.error {
 }
 
 .checkbox-label {
-    margin-top: 7px;
+    margin-top: 20px;
     max-width: 400px;
+    font-size: 11px;
 }
 
 .switch-checkbox-label {
@@ -869,30 +1058,58 @@ dd.error {
     cursor: default;
 }
 
-.app-token {
-    font-size: 16px;
-    font-weight: bold;
-    padding-top: 14px;
-    clear: left;
+#initialize_sdk {
+    background: #dce3fa;
+    border: 2px solid #b9c7f5;
+    color: #4f73e7;
+    text-align: center;
+    padding: 22px;
+    margin-top: 10px;
 }
 
-.code-block {
-    padding-bottom: 24px;
+#waterfall-app-settings-button {
+    width: 157px;
+    color: #fff;
+    background: #4f73e7;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    border-radius: 3px;
+    height: 58px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
 }
 
 .waterfall-edit-description {
     max-width: 800px;
+    margin-top: 10px;
+    color: #222;
+}
+
+#initialize_sdk .copy-paste-code {
+    width: 700px;
+    text-align: left;
+    margin-top: 10px;
 }
 
 .copy-paste-code {
-    font-weight: 100;
-    color: #000000;
-    background: #E8E8E8;
+    font-weight: normal;
+    font-size: 12px;
+    color: #6d6d72;
+    background: #fff;
     display: inline-block;
+    border-radius: 0;
+    width: 386px;
+    padding: 6px;
+    text-align: center;
 }
 
 .hidden-wap-info {
-    visibility: hidden;
+    display: none;
 }
 
 .modal-centered {

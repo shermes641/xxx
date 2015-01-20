@@ -12,7 +12,7 @@ import collection.JavaConversions._
 
 object AnalyticsController extends Controller with Secured {
   def show(distributorID: Long, currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
-    Ok(views.html.Analytics.show(distributorID, currentAppID, App.findAll(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
+    Ok(views.html.Analytics.show(distributorID, currentAppID, App.findAllAppsWithWaterfalls(distributorID), AdProvider.findAll, Play.current.configuration.getString("keen.project").get, getScopedReadKey(distributorID)))
   }
 
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>

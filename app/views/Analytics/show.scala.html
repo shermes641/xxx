@@ -1,4 +1,4 @@
-@(distributorID: Long, appID: Option[Long], apps: List[App], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
+@(distributorID: Long, appID: Option[Long], apps: List[AppWithWaterfallID], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
 @main("Analytics", distributorID, appID) {
     @views.html.Partials.subHeader("analytics", distributorID, appID, None)
@@ -25,7 +25,8 @@
         </div>
     </div>
     <div id="analytics_overlay"></div>
-    <div class="content dashboard" data-distributor-id="@distributorID">
+    @views.html.Partials.analyticsFilters(distributorID, appID, apps)
+    <div class="split_content dashboard" data-distributor-id="@distributorID">
         <div class="fluid-container">
             <div class="row">
                 <div class="col-sm-4">

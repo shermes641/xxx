@@ -17,16 +17,20 @@
     <body>
         <div class="content-wrapper">
             <header>
-                <a href="@routes.AnalyticsController.show(distributorID, appID)" class=@{if(title == "") "inactive-link" else ""}>
-                    <img height="34" src="@routes.Assets.at("images/hypr_logo_rgb.jpeg")">
+                <a id="logo" href="@routes.AnalyticsController.show(distributorID, appID)" class=@{if(title == "") "inactive-link" else ""}>
+                    <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
                 </a>
                 <div class="actions">
-                    <a href="http://documentation.hyprmx.com">Documentation</a>
-                    @session.get("username").map { user =>
-                        <a href="@routes.DistributorUsersController.logout()">
-                            Log out
-                        </a>
-                    }
+                    <div class="header-actions">
+                        @session.get("username").map { user =>
+                            <a href="@routes.DistributorUsersController.logout()">
+                                Log out
+                            </a>
+                        }
+                    </div>
+                    <div class="header-actions">
+                        <a href="http://documentation.hyprmx.com">Documentation</a>
+                    </div>
                 </div>
             </header>
             @if(!flash.isEmpty) {
