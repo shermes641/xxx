@@ -203,8 +203,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle waterfall test mode on and off" in new WithFakeBrowser {
-      val originalGeneration = generationNumber(waterfall.app_id)
       Waterfall.update(waterfall.id, false, false)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      val originalGeneration = generationNumber(waterfall.app_id)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
 
       logInUser()
 
@@ -214,6 +216,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
     }
 
     "not set waterfall to live mode when no ad providers are configured" in new WithAppBrowser(distributor.id.get) {

@@ -48,7 +48,7 @@ object JsonBuilder extends ValueToJsonHelper {
       )
     }
     val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)),
-      distributorConfiguration(adProviders(0)), sdkConfiguration(adProviders(0).appConfigRefreshInterval))
+      distributorConfiguration(adProviders(0)), sdkConfiguration(adProviders(0).appConfigRefreshInterval), testModeConfiguration)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
@@ -130,6 +130,18 @@ object JsonBuilder extends ValueToJsonHelper {
             "analyticsWriteKey" -> JsString(Play.current.configuration.getString("keen.writeKey").get)
           )
         )
+      )
+    )
+  }
+
+  /**
+   * Creates JSON object containing indication whether the app is in test mode or not.
+   * @return JSON object to be merged into JSON API response.
+   */
+  def testModeConfiguration: JsObject = {
+    JsObject(
+      Seq(
+        "testMode" -> JsBoolean(false)
       )
     )
   }
