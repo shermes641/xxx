@@ -1,0 +1,35 @@
+<div id="error-message" class="flash-message error"></div>
+<div id="success-message" class="flash-message success"></div>
+<form name="new-app-form" ng-controller="NewAppsController" ng-submit="submit()">
+    <div data-distributor-id="{{distributorID}}" id="new-app" class="content registration">
+        <h1>New App</h1>
+        <input type="text" ng-model="data.appName" ng-change="checkInputs()" id="appName" name="appName" value="" placeholder="name" label="*App Name">
+        <input type="text" ng-model="data.currencyName" ng-change="checkInputs()" id="currencyName" name="currencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
+        <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
+        <input type="number" ng-model="data.exchangeRate" ng-change="checkInputs()" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+        <div class="tip">The number of virtual currency units per $1.</div>
+        <input type="number" ng-model="data.rewardMin" ng-change="checkInputs()" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+        <input type="number" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
+        <dl class=" " id="roundUp_field">
+            <dt>
+                <label for="roundUp">Round Up Reward</label>
+            </dt>
+            <dd>
+                <div class="onoffswitch switch-left">
+                    <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox" ng-model="data.roundUp" ng-init="data.roundUp=true" checked="checked"/>
+                    <label class="onoffswitch-label" for="roundUp">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                    <span></span>
+                </div>
+            </dd>
+        </dl>
+        <div>
+            <label class="switch-checkbox-label">
+                Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+            </label>
+        </div>
+        <button ng-disabled="invalidForm" ng-class="inactiveClass" id="create-app" type="submit" name="new-app-form">Create App</button>
+    </div>
+</form>
