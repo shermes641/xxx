@@ -12,7 +12,7 @@ import org.junit.runner._
 import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
-class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
+class HyprMarketplaceAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
     val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
     WaterfallAdProvider.find(waterfallAdProviderID1).get
@@ -20,10 +20,10 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString("some API Key"), "placementID" -> JsString("some Placement ID"), "appID" -> JsString("some App ID")))))
   val response = mock[WSResponse]
-  val hyprMX = spy(new HyprMXAPI(waterfallAdProvider1.id, configurationData))
+  val hyprMarketplace = running(FakeApplication(additionalConfiguration = testDB)) { spy(new HyprMarketplaceAPI(waterfallAdProvider1.id, configurationData)) }
 
   "updateRevenueData" should {
-    "updates the cpm field of the WaterfallAdProvider if the HyprMX API call is successful" in new WithDB {
+    "updates the cpm field of the WaterfallAdProvider if the HyprMarketplace API call is successful" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
       Waterfall.update(waterfallAdProvider1.waterfallID, true, false)
       waterfallAdProvider1.cpm must beNone
@@ -37,7 +37,7 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
-    "does not update the WaterfallAdProvider if the HyprMX API call is unsuccessful" in new WithDB {
+    "does not update the WaterfallAdProvider if the HyprMarketplace API call is unsuccessful" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
       val jsonResponse = JsObject(Seq("message" -> JsString("Bad Request."), "details" -> JsString("Some error message")))
@@ -49,8 +49,12 @@ class HyprMXAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     }
   }
 
+  /**
+   * Helper function to fake HyprMarketplace API call.
+   * @return Response from mocked out API call.
+   */
   def callAPI = {
-    hyprMX.retrieveHyprMXData(configurationData) returns Future { response }
-    Await.result(hyprMX.updateRevenueData, Duration(5000, "millis"))
+    hyprMarketplace.retrieveHyprMarketplaceData(configurationData) returns Future { response }
+    Await.result(hyprMarketplace.updateRevenueData, Duration(5000, "millis"))
   }
 }

@@ -3,25 +3,26 @@ package models
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import play.api.db.DB
-import play.api.libs.json._
 import play.api.libs.Codecs
+import play.api.libs.json._
 import play.api.libs.ws._
+import play.api.Play
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-case class HyprMXAPI(waterfallAdProviderID: Long, configurationData: JsValue) {
-  val HYPRMX_BASE_URL = "https://live.hyprmx.com/fyber/v1"
+case class HyprMarketplaceAPI(waterfallAdProviderID: Long, configurationData: JsValue) {
+  val HYPR_MARKETPLACE_BASE_URL = Play.current.configuration.getString("hyprmarketplace.reporting_url").get
   val currentTimeFormat = new SimpleDateFormat("yyyy-MM-dd")
   val calendar = Calendar.getInstance
 
   /**
-   * Receives data from HyprMX API and updates WaterfallAdProvider
+   * Receives data from HyprMarketplace API and updates WaterfallAdProvider
    * @return Future which updates the cpm field of WaterfallAdProvider
    */
   def updateRevenueData = {
-    retrieveHyprMXData(configurationData) map {
+    retrieveHyprMarketplaceData(configurationData) map {
       case response => {
         Json.parse(response.body) \ "results" match {
           case _:JsUndefined => None
@@ -50,11 +51,11 @@ case class HyprMXAPI(waterfallAdProviderID: Long, configurationData: JsValue) {
   }
 
   /**
-   * Calls HyprMX reporting API to get today's most recent revenue and impression stats.
-   * @param configurationData JSON field in waterfall_ad_providers table containing the required HyprMX API keys.
-   * @return A future object containing the HyprMX API response.
+   * Calls HyprMarketplace reporting API to get today's most recent revenue and impression stats.
+   * @param configurationData JSON field in waterfall_ad_providers table containing the required HyprMarketplace API keys.
+   * @return A future object containing the HyprMarketplace API response.
    */
-  def retrieveHyprMXData(configurationData: JsValue): Future[WSResponse] = {
+  def retrieveHyprMarketplaceData(configurationData: JsValue): Future[WSResponse] = {
     val reportingParams = configurationData \ "reportingParams"
     val appID = (reportingParams \ "appID").as[String]
     val placementID = (reportingParams \ "placementID").as[String]
@@ -66,13 +67,13 @@ case class HyprMXAPI(waterfallAdProviderID: Long, configurationData: JsValue) {
     val queryParams = Map("app_id" -> appID, "end_date" -> endDate, "placement_id" -> placementID, "start_date" -> startDate)
     val queryString = queryParams.flatMap((k) => List(k._1 + "=" +  k._2)).mkString("&") + "&" + apiKey
     val hashValue = Codecs.sha1(queryString)
-    WS.url(HYPRMX_BASE_URL).withQueryString("app_id" -> appID, "placement_id" -> placementID, "start_date" -> startDate, "end_date" -> endDate, "hash_value" -> hashValue).get
+    WS.url(HYPR_MARKETPLACE_BASE_URL).withQueryString("app_id" -> appID, "placement_id" -> placementID, "start_date" -> startDate, "end_date" -> endDate, "hash_value" -> hashValue).get
   }
 }
 
 /**
- * Encapsulates revenue data from HyprMX's reporting API to be used in a future calculation.
- * @param stats JSON containing revenue and impression count from HyprMX's API.
+ * Encapsulates revenue data from HyprMarketplace's reporting API to be used in a future calculation.
+ * @param stats JSON containing revenue and impression count from HyprMarketplace's API.
  */
 case class RevenueData(stats: JsValue) {
   val revenue: Double = (stats \ "revenue").as[String].toDouble

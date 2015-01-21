@@ -1,16 +1,16 @@
 package models
 
 import akka.actor.Actor
-import play.api.libs.json._
-import scala.concurrent.duration.DurationInt
+import akka.actor.Props
 import play.api.Application
 import play.api.libs.concurrent.Akka
-import akka.actor.Props
+import play.api.libs.json._
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
 object RevenueDataActor {
-  val REVENUE_DATA_COLLECTION_FREQUENCY = 1 hour
+  val REVENUE_DATA_COLLECTION_FREQUENCY = 1.hour
 
   /**
    * Initializes background job for collecting and updating eCPM data for WaterfallAdProviders.
@@ -38,8 +38,8 @@ class RevenueDataActor(waterfallAdProviderID: Long, configurationData: JsValue) 
    * @return Initiation of background job for updating a particular WaterfallAdProvider.
    */
   def receive = {
-    case "HyprMX" => {
-      new HyprMXAPI(waterfallAdProviderID, configurationData).updateRevenueData
+    case "HyprMarketplace" => {
+      new HyprMarketplaceAPI(waterfallAdProviderID, configurationData).updateRevenueData
     }
   }
 }
