@@ -44,7 +44,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
-            new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, adProvider.configurable)
+            new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))

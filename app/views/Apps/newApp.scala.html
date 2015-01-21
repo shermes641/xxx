@@ -4,7 +4,7 @@
     @helper.form(action = routes.AppsController.create(distributorID), 'name -> "new-app-form") {
         <div id="new-app" class="content registration">
             <h1>New App</h1>
-            @helper.inputText(form("appName"), 'placeholder -> "name", '_label -> "*App Name", '_showConstraints -> false)
+            @views.html.Apps.appName(form("appName"), form.error("takenAppName"))
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"), None)
             <div>
                 <label class="switch-checkbox-label">

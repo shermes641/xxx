@@ -16,14 +16,14 @@ val adColonyCallbackUrl = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[U
 val adColonyConfiguration = {
   "{" +
     "\"requiredParams\":[" +
-      "{\"description\": \"Your AdColony App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}, " +
-      "{\"description\": \"Your AdColony Zones\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\", \"refreshOnAppRestart\": \"true\"}" +
+      "{\"description\": \"Your AdColony App ID\", \"displayKey\": \"AdColony App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}, " +
+      "{\"description\": \"Your AdColony Zones\", \"displayKey\": \"Zone IDs\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\", \"refreshOnAppRestart\": \"true\"}" +
     "], " +
     "\"reportingParams\": [" +
-      "{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your Reporting API Key\", \"displayKey\": \"Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your Event API Key\", \"displayKey\": \"V4VC Secret Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "]" +
   "}"
 }
@@ -34,16 +34,16 @@ AdProvider.create("AdColony", adColonyConfiguration, adColonyCallbackUrl, true, 
 val hyprMarketplaceConfiguration = {
   "{" +
     "\"requiredParams\":[" +
-      "{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
-      "{\"description\": \"Your HyprMX App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your HyprMX Distributor ID\", \"displayKey\": \"Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
+      "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"Property ID\", \"key\": \"propertyID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"reportingParams\": [" +
-      "{\"description\": \"Your API Key for HyprMX\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
-      "{\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
-      "{\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your API Key for HyprMX\", \"displayKey\": \"API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
+      "{\"description\": \"Your Placement ID\", \"displayKey\": \"Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
+      "{\"description\": \"Your App ID\", \"displayKey\": \"App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your Event API Key\", \"displayKey\": \"Callback Secret\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "]" +
   "}"
 }
@@ -56,13 +56,13 @@ val vungleCallbackUrl = Some("/v1/reward_callbacks/%s/vungle?amount=1&uid=%%user
 val vungleConfiguration = {
   "{" +
     "\"requiredParams\":[" +
-      "{\"description\": \"Your Vungle App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}" +
+      "{\"description\": \"Your Vungle App ID\", \"displayKey\": \"App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}" +
     "], " +
     "\"reportingParams\": [" +
-      "{\"description\": \"Your API Key for Fyber\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your Reporting API ID\", \"displayKey\": \"Reporting API ID\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Secret Key for Secure Callback\", \"displayKey\": \"Secret Key for Secure Callback\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "]" +
   "}"
 }
@@ -75,35 +75,14 @@ val appLovinCallbackUrl = Some("/v1/reward_callbacks/%s/app_lovin?idfa={IDFA}&ha
 val appLovinConfiguration = {
   "{" +
     "\"requiredParams\":[" +
-      "{\"description\": \"Your AppLovin App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}" +
+      "{\"description\": \"Your AppLovin SDK Key\", \"displayKey\": \"SDK Key\", \"key\": \"sdkKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}" +
     "], " +
     "\"reportingParams\": [" +
-      "{\"description\": \"Your API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your AppLovin Report Key\", \"displayKey\": \"Report Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "]" +
   "}"
 }
 
 AdProvider.create("AppLovin", appLovinConfiguration, appLovinCallbackUrl, true, None)
-
-// Create Flurry AdProvider
-val flurryCalbackUrl = Some("/v1/reward_callbacks/%s/flurry?idfa=%%{idfa}&sha1Mac=%%{sha1Mac}&appPrice=%%{appPrice}&fguid=%%{fguid}&rewardquantity=%%{rewardquantity}&fhash=%%{fhash}")
-
-val flurryConfiguration = {
-  "{" +
-    "\"requiredParams\":[" +
-      "{\"description\": \"Your Flurry App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}, " +
-      "{\"description\": \"Your Flurry Space Name\", \"key\": \"spaceName\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}" +
-    "], " +
-    "\"reportingParams\": [" +
-      "{\"description\": \"Your API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
-    "], " +
-    "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
-    "]" +
-  "}"
-}
-
-AdProvider.create("Flurry", flurryConfiguration, flurryCalbackUrl, true, None)

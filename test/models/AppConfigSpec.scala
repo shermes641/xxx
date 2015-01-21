@@ -144,5 +144,9 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
         (AppConfig.responseV1(currentApp.token) \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
       }
     }
+
+    "return a response with testMode equal to true when a Waterfall is in test mode" in new WithAppDB(distributor.id.get) {
+      currentAppConfig.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+    }
   }
 }

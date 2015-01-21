@@ -21,21 +21,7 @@ case class CreateAdNetwork(distributorUser: DistributorUser)
 /**
  * Encapsulates interactions with Player.
  */
-case class JunGroupAPI() {
-  /**
-   * Sends request to Jungroup API using settings in the config
-   * @param distributorUser The DistributorUser who is creating a new WaterfallAdProvider.
-   * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
-   * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance.
-   * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
-   * @param appName The name of the newly created App.
-   */
-  def createJunGroupAdNetwork(distributorUser: DistributorUser, waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String) = {
-    val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallID, hyprWaterfallAdProvider, appToken, appName)))
-    actor ! CreateAdNetwork(distributorUser)
-  }
-
-
+class JunGroupAPI {
   /**
    * Creates the request using the config passed.
    * @param adNetwork JSON containing the appropriate information to create a new AdNetwork in Player.
@@ -116,13 +102,14 @@ case class JunGroupAPI() {
  * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
  * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance that was just created.
  * @param appToken The unique identifier of the App to which the Waterfall and WaterfallAdProvider belong.
+ * @param api Instance of the JunGroupAPI class.
  * @param appName The name of the newly created App.
  */
-class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String) extends Actor {
+class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, api: JunGroupAPI) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
   private val RETRY_FREQUENCY = 3.seconds
-  private var lastFailure = ""
+  var lastFailure = ""
 
   /**
    * Retries the API call to Player.
@@ -137,44 +124,51 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       counter += 1
       if(counter > RETRY_COUNT){
-        JunGroupAPI().sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
+        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
         context.stop(self)
       } else {
-        val adNetwork = JunGroupAPI().adNetworkConfiguration(distributorUser, appToken)
-        JunGroupAPI().createRequest(adNetwork) map {
+        val adNetwork = api.adNetworkConfiguration(distributorUser, appToken)
+        api.createRequest(adNetwork) map {
           response => {
             if(response.status != 500) {
-              Json.parse(response.body) match {
-                case _:JsUndefined => {
-                  retry(distributorUser)
-                }
-                case results if(response.status == 200 || response.status == 304) => {
-                  val success: JsValue = results \ "success"
-                  val adNetworkID: Long = (results \ "ad_network" \ "ad_network" \ "id").as[Long]
-                  if(success.as[JsBoolean] != JsBoolean(false)) {
-                    DB.withTransaction { implicit connection =>
-                      try {
-                        val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID)
-                        AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
-                        updateResult match {
-                          case 1 => {
-                            JunGroupAPI().sendSuccessEmail(distributorUser, appName)
-                          }
-                          case _ => None
-                        }
-                      } catch {
-                        case error: org.postgresql.util.PSQLException => {
-                          connection.rollback()
-                        }
-                      }
-                    }
-                  } else {
-                    val error: JsValue = results \ "error"
-                    lastFailure = error.as[String]
+              try {
+                Json.parse(response.body) match {
+                  case _:JsUndefined => {
                     retry(distributorUser)
                   }
+                  case results if(response.status == 200 || response.status == 304) => {
+                    val success: JsValue = results \ "success"
+                    val adNetworkID: Long = (results \ "ad_network" \ "ad_network" \ "id").as[Long]
+                    if(success.as[JsBoolean] != JsBoolean(false)) {
+                      DB.withTransaction { implicit connection =>
+                        try {
+                          val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID)
+                          AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
+                          updateResult match {
+                            case 1 => {
+                              api.sendSuccessEmail(distributorUser, appName)
+                            }
+                            case _ => None
+                          }
+                        } catch {
+                          case error: org.postgresql.util.PSQLException => {
+                            connection.rollback()
+                          }
+                        }
+                      }
+                    } else {
+                      val error: JsValue = results \ "error"
+                      lastFailure = error.as[String]
+                      retry(distributorUser)
+                    }
+                  }
+                  case _ => retry(distributorUser)
                 }
-                case _ => retry(distributorUser)
+              } catch {
+                case parsingError: com.fasterxml.jackson.core.JsonParseException => {
+                  lastFailure = response.body
+                  retry(distributorUser)
+                }
               }
             } else {
               retry(distributorUser)

@@ -3,6 +3,7 @@ package models
 import play.api.db.DB
 import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
+import play.api.libs.json.{JsString, JsObject}
 import resources.WaterfallSpecSetup
 import org.specs2.runner._
 
@@ -11,7 +12,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   "Waterfall.create" should {
     "add a new Waterfall record in the database" in new WithDB {
       val appID = App.create(distributor.id.get, "App 1").get
-      VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
       val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "Waterfall") }
       Waterfall.find(waterfallID, distributor.id.get).get must haveClass[Waterfall]
     }
@@ -38,7 +39,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
     "should not create a new WaterfallAdProvider if one doesn't exist and ConfigInfo is not active" in new WithDB {
       val appID = App.create(distributor.id.get, "App 1").get
-      VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfallID).size must beEqualTo(0)
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, false, true, 0, None, true, false))
@@ -48,7 +49,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
     "should set the waterfallOrder property on WaterfallAdProviders correctly" in new WithDB {
       val appID = App.create(distributor.id.get, "App 1").get
-      VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val waterfallOrder = 0
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(adProviderID1.get, true, true, waterfallOrder, None, true, false))
@@ -58,9 +59,11 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
     "should deactivate a WaterfallAdProvider correctly" in new WithDB {
       val appID = App.create(distributor.id.get, "App 1").get
-      VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true, true).get
+      val wap = WaterfallAdProvider.find(wapID).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wapID, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
       WaterfallAdProvider.findAllOrdered(currentWaterfallID, true)(0).waterfallAdProviderID must beEqualTo(wapID)
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) }
@@ -69,7 +72,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
 
     "should return false if the update is not successful" in new WithDB {
       val appID = App.create(distributor.id.get, "App 1").get
-      VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       val someFakeID = 100
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(someFakeID, false, false, 0, None, true, false))
@@ -80,7 +83,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   "Waterfall.order" should {
     "return a list of ordered ad providers with configuration information if there are active waterfall ad providers" in new WithDB {
       val appID = App.create(distributor.id.get, "App 1").get
-      VirtualCurrency.create(appID, "Gold", 10, None, None, Some(true)).get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
       val currentWaterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "Waterfall") }.get
       WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true, true)
       val appToken = App.find(appID).get.token

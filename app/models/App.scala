@@ -54,7 +54,7 @@ case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, na
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  * @param generationNumber A number identifying the current AppConfig state.
  */
-case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Option[Long], rewardMax: Option[Long], roundUp: Boolean, generationNumber: Option[Long])
+case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Boolean, generationNumber: Option[Long])
 
 object App {
   // Used to convert SQL row into an instance of the App class.
@@ -90,7 +90,7 @@ object App {
     get[Boolean]("apps.server_to_server_enabled") ~
     get[String]("virtual_currencies.name") ~
     get[Long]("virtual_currencies.exchange_rate") ~
-    get[Option[Long]]("virtual_currencies.reward_min") ~
+    get[Long]("virtual_currencies.reward_min") ~
     get[Option[Long]]("virtual_currencies.reward_max") ~
     get[Boolean]("virtual_currencies.round_up") ~
     get[Option[Long]]("generation_number") map {
@@ -280,6 +280,27 @@ object App {
    */
   def updateWithTransaction(app: UpdatableApp)(implicit connection: Connection): Int = {
     updateSQL(app).executeUpdate()
+  }
+
+  /**
+   * Checks database for an existing enabled App name for a particular Distributor.
+   * @param appName The potential name of a new App.
+   * @param distributorID The Distributor who will own the new App.
+   */
+  def nameExists(appName: String, distributorID: Long, appID: Option[Long] = None): Option[Long] = {
+    DB.withConnection { implicit connection =>
+      val appNameInfo: List[(Long, String)] = SQL(
+        """
+          SELECT id, name FROM apps
+          WHERE distributor_id = {distributor_id} AND active = true;
+        """
+      ).on("distributor_id" -> distributorID)().map(row => (row[Long]("id"), row[String]("name"))).toList
+      appNameInfo.find(info => info._2 == appName) match {
+        case None => None
+        case Some(info) if(info._1 != appID.getOrElse(None)) => Some(info._1)
+        case _ => None
+      }
+    }
   }
 
   /**

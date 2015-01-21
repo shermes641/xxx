@@ -4,14 +4,14 @@
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure @adProviderName</h1>
     @helper.form(action = routes.WaterfallAdProvidersController.update(distributorID, waterfallAdProviderID), 'name -> "edit-waterfall-ad-provider") {
-        <div class="edit-waterfall-ad-provider-field">
-            <label class="modal-label">eCPM $</label>
+        <div class="waterfall-ad-provider-field">
+            <label class="modal-label">*eCPM $</label>
             <input name="eCPM" type="text" value="@cpm.getOrElse(None)"></input>
             <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
         </div>
         @for(param <- reqParams) {
-            <div class="edit-waterfall-ad-provider-field">
-                <label class="modal-label">@param.key</label>
+            <div data-required-param="true" class="edit-waterfall-ad-provider-field">
+                <label class="modal-label" data-param-name="@param.key">*@param.displayKey</label>
                 <input data-param-type="@param.dataType" data-refresh-on-app-restart="@param.refreshOnAppRestart" type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>
@@ -35,7 +35,7 @@
         </table>
         @for(param <- reportingParams) {
             <div class="reporting-waterfall-ad-provider-field">
-                <label class="modal-label">@param.key</label>
+                <label data-param-name="@param.key" class="modal-label">@param.displayKey</label>
                 <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>
@@ -51,8 +51,8 @@
         </table>
         @for(param <- callbackParams) {
             <div class="callback-waterfall-ad-provider-field">
-                <label class="modal-label">@param.key</label>
-                <input data-param-type="@param.dataType" type="text" value="@param.value"></input>
+                <label data-param-name="@param.key" class="modal-label">@param.displayKey</label>
+                <input data-param-type="@param.dataType"type="text" value="@param.value"></input>
                 <h4 class="tooltip" data-title="@param.description">?</h4>
             </div>
         }

@@ -152,5 +152,31 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
       App.updateAppConfigRefreshInterval(fakeAppID, 500) must beEqualTo(false)
     }
   }
+
+  "App.nameExists" should {
+    "return None if the App name does not exist for the current Distributor" in new WithDB {
+      val appName = "Some unique app name"
+      App.nameExists(appName, distributor.id.get) must beNone
+    }
+
+    "return None if the App name matches the current App ID for the current Distributor" in new WithDB {
+      val appName = "Some existing app name"
+      val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
+      App.nameExists(appName, distributor.id.get, appID = None).get must beEqualTo(currentApp.id)
+    }
+
+    "return None if the App name matches an existing deactivated App for the current Distributor" in new WithDB {
+      val appName = "Some existing app name 2"
+      val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
+      App.update(new UpdatableApp(currentApp.id, active = false, distributorID = distributor.id.get, name = currentApp.name, callbackURL = None, serverToServerEnabled = false))
+      App.nameExists(appName, distributor.id.get, appID = None) must beNone
+    }
+
+    "return the ID of the existing App if the App name is not unique for the current Distributor" in new WithDB {
+      val appName = "Another existing app name"
+      val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
+      App.nameExists(appName, distributor.id.get, Some(currentApp.id)) must beNone
+    }
+  }
 }
 

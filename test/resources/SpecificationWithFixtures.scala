@@ -40,13 +40,28 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
      * Logs in a distributor user for automated browser tests
      * @param email A distributor user's email; defaults to the email value within the SpecificationWithFixtures class.
      * @param password A distributor user's password; defaults to the password value within the SpecificationWithFixtures class.
-     * @return A browser with a session for the distributor user's email that was passed in.
      */
     def logInUser(email: String = email, password: String = password): Unit = {
       browser.goTo("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
+    }
+
+    /**
+     * Helper function to fill out fields for App/Virtual Currency forms.
+     * @param appName The name of the App
+     * @param currencyName The name of the Virtual Currency
+     * @param exchangeRate The units of virtual currency per $1.
+     * @param rewardMin The minimum reward a user can receive.
+     * @param rewardMax The maximum reward a user can receive.  This is optional.
+     */
+    def fillInAppValues(appName: String = "New App", currencyName: String = "Coins", exchangeRate: String = "100", rewardMin: String = "1", rewardMax: String = "10"): Unit = {
+      browser.fill("#appName").`with`(appName)
+      browser.fill("#currencyName").`with`(currencyName)
+      browser.fill("#exchangeRate").`with`(exchangeRate)
+      browser.fill("#rewardMin").`with`(rewardMin)
+      browser.fill("#rewardMax").`with`(rewardMax)
     }
   }
 
@@ -60,9 +75,10 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
 
   /**
    * Creates application for functional tests with set up code for a new App/Waterfall/VirtualCurrency/AppConfig combination.
+   * @param appName The name of the new App.
    * @param distributorID The ID of the Distributor to which the App (and related models) belong.
    */
-  abstract class WithAppBrowser(distributorID: Long) extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
-    lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID)
+  abstract class WithAppBrowser(distributorID: Long, appName: String = "New App") extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
+    lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID, appName)
   }
 }

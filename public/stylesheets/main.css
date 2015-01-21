@@ -1112,6 +1112,10 @@ dd.error {
     display: none;
 }
 
+.undisplayed-wap-info {
+    display: none;
+}
+
 .modal-centered {
     margin: auto;
 }

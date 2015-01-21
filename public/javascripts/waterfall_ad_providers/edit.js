@@ -1,7 +1,7 @@
 "use strict";
 
 // Updates WaterfallAdProvider properties via AJAX.
-var postUpdate = function() {
+var postWAPUpdate = function() {
     var waterfallAdProviderID = $('.contents').attr("data-waterfall-ad-provider-id");
     var distributorID = $('.contents').attr("data-distributor-id");
     var path = "/distributors/" + distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID;
@@ -11,18 +11,18 @@ var postUpdate = function() {
         type: 'POST',
         dataType: "json",
         contentType: "application/json",
-        data: updatedData(),
+        data: updatedWAPData(),
         success: function(result) {
             var listItem = $("li[data-id=" + waterfallAdProviderID + "]");
             var params = changedAppRestartParams();
-            var newEcpm = JSON.parse(updatedData())["eCPM"];
+            var newEcpm = JSON.parse(updatedWAPData())["eCPM"];
             $(".content").attr("data-generation-number", result.newGenerationNumber);
             if(params.length > 0) {
                 var paramMessage = params.length == 1 ? params[0] : params.slice(0, params.length-1).join(", ") + ", and " + params[params.length-1];
                 var message = "You changed " + paramMessage + " for " + providerName + ". Your App must be restarted for this change to take effect.";
-                flashMessage(message, $("#waterfall-edit-success"));
+                flashMessage(message, waterfallSuccessDiv);
             } else {
-                flashMessage(result.message, $("#waterfall-edit-success"));
+                flashMessage(result.message, waterfallSuccessDiv);
             }
             clearAppRestartParams();
             listItem.children(".hideable").children("div").children("div[name=cpm]").html(newEcpm);
@@ -30,9 +30,13 @@ var postUpdate = function() {
             if(optimizeToggleButton.is(":checked")) {
                 orderList("data-cpm", false);
             }
+            if(listItem.attr("data-unconfigured")) {
+                listItem.attr("data-unconfigured", "false");
+                listItem.children().children("button[name=status]").removeClass("undisplayed-wap-info");
+            }
         },
         error: function(result) {
-            flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
+            flashMessage(result.responseJSON.message, waterfallErrorDiv);
             clearAppRestartParams();
         }
     });
@@ -42,7 +46,7 @@ var postUpdate = function() {
 var retrieveFields = function(fieldType) {
     var fields = $("form[name=edit-waterfall-ad-provider] div[class=" + fieldType + "]");
     return(fields.toArray().reduce(function(fieldObj, el, index) {
-        var label = $(el).children("label").html();
+        var label = $(el).children("label").attr("data-param-name");
         var value = $(el).children("input").val();
         var dataType = $(el).find('input').attr("data-param-type");
         if(dataType == "Array") {
@@ -55,7 +59,7 @@ var retrieveFields = function(fieldType) {
 };
 
 // Assembles JSON to be saved as configuration_data in the waterfall_ad_providers table.
-var updatedData = function() {
+var updatedWAPData = function() {
     return(JSON.stringify(
         {
             configurationData: {
@@ -69,12 +73,6 @@ var updatedData = function() {
             generationNumber: $(".content").attr("data-generation-number")
         }
     ));
-};
-
-// Displays success or error of AJAX request.
-var flashMessage = function(message, div) {
-    div.html(message).fadeIn();
-    div.delay(3000).fadeOut("slow");
 };
 
 // Closes modal window and returns background div class to normal.
@@ -108,7 +106,26 @@ var toggleConfigurableEcpm = function() {
 
 // Checks eCPM input is a number.
 var validEcpm = function() {
-    return($.isNumeric(eCPMInput.val()));
+    if($.isNumeric(eCPMInput.val())) {
+        return true;
+    } else {
+        flashMessage("eCPM must be a valid number.", waterfallErrorDiv);
+        return false
+    }
+};
+
+// Checks if fields are filled out for a WaterfallAdProvider and flashes error message if not.
+var validDynamicFields = function(requiredFields) {
+   for(var i = 0; i < requiredFields.length; i++) {
+       var field = requiredFields[i];
+       var input = $.trim($(field).children(":input").val());
+       if(!input.length > 0) {
+           var paramName = $(field).children("label").html().replace("*", "");
+           flashMessage(paramName + " is required.", waterfallErrorDiv);
+           return false;
+       }
+   }
+   return true;
 };
 
 if(reportingActiveToggleButton.is(":checked")) {
@@ -117,14 +134,14 @@ if(reportingActiveToggleButton.is(":checked")) {
 }
 
 $(document).ready(function() {
+    var requiredDynamicFields = $(".edit-waterfall-ad-provider-field[data-required-param=true]");
+
     // Initiates AJAX request to update WaterfallAdProvider.
     $(":button[name=update-ad-provider]").click(function(event) {
         event.preventDefault();
-        if(validEcpm()) {
-            postUpdate();
+        if(validEcpm() && validDynamicFields(requiredDynamicFields)) {
+            postWAPUpdate();
             closeModal();
-        } else {
-            flashMessage("eCPM must be a valid number.", $("#waterfall-edit-error"));
         }
     });
 
@@ -142,7 +159,7 @@ $(document).ready(function() {
     });
 
     reportingActiveToggleButton.click(function(event) {
-        postUpdate();
+        postWAPUpdate();
         toggleConfigurableEcpm();
     });
 });
