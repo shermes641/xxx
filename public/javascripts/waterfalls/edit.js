@@ -160,7 +160,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
 
         if( $scope.optimizeToggleButton.prop("checked") ) {
             // Order ad providers by eCPM, disable sortable list, and hide draggable icon if waterfall has optimized_order set to true.
-            orderList( "data-cpm", false );
+            $scope.orderList( "data-cpm", false );
             $( "#waterfall-list" ).sortable( "disable" );
             $( ".waterfall-drag" ).hide();
         } else {
@@ -217,7 +217,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
             var sortableOption;
             if(optimizeToggleButton.prop("checked")) {
                 sortableOption = "disable";
-                orderList("data-cpm", false);
+                $scope.orderList("data-cpm", false);
             } else {
                 sortableOption = "enable";
             }
