@@ -26,12 +26,12 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
 
         // Rearranges the waterfall order list either by eCPM or original order.
         $scope.orderList = function(orderAttr, ascending) {
-            var newOrder = providersByActive("true").sort(function(li1, li2) {
+            var newOrder = $scope.providersByActive("true").sort(function(li1, li2) {
                 return (ascending ? Number($(li1).attr(orderAttr)) - Number($(li2).attr(orderAttr)) : Number($(li2).attr(orderAttr)) - Number($(li1).attr(orderAttr)))
             });
-            var inactive = providersByActive("false");
+            var inactive = $scope.providersByActive("false");
             newOrder.push.apply(newOrder, inactive);
-            appendNewList(newOrder);
+            $scope.appendNewList(newOrder);
         };
 
         // Displays the updated list order in view.
@@ -133,11 +133,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
 
         // Retrieves current list order and value of waterfall name field.
         $scope.updatedData = function() {
-            var adProviderList = providersByActive("true");
+            var adProviderList = $scope.providersByActive("true");
             var optimizedOrder = optimizeToggleButton.prop("checked").toString();
             var testMode = testModeButton.prop("checked").toString();
             var generationNumber = $(".content").attr("data-generation-number");
-            adProviderList.push.apply(adProviderList, providersByActive("false").length > 0 ? providersByActive("false") : []);
+            adProviderList.push.apply(adProviderList, $scope.providersByActive("false").length > 0 ? $scope.providersByActive("false") : []);
             var order = adProviderList.map(function(index, el) {
                 return({
                     id: $(this).attr("data-id"),
