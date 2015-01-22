@@ -17,7 +17,7 @@
     <body>
         <div class="content-wrapper">
             <header>
-                <a href="@routes.AnalyticsController.show(distributorID, appID)" class=@{if(title == "") "inactive-link" else ""}>
+                <a href="@routes.AppsController.index(distributorID)" class=@{if(title == "") "inactive-link" else ""}>
                     <img height="34" src="@routes.Assets.at("images/hypr_logo_rgb.jpeg")">
                 </a>
                 <div class="actions">
