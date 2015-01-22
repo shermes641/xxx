@@ -54,10 +54,10 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
                 url: path,
                 type: 'POST',
                 contentType: "application/json",
-                data: updatedData(),
+                data: $scope.updatedData(),
                 success: function(result) {
-                    $(".content").attr("data-generation-number", result.newGenerationNumber);
-                    flashMessage(result.message, $("#waterfall-edit-success"));
+                    $(".split_content").attr("data-generation-number", result.newGenerationNumber);
+                    $scope.flashMessage(result.message, $("#waterfall-edit-success"));
                     if(optimizeToggleButton.is(":checked")) {
                         $scope.orderList("data-cpm", false);
                     }
@@ -71,7 +71,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
         // Retrieves configuration data for a waterfall ad provider.
         $scope.retrieveConfigData = function(waterfallAdProviderID, newRecord) {
             var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
-            $(".content.waterfall_list").toggleClass("modal-inactive", true);
             $.ajax({
                 url: path,
                 data: {app_token: $scope.appToken},
@@ -80,11 +79,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
                     $("#edit-waterfall-ad-provider").html(data).dialog({
                         modal: true,
                         open: function() {
-                            $(".content.waterfall_list").addClass("unclickable");
+                            $(".split_content.waterfall_list").addClass("unclickable");
                             $("#modal-overlay").toggle();
                         },
                         close: function() {
-                            $(".content.waterfall_list").removeClass("unclickable");
+                            $(".split_content.waterfall_list").removeClass("unclickable");
                             $("#modal-overlay").toggle();
                         }
                     }).dialog("open");
@@ -102,9 +101,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
         // Creates waterfall ad provider via AJAX.
         $scope.createWaterfallAdProvider = function(params, newRecord) {
             var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers";
-            var generationNumber = $(".content").attr("data-generation-number");
-            params["waterfallID"] = waterfallID;
-            params["appToken"] = appToken;
+            var generationNumber = $(".split_content").attr("data-generation-number");
+            params["waterfallID"] = $scope.waterfallID;
+            params["appToken"] = $scope.appToken;
             params["waterfallOrder"] = "";
             params["generationNumber"] = generationNumber;
             $.ajax({
@@ -122,11 +121,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
                     if(newRecord) {
                         retrieveConfigData(result.wapID, newRecord);
                     }
-                    $(".content").attr("data-generation-number", result.newGenerationNumber)
-                    flashMessage(result.message, $("#waterfall-edit-success"))
+                    $(".split_content").attr("data-generation-number", result.newGenerationNumber)
+                    $scope.flashMessage(result.message, $("#waterfall-edit-success"))
                 },
                 error: function(result) {
-                    flashMessage(result.message, $("#waterfall-edit-error"));
+                    $scope.flashMessage(result.message, $("#waterfall-edit-error"));
                 }
             });
         };
@@ -136,7 +135,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
             var adProviderList = $scope.providersByActive("true");
             var optimizedOrder = optimizeToggleButton.prop("checked").toString();
             var testMode = testModeButton.prop("checked").toString();
-            var generationNumber = $(".content").attr("data-generation-number");
+            var generationNumber = $(".split_content").attr("data-generation-number");
             adProviderList.push.apply(adProviderList, $scope.providersByActive("false").length > 0 ? $scope.providersByActive("false") : []);
             var order = adProviderList.map(function(index, el) {
                 return({

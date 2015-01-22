@@ -50,6 +50,7 @@
             <div class="push"></div>
         </div>
         <footer>
+            Copyright 2014 HyprMX. All Rights Reserved | Privacy Policy | Terms of Use<br>
             SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
             <div class="footer-text-format"></div>
             @if(play.api.Play.isDev(play.api.Play.current) || Play.current.configuration.getString("staging").getOrElse("false") == "true") {

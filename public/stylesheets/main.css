@@ -870,6 +870,16 @@ div [class^="col-"] {
     padding: 20px;
 }
 
+#form_errors {
+    list-style: none;
+    color: #ff0000;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 13px;
+}
+
+.error input {
+    border: 1px solid #ff0000;
+}
 
 .tooltip:hover:after {
     background: #ffff99;
