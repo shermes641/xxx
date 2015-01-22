@@ -4,10 +4,10 @@
 mediationModule.controller( 'WaterfallController', [ '$scope',
     function( $scope ) {
         // Distributor ID to be used in AJAX calls.
-        $scope.distributorID = $(".content").attr("data-distributor-id");
+        $scope.distributorID = $(".split_content").attr("data-distributor-id");
 
         // Waterfall ID to be used in AJAX calls.
-        $scope.waterfallID = $('.content').attr("data-waterfall-id");
+        $scope.waterfallID = $('.split_content').attr("data-waterfall-id");
 
         // App Token to be used in AJAX calls.
         $scope.appToken = $(".app-token").attr("data-app-token");
@@ -49,7 +49,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
 
         // Updates waterfall properties via AJAX.
         $scope.postUpdate = function() {
-            var path = "/distributors/" + distributorID + "/waterfalls/" + waterfallID;
+            var path = "/distributors/" + $scope.distributorID + "/waterfalls/" + $scope.waterfallID;
             $.ajax({
                 url: path,
                 type: 'POST',
@@ -70,11 +70,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
 
         // Retrieves configuration data for a waterfall ad provider.
         $scope.retrieveConfigData = function(waterfallAdProviderID, newRecord) {
-            var path = "/distributors/" + distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
+            var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
             $(".content.waterfall_list").toggleClass("modal-inactive", true);
             $.ajax({
                 url: path,
-                data: {app_token: appToken},
+                data: {app_token: $scope.appToken},
                 type: 'GET',
                 success: function(data) {
                     $("#edit-waterfall-ad-provider").html(data).dialog({
@@ -89,19 +89,19 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
                         }
                     }).dialog("open");
                     if(!newRecord) {
-                        setRefreshOnRestartListeners();
+                        $scope.setRefreshOnRestartListeners();
                     }
                     $(".ui-dialog-titlebar").hide();
                 },
                 error: function(data) {
-                    flashMessage(data.responseJSON.message, $("#waterfall-edit-error"));
+                    $scope.flashMessage(data.responseJSON.message, $("#waterfall-edit-error"));
                 }
             });
         };
 
         // Creates waterfall ad provider via AJAX.
         $scope.createWaterfallAdProvider = function(params, newRecord) {
-            var path = "/distributors/" + distributorID + "/waterfall_ad_providers";
+            var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers";
             var generationNumber = $(".content").attr("data-generation-number");
             params["waterfallID"] = waterfallID;
             params["appToken"] = appToken;
@@ -161,11 +161,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
         if( $scope.optimizeToggleButton.prop("checked") ) {
             // Order ad providers by eCPM, disable sortable list, and hide draggable icon if waterfall has optimized_order set to true.
             $scope.orderList( "data-cpm", false );
-            $( "#waterfall-list" ).sortable( "disable" );
-            $( ".waterfall-drag" ).hide();
+            //$( "#waterfall-list" ).sortable( "disable" );
+            $( ".waterfall-drag" ).addClass('disabled');
         } else {
             // Enable sortable list if waterfall has optimized_order set to true.
-            $( "#waterfall-list" ).sortable( "enable" );
+            //$( "#waterfall-list" ).sortable( "enable" );
         }
 
         // Adds event listeners to appropriate inputs when the WaterfallAdProvider edit modal pops up.
@@ -213,7 +213,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
 
         // Click event for when Optimized Mode is toggled.
         $scope.optimizeToggleButton.click(function() {
-            $(".waterfall-drag").toggle();
+            $(".waterfall-drag").toggleClass("disabled");
             var sortableOption;
             if(optimizeToggleButton.prop("checked")) {
                 sortableOption = "disable";
@@ -242,6 +242,10 @@ mediationModule.controller( 'WaterfallController', [ '$scope',
         // Sends AJAX request when waterfall order is changed via drag and drop.
         $("#waterfall-list").on("sortdeactivate", function(event, ui) {
             $scope.postUpdate();
+        });
+
+        $("#arrow_dropdown").click(function() {
+            $("#initialize_sdk").toggleClass("open");
         });
     } ]
 );

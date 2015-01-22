@@ -135,6 +135,35 @@ header .actions .header-actions:before {
     border-left: 1px solid #333;
 }
 
+header #username_header {
+    color: #666;
+    cursor: pointer;
+}
+
+header #username_header:hover {
+    color: #fff;
+}
+
+header .header-actions #username_dropdown {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: -60px;
+    height: 60px;
+    padding: 20px;
+    width: 100%;
+    color: #6d6d72;
+    background: #efeff4;
+    border: 1px solid #dddde0;
+}
+header .header-actions #username_dropdown a:hover {
+    color: #666;
+}
+
+header #username_header:hover #username_dropdown {
+    display: block;
+}
+
 header .actions a {
     text-decoration: none;
     color: #666;
@@ -367,6 +396,7 @@ span#viewTerms:hover {
 }
 
 #left_apps_list ul li {
+    position: relative;
     display: block;
     background: #fff;
     border-bottom: #c8c7cc 1px solid;
@@ -387,7 +417,33 @@ span#viewTerms:hover {
     color: #fff;
 }
 
-#create_new_app {
+#left_apps_list ul li.active.removable:before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 10px;
+    height: 10px;
+    background: url(../images/icons.png);
+    background-position: -16px -55px;
+}
+
+#left_apps_list ul li.add:hover {
+    background: #fff;
+}
+
+#left_apps_list ul li.add:before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    background: url(../images/icons.png);
+    background-position: -14px -94px;
+}
+
+#create_new_app, #export_as_csv {
     width: 173px;
     color: #fff;
     background: #333;
@@ -402,7 +458,7 @@ span#viewTerms:hover {
     height: 58px;
 }
 
-#create_new_app:hover {
+#create_new_app:hover, #export_as_csv:hover {
     background: #4f73e7;
 }
 
@@ -681,6 +737,9 @@ span#viewTerms:hover {
     min-height: 90px;
 }
 
+.waterfall-drag.disabled .waterfall-drag-1, .waterfall-drag.disabled .waterfall-drag-2, .waterfall-drag.disabled .waterfall-drag-3 {
+    background: #efefef;
+}
 .waterfall-drag {
     position: absolute;
     top: 44px;
@@ -813,13 +872,13 @@ div [class^="col-"] {
 
 
 .tooltip:hover:after {
-    background: #333;
-    background: rgba(0,0,0,.8);
+    background: #ffff99;
     border-radius: 5px;
+    border: 2px solid #cccc99;
     bottom: 26px;
-    color: #fff;
+    color: #999933;
     content: attr(data-title);
-    left: 20%;
+    left: -25%;
     padding: 5px 15px;
     position: absolute;
     z-index: 98;
@@ -828,43 +887,47 @@ div [class^="col-"] {
 
 .tooltip:hover:before {
     border: solid;
-    border-color: #333 transparent;
+    border-color: #cccc99 transparent;
     border-width: 6px 6px 0 6px;
     bottom: 20px;
     content: "";
-    left: 50%;
+    left: 22%;
     position: absolute;
     z-index: 99;
 }
 
 .modal {
+    display: none;
+
     position: fixed;
     top: 50%;
     left: 50%;
-    bottom: 0;
     transform: translate(-50%, -50%);
-    background: #DEDEDE;
-    padding: 25px;
-    z-index: 2000;
-    overflow-y: auto;
-    min-width: 550px;
+    bottom: 0;
     margin-top: 20px;
-    -webkit-border-top-right-radius: 10px 10px;
-    -webkit-border-bottom-right-radius: 10px 10px;
-    -webkit-border-top-left-radius: 10px 10px;
-    -webkit-border-bottom-left-radius: 10px 10px;
+    width: 400px;
+    background: #fff;
+    overflow-y: scroll;
+    padding: 40px;
+    z-index: 3000;
+    text-align: center;
+    font-size: 13px;
+    color: #333;
+
+    border: 1px solid #dddde0;
 }
 
 .modal-overlay {
+    display: none;
     position: fixed;
     top: 0;
+    right: 0;
+    bottom: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 100;
-    background-color: #000000;
-    opacity: 0.75;
-    display: none;
+
+    background: #fff;
+    opacity: 0.9;
+    z-index: 2000;
 }
 
 .modal-text {
@@ -900,15 +963,17 @@ div [class^="col-"] {
 .flash-message {
     z-index: 2001;
     position: fixed;
-    top: 50px;
+    top: 73px;
     left: 50%;
-    background: #fff;
-    width: 300px;
+    background: #ffff99;
+    border: 2px solid #cccc99;
+    color: #999933;
+    width: 400px;
     padding: 5px;
     text-align: center;
-    margin-left: -160px;
+    margin-left: -200px;
     font-size: 14px;
-    box-shadow: 0px 0px 4px rgba(0,0,0,.2);
+    border-radius: 1px;
     display: none;
 }
 
@@ -973,7 +1038,7 @@ dd.error {
 .onoffswitch-inner:before {
     content: "";
     padding-left: 10px;
-    background-color: #CCC; color: #FFFFFF;
+    background-color: #4f73e7; color: #FFFFFF;
 }
 
 .onoffswitch-inner:after {
@@ -1059,12 +1124,59 @@ dd.error {
 }
 
 #initialize_sdk {
+    position: relative;
     background: #dce3fa;
     border: 2px solid #b9c7f5;
     color: #4f73e7;
     text-align: center;
     padding: 22px;
     margin-top: 10px;
+}
+
+#initialize_sdk .code-block {
+    height: 0px;
+    overflow: hidden;
+
+    -webkit-transition: all 600ms ease;
+    -moz-transition: all 600ms ease;
+    -ms-transition: all 600ms ease;
+    -o-transition: all 600ms ease;
+    transition: all 600ms ease;
+}
+
+#arrow_dropdown {
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    width: 17px;
+    height: 17px;
+    background: url(../images/icons.png);
+    background-position: -11px -11px;
+    cursor: pointer;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+
+    -webkit-transition: all 200ms ease;
+    -moz-transition: all 200ms ease;
+    -ms-transition: all 200ms ease;
+    -o-transition: all 200ms ease;
+    transition: all 200ms ease;
+}
+
+
+#initialize_sdk.open #arrow_dropdown {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+#initialize_sdk.open .code-block {
+    height: 140px;
 }
 
 #waterfall-app-settings-button {

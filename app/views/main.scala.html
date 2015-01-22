@@ -23,13 +23,16 @@
                     <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
                 </a>
                 <div class="actions">
-                    <div class="header-actions">
-                        @session.get("username").map { user =>
-                            <a href="@routes.DistributorUsersController.logout()">
-                                Log out
-                            </a>
-                        }
-                    </div>
+                    @session.get("username").map { user =>
+                        <div id="username_header" class="header-actions">
+                                @session.get("username")
+                            <div id="username_dropdown">
+                                <a href="@routes.DistributorUsersController.logout()">
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
+                    }
                     <div class="header-actions">
                         <a href="http://documentation.hyprmx.com">Documentation</a>
                     </div>

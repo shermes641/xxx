@@ -3,54 +3,34 @@
     <div id="left_apps_list">
         <h2>Date Range</h2>
         <ul>
-            @for(appInfo <- appsWithWaterfalls) {
-                @if(appID.getOrElse(false) == appInfo.id) {
-                    <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li class="active">@appInfo.name</li></a>
-                } else {
-                    <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li>@appInfo.name</li></a>
-                }
-            }
+            <li class="dropdown">Nov 09, 2014</li>
+            <li class="dropdown">Jan 08, 2015</li>
         </ul>
     </div>
     <div id="left_apps_list">
         <h2>Filter By Ad Provider</h2>
         <ul>
-            @for(appInfo <- appsWithWaterfalls) {
-                @if(appID.getOrElse(false) == appInfo.id) {
-                    <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li class="active">@appInfo.name</li></a>
-                } else {
-                    <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li>@appInfo.name</li></a>
-                }
-            }
+            <li class="active removable">HyprMX Marketplace</li>
+            <li class="add">Add Provider</li>
         </ul>
     </div>
     <div id="left_apps_list">
         <h2>Filter By App</h2>
         <ul>
         @for(appInfo <- appsWithWaterfalls) {
-            @if(appID.getOrElse(false) == appInfo.id) {
-                <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li class="active">@appInfo.name</li></a>
-            } else {
-                <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li>@appInfo.name</li></a>
-            }
+            <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li class="active removable">@appInfo.name</li></a>
         }
+        <li class="add">Add App</li>
         </ul>
     </div>
     <div id="left_apps_list">
         <h2>Filter By Country</h2>
         <ul>
-        @for(appInfo <- appsWithWaterfalls) {
-            @if(appID.getOrElse(false) == appInfo.id) {
-                <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li class="active">@appInfo.name</li></a>
-            } else {
-                <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li>@appInfo.name</li></a>
-            }
-        }
+            <li class="active removable">United States</li>
+            <li class="add">Add Country</li>
         </ul>
     </div>
-    <a href="@routes.AppsController.newApp(distributorID)">
-        <button id="create_new_app">
-            Export All Data
-        </button>
-    </a>
+    <button id="export_as_csv">
+        Export All Data
+    </button>
 </div>
