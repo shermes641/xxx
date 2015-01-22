@@ -15,7 +15,6 @@ GET         /signup                                                             
 POST        /distributor_users                                                                         controllers.DistributorUsersController.create
 
 # Apps
-GET         /distributors/:distributor_id/apps                                                         controllers.AppsController.index(distributor_id: Long)
 GET         /distributors/:distributor_id/apps/new                                                     controllers.AppsController.newApp(distributor_id: Long)
 POST        /distributors/:distributor_id/apps                                                         controllers.AppsController.create(distributor_id: Long)
 GET         /distributors/:distributor_id/apps/:app_id/edit                                            controllers.AppsController.edit(distributor_id: Long, app_id: Long)

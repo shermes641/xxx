@@ -47,16 +47,6 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   )
 
   /**
-   * Renders view of all apps associated with the current Distributor.
-   * @param distributorID ID associated with current DistributorUser
-   * @return Apps index view
-   */
-  def index(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    val apps = App.findAllAppsWithWaterfalls(distributorID)
-    Ok(views.html.Apps.index(apps, distributorID))
-  }
-
-  /**
    * Renders the form for creating a new App.
    * @param distributorID ID associated with current DistributorUser
    * @return Form for creating a new App
@@ -127,7 +117,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
    */
   def onCreateRollback(distributorID: Long)(implicit connection: Connection) = {
     connection.rollback()
-    Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
+    Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "App could not be created.")
   }
 
   /**
@@ -144,7 +134,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
         Ok(views.html.Apps.edit(form, distributorID, appID))
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "App could not be found.")
       }
     }
   }
@@ -179,17 +169,17 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                             AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
                           }
                         }
-                        Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
+                        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("success" -> "Configurations updated successfully.")
                       }
                       case _ => {
                         NotModified.flashing("error" -> "App could not be updated.")
                       }
                     }
-                    Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
+                    Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("success" -> "App updated successfully.")
                   }
                   case _ => onUpdateRollback
                 }
-                Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
+                Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("success" -> "App updated successfully.")
               } catch {
                 case error: org.postgresql.util.PSQLException => onUpdateRollback
                 case error: IllegalArgumentException => onUpdateRollback

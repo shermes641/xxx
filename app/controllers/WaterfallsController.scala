@@ -29,7 +29,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         }
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
       }
     }
   }
@@ -50,7 +50,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
       }
     }
   }
@@ -72,7 +72,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       }
       case (None, None) => {
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
-        Ok(views.html.Waterfalls.editAll(distributorID, appsWithWaterfalls))
+        Redirect(routes.WaterfallsController.list(distributorID, appsWithWaterfalls.head.id, None))
       }
     }
   }

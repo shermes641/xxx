@@ -70,7 +70,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def signup = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.signup(signupForm))
     }
@@ -105,7 +105,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def login = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.login(loginForm))
     }
@@ -122,7 +122,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       },
       user => {
         val currentUser = DistributorUser.findByEmail(user.email).get
-        Redirect(routes.AppsController.index(currentUser.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+        Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
       }
     )
   }

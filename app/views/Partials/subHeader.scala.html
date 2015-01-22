@@ -3,6 +3,5 @@
     <ul class="menu">
         <a href="@routes.AnalyticsController.show(distributorID, appID)"><li @if(page == "analytics") { class="active" }>Analytics</li></a>
         <a href="@routes.WaterfallsController.editAll(distributorID, waterfallID, appID)"><li @if(page == "waterfall") { class="active" }>Waterfalls</li></a>
-        <a href="@routes.AppsController.index(distributorID)"><li @if(page == "apps") { class="active"}>My Apps</li></a>
     </ul>
 </div>
