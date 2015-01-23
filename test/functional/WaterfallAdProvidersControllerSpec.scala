@@ -274,5 +274,30 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
     }
+
+    "only allow the user to turn on reporting if a valid eCPM is already entered" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
+      val wap = WaterfallAdProvider.find(wap1ID).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
+      Waterfall.update(currentWaterfall.id, true, false)
+      clearGeneration(currentApp.id)
+
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.$(".configure.active-button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      val newWap = WaterfallAdProvider.find(wap1ID).get
+      newWap.reportingActive must beEqualTo(false)
+      browser.fill("input[name=eCPM]").`with`("")
+      browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("eCPM must be a valid number.")
+      WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
+      browser.fill("input[name=eCPM]").`with`("5.0")
+      browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
+      WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
+    }
   }
 }
