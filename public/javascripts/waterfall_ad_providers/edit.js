@@ -159,7 +159,11 @@ $(document).ready(function() {
     });
 
     reportingActiveToggleButton.click(function(event) {
-        postWAPUpdate();
-        toggleConfigurableEcpm();
+        if(validEcpm()) {
+            postWAPUpdate();
+            toggleConfigurableEcpm();
+        } else {
+            event.preventDefault();
+        }
     });
 });
