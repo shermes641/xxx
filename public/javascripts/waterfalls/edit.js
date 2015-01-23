@@ -27,6 +27,9 @@ var waterfallErrorDiv = $("#waterfall-edit-error");
 // Default div for success flash messages.
 var waterfallSuccessDiv = $("#waterfall-edit-success");
 
+// Selector for elements in Waterfall Ad Provider list.
+var waterfallList = $("#waterfall-list");
+
 // Rearranges the waterfall order list either by eCPM or original order.
 var orderList = function(orderAttr, ascending) {
     var newOrder = providersByActive("true").sort(function(li1, li2) {
@@ -156,7 +159,12 @@ var updatedWaterfallData = function() {
     return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, appToken: appToken, generationNumber: generationNumber}));
 };
 
-$("#waterfall-list").sortable({containment: ".content"});
+// Returns the list of Ad Providers that are currently active in the Waterfall.
+var activeAdProviders = function() {
+    return(waterfallList.children("li[data-active=true]"));
+};
+
+waterfallList.sortable({containment: ".content"});
 $("#edit-waterfall-ad-provider").dialog({modal: true, autoOpen: false, minHeight: 500});
 
 if(optimizeToggleButton.prop("checked")) {
@@ -192,13 +200,18 @@ $(document).ready(function() {
     $("button[name=status]").click(function(event) {
         var listItem = $(event.target).parents("li");
         var originalVal = listItem.attr("data-active") === "true";
-        listItem.children(".hideable").toggleClass("hidden-wap-info", originalVal);
-        listItem.attr("data-active", (!originalVal).toString());
-        listItem.toggleClass("inactive");
-        if(listItem.attr("data-new-record") === "true") {
-            createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: true});
+        // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
+        if(!originalVal || testModeButton.prop("checked") || (originalVal && (activeAdProviders().length > 1))) {
+            listItem.children(".hideable").toggleClass("hidden-wap-info", originalVal);
+            listItem.attr("data-active", (!originalVal).toString());
+            listItem.toggleClass("inactive");
+            if(listItem.attr("data-new-record") === "true") {
+                createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: true});
+            } else {
+                postWaterfallUpdate();
+            }
         } else {
-            postWaterfallUpdate();
+            flashMessage("At least one Ad Provider must be active.", waterfallErrorDiv);
         }
     });
 
@@ -229,15 +242,12 @@ $(document).ready(function() {
 
     // Click event for when Test Mode is toggled.
     testModeButton.click(function(event) {
-        var waterfallListItems = $("#waterfall-list").children("li");
-        var newRecords = waterfallListItems.filter(function(index, li) { return($(li).attr("data-new-record") === "true") }).length;
-        var allRecords = waterfallListItems.length;
-        // Prevent the user from setting the waterfall to live without configuring any ad providers.
-        if(newRecords == allRecords) {
+        // Prevent the user from setting the waterfall to live without activating at least one ad provider.
+        if(testModeButton.prop("checked") || activeAdProviders().length >= 1) {
+            postWaterfallUpdate();
+        } else {
             event.preventDefault();
             flashMessage("You must activate an ad provider before the waterfall can go live.", waterfallErrorDiv);
-        } else {
-            postWaterfallUpdate();
         }
     });
 

@@ -219,7 +219,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
     }
 
-    "not set waterfall to live mode when no ad providers are configured" in new WithAppBrowser(distributor.id.get) {
+    "not set waterfall to live mode when no ad providers are active" in new WithAppBrowser(distributor.id.get) {
       val originalGeneration = generationNumber(currentApp.id)
 
       logInUser()
@@ -227,9 +227,24 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("You must activate an ad provider before the waterfall can go live.")
       Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration)
+    }
+
+    "not allow an ad provider to be deactivated if there are no other active ad providers and the waterfall is in live mode" in new WithFakeBrowser {
+      val originalGeneration = generationNumber(waterfall.app_id)
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(false), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
+      Waterfall.update(waterfall.id, false, false)
+
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      browser.executeScript("$('li[data-active=true]').children('.hideable').children(':button[name=status]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("At least one Ad Provider must be active.")
+      WaterfallAdProvider.find(wap1.id).get.active.get must beEqualTo(true)
+      generationNumber(app1.id) must beEqualTo(originalGeneration)
     }
   }
 
