@@ -189,16 +189,17 @@ object WaterfallAdProvider extends JsonConversion {
    * @param hyprWaterfallAdProvider The WaterfallAdProvider instance for HyprMarketplace.
    * @param distributionChannelID The AdNetwork ID created in Player.
    * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
+   * @param appName The name of the App to which the WaterfallAdProvider belongs.
    * @param connection A shared database connection.
    * @return 1 if the creation and update is successful; otherwise, returns 0.
    */
-  def updateHyprMarketplaceConfig(hyprWaterfallAdProvider: WaterfallAdProvider, distributionChannelID: Long, appToken: String)(implicit connection: Connection) = {
+  def updateHyprMarketplaceConfig(hyprWaterfallAdProvider: WaterfallAdProvider, distributionChannelID: Long, appToken: String, appName: String)(implicit connection: Connection) = {
     val hyprConfig = JsObject(
       Seq(
         "requiredParams" -> JsObject(
           Seq(
             "distributorID" -> JsString(distributionChannelID.toString),
-            "appID" -> JsString(appToken)
+            "propertyID" -> JsString(appName)
           )
         ),
         "reportingParams" -> JsObject(

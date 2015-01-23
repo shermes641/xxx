@@ -144,7 +144,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                     if(success.as[JsBoolean] != JsBoolean(false)) {
                       DB.withTransaction { implicit connection =>
                         try {
-                          val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, appToken)
+                          val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, appToken, appName)
                           AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
                           updateResult match {
                             case 1 => {

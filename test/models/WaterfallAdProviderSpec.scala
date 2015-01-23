@@ -146,14 +146,16 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     val distributionChannelID: Long = 12345
 
     "set the appropriate JSON configuration for the HyprMarketplace WaterfallAdProvider" in new WithDB {
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       val updatedWap = WaterfallAdProvider.find(waterfallAdProvider1.id).get
       val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[String].toLong
+      val hyprPropertyID = (updatedWap.configurationData \ "requiredParams" \ "propertyID").as[String]
       hyprDistributionChannelID must beEqualTo(distributionChannelID)
+      hyprPropertyID must beEqualTo(currentApp.name)
     }
 
     "set the reporting JSON configuration for the HyprMarketplace WaterfallAdProvider" in new WithDB {
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       val updatedWap = WaterfallAdProvider.find(waterfallAdProvider1.id).get
       val reportingParams = (updatedWap.configurationData \ "reportingParams")
       val apiKey = (reportingParams \ "APIKey").as[String]
@@ -167,21 +169,21 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     "set the pending attribute to false" in new WithDB {
       WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.pending must beTrue
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.pending must beFalse
     }
 
     "activate the WaterfallAdProvider" in new WithDB {
       WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.active.get must beFalse
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.active.get must beTrue
     }
 
     "turn on reporting for the WaterfallAdProvider" in new WithDB {
       WaterfallAdProvider.update(new WaterfallAdProvider(waterfallAdProvider1.id, waterfallAdProvider1.waterfallID, waterfallAdProvider1.adProviderID, waterfallAdProvider1.waterfallOrder, Some(5.0), Some(false), None, JsObject(Seq()), false, true))
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.reportingActive must beFalse
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.reportingActive must beTrue
     }
   }

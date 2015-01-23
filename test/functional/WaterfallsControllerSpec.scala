@@ -294,7 +294,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val hyprMarketplace = WaterfallAdProvider.find(hyprMarketplaceID).get
       hyprMarketplace.pending must beEqualTo(true)
 
-      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(hyprMarketplace, 12345, currentApp.token) }
+      DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(hyprMarketplace, 12345, currentApp.token, currentApp.name) }
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
 
       browser.pageSource must not contain ("To check the status for " + adProviders(1) + ", please refresh your browser.")
