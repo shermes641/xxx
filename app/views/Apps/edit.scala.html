@@ -46,8 +46,13 @@
                     </div>
                 </dd>
             </dl>
-            @helper.inputText(form("callbackURL"), 'placeholder -> "", '_label -> "Callback URL", '_showConstraints -> false)
-
+            <dl class=" " id="callbackURL_field">
+                <dt><label for="callbackURL">Callback URL</label></dt>
+                <dd>
+                    <input type="text" id="callbackURL" name="callbackURL" value="" placeholder="">
+                    <h4 class="tooltip" data-title="When a rewarded action is completed, our servers will make a POST request to a URL of your choosing, containing all the necessary reward information.">?</h4>
+                </dd>
+            </dl>
             @views.html.VirtualCurrencies.virtualCurrencyFormFields(form("currencyName"), form("exchangeRate"), form("rewardMin"), form("rewardMax"), Some(form("roundUp")))
             @helper.inputText(form("currencyID"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
             @helper.inputText(form("generationNumber"), '_label -> null, 'style -> "display: none", '_showConstraints -> false)
