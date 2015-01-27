@@ -45,6 +45,7 @@
             @if(!(callbackUrl == None)) {
                 <td>
                     <label id="callback-url-label" class="modal-text">Callback URL:</label>
+                    <h4 class="tooltip" data-title="@{"Copy and paste this URL into the Callback URL field of " + adProviderName + "'s dashboard."}">?</h4>
                     <div class="callback"><pre>@{appDomain + callbackUrl.get}</pre></div>
                 </td>
             }
