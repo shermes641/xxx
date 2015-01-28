@@ -5,6 +5,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.language.implicitConversions
 import scala.language.postfixOps
 
 object APIController extends Controller {
@@ -34,7 +35,7 @@ object APIController extends Controller {
     (transactionID, digest, amount) match {
       case (Some(transactionIDValue: String), Some(digestValue: String), Some(amountValue: Int)) => {
         val callback = new VungleCallback(appToken, transactionIDValue, digestValue, amountValue)
-        callbackResponse(callback.verificationInfo, request.toString)
+        callbackResponse(callback.verificationInfo, request)
       }
       case (_, _, _) => BadRequest
     }
@@ -54,13 +55,13 @@ object APIController extends Controller {
    * @param verifier A hashed value to authenticate the origin of the request.
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
-  def adColonyCompletionV1(appToken: String, transactionID: Option[String], uid: Option[String], amount: Option[Int], currency: Option[String], openUDID: Option[String], udid: Option[String], odin1: Option[String], macSha1: Option[String], verifier: Option[String]) = Action { implicit request =>
-    (transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier) match {
-      case (Some(transactionIDValue: String), Some(uidValue: String), Some(amountValue: Int), Some(currencyValue: String), Some(openUDIDValue: String), Some(udidValue: String), Some(odin1Value: String), Some(macSha1Value: String), Some(verifierValue: String)) => {
-        val callback = new AdColonyCallback(appToken, transactionIDValue, uidValue, amountValue, currencyValue, openUDIDValue, udidValue, odin1Value, macSha1Value, verifierValue)
-        callbackResponse(callback.verificationInfo, request.toString)
+  def adColonyCompletionV1(appToken: String, transactionID: Option[String], uid: Option[String], amount: Option[Int], currency: Option[String], openUDID: Option[String], udid: Option[String], odin1: Option[String], macSha1: Option[String], verifier: Option[String], customID: Option[String]) = Action { implicit request =>
+    (transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID) match {
+      case (Some(transactionIDValue: String), Some(uidValue: String), Some(amountValue: Int), Some(currencyValue: String), Some(openUDIDValue: String), Some(udidValue: String), Some(odin1Value: String), Some(macSha1Value: String), Some(verifierValue: String), Some(customIDValue: String)) => {
+        val callback = new AdColonyCallback(appToken, transactionIDValue, uidValue, amountValue, currencyValue, openUDIDValue, udidValue, odin1Value, macSha1Value, verifierValue, customIDValue)
+        callbackResponse(callback.verificationInfo, request)
       }
-      case (_, _, _, _, _, _, _, _, _) => BadRequest
+      case (_, _, _, _, _, _, _, _, _, _) => BadRequest
     }
   }
 
@@ -79,7 +80,7 @@ object APIController extends Controller {
     (eventID, amount) match {
       case (Some(eventIDValue: String), Some(amountValue: Double)) => {
         val callback = new AppLovinCallback(eventIDValue, appToken, amountValue)
-        callbackResponse(callback.verificationInfo, request.toString)
+        callbackResponse(callback.verificationInfo, request)
       }
       case (_, _) => BadRequest
     }
@@ -100,7 +101,7 @@ object APIController extends Controller {
     (fguid, rewardQuantity, fhash) match {
       case (Some(fguidValue: String), Some(rewardQuantityValue: Int), Some(fhashValue: String)) => {
         val callback = new FlurryCallback(appToken, fguidValue, rewardQuantityValue, fhashValue)
-        callbackResponse(callback.verificationInfo, request.toString)
+        callbackResponse(callback.verificationInfo, request)
       }
       case (_, _, _) => BadRequest
     }
@@ -122,22 +123,32 @@ object APIController extends Controller {
     (uid, sig, time, subID, quantity) match {
       case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String), Some(quantityValue: Int)) => {
         val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
-        callbackResponse(callback.verificationInfo, request.toString)
+        callbackResponse(callback.verificationInfo, request)
       }
       case (_, _, _, _, _) => BadRequest
     }
   }
 
   /**
+   * Converts Ad Provider request into standardized JSON format to be stored in the database.
+   * @param request The original postback from the Ad Provider.
+   * @return JSON object containing the HTTP method, path and query string from the original postback.
+   */
+  implicit def requestToJsonBuilder(request: Request[Any]): JsValue = {
+    val query = request.queryString.foldLeft(JsObject(Seq()))((json, el) => json.deepMerge(JsObject(Seq(el._1 -> JsString(el._2.mkString(""))))))
+    JsObject(Seq("method" -> JsString(request.method), "path" -> JsString(request.path))).deepMerge(JsObject(Seq("query" -> query)))
+  }
+
+  /**
    * Creates a Completion if the reward callback is valid and notifies the Distributor if server to server callbacks are enabled.
    * @param verificationInfo Encapsulates callback information to determine the validity of the incoming request.
-   * @param body The original postback from the ad provider.
+   * @param adProviderRequest The original postback from the ad provider.
    * @return Creates a Completion if the callback if valid and notifies the Distributor if server to server callbacks are enabled; otherwise, returns None.
    */
-  def callbackResponse(verificationInfo: CallbackVerificationInfo, body: String) = {
+  def callbackResponse(verificationInfo: CallbackVerificationInfo, adProviderRequest: JsValue) = {
     verificationInfo.isValid match {
       case true => {
-        Await.result(Completion.createWithNotification(verificationInfo, body), Duration(5000, "millis")) match {
+        Await.result(Completion.createWithNotification(verificationInfo, adProviderRequest), Duration(5000, "millis")) match {
           case true => Ok
           case false => BadRequest
         }
