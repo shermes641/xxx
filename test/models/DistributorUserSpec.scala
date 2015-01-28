@@ -99,7 +99,7 @@ class DistributorUserSpec extends SpecificationWithFixtures {
     "exist and accept email message to both user and Hypr Team" in new WithDB {
       implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
       val emailActor = TestActorRef(new WelcomeEmailActor()).underlyingActor
-      emailActor.receive("test@test.com")
+      emailActor.receive("test@test.com", "company name")
       emailActor must haveClass[WelcomeEmailActor]
     }
   }
