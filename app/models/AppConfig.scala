@@ -24,7 +24,7 @@ object AppConfig extends JsonConversion {
   val TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID = 0.toLong
   val TEST_MODE_HYPRMEDIATE_APP_ID = 0.toLong
   val TEST_MODE_APP_NAME = "Test App"
-  val TEST_MODE_APP_ID = " "
+  val TEST_MODE_PROPERTY_ID = " "
   val TEST_MODE_VIRTUAL_CURRENCY = new VirtualCurrency(0, 0, "Coins", 100, 1, Some(100), true)
   val TEST_MODE_APP_CONFIG_REFRESH_INTERVAL = 0
 
@@ -207,7 +207,7 @@ object AppConfig extends JsonConversion {
    * @return A JSON object containing the test mode AppConfig info.
    */
   def testResponseV1: JsValue = {
-    val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "appID" -> JsString(TEST_MODE_APP_ID)))))
+    val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "propertyID" -> JsString(TEST_MODE_PROPERTY_ID)))))
     val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_PROVIDER_ID), Some(TEST_MODE_APP_NAME), Some(TEST_MODE_HYPRMEDIATE_APP_ID),
       TEST_MODE_APP_CONFIG_REFRESH_INTERVAL, Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
       Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, Some(false))
