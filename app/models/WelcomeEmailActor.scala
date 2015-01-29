@@ -4,11 +4,17 @@ import akka.actor.Actor
 import scala.language.postfixOps
 import play.api.Play
 
+/**
+ * @param emailAddress The Email Address of the signed up user.
+ * @param company The company of the signed up user.
+ */
+case class sendUserCreationEmail(emailAddress: String, company: String)
+
 class WelcomeEmailActor extends Actor with Mailer {
   def receive = {
-    case email: String => {
-      sendWelcomeEmail(email)
-      sendTeamNotification(email)
+    case sendUserCreationEmail(emailAddress: String, company: String) => {
+      sendWelcomeEmail(emailAddress)
+      sendTeamNotification(emailAddress, company)
     }
   }
 
@@ -25,11 +31,12 @@ class WelcomeEmailActor extends Actor with Mailer {
   /**
    * Sends email to Hyprmx team on successful user signup
    * @param userEmail Email of the new DistributorUser.
+   * @param userCompany Company of the new DistributorUser.
    */
-  def sendTeamNotification(userEmail: String): Unit = {
+  def sendTeamNotification(userEmail: String, userCompany: String): Unit = {
     val email = Play.current.configuration.getString("hyprmarketplace.team_email").get
     val subject = "Mediation user has signed up - " + userEmail
-    val body = userEmail + " has signed up for mediation."
+    val body = userEmail + " has signed up for mediation. For company " + userCompany
     sendEmail(email, subject, body)
   }
 }

@@ -1,6 +1,6 @@
 package controllers
 
-import models.{WelcomeEmailActor, DistributorUser}
+import models.{sendUserCreationEmail, WelcomeEmailActor, DistributorUser}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
@@ -43,7 +43,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
             val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
-            emailActor ! signup.email
+            emailActor ! sendUserCreationEmail(signup.email, signup.company)
             DistributorUser.find(id) match {
               case Some(user: DistributorUser) => {
                 Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString).flashing("success" -> "Your confirmation email will arrive shortly.")
