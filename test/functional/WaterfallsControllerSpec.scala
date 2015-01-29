@@ -143,11 +143,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("$('ul').prepend($('li').last());")
-<<<<<<< HEAD
-      browser.executeScript("angular.element(\"#waterfall-edit\").scope().postUpdate();")
-=======
-      browser.executeScript("postWaterfallUpdate();")
->>>>>>> origin/master
+      browser.executeScript("angular.element(\"#waterfall-edit\").scope().postUpdate();")\
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder(0).providerName must not equalTo(firstProvider)
