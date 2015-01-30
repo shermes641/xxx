@@ -147,55 +147,59 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
       val writer = createCSVFile();
       val appList = App.findAllAppsWithWaterfalls(distributorID)
       createCSVHeader(writer)
-      for (app <- appList) {
-        val appID = app.id
-        val name = App.find(appID).get.name
-        // We currently do not store the app platform so this is hardcoded.
-        val platform = "iOS"
-        // Count of all requests to from each ad provider
-        KeenExport().createRequest("count", KeenExport().createFilter("availability_requested", appID)) map {
-          response => {
-            val requests = parseResponse(response.body)
-            // The count of all available responses from all ad providers
-            KeenExport().createRequest("count", KeenExport().createFilter("availability_response_true", appID)) map {
-              response => {
-                val responses = parseResponse(response.body)
-                // The count of impressions
-                KeenExport().createRequest("count", KeenExport().createFilter("ad_displayed", appID)) map {
-                  response => {
-                    val impressions = parseResponse(response.body)
-                    // The number of completions based on the SDK events
-                    KeenExport().createRequest("count", KeenExport().createFilter("ad_completed", appID)) map {
-                      response => {
-                        val completions = parseResponse(response.body)
-                        // The sum of all the eCPMs reported on each completion
-                        KeenExport().createRequest("sum", KeenExport().createFilter("ad_completed", appID, "ad_provider_eCPM")) map {
-                          response => {
-                            val earnings = parseResponse(response.body)
-                            // The completion rate based on the completions divided by impressions
-                            val completionRate = completions.toFloat/impressions
-                            // The fill rate based on the number of responses divided by requests
-                            val fillRate = responses.toFloat/requests
+      GetData(appList, writer)
+    }
+  }
 
-                            // The row to append to the CSV
-                            val appRow = List(
-                              name,
-                              platform,
-                              earnings,
-                              fillRate,
-                              requests,
-                              impressions,
-                              completions,
-                              completionRate
-                            )
-                            createCSVRow(writer, appRow)
+  def GetData(appList: List[AppWithWaterfallID], writer: CSVWriter) = {
+    for (app <- appList) {
+      val appID = app.id
+      val name = App.find(appID).get.name
+      // We currently do not store the app platform so this is hardcoded.
+      val platform = "iOS"
+      // Count of all requests to from each ad provider
+      KeenExport().createRequest("count", KeenExport().createFilter("availability_requested", appID)) map {
+        response => {
+          val requests = parseResponse(response.body)
+          // The count of all available responses from all ad providers
+          KeenExport().createRequest("count", KeenExport().createFilter("availability_response_true", appID)) map {
+            response => {
+              val responses = parseResponse(response.body)
+              // The count of impressions
+              KeenExport().createRequest("count", KeenExport().createFilter("ad_displayed", appID)) map {
+                response => {
+                  val impressions = parseResponse(response.body)
+                  // The number of completions based on the SDK events
+                  KeenExport().createRequest("count", KeenExport().createFilter("ad_completed", appID)) map {
+                    response => {
+                      val completions = parseResponse(response.body)
+                      // The sum of all the eCPMs reported on each completion
+                      KeenExport().createRequest("sum", KeenExport().createFilter("ad_completed", appID, "ad_provider_eCPM")) map {
+                        response => {
+                          val earnings = parseResponse(response.body)
+                          // The completion rate based on the completions divided by impressions
+                          val completionRate = completions.toFloat/impressions
+                          // The fill rate based on the number of responses divided by requests
+                          val fillRate = responses.toFloat/requests
 
-                            counter += 1
-                            if(appList.length <= counter) {
-                              // Sends email after all apps have received their stats
-                              sendEmail(email, "Exported CSV from HyprMediate", "Attached is your requested CSV file.", fileName)
-                              writer.close()
-                            }
+                          // The row to append to the CSV
+                          val appRow = List(
+                            name,
+                            platform,
+                            earnings,
+                            fillRate,
+                            requests,
+                            impressions,
+                            completions,
+                            completionRate
+                          )
+                          createCSVRow(writer, appRow)
+
+                          counter += 1
+                          if(appList.length <= counter) {
+                            // Sends email after all apps have received their stats
+                            sendEmail(email, "Exported CSV from HyprMediate", "Attached is your requested CSV file.", fileName)
+                            writer.close()
                           }
                         }
                       }

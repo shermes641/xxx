@@ -62,17 +62,14 @@ mediationModule.controller( 'AnalyticsController', [ '$scope',
         $scope.startExport = function () {
             $scope.elements.emailForm.hide();
             var emailAddress = $scope.elements.emailInput.val();
-            $.ajax({
-                url: $scope.exportEndpoint,
-                type: 'POST',
-                data: { email: emailAddress },
-                success: _.bind( function() {
+            $http.post( $scope.exportEndpoint, { email: emailAddress })
+                .success(_.bind( function() {
                     $scope.elements.exportComplete.show();
-                }, $scope ),
-                error: _.bind( function() {
+                }, $scope ))
+                .error( _.bind( function() {
                     $scope.elements.exportError.show();
                 }, $scope )
-            });
+            );
         };
 
         $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
