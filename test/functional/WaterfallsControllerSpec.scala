@@ -38,36 +38,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
   }
 
-  "WaterfallsController.editAll" should {
-    "redirect to the edit page for the appropriate Waterfall if a Waterfall ID is passed" in new WithFakeBrowser {
-      val targetUrl = controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url
-
-      logInUser()
-
-      browser.goTo(controllers.routes.WaterfallsController.editAll(distributor.id.get, Some(waterfall.id), None).url)
-      browser.find("select[id=waterfall-selection]").getValue must beEqualTo(targetUrl)
-      browser.url() must beEqualTo(targetUrl)
-    }
-
-    "redirect to the edit page for the appropriate Waterfall if an App ID is passed" in new WithFakeBrowser {
-      val appID = Some(app1.id)
-      val targetUrl = controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url
-
-      logInUser()
-
-      browser.goTo(controllers.routes.WaterfallsController.editAll(distributor.id.get, None, appID).url)
-      browser.find("select[id=waterfall-selection]").getValue must beEqualTo(targetUrl)
-      browser.url() must beEqualTo(targetUrl)
-    }
-
-    "render the edit page with no Waterfall selected if no Waterfall ID or App ID is passed" in new WithFakeBrowser {
-      logInUser()
-
-      browser.goTo(controllers.routes.WaterfallsController.editAll(distributor.id.get, None, None).url)
-      browser.$("#waterfall-selection").getValue must beEqualTo("")
-    }
-  }
-
   "WaterfallsController.update" should {
     "respond with a 200 and an updated generation number if update is successful" in new WithFakeBrowser {
       val originalGeneration = generationNumber(app1.id)
@@ -143,7 +113,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("$('ul').prepend($('li').last());")
-      browser.executeScript("angular.element(\"#waterfall-edit\").scope().postUpdate();")\
+      browser.executeScript("angular.element(\"#waterfall-edit\").scope().postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder(0).providerName must not equalTo(firstProvider)
@@ -210,7 +180,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id, waterfall.id).url)
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); angular.element(\"#waterfall-edit\").scope().postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
@@ -251,7 +221,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.goTo(controllers.routes.WaterfallsController.edit(maliciousDistributor.id.get, currentWaterfall.id).url)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("Waterfall could not be found.")
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "redirect the distributor user to their own apps index page if they try to edit a Waterfall using another distributor ID" in new WithAppBrowser(distributor.id.get) {
@@ -260,7 +230,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser(maliciousUser.email, password)
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "automatically select the name of the app in the drop down menu" in new WithFakeBrowser {

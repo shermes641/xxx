@@ -59,8 +59,8 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       val user = DistributorUser.findByEmail(email).get
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.logout.url)
-      browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
-      browser.pageSource must contain("Sign In")
+      browser.goTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
+      browser.pageSource must contain("Welcome Back")
     }
   }
 
@@ -68,13 +68,13 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
     "redirect to app index from login if user is authenticated" in new WithFakeBrowser {
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.login.url)
-      browser.pageSource must contain("Begin by creating an app")
+      browser.pageSource must contain("Analytics")
     }
 
     "redirect to app index from signup if user is authenticated" in new WithFakeBrowser {
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.signup.url)
-      browser.pageSource must contain("Begin by creating an app")
+      browser.pageSource must contain("Analytics")
     }
   }
 }

@@ -117,7 +117,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       logInUser(maliciousUser.email, password)
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
   }
 }

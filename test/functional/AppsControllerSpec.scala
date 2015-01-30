@@ -212,7 +212,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       browser.goTo(controllers.routes.AppsController.edit(maliciousDistributor.id.get, currentApp.id).url)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App could not be found.")
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "redirect the distributor user to their own apps index page if they try to edit an App using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
@@ -221,7 +221,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser(maliciousUser.email, password)
 
       browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "flash an error message if reward min is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
