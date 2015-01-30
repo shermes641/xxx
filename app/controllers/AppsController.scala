@@ -95,7 +95,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                         val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
                         (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                           case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
-                            val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, new JunGroupAPI)))
+                            val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))
                             actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
                             Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
                           }
