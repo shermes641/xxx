@@ -46,7 +46,7 @@ case class KeenExport() {
    */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
     val config = Play.current.configuration
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action + "?api_key=" + config.getString("keen.readKey").get).post(filter)
+    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
   }
 
   /**
