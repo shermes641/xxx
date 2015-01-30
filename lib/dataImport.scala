@@ -35,7 +35,7 @@ val hyprMarketplaceConfiguration = {
   "{" +
     "\"requiredParams\":[" +
       "{\"description\": \"Your HyprMX Distributor ID\", \"displayKey\": \"Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
-      "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"Property ID\", \"key\": \"propertyID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"\", \"key\": \"propertyID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"reportingParams\": [" +
       "{\"description\": \"Your API Key for HyprMX\", \"displayKey\": \"API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
