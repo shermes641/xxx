@@ -27,29 +27,6 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
   val distributorID = user.distributorID.get
 
-  "AppsController.index" should {
-    "display all apps for a given distributor ID" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(user.distributorID.get, app2Name).get
-      DB.withTransaction { implicit connection => Waterfall.create(appID, app2Name) }
-
-      logInUser()
-
-      browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
-      browser.pageSource must contain("My Apps")
-      browser.pageSource must contain(app2Name)
-    }
-
-    "redirect the distributor user to their own apps index page if they try to access the apps index page using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
-      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
-
-      logInUser(maliciousUser.email, password)
-
-      browser.goTo(controllers.routes.AppsController.index(user.distributorID.get).url)
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
-    }
-  }
-
   "AppsController.newApp" should {
     "not create a new app with a virtual currency Reward Minimum that is greater than the Reward Maximum" in new WithFakeBrowser {
       val appCount = App.findAll(user.distributorID.get).size
@@ -235,7 +212,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       browser.goTo(controllers.routes.AppsController.edit(maliciousDistributor.id.get, currentApp.id).url)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App could not be found.")
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "redirect the distributor user to their own apps index page if they try to edit an App using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
@@ -244,7 +221,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser(maliciousUser.email, password)
 
       browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "flash an error message if reward min is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {

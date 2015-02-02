@@ -46,7 +46,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
             emailActor ! sendUserCreationEmail(signup.email, signup.company)
             DistributorUser.find(id) match {
               case Some(user: DistributorUser) => {
-                Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString).flashing("success" -> "Your confirmation email will arrive shortly.")
+                Redirect(routes.AppsController.newApp(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString).flashing("success" -> "Your confirmation email will arrive shortly.")
               }
               case None => {
                 Redirect(routes.DistributorUsersController.signup).flashing("error" -> "User was not found.")
@@ -70,7 +70,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def signup = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.signup(signupForm))
     }
@@ -105,7 +105,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def login = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.login(loginForm))
     }
@@ -122,7 +122,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
       },
       user => {
         val currentUser = DistributorUser.findByEmail(user.email).get
-        Redirect(routes.AppsController.index(currentUser.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+        Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
       }
     )
   }

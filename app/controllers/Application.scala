@@ -6,7 +6,7 @@ import play.api.data.validation._
 object Application extends Controller with Secured {
 
   def index = withUser { user => implicit request =>
-    Redirect(routes.AppsController.index(user.distributorID.get))
+    Redirect(routes.AnalyticsController.show(user.distributorID.get, None))
   }
 
 }

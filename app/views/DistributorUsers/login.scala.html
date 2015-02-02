@@ -1,7 +1,11 @@
 @(form: Form[Login])(implicit flash: Flash, session: Session)
 @main("Log In") {
     <div class="content registration">
-        <h1>Sign In</h1>
+        <h1>Welcome Back!</h1>
+        <hr />
+        <div class="modal_text">
+            Enter your username and password below to gain access.
+        </div>
         @println(session.get("user"))
         @views.html.Partials.formErrors(form.hasErrors, form.errors)
             @helper.form(action = routes.DistributorUsersController.authenticate) {
@@ -9,8 +13,8 @@
                 @helper.inputPassword(form("password"),'_showConstraints -> true, 'placeholder -> "Password", '_label -> null)
                 <button type="submit" name="submit">Log In</button>
             }
-        <div id="registration-link">
-            <a href="@routes.DistributorUsersController.signup()">Or Sign Up</a>
-        </div>
+    </div>
+    <div id="registration-link">
+        <a href="@routes.DistributorUsersController.signup()">Create a hyprMediate Account</a>
     </div>
 }

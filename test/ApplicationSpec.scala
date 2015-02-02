@@ -17,14 +17,14 @@ class ApplicationSpec extends SpecificationWithFixtures {
       status(home) must equalTo(SEE_OTHER) // Redirect to login?
     }
 
-    "redirect a logged in user to the Apps index page" in new WithFakeBrowser {
+    "redirect a logged in user to the Analytics index page" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
       val user = DistributorUser.findByEmail(email).get
       browser.goTo("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
-      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/apps")
+      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/analytics")
     }
   }
 }

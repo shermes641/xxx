@@ -22,23 +22,23 @@ import play.api.Play
  * @param pending A boolean that determines if the waterfall_ad_provider is able to be activated.  This is used only in the case of HyprMarketplace while we wait for a Distributor ID.
  */
 case class WaterfallAdProvider (
-  id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean],
-  fillRate: Option[Float], configurationData: JsValue, reportingActive: Boolean, pending: Boolean = false
-)
+                                 id:Long, waterfallID:Long, adProviderID:Long, waterfallOrder: Option[Long], cpm: Option[Double], active: Option[Boolean],
+                                 fillRate: Option[Float], configurationData: JsValue, reportingActive: Boolean, pending: Boolean = false
+                                 )
 
 object WaterfallAdProvider extends JsonConversion {
   // Used to convert SQL row into an instance of the WaterfallAdProvider class.
   val waterfallAdProviderParser: RowParser[WaterfallAdProvider] = {
     get[Long]("waterfall_ad_providers.id") ~
-    get[Long]("waterfall_id") ~
-    get[Long]("ad_provider_id") ~
-    get[Option[Long]]("waterfall_order") ~
-    get[Option[Double]]("cpm") ~
-    get[Option[Boolean]]("active") ~
-    get[Option[Float]]("fill_rate") ~
-    get[JsValue]("configuration_data") ~
-    get[Boolean]("reporting_active") ~
-    get[Boolean]("pending") map {
+      get[Long]("waterfall_id") ~
+      get[Long]("ad_provider_id") ~
+      get[Option[Long]]("waterfall_order") ~
+      get[Option[Double]]("cpm") ~
+      get[Option[Boolean]]("active") ~
+      get[Option[Float]]("fill_rate") ~
+      get[JsValue]("configuration_data") ~
+      get[Boolean]("reporting_active") ~
+      get[Boolean]("pending") map {
       case id ~ waterfall_id ~ ad_provider_id ~ waterfall_order ~ cpm ~ active ~
         fill_rate ~ configuration_data ~ reporting_active ~ pending =>
         WaterfallAdProvider(id, waterfall_id, ad_provider_id, waterfall_order, cpm, active, fill_rate, configuration_data, reporting_active, pending)
@@ -293,9 +293,9 @@ object WaterfallAdProvider extends JsonConversion {
           JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
           WHERE waterfall_id = {waterfall_id}
         """ + activeClause +
-        """
+          """
           ORDER BY waterfall_order ASC;
-        """
+          """
       val query = SQL(sqlStatement).on("waterfall_id" -> waterfallID)
       query.as(waterfallAdProviderOrderParser*).toList
     }
@@ -398,8 +398,8 @@ object WaterfallAdProvider extends JsonConversion {
   // Used to convert result of orderedByCPM SQL query.
   val waterfallAdProviderCallbackInfoParser: RowParser[WaterfallAdProviderCallbackInfo] = {
     get[JsValue]("configuration_data") ~
-    get[Option[Double]]("cpm") ~
-    get[Long]("exchange_rate") map {
+      get[Option[Double]]("cpm") ~
+      get[Long]("exchange_rate") map {
       case configuration_data ~ cpm ~ exchange_rate => WaterfallAdProviderCallbackInfo(configuration_data, cpm, exchange_rate)
     }
   }
@@ -407,13 +407,13 @@ object WaterfallAdProvider extends JsonConversion {
   // Used to convert result of orderedByCPM SQL query.
   val waterfallAdProviderOrderParser: RowParser[OrderedWaterfallAdProvider] = {
     get[String]("name") ~
-    get[Long]("id") ~
-    get[Option[Double]]("cpm") ~
-    get[Boolean]("active") ~
-    get[Option[Long]]("waterfall_order") ~
-    get[JsValue]("configuration_data") ~
-    get[Boolean]("configurable") ~
-    get[Boolean]("pending") map {
+      get[Long]("id") ~
+      get[Option[Double]]("cpm") ~
+      get[Boolean]("active") ~
+      get[Option[Long]]("waterfall_order") ~
+      get[JsValue]("configuration_data") ~
+      get[Boolean]("configurable") ~
+      get[Boolean]("pending") map {
       case name ~ id ~ cpm ~ active ~ waterfall_order ~ configuration_data ~ configurable ~ pending =>
         OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, unconfigured(configuration_data.as[JsObject], "requiredParams"), false, configurable, pending)
     }
@@ -422,11 +422,11 @@ object WaterfallAdProvider extends JsonConversion {
   // Used to convert result of findConfigurationData SQL query.
   val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
     get[String]("name") ~
-    get[Option[Double]]("cpm") ~
-    get[JsValue]("ad_provider_configuration") ~
-    get[Option[String]]("callback_url_format") ~
-    get[JsValue]("wap_configuration") ~
-    get[Boolean]("reporting_active") map {
+      get[Option[Double]]("cpm") ~
+      get[JsValue]("ad_provider_configuration") ~
+      get[Option[String]]("callback_url_format") ~
+      get[JsValue]("wap_configuration") ~
+      get[Boolean]("reporting_active") map {
       case name ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
     }
   }
@@ -434,8 +434,8 @@ object WaterfallAdProvider extends JsonConversion {
   // Used to convert result of findAll SQL query.
   val waterfallAdProviderRevenueDataParser: RowParser[WaterfallAdProviderRevenueData] = {
     get[Long]("id") ~
-    get[String]("name") ~
-    get[JsValue]("configuration_data") map {
+      get[String]("name") ~
+      get[JsValue]("configuration_data") map {
       case id ~ name ~ configuration_data => WaterfallAdProviderRevenueData(id, name, configuration_data)
     }
   }

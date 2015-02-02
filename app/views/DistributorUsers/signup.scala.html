@@ -1,9 +1,9 @@
 @(form: Form[Signup])(implicit flash: Flash, session: Session)
 @main("Sign up") {
     <div class="content registration">
-        <h1>Sign Up</h1>
-        <div class="description">To begin, sign up below.  You will receive an email upon approval.</div>
-        @views.html.Partials.formErrors(form.hasErrors, form.errors)
+        <h1>Create An Account</h1>
+        <hr />
+        <div class="modal_text">To begin, sign up below.  You will receive an email upon approval.</div>
             @helper.form(action = routes.DistributorUsersController.create) {
                 @helper.inputText(form("company"),'_showConstraints -> false, 'placeholder -> "Company Name", '_label -> null)
                 @helper.inputText(form("email"),'_showConstraints -> false, 'placeholder -> "Email", '_label -> null)
@@ -21,9 +21,9 @@
                 </div>
                 <button type="submit" name="submit">Sign up</button>
             }
-        <div id="registration-link">
-            <a href="@routes.DistributorUsersController.login()">Or sign-in if you're an existing user</a>
-        </div>
+    </div>
+    <div id="registration-link">
+        <a href="@routes.DistributorUsersController.login()">Already have an account?  Sign In</a>
     </div>
 }
 

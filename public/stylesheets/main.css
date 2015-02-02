@@ -43,21 +43,29 @@ h2 {
 
 input[type="text"], input[type="password"], button[type="submit"] {
     padding: 5px;
-    border: 1px solid #eee;
+    border: 0;
+    border-bottom: 1px solid #c8c7cc;
     -webkit-appearance: none;
+    background: #f9f9f9;
+    height: 35px;
 
-    font-size: 16px;
+    font-size: 13px;
     font-family: "Avenir Book", "Helvetica", sans-serif;
 }
 
 button[type="submit"] {
-    background: #4285f4;
+    width: 100%;
     color: #fff;
-    border: 0;
-    font-size: 14px;
+    background: #4f73e7;
     font-family: "Avenir Book", "Helvetica", sans-serif;
-    font-weight: 400;
-    margin-top: 20px;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 3px;
+    height: 58px;
 }
 
 header {
@@ -66,8 +74,8 @@ header {
     right: 0;
     left: 0;
 
-    height: 50px;
-    background: #fff;
+    height: 60px;
+    background: #222;
     padding: 10px;
 
     font-size: 20px;
@@ -77,20 +85,92 @@ header {
     z-index: 2000;
 }
 
+header #logo {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 216px;
+    border-right: 1px solid #000;
+}
+
+header #logo:before {
+    content: " ";
+    position: absolute;
+    z-index: -1;
+    top: 1px;
+    left: 1px;
+    right: -2px;
+    bottom: 1px;
+    border-right: 1px solid #333;
+}
+
 header .actions {
     position: absolute;
     top: 0px;
     right: 0px;
     bottom: 0px;
-    padding: 12px 22px 0 22px;
 
-    font-size: 20px;
+    font-size: 13px;
     font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
     font-weight: 400;
 }
 
+header .actions .header-actions {
+    padding: 21px 22px;
+    border-left: 1px solid #000;
+    float: right;
+    position: relative;
+}
+
+header .actions .header-actions:before {
+    content: " ";
+    position: absolute;
+    z-index: -1;
+    top: 1px;
+    left: 0px;
+    right: 1px;
+    bottom: 1px;
+    border-left: 1px solid #333;
+}
+
+header #username_header {
+    color: #666;
+    cursor: pointer;
+}
+
+header #username_header:hover {
+    color: #fff;
+}
+
+header .header-actions #username_dropdown {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: -60px;
+    height: 60px;
+    padding: 20px;
+    width: 100%;
+    color: #6d6d72;
+    background: #efeff4;
+    border: 1px solid #dddde0;
+}
+header .header-actions #username_dropdown a:hover {
+    color: #666;
+}
+
+header #username_header:hover #username_dropdown {
+    display: block;
+}
+
 header .actions a {
-    padding-left: 20px;
+    text-decoration: none;
+    color: #666;
+}
+
+header .actions a:hover {
+    color: #fff;
 }
 
 #browser_support {
@@ -117,6 +197,9 @@ header .actions a {
 
 #registration-link {
     padding-top: 20px;
+    width: 400px;
+    margin: 0 auto;
+    text-align: center;
 }
 
 #termsContainer {
@@ -143,14 +226,13 @@ span#viewTerms:hover {
 
 .sub_header {
     position: fixed;
-    top: 50px;
-    right: 0;
-    left: 0;
+    top: 0px;
+    width: 414px;
+    left: 217px;
 
-    height: 50px;
+    height: 60px;
 
     background: #222;
-    box-shadow: 1px 2px 2px rgba(0,0,0,.2);
     z-index: 2000;
 }
 
@@ -158,37 +240,46 @@ span#viewTerms:hover {
     display: block;
     position: absolute;
     top: 0;
-    left: 50%;
+    left: 0;
     bottom: 0;
-
-    width: 600px;
-    margin-left: -300px;
 
     list-style: none;
 }
 
 .sub_header .menu li {
     margin: 0;
+    position: relative;
     float: left;
-    width: 200px;
-    padding-top: 16px;
-    height: 50px;
+    width: 138px;
+    padding-top: 22px;
+    height: 60px;
 
     -webkit-transition: 400ms ease all;
 
-    font-family: "Avenir Black", "Arial",sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-family: "Helvetica Bold", "Arial",sans-serif;
+    font-size: 13px;
     color: #fff;
-    text-align: center
+    text-align: center;
+    border-right: 1px solid #000;
+}
+
+.sub_header .menu li:before {
+    content: " ";
+    position: absolute;
+    z-index: -1;
+    top: 1px;
+    left: 1px;
+    right: -2px;
+    bottom: 1px;
+    border-right: 1px solid #333;
 }
 
 .sub_header .menu li.active {
-    background: #4285f4;
+    border-bottom: #4f73e7 5px solid;
 }
 
 .sub_header .menu li.active:hover {
-    background: #689ef8;
+    border-bottom: #4f73e7 5px solid;
 }
 
 .sub_header .menu li:hover {
@@ -239,13 +330,22 @@ span#viewTerms:hover {
     display: block;
 }
 
+.split_content {
+    position: relative;
+    margin: 60px 0 0 215px;
+    padding: 20px;
+
+    background: #fff;
+    border: 1px solid #dddde0;
+}
+
 .content {
     position: relative;
     margin: 70px 20px;
     padding: 20px;
 
     background: #fff;
-    box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+    border: 1px solid #dddde0;
 }
 
 .content a:hover, .content a:focus {
@@ -269,6 +369,99 @@ span#viewTerms:hover {
 .content.settings {
     margin-top: 120px;
 }
+
+#left_content {
+    position: absolute;
+    top: 60px;
+    left: 0px;
+    width: 215px;
+}
+
+#left_apps_list {
+    padding: 20px;
+    border-bottom: 1px solid #c8c7cc;
+}
+
+#left_apps_list h2 {
+    font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
+    color: #6d6d72;
+}
+
+#left_apps_list ul {
+    list-style: none;
+}
+
+#left_apps_list ul a {
+    text-decoration: none;
+}
+
+#left_apps_list ul li {
+    position: relative;
+    display: block;
+    background: #fff;
+    border-bottom: #c8c7cc 1px solid;
+    border-radius: 2px;
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+#left_apps_list ul li:hover {
+    background: #ccc;
+}
+
+
+#left_apps_list ul li.active {
+    background: #4f73e7;
+    color: #fff;
+}
+
+#left_apps_list ul li.active.removable:before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 10px;
+    height: 10px;
+    background: url(../images/icons.png);
+    background-position: -16px -55px;
+}
+
+#left_apps_list ul li.add:hover {
+    background: #fff;
+}
+
+#left_apps_list ul li.add:before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    background: url(../images/icons.png);
+    background-position: -14px -94px;
+}
+
+#create_new_app, #export_as_csv {
+    width: 173px;
+    color: #fff;
+    background: #333;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    margin: 20px;
+    border-radius: 3px;
+    height: 58px;
+}
+
+#create_new_app:hover, #export_as_csv:hover {
+    background: #4f73e7;
+}
+
 
 .settings dl {
     margin-top: 20px;
@@ -332,12 +525,18 @@ span#viewTerms:hover {
 }
 
 .registration {
-    width: 600px;
-    margin: 70px auto;
+    width: 400px;
+    padding: 40px;
+    text-align: center;
+    margin: 120px auto 0 auto;
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration button[type="submit"] {
-    width: 560px;
+    width: 100%;
+}
+
+.registration dt {
+    display: none;
 }
 
 .registration h3 {
@@ -350,8 +549,12 @@ span#viewTerms:hover {
 }
 
 .registration dl {
-    margin-top: 20px;
-    margin-bottom: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.registration .modal_text {
+    margin: 20px auto;
 }
 
 .registration input[type="checkbox"] {
@@ -429,10 +632,50 @@ span#viewTerms:hover {
     cursor: pointer;
 }
 
+#waterfall_sub_header {
+    background: #efeff4;
+    padding: 12px;
+    height: 53px;
+    color: #6d6d72;
+    margin-top: 20px;
+}
+
+.waterfall-buttons {
+    float: right;
+    height: 30px;
+    padding-right:19px;
+}
+
+.waterfall-buttons .text-label {
+    color: #6d6d72;
+    font-size: 12px;
+    margin-top: 7px;
+}
+
+.waterfall-buttons .onoffswitch {
+    margin-left: 20px;
+}
+
+.waterfall-buttons.last {
+    padding-left: 19px;
+    padding-right: 0;
+    border-left: 1px solid #dddde0;
+}
+
+.app-token {
+    width: 455px;
+    float: left;
+}
 
 .content.waterfall_list {
     margin-top: 120px;
     overflow: hidden;
+}
+
+.waterfall_list h1 {
+    text-align: center;
+    font-size: 36px;
+    margin-top: 10px;
 }
 
 .waterfall-sort {
@@ -446,11 +689,33 @@ span#viewTerms:hover {
 
 .waterfall ul li {
     position: relative;
-    margin: 0;
-    padding: 10px;
-    border: 1px solid #eee;
-    margin-top: 10px;
+    margin: 10px 0;
+    padding: 24px;
+    border: 2px solid #eee;
     background: #fff;
+    height: 110px;
+}
+
+.waterfall ul li button {
+    float: right;
+    width: 130px;
+    background: #333;
+    margin: 0 0 0 10px;
+}
+
+.waterfall ul li button.configure {
+    background: #666;
+}
+
+.waterfall ul li .waterfall-app-info {
+    float: left;
+    margin-top: 12px;
+    margin-left: 60px;
+}
+
+.waterfall ul li .waterfall-app-info h3 {
+    color: #4f73e7;
+    font-size: 18px;
 }
 
 .waterfall ul li b {
@@ -472,24 +737,27 @@ span#viewTerms:hover {
     min-height: 90px;
 }
 
+.waterfall-drag.disabled .waterfall-drag-1, .waterfall-drag.disabled .waterfall-drag-2, .waterfall-drag.disabled .waterfall-drag-3 {
+    background: #efefef;
+}
 .waterfall-drag {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 44px;
+    left: 30px;
     height: 30px;
-    width: 30px;
+    width: 26px;
     cursor: row-resize;
 }
 
 .waterfall-drag-1 {
-    height: 5px;
-    background: #ddd;
+    height: 2px;
+    background: #dddde0;
 }
 
 .waterfall-drag-2, .waterfall-drag-3 {
-    height: 5px;
-    margin-top: 5px;
-    background: #ddd;
+    height: 2px;
+    margin-top: 6px;
+    background: #dddde0;
 }
 
 .inactive-waterfall {
@@ -513,12 +781,6 @@ span#viewTerms:hover {
 
 .inactive .inactive-waterfall-content {
     display: block;
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    margin-left: -100px;
-    color: #222;
-    text-align: center;
 }
 
 .inactive-button {
@@ -531,7 +793,7 @@ span#viewTerms:hover {
 }
 
 button.inactive {
-    background-color: #CCCCCC;
+    background-color: #d3dcf9;
 }
 
 .navbar-inverse {
@@ -576,11 +838,17 @@ div [class^="col-"] {
 }
 
 .tooltip {
-    display: inline;
+    display: inline-block;
     position: relative;
     opacity: 100;
     cursor: pointer;
-    padding-left: 10px;
+    padding-top: 2px;
+    width: 20px;
+    height: 20px;
+    background: #6d6d72;
+    border-radius: 10px;
+    text-align: center;
+    color: #fff;
 }
 
 #datepicker, #ad_providers, #countries {
@@ -602,15 +870,25 @@ div [class^="col-"] {
     padding: 20px;
 }
 
+#form_errors {
+    list-style: none;
+    color: #ff0000;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 13px;
+}
+
+.error input {
+    border: 1px solid #ff0000;
+}
 
 .tooltip:hover:after {
-    background: #333;
-    background: rgba(0,0,0,.8);
+    background: #ffff99;
     border-radius: 5px;
+    border: 2px solid #cccc99;
     bottom: 26px;
-    color: #fff;
+    color: #999933;
     content: attr(data-title);
-    left: 20%;
+    left: -25%;
     padding: 5px 15px;
     position: absolute;
     z-index: 98;
@@ -619,43 +897,47 @@ div [class^="col-"] {
 
 .tooltip:hover:before {
     border: solid;
-    border-color: #333 transparent;
+    border-color: #cccc99 transparent;
     border-width: 6px 6px 0 6px;
     bottom: 20px;
     content: "";
-    left: 50%;
+    left: 22%;
     position: absolute;
     z-index: 99;
 }
 
 .modal {
+    display: none;
+
     position: fixed;
     top: 50%;
     left: 50%;
-    bottom: 0;
     transform: translate(-50%, -50%);
-    background: #DEDEDE;
-    padding: 25px;
-    z-index: 2000;
-    overflow-y: auto;
-    min-width: 550px;
+    bottom: 0;
     margin-top: 20px;
-    -webkit-border-top-right-radius: 10px 10px;
-    -webkit-border-bottom-right-radius: 10px 10px;
-    -webkit-border-top-left-radius: 10px 10px;
-    -webkit-border-bottom-left-radius: 10px 10px;
+    width: 400px;
+    background: #fff;
+    overflow-y: scroll;
+    padding: 40px;
+    z-index: 3000;
+    text-align: center;
+    font-size: 13px;
+    color: #333;
+
+    border: 1px solid #dddde0;
 }
 
 .modal-overlay {
+    display: none;
     position: fixed;
     top: 0;
+    right: 0;
+    bottom: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 100;
-    background-color: #000000;
-    opacity: 0.75;
-    display: none;
+
+    background: #fff;
+    opacity: 0.9;
+    z-index: 2000;
 }
 
 .modal-text {
@@ -691,15 +973,17 @@ div [class^="col-"] {
 .flash-message {
     z-index: 2001;
     position: fixed;
-    top: 50px;
+    top: 73px;
     left: 50%;
-    background: #fff;
-    width: 300px;
+    background: #ffff99;
+    border: 2px solid #cccc99;
+    color: #999933;
+    width: 400px;
     padding: 5px;
     text-align: center;
-    margin-left: -160px;
+    margin-left: -200px;
     font-size: 14px;
-    box-shadow: 0px 0px 4px rgba(0,0,0,.2);
+    border-radius: 1px;
     display: none;
 }
 
@@ -717,7 +1001,7 @@ dd.error {
 
 .onoffswitch {
     position: relative;
-    width: 70px;
+    width: 50px;
     float: right;
     -webkit-user-select:none;
     -moz-user-select:none;
@@ -732,7 +1016,7 @@ dd.error {
     display: block;
     overflow: hidden;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 15px;
 }
 
 .onoffswitch-inner {
@@ -762,29 +1046,29 @@ dd.error {
 }
 
 .onoffswitch-inner:before {
-    content: "ON";
+    content: "";
     padding-left: 10px;
-    background-color: #4285F4; color: #FFFFFF;
+    background-color: #4f73e7; color: #FFFFFF;
 }
 
 .onoffswitch-inner:after {
-    content: "OFF";
+    content: "";
     padding-right: 10px;
-    background-color: #EEEEEE; color: #999999;
+    background-color: #CCC; color: #999999;
     text-align: right;
 }
 
 .onoffswitch-switch {
     display: block;
-    width: 15px;
+    width: 24px;
     height: 24px;
     margin: 3px;
     background: #FFFFFF;
-    border-radius: 5px;
+    border-radius: 15px;
     position: absolute;
     top: 0;
     bottom: 0;
-    right: 48px;
+    right: 20px;
     -moz-transition: all 0.3s ease-in 0s;
     -webkit-transition: all 0.3s ease-in 0s;
     -o-transition: all 0.3s ease-in 0s;
@@ -818,8 +1102,9 @@ dd.error {
 }
 
 .checkbox-label {
-    margin-top: 7px;
+    margin-top: 20px;
     max-width: 400px;
+    font-size: 11px;
 }
 
 .switch-checkbox-label {
@@ -848,30 +1133,105 @@ dd.error {
     cursor: default;
 }
 
-.app-token {
-    font-size: 16px;
-    font-weight: bold;
-    padding-top: 14px;
-    clear: left;
+#initialize_sdk {
+    position: relative;
+    background: #dce3fa;
+    border: 2px solid #b9c7f5;
+    color: #4f73e7;
+    text-align: center;
+    padding: 22px;
+    margin-top: 10px;
 }
 
-.code-block {
-    padding-bottom: 24px;
+#initialize_sdk .code-block {
+    height: 0px;
+    overflow: hidden;
+
+    -webkit-transition: all 600ms ease;
+    -moz-transition: all 600ms ease;
+    -ms-transition: all 600ms ease;
+    -o-transition: all 600ms ease;
+    transition: all 600ms ease;
+}
+
+#arrow_dropdown {
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    width: 17px;
+    height: 17px;
+    background: url(../images/icons.png);
+    background-position: -11px -11px;
+    cursor: pointer;
+    -webkit-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+
+    -webkit-transition: all 200ms ease;
+    -moz-transition: all 200ms ease;
+    -ms-transition: all 200ms ease;
+    -o-transition: all 200ms ease;
+    transition: all 200ms ease;
+}
+
+
+#initialize_sdk.open #arrow_dropdown {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+#initialize_sdk.open .code-block {
+    height: 140px;
+}
+
+#waterfall-app-settings-button {
+    width: 157px;
+    color: #fff;
+    background: #4f73e7;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    border-radius: 3px;
+    height: 58px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
 }
 
 .waterfall-edit-description {
     max-width: 800px;
+    margin-top: 10px;
+    color: #222;
+}
+
+#initialize_sdk .copy-paste-code {
+    width: 700px;
+    text-align: left;
+    margin-top: 10px;
 }
 
 .copy-paste-code {
-    font-weight: 100;
-    color: #000000;
-    background: #E8E8E8;
+    font-weight: normal;
+    font-size: 12px;
+    color: #6d6d72;
+    background: #fff;
     display: inline-block;
+    border-radius: 0;
+    width: 386px;
+    padding: 6px;
+    text-align: center;
 }
 
 .hidden-wap-info {
-    visibility: hidden;
+    display: none;
 }
 
 .undisplayed-wap-info {
@@ -913,4 +1273,90 @@ footer {
 
 .inactive-input {
     background-color: #CCCCCC;
+}
+
+hr {
+    width: 100px;
+    color: #dddde0;
+    margin: 20px auto;
+}
+
+.modal_text {
+    width: 220px;
+    text-align: center;
+    margin: 10px auto;
+}
+
+#csv_email_form h1 {
+    color: #4f73e7;
+    font-size: 36px;
+}
+
+#email_modal {
+    display: none;
+    position: fixed;
+    top: 180px;
+    left: 50%;
+    margin-left: -200px;
+    width: 400px;
+    background: #fff;
+
+    padding: 40px;
+    z-index: 3000;
+    text-align: center;
+    font-size: 13px;
+    color: #333;
+
+    border: 1px solid #dddde0;
+}
+
+.close_button {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    background: url(../images/close.png);
+}
+
+#export_email {
+    width: 100%;
+    margin: 10px 0 10px 0;
+}
+
+.modal_submit {
+    width: 100%;
+    color: #fff;
+    background: #4f73e7;
+    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-size: 14px;
+    text-align: center;
+    -webkit-appearance: none;
+    border: 0;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 3px;
+}
+
+#analytics_overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    background: #fff;
+    opacity: 0.9;
+    z-index: 2000;
+
+}
+
+#csv_requested {
+    display: none;
+}
+
+#csv_export_error {
+    display: none;
 }

@@ -1,8 +1,7 @@
 @(page: String = "dashboard", distributorID: Long, appID: Option[Long], waterfallID: Option[Long])
 <div class="sub_header">
     <ul class="menu">
-        <a href="@routes.AnalyticsController.show(distributorID, appID)"><li @if(page == "analytics") { class="active" }>ANALYTICS</li></a>
-        <a href="@routes.WaterfallsController.editAll(distributorID, waterfallID, appID)"><li @if(page == "waterfall") { class="active" }>WATERFALL</li></a>
-        <a href="@routes.AppsController.index(distributorID)"><li @if(page == "apps") { class="active"}>MY APPS</li></a>
+        <a href="@routes.AnalyticsController.show(distributorID, appID)"><li @if(page == "analytics") { class="active" }>Analytics</li></a>
+        <a href="@routes.WaterfallsController.editAll(distributorID, waterfallID, appID)"><li @if(page == "waterfall") { class="active" }>Waterfalls</li></a>
     </ul>
 </div>

@@ -1,9 +1,32 @@
-@(distributorID: Long, appID: Option[Long], apps: List[App], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
+@(distributorID: Long, appID: Option[Long], apps: List[AppWithWaterfallID], adProviders: List[AdProvider], keenProject: String, scopedKey: String)(implicit flash: Flash, session: Session)
 
 @main("Analytics", distributorID, appID) {
     @views.html.Partials.subHeader("analytics", distributorID, appID, None)
-
-    <div class="content dashboard">
+    <div id="email_modal">
+        <div class="close_button"></div>
+        <div id="csv_email_form">
+            <h1>Export All Data</h1>
+            <hr />
+            <div class="modal_text">Enter the email address you would like to export all the data to.</div>
+            <input type="text" id="export_email" name="export_email" placeholder="Email Address" />
+            <button class="modal_submit" id="export_submit">Export Data</button>
+        </div>
+        <div id="csv_requested">
+            <h1>Export Requested</h1>
+            <hr />
+            <div class="modal_text">Export has been requested, email will be sent once complete.</div>
+            <button class="modal_submit">Close</button>
+        </div>
+        <div id="csv_export_error">
+            <h1>Export Error</h1>
+            <hr />
+            <div class="modal_text">There was an error when requesting the export, please try again.</div>
+            <button class="modal_submit">Close</button>
+        </div>
+    </div>
+    <div id="analytics_overlay"></div>
+    @views.html.Partials.analyticsFilters(distributorID, appID, apps)
+    <div class="split_content dashboard" data-distributor-id="@distributorID" ng-controller="AnalyticsController">
         <div class="fluid-container">
             <div class="row">
                 <div class="col-sm-4">
@@ -378,7 +401,4 @@
 <script src="@routes.Assets.at("javascripts/datepicker.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/selectize.js")" type="text/javascript"></script>
 <script src="@routes.Assets.at("javascripts/analytics/dashboard.js")" type="text/javascript"></script>
-<script>
-    new Analytics();
-</script>
 

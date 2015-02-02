@@ -65,7 +65,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           configData.mappedFields("callbackParams"), configData.name, configData.reportingActive, callbackUrl, configData.cpm, Play.current.configuration.getString("app_domain").get))
       }
       case _ => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Could not find ad provider.")
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Could not find ad provider.")
       }
     }
   }
