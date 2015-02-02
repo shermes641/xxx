@@ -3,6 +3,9 @@
 // Default div for error messages.
 var defaultErrorDiv = $("#error-message");
 
+// Default div for success messages.
+var defaultSuccessDiv = $("#success-message");
+
 // Displays success or error flash messages.
 var flashMessage = function(message, div) {
     div.html(message).fadeIn();

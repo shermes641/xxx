@@ -1,29 +1,22 @@
 @(name: Field, exchangeRate: Field, rewardMin: Field, rewardMax: Field, roundUp: Option[Field])
-@helper.inputText(name, 'placeholder -> "e.g. Gold or Silver", '_label -> "*Virtual Currency Name", '_showConstraints -> false)
+@helper.inputText(name, 'placeholder -> "e.g. Gold or Silver", '_label -> "*Virtual Currency Name", '_showConstraints -> false, Symbol("ng-model") -> "data.currencyName", Symbol("ng-change") -> "checkInputs()")
 <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
-@helper.inputText(exchangeRate, 'placeholder -> "e.g. 100", '_label -> "*Exchange Rate", '_showConstraints -> false)
+@helper.inputText(exchangeRate, 'type -> "number", 'placeholder -> "e.g. 100", '_label -> "*Exchange Rate", '_showConstraints -> false, Symbol("ng-model") -> "data.exchangeRate", Symbol("ng-change") -> "checkInputs()")
 <div class="tip">The number of virtual currency units per $1.</div>
-@helper.inputText(rewardMin, 'placeholder -> "e.g. 1", '_label -> "*Minimum Currency to Reward per Completed Offer", '_showConstraints -> false)
-@helper.inputText(rewardMax, 'placeholder -> "e.g. 10", '_label -> "Maximum Currency to Reward per Completed Offer", '_showConstraints -> false)
+@helper.inputText(rewardMin, 'type -> "number", 'placeholder -> "e.g. 1", '_label -> "*Minimum Currency to Reward per Completed Offer", '_showConstraints -> false, Symbol("ng-model") -> "data.rewardMin", Symbol("ng-change") -> "checkInputs()")
+@helper.inputText(rewardMax, 'type -> "number", 'placeholder -> "e.g. 10", '_label -> "Maximum Currency to Reward per Completed Offer", '_showConstraints -> false, Symbol("ng-model") -> "data.rewardMax")
 <dl class=" " id="roundUp_field">
     <dt>
         <label for="roundUp">Round Up Reward</label>
     </dt>
     <dd>
         <div class="onoffswitch switch-left">
-            @roundUp match {
-                case Some(field: Field) if(field.value.getOrElse("false") == "false") => {
-                    <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox">
-                }
-                case _ => {
-                    <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox" checked="checked">
-                }
-            }
-        <label class="onoffswitch-label" for="roundUp">
-            <span class="onoffswitch-inner"></span>
-            <span class="onoffswitch-switch"></span>
-        </label>
-        <span></span>
+            <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox" ng-model="data.roundUp" ng-init="data.roundUp=@{if(roundUp.getOrElse(true) == true) "true" else "false"}" checked="@{if(roundUp.getOrElse("true") == "true") "checked" else ""}"/>
+            <label class="onoffswitch-label" for="roundUp">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
+            <span></span>
         </div>
     </dd>
 </dl>

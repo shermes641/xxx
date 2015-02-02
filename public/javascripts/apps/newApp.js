@@ -1,33 +1,37 @@
 "use strict";
 
-var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]", ":input[id=rewardMin]"];
+/*
+mediationModule.controller( 'AppsController', [ '$scope', '$http', '$routeParams',
+    function( $scope, $http, $routeParams ) {
+        debugger;
+        var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]", ":input[id=rewardMin]"];
+        var distributorID = $("#new-app").attr("data-distributor-id");
 
+        $scope.invalidForm = true;
+        $scope.inactiveClass = "inactive";
 
-// Enables or disables the submit button.
-var toggleSubmit = function(disabledStatus) {
-    var submitButton = $(':input[name=new-app-form]');
-    submitButton.prop("disabled", disabledStatus);
-    submitButton.toggleClass('button inactive', disabledStatus);
-};
+        $scope.checkInputs = function() {
+            if(fieldsFilled(requiredFields)) {
+                $scope.invalidForm = false;
+                $scope.inactiveClass = "";
+            } else {
+                $scope.invalidForm = true;
+                $scope.inactiveClass = "inactive";
+            }
+        };
 
-toggleSubmit(true);
-
-$(document).ready(function() {
-    $(":input").change(function() {
-        if(fieldsFilled(requiredFields)) {
-            toggleSubmit(false);
-        } else {
-            toggleSubmit(true);
-        }
-    });
-
-    // Submit form if fields are valid.
-    $(":button[name=new-app-form]").click(function(event) {
-        event.preventDefault();
-        if(validRewardAmounts() && validExchangeRate()) {
-            $("form[name=new-app-form]").submit();
-        } else {
-            event.preventDefault();
-        }
-    });
-});
+        // Submit form if fields are valid.
+        $scope.submit = function() {
+            if(validRewardAmounts() && validExchangeRate()) {
+                $http.post('/distributors/' + distributorID + '/apps', $scope.data).
+                    success(function(data, status, headers, config) {
+                        flashMessage(data.message, defaultSuccessDiv);
+                    }).
+                    error(function(data, status, headers, config) {
+                        flashMessage(data.message, defaultErrorDiv);
+                    });
+            }
+        };
+    }]
+);
+*/

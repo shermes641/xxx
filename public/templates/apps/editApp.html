@@ -1,0 +1,72 @@
+<div id="error-message" class="flash-message error"></div>
+<div id="success-message" class="flash-message success"></div>
+<div class="content settings">
+    <form id="edit-app" name="edit-app-form" ng-controller="EditAppsController" ng-submit="submit()">
+        <h1>App Configuration</h1>
+        <button type="submit" name="submit">Save Changes</button>
+        <input type="text" ng-model="data.appName" ng-change="checkInputs()" id="appName" name="appName" value="" placeholder="name" label="*App Name">
+        <dl class="onoff-field" id="active_field">
+            <dt>
+                <label for="active">Active</label>
+            </dt>
+            <dd>
+                <div class="onoffswitch switch-left">
+                    <input type="checkbox" ng-model="data.active" id="active" name="active" value="true" class="onoffswitch-checkbox">
+                    <label class="onoffswitch-label" for="active">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                    <span></span>
+                </div>
+            </dd>
+        </dl>
+        <h1>Reward Handling</h1>
+        <dl class="onoff-field" id="serverToServerEnabled_field">
+            <dt>
+                <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>
+            </dt>
+            <dd>
+                <div class="onoffswitch switch-left">
+                    <input type="checkbox" ng-model="data.serverToServerEnabled" id="serverToServerEnabled" name="serverToServerEnabled" value="true" class="onoffswitch-checkbox">
+                    <label class="onoffswitch-label" for="serverToServerEnabled">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                    <span></span>
+                </div>
+            </dd>
+        </dl>
+        <input type="text" ng-model="data.callbackURL" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
+
+        <input type="text" ng-model="data.currencyName" ng-change="checkInputs()" id="currencyName" name="currencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
+        <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
+        <input type="number" ng-model="data.exchangeRate" ng-change="checkInputs()" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+        <div class="tip">The number of virtual currency units per $1.</div>
+        <input type="number" ng-model="data.rewardMin" ng-change="checkInputs()" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+        <input type="number" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
+        <dl class=" " id="roundUp_field">
+            <dt>
+                <label for="roundUp">Round Up Reward</label>
+            </dt>
+            <dd>
+                <div class="onoffswitch switch-left">
+                    <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox" ng-model="data.roundUp"/>
+                    <label class="onoffswitch-label" for="roundUp">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                    <span></span>
+                </div>
+            </dd>
+        </dl>
+        <div>
+            <label class="switch-checkbox-label">
+                Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+            </label>
+        </div>
+        <input type="number" ng-model="data.currencyID" id="currencyID" name="currencyID" style="display: none">
+        <input type="number" ng-model="data.generationNumber" id="generationNumber" name="generationNumber" style="display: none">
+        <button type="submit" name="submit">Save Changes</button>
+    </form>
+</div>
+}

@@ -1,0 +1,27 @@
+<div id="error-message" class="flash-message error"></div>
+<div id="success-message" class="flash-message success"></div>
+<div class="content registration">
+    <h1>Welcome Back!</h1>
+    <hr />
+    <div class="modal_text">
+        Enter your username and password below to gain access.
+    </div>
+    <form name="login-form" ng-controller="LoginController" ng-submit="submit()">
+        <dl id="email_field">
+            <dt><label for="email"></label></dt>
+            <dd>
+                <input ng-model="data.email" ng-change="checkInputs()" type="email" id="email" name="email" value="" placeholder="Email"/>
+            </dd>
+        </dl>
+        <dl id="password_field">
+            <dt><label for="password"></label></dt>
+            <dd>
+                <input ng-model="data.password" ng-change="checkInputs()" ng-minlength="8" type="password" id="password" name="password" placeholder="Password"/>
+            </dd>
+        </dl>
+        <button type="submit" name="submit">Log In</button>
+    </form>
+</div>
+<div id="registration-link">
+    <a href="/signup">Create a hyprMediate Account</a>
+</div>
