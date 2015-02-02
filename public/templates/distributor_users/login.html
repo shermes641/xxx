@@ -7,18 +7,23 @@
         Enter your username and password below to gain access.
     </div>
     <form name="login-form" ng-controller="LoginController" ng-submit="submit()">
+
         <dl id="email_field">
             <dt><label for="email"></label></dt>
-            <dd>
+            <dd ng-class="errors.emailClass">
                 <input ng-model="data.email" ng-change="checkInputs()" type="email" id="email" name="email" value="" placeholder="Email"/>
+            <dd class="error">{{errors.email}}</dd>
             </dd>
         </dl>
+
         <dl id="password_field">
             <dt><label for="password"></label></dt>
-            <dd>
-                <input ng-model="data.password" ng-change="checkInputs()" ng-minlength="8" type="password" id="password" name="password" placeholder="Password"/>
+            <dd ng-class="errors.passwordClass">
+                <input ng-model="data.password" ng-change="checkInputs()" type="password" id="password" name="password" placeholder="Password"/>
+                <dd class="error">{{errors.password}}</dd>
             </dd>
         </dl>
+
         <button type="submit" name="submit">Log In</button>
     </form>
 </div>

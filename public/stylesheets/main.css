@@ -41,7 +41,7 @@ h2 {
     font-weight: 400;
 }
 
-input[type="text"], input[type="password"], input[type="number"], input[type="email"], button[type="submit"] {
+input[type="text"], input[type="password"], input[type="number"], input[type="email"], button[type="submit"], button[type="button"] {
     padding: 5px;
     border: 0;
     border-bottom: 1px solid #c8c7cc;
@@ -53,7 +53,7 @@ input[type="text"], input[type="password"], input[type="number"], input[type="em
     font-family: "Avenir Book", "Helvetica", sans-serif;
 }
 
-button[type="submit"] {
+button[type="submit"], button[type="button"] {
     width: 100%;
     color: #fff;
     background: #4f73e7;
@@ -530,7 +530,7 @@ span#viewTerms:hover {
     margin: 120px auto 0 auto;
 }
 
-.registration input[type="text"], .registration input[type="password"], .registration input[type="number"], .registration input[type="email"], .registration button[type="submit"] {
+.registration input[type="text"], .registration input[type="password"], .registration input[type="number"], .registration input[type="email"], .registration button[type="submit"], .registration button[type="button"] {
     width: 100%;
 }
 
@@ -1363,31 +1363,34 @@ hr {
 
 
 .ng-modal-overlay {
-    /* A dark translucent div that covers the whole screen */
-    position:absolute;
-    z-index:9999;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background-color:#000000;
-    opacity: 0.8;
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    background: #fff;
+    opacity: 0.9;
+    z-index: 9999;
 }
 .ng-modal-dialog {
-    /* A centered div above the overlay with a box shadow. */
-    z-index:10000;
-    position: absolute;
-    width: 50%; /* Default */
 
-    /* Center the dialog */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
-    -moz-transform: translate(-50%, -50%);
+    bottom: 0;
+    margin-top: 20px;
+    width: 400px;
+    background: #fff;
+    overflow-y: scroll;
+    padding: 40px;
+    z-index: 10000;
+    text-align: center;
+    font-size: 13px;
+    color: #333;
 
-    background-color: #fff;
-    box-shadow: 4px 4px 80px #000;
 }
 .ng-modal-dialog-content {
     padding:10px;

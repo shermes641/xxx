@@ -39,7 +39,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
             }
           }
           case _ => {
-            delayedResponse("This email has been registered already. Try logging in.")
+            delayedResponse("This email has been registered already. Try logging in.", "email")
           }
         }
       }.recoverTotal {
@@ -92,15 +92,15 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           case Some(currentUser) => {
             DistributorUser.checkPassword(user.email, user.password) match {
               case true => {
-                Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None)).flashing("success" -> "App updated successfully.")
+                Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
               }
               case false => {
-                delayedResponse("Invalid Password.")
+                delayedResponse("Invalid Password.", "password")
               }
             }
           }
           case None => {
-            delayedResponse("Email not found.  Please Sign up.")
+            delayedResponse("Email not found.  Please Sign up.", "email")
           }
         }
       }.recoverTotal {
@@ -125,11 +125,12 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * Delays response before rendering a view to discourage brute force attacks.
    * This is used for failures on the sign up or sign in actions.
    * @param errorMessage The error message to be displayed in the login form.
+   * @param fieldName The name of the field under which the error message will be displayed.
    * @return a 400 response and render a form with errors.
    */
-  def delayedResponse(errorMessage: String): Result = {
+  def delayedResponse(errorMessage: String, fieldName: String): Result = {
     Thread.sleep(1000)
-    BadRequest(Json.obj("status" -> "error", "message" -> errorMessage))
+    BadRequest(Json.obj("status" -> "error", "message" -> errorMessage, "fieldName" -> fieldName))
   }
 }
 

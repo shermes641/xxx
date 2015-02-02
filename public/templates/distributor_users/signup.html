@@ -7,28 +7,36 @@
     <form name="new-distributor-user-form" ng-controller="SignupController" ng-submit="submit()">
         <dl id="company_field">
             <dt><label for="company"></label></dt>
-            <dd>
+            <dd ng-class="errors.company">
                 <input ng-model="data.company" ng-change="checkInputs()" type="text" id="company" name="company" value="" placeholder="Company Name"/>
+            <dd class="error">{{errors.company}}</dd>
             </dd>
         </dl>
+
         <dl id="email_field">
             <dt><label for="email"></label></dt>
-            <dd>
+            <dd ng-class="errors.emailClass">
                 <input ng-model="data.email" ng-change="checkInputs()" type="email" id="email" name="email" value="" placeholder="Email"/>
+            <dd class="error">{{errors.email}}</dd>
             </dd>
         </dl>
+
         <dl id="password_field">
             <dt><label for="password"></label></dt>
-            <dd>
-                <input ng-model="data.password" ng-change="checkInputs()" ng-minlength="8" type="password" id="password" name="password" placeholder="Password"/>
+            <dd ng-class="errors.passwordClass">
+                <input ng-model="data.password" ng-change="checkInputs()" type="password" id="password" name="password" placeholder="Password"/>
+            <dd class="error">{{errors.password}}</dd>
             </dd>
         </dl>
+
         <dl id="confirmation_field">
             <dt><label for="confirmation"></label></dt>
-            <dd>
-                <input ng-model="data.confirmation" ng-change="checkInputs()" ng-minlength="8" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)"/>
+            <dd ng-class="errors.confirmation">
+                <input ng-model="data.confirmation" ng-change="checkInputs()" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)"/>
+            <dd class="error">{{errors.confirmation}}</dd>
             </dd>
         </dl>
+
         <dl id="terms_field">
             <dt><label for="terms"></label></dt>
             <dd>
@@ -46,9 +54,11 @@
         <div ng-show="showTerms" id="termsContainer">
             <div ng-include="termsTemplate"></div>
         </div>
+
         <button ng-disabled="invalidForm" ng-class="inactiveClass" id="create-distributor-user" type="submit" name="new-distributor-user-form">Sign up</button>
     </form>
 </div>
+
 <div id="registration-link">
     <a href="/login">Already have an account?  Sign In</a>
 </div>

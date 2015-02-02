@@ -18,60 +18,50 @@ appsControllers.factory('appCheck', ['inputChecker', 'flashMessage', function(in
     var appCheck = {};
 
     // Checks if Reward Minimum is greater than Reward Maximum.
-    appCheck.validRewardAmounts = function() {
-        var rewardMin = $(":input[name=rewardMin]").val();
-        var rewardMax = $(":input[name=rewardMax]").val();
-        if(inputChecker.validInput(rewardMin)) {
-            if(parseInt(rewardMin) < 1) {
-                flashMessage("Reward Minimum must be 1 or greater.", defaultErrorDiv);
-                return false;
-            }
-            if(inputChecker.validInput(rewardMax)) {
-                if(parseInt(rewardMax) < parseInt(rewardMin)) {
-                    flashMessage("Reward Maximum must be greater than or equal to Reward Minimum.", defaultErrorDiv);
-                    return false;
-                }
+    appCheck.validRewardAmounts = function(data) {
+        var rewardMin = data.rewardMin;
+        var rewardMax = data.rewardMax;
+        if(rewardMin < 1) {
+            return({message: "Reward Minimum must be 1 or greater.", fieldName: "rewardMin"});
+        }
+        if(rewardMax !== null) {
+            if(rewardMax < rewardMin) {
+                return({message: "Reward Maximum must be greater than or equal to Reward Minimum.", fieldName: "rewardMax"});
             }
         }
-        return true;
+        return {};
     };
 
     // Checks if Exchange Rate is 1 or greater.
-    appCheck.validExchangeRate = function() {
-        var exchangeRate = $(":input[name=exchangeRate]").val();
-        if(inputChecker.validInput(exchangeRate)) {
-            if (parseInt(exchangeRate) < 1) {
-                flashMessage("Exchange Rate must be 1 or greater.", defaultErrorDiv);
-                return false;
-            }
+    appCheck.validExchangeRate = function(exchangeRate) {
+        if (exchangeRate < 1) {
+            return({message: "Exchange Rate must be 1 or greater.", fieldName: "exchangeRate"});
+        } else {
+            return {};
         }
-        return true;
     };
 
     // Check if all required fields are filled.
-    appCheck.fieldsFilled = function(requiredFields) {
+    appCheck.fieldsFilled = function(data, requiredFields) {
         for(var i=0; i < requiredFields.length; i++) {
-            var field = $(requiredFields[i]);
-            if(typeof field.val() === "string") {
-                if(field.val() === "") {
-                    return false;
-                }
+            var field = data[requiredFields[i]];
+            if(field === "" || field === null) {
+                return false
             }
         }
         return true;
     };
 
     // Checks for a valid callback URL when server to server callbacks are enabled.
-    appCheck.validCallback = function() {
-        var callbacksEnabled = $(":input[id=serverToServerEnabled]").prop("checked");
-        var callbackURL = $(":input[id=callbackURL]").val();
+    appCheck.validCallback = function(data) {
+        var callbacksEnabled = data.serverToServerEnabled;//$(":input[id=serverToServerEnabled]").prop("checked");
+        var callbackURL = data.callbackURL;//$(":input[id=callbackURL]").val();
         if(callbacksEnabled) {
             if(!(/(http|https):\/\//).test(callbackURL)) {
-                flashMessage("A valid HTTP or HTTPS callback URL is required.", defaultErrorDiv);
-                return false;
+                return({message: "A valid HTTP or HTTPS callback URL is required.", fieldName: "callbackURL"});
             }
         }
-        return true;
+        return {};
     };
 
     return appCheck;
@@ -161,6 +151,8 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
     }).when('/distributors/:distributorID/apps/:appID/edit', {
         controller: 'EditAppsController',
         templateUrl: 'assets/templates/apps/editApp.html'
+    }).when('/distributors/:distributorID/waterfalls/:waterfallID/edit', {
+        controller: 'WaterfallController'
     }).when('distributors/:distributorID/apps', {
         controller: 'NewAppsController'
     }).when('/signup', {
@@ -174,7 +166,7 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
     $locationProvider.hashPrefix('!');
 }]);
 
-mediationModule.directive('modalDialog', function() {
+appsControllers.directive('modalDialog', function() {
     return {
         restrict: 'E',
         scope: {
@@ -192,7 +184,6 @@ mediationModule.directive('modalDialog', function() {
                 scope.show = false;
             };
         },
-        //template: "<div class='ng-modal' ng-show='show'><div class='ng-modal-overlay' ng-click='hideModal()'></div><div class='ng-modal-dialog' ng-style='dialogStyle'><div class='ng-modal-close' ng-click='hideModal()'>X</div><div class='ng-modal-dialog-content' ng-transclude></div></div></div>"
         templateUrl: "assets/templates/apps/modal.html"
     };
 });
@@ -206,15 +197,13 @@ appsControllers.controller('IndexAppsController', ['$scope', '$routeParams', fun
 
 var distributorUsersControllers = angular.module('distributorUsersControllers', ['ngRoute']);
 
-distributorUsersControllers.factory('fieldsFilled', [function(requiredFields) {
+distributorUsersControllers.factory('fieldsFilled', [function(data, requiredFields) {
     // Check if all required fields are filled.
-    return function(requiredFields) {
+    return function(data, requiredFields) {
         for(var i=0; i < requiredFields.length; i++) {
-            var field = $(requiredFields[i]);
-            if(typeof field.val() === "string") {
-                if(field.val() === "") {
-                    return false;
-                }
+            var field = data[requiredFields[i]];
+            if(field === "" || field === null) {
+                return false
             }
         }
         return true;
@@ -230,15 +219,16 @@ distributorUsersControllers.factory('flashMessage', [function(message, div) {
 
 distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage', 'fieldsFilled',
         function($scope, $http, $routeParams, $window, flashMessage, fieldsFilled) {
-            var requiredFields = [":input[id=email]", ":input[id=password]"];
             // Default div for error messages.
             var defaultErrorDiv = $("#error-message");
 
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
+            $scope.errors = {};
 
             $scope.checkInputs = function() {
-                if(fieldsFilled(requiredFields)) {
+                var requiredFields = ["email", "password"];
+                if(fieldsFilled($scope.data, requiredFields)) {
                     $scope.invalidForm = false;
                     $scope.inactiveClass = "";
                 } else {
@@ -249,13 +239,19 @@ distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$
 
             // Submit form if fields are valid.
             $scope.submit = function() {
+                $scope.errors = {};
                 if(!$scope.invalidForm) {
                     $http.post('/authenticate', $scope.data).
                         success(function(data, status, headers, config) {
                             $window.location.href = "/";
                         }).
                         error(function(data, status, headers, config) {
-                            flashMessage(data.message, defaultErrorDiv);
+                            if(data.fieldName) {
+                                $scope.errors[data.fieldName] = data.message;
+                                $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                flashMessage(data.message, defaultErrorDiv);
+                            }
                         });
                 }
             };
@@ -264,7 +260,6 @@ distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$
 
 distributorUsersControllers.controller('SignupController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage', 'fieldsFilled',
     function($scope, $http, $routeParams, $window, flashMessage, fieldsFilled) {
-        var requiredFields = [":input[id=company]", ":input[id=email]", ":input[id=password]", ":input[id=confirmation]"];
         // Default div for error messages.
         var defaultErrorDiv = $("#error-message");
         $scope.showTerms = false;
@@ -274,9 +269,11 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
 
         $scope.invalidForm = true;
         $scope.inactiveClass = "inactive";
+        $scope.errors = {};
 
         $scope.checkInputs = function() {
-            if(fieldsFilled(requiredFields) && $scope.data.terms) {
+            var requiredFields = ['companyName', 'email', 'password', 'confirmation'];
+            if(fieldsFilled($scope.data, requiredFields) && $scope.data.terms) {
                 $scope.invalidForm = false;
                 $scope.inactiveClass = "";
             } else {
@@ -287,24 +284,43 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
 
         $scope.termsTemplate = 'assets/templates/distributor_users/terms.html';
 
-        var validPassword = function() {
-            if($scope.data.password != $scope.data.confirmation) {
-                flashMessage("Password does not match confirmation.", defaultErrorDiv);
-                return false;
-            } else {
-                return true;
+        var checkPassword = function() {
+            if($scope.data.password.length < 8) {
+                return({message: "Password must be a minimum of 8 characters.", fieldName: "password"});
             }
+            if($scope.data.password != $scope.data.confirmation) {
+                return({message: "Password does not match confirmation.", fieldName: "password"});
+            }
+            return {};
+        };
+
+        var validFields = function(errorObjects) {
+            for(var i = 0; i < errorObjects.length; i++) {
+                var error = errorObjects[i];
+                if(error.message) {
+                    $scope.errors[error.fieldName] = error.message;
+                    $scope.errors[error.fieldName + "Class"] = "error";
+                    return false;
+                }
+            }
+            return true;
         };
 
         // Submit form if fields are valid.
         $scope.submit = function() {
-            if(!$scope.invalidForm && validPassword()) {
+            $scope.errors = {};
+            if(!$scope.invalidForm && validFields([checkPassword()])) {
                 $http.post('/distributor_users', $scope.data).
                     success(function(data, status, headers, config) {
                         $window.location.href = "/";
                     }).
                     error(function(data, status, headers, config) {
-                        flashMessage(data.message, defaultErrorDiv);
+                        if(data.fieldName) {
+                            $scope.errors[data.fieldName] = data.message;
+                            $scope.errors[data.fieldName + "Class"] = "error";
+                        } else {
+                            flashMessage(data.message, defaultErrorDiv);
+                        }
                     });
             }
         };

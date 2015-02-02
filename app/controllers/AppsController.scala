@@ -59,9 +59,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     Ok(views.html.Apps.newApp(distributorID))
   }
 
-  def takenAppNameError(distributorID: Long, existingAppID: Long) = {
-    "You already have an active App with the same name.  To use this App name, you must first deactivate your existing App in its respective " +
-      "<a href=" + routes.AppsController.edit(distributorID, existingAppID).url + ">Settings Page</a>"
+  def takenAppNameError = {
+    "You already have an active App with the same name.  To use this App name, you must first deactivate your existing App in its respective Settings Page"
   }
 
   /**
@@ -74,7 +73,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       json.validate[NewAppMapping].map { newApp =>
         App.nameExists(newApp.appName, distributorID) match {
           case Some(existingAppID) => {
-            BadRequest(Json.obj("status" -> "error", "message" -> takenAppNameError(distributorID, existingAppID)))
+            BadRequest(Json.obj("status" -> "error", "fieldName" -> "appName", "message" -> takenAppNameError))
           }
           case None => {
             DB.withTransaction { implicit connection =>
@@ -151,7 +150,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       json.validate[EditAppMapping].map { appInfo =>
         App.nameExists(appInfo.appName, distributorID, Some(appID)) match {
           case Some(existingAppID) => {
-            BadRequest(Json.obj("status" -> "error", "message" -> takenAppNameError(distributorID, existingAppID)))
+            BadRequest(Json.obj("status" -> "error", "fieldName" -> "appName", "message" -> takenAppNameError))
           }
           case None => {
             val updateErrorMessage = "App could not be updated."
@@ -178,7 +177,6 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                   }
                   case _ => rollbackWithError(updateErrorMessage)
                 }
-                Ok(Json.obj("status" -> "OK", "message" -> "App updated successfully."))
               } catch {
                 case error: org.postgresql.util.PSQLException => rollbackWithError(updateErrorMessage)
                 case error: IllegalArgumentException => rollbackWithError(updateErrorMessage + "Please refresh your browser.")
