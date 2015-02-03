@@ -10,11 +10,13 @@
             <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
         </div>
         @for(param <- reqParams) {
-            <div data-required-param="true" class="edit-waterfall-ad-provider-field">
-                <label class="modal-label" data-param-name="@param.key">*@param.displayKey</label>
-                <input data-param-type="@param.dataType" data-refresh-on-app-restart="@param.refreshOnAppRestart" type="text" value="@param.value"></input>
-                <h4 class="tooltip" data-title="@param.description">?</h4>
-            </div>
+            @if(param.displayKey.getOrElse("") != "") {
+                <div data-required-param="true" class="edit-waterfall-ad-provider-field">
+                    <label class="modal-label" data-param-name="@param.key">*@param.displayKey</label>
+                    <input data-param-type="@param.dataType" data-refresh-on-app-restart="@param.refreshOnAppRestart" type="text" value="@param.value"></input>
+                    <h4 class="tooltip" data-title="@param.description">?</h4>
+                </div>
+            }
         }
         <h1 class="modal-text">Reporting Configuration</h1>
         <table>
