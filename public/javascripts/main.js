@@ -335,6 +335,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.appID = data.waterfall.appID;
             }).error(function(data) {
             });
+
+            $scope.appList = 'assets/templates/waterfalls/';
+
             var content = $(".split_content");
             // Distributor ID to be used in AJAX calls.
             $scope.distributorID = content.attr("data-distributor-id");

@@ -6,11 +6,11 @@
 
         <div id="waterfall-edit-success" class="flash-message success"></div>
         <div id="waterfall-edit-error" class="flash-message error"></div>
-        <h1>{{data.waterfall.name}} Waterfall</h1>
+        <h1>{{waterfallData.waterfall.name}} Waterfall</h1>
         <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
         <div id="waterfall_sub_header">
             <div class="app-token" data-app-token="@waterfall.appToken">API Token
-                <code class="copy-paste-code">{{data.waterfall.appToken}}</code>
+                <code class="copy-paste-code">{{waterfallData.waterfall.appToken}}</code>
             </div>
             <modal-dialog show='modalShown' width='400px' height='60%'>
                 <div ng-show="showEditAppModal">
