@@ -1,14 +1,8 @@
 <div id="left_content">
     <div id="left_apps_list">
         <h2>Apps</h2>
-        <ul>
-            @for(appInfo <- appsWithWaterfalls) {
-            @if(appID.getOrElse(false) == appInfo.id) {
-            <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li class="active">@appInfo.name</li></a>
-            } else {
-            <a href="@routes.WaterfallsController.edit(distributorID, appInfo.waterfallID)"><li>@appInfo.name</li></a>
-            }
-            }
+        <ul ng-repeat="appInfo in waterfallData.appsWithWaterfalls">
+            <a href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit"><li class="active">{{appInfo.name}}</li></a>
         </ul>
     </div>
     <button ng-click='toggleNewAppModal()' id="create_new_app" type="button">
