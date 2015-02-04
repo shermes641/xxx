@@ -4,11 +4,12 @@ import java.sql.Connection
 import play.api.db.DB
 import play.api.mvc._
 import models._
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.Play.current
 import scala.language.implicitConversions
 
-object WaterfallsController extends Controller with Secured with JsonToValueHelper {
+object WaterfallsController extends Controller with Secured with JsonToValueHelper with ValueToJsonHelper {
   /**
    * Redirects to the waterfall assigned to App.
    * Future:  Will return list of waterfalls.
@@ -54,6 +55,121 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       }
     }
   }
+
+  def waterfallInfo(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+    Waterfall.find(waterfallID, distributorID) match {
+      case Some(waterfall) => {
+        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
+          new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
+        }
+        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
+        Ok(Json.obj("distributorID" -> JsString(distributorID.toString), "waterfall" -> waterfall, "waterfallAdProviderList" -> adProviderListJs(waterfallAdProviderList),
+          "appsWithWaterfalls" -> appsWithWaterfallListJs(appsWithWaterfalls), "generationNumber" -> JsString(waterfall.generationNumber.getOrElse(0).toString)))
+      }
+      case None => {
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
+      }
+    }
+  }
+
+  def adProviderListJs(list: List[OrderedWaterfallAdProvider]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, wap) => array ++ JsArray(Seq(wap)))
+  }
+
+  def appsWithWaterfallListJs(list: List[AppWithWaterfallID]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
+  }
+
+  /**
+   * Converts an optional Double value to a JsValue.
+   * @param param The original optional Double value.
+   * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalDoubleToJsValue(param: Option[Double]): JsValue = {
+    param match {
+      case Some(paramValue) => JsNumber(paramValue)
+      case None => JsNull
+    }
+  }
+
+  implicit def orderedWaterfallAdProviderWrites(wap: OrderedWaterfallAdProvider): JsObject = {
+    JsObject(
+      Seq(
+        "name" -> JsString(wap.name),
+        "waterfallAdProviderID" -> JsString(wap.waterfallAdProviderID.toString),
+        "cpm" -> wap.cpm,
+        "active" -> JsBoolean(wap.active),
+        "waterfallOder" -> wap.waterfallOrder,
+        "unconfigurred" -> JsBoolean(wap.unconfigured),
+        "newRecord" -> JsBoolean(wap.newRecord),
+        "configurable" -> JsBoolean(wap.configurable),
+        "pending" -> JsBoolean(wap.pending)
+      )
+    )
+  }
+
+  /*
+  implicit val OrderedWaterfallAdProviderWrites: Writes[OrderedWaterfallAdProvider] = (
+    (JsPath \ "name").write[String] and
+    (JsPath \ "waterfallAdProviderID").write[Long] and
+    (JsPath \ "cpm").writeNullable[Double] and
+    (JsPath \ "active").write[Boolean] and
+    (JsPath \ "waterfallOrder").writeNullable[Long] and
+    (JsPath \ "unconfigured").write[Boolean] and
+    (JsPath \ "newRecord").write[Boolean] and
+    (JsPath \ "configurable").write[Boolean] and
+    (JsPath \ "pending").write[Boolean]
+  )(unlift(OrderedWaterfallAdProvider.unapply))
+  */
+
+  implicit def waterfallWrites(waterfall: Waterfall): Json.JsValueWrapper = {
+    JsObject(
+      Seq(
+        "id" -> JsString(waterfall.id.toString),
+        "appID" -> JsString(waterfall.app_id.toString),
+        "name" -> JsString(waterfall.name),
+        "token" -> JsString(waterfall.token),
+        "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
+        "testMode" -> JsBoolean(waterfall.testMode),
+        "appToken" -> JsString(waterfall.appToken)
+      )
+    )
+  }
+
+  /*
+  implicit val WaterfallWrites: Writes[Waterfall] = (
+    (JsPath \ "id").write[Long] and
+    (JsPath \ "appID").write[Long] and
+    (JsPath \ "name").write[String] and
+    (JsPath \ "token").write[String] and
+    (JsPath \ "optimizedOrder").write[Boolean] and
+    (JsPath \ "testMode").write[Boolean] and
+    (JsPath \ "generationNumber").writeNullable[Long] and
+    (JsPath \ "appToken").write[String]
+  )(unlift(Waterfall.unapply))
+  */
+
+  implicit def appWithWaterfallIDWrites(app: AppWithWaterfallID): JsObject = {
+    JsObject(
+      Seq(
+        "id" -> JsString(app.id.toString),
+        "active" -> JsBoolean(app.active),
+        "distributorID" -> JsString(app.distributorID.toString),
+        "name" -> JsString(app.name),
+        "waterfallID" -> JsString(app.waterfallID.toString)
+      )
+    )
+  }
+
+  /*
+  implicit val AppWithWaterfallIDWrites: Writes[AppWithWaterfallID] = (
+    (JsPath \ "id").write[Long] and
+    (JsPath \ "active").write[Boolean] and
+    (JsPath \ "distributorID").write[Long] and
+    (JsPath \ "name").write[String] and
+    (JsPath \ "waterfallID").write[Long]
+  )(unlift(AppWithWaterfallID.unapply))
+  */
 
   /**
    * Renders form for editing Waterfall if an App/Waterfall has been previously selected.
