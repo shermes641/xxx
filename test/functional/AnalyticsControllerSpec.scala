@@ -27,7 +27,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val appID = App.create(distributorID, app2Name).get
       logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
       browser.pageSource must contain("Analytics")
     }
 
@@ -38,7 +38,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       logInUser()
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // Verify first option defaults to "all"
       browser.$("#ad_providers").getValue() must beEqualTo("all")
@@ -50,7 +50,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // Verify first option defaults to "all"
       browser.$("#countries").getValue() must beEqualTo("all")
@@ -62,7 +62,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       var date = DateTime.now
       // End date must be todays date
@@ -77,7 +77,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val appID = App.create(distributorID, app2Name).get
 
       logInUser()
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // eCPM must be set correctly (placeholder for now)
       browser.$("#keen_project").getValue() must beEqualTo(Play.current.configuration.getString("keen.project").get)
@@ -89,7 +89,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
@@ -100,7 +100,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, Some(currentApp.id)).url)
       browser.pageSource() must not contain currentApp.name
     }
 
@@ -109,7 +109,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
   }
