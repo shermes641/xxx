@@ -1,118 +1,117 @@
 <div id="error-message" class="flash-message error"></div>
 <div id="success-message" class="flash-message success"></div>
-<div class="content settings">
+<div>
     <form id="edit-app" name="edit-app-form" ng-submit="submitEditApp()">
         <h1>App Configuration</h1>
-        <button ng-disabled="invalidForm" ng-class="inactiveClass" type="submit" name="submit">Save Changes</button>
+        <div class="left_column">
+            <dl id="app_name">
+                <dt><label for="app_name">*App Name</label></dt>
+                <dd ng-class="errors.appNameClass">
+                    <input type="text" ng-model="data.appName" ng-change="checkInputs(data)" id="appName" name="appName" value="" placeholder="name" label="*App Name">
+                </dd>
+                <dd class="error">{{errors.appName}}</dd>
+            </dl>
 
-        <dl id="app_name">
-            <dt><label for="app_name"></label></dt>
-            <dd ng-class="errors.appNameClass">
-                <input type="text" ng-model="data.appName" ng-change="checkInputs(data)" id="appName" name="appName" value="" placeholder="name" label="*App Name">
-            </dd>
-            <dd class="error">{{errors.appName}}</dd>
-        </dl>
+            <dl class="switch-field onoff-field" id="active_field">
+                <dt>
+                    <label for="active">Active</label>
+                </dt>
+                <dd>
+                    <div class="onoffswitch switch-left">
+                        <input type="checkbox" ng-model="data.active" id="active" name="active" value="true" class="onoffswitch-checkbox">
+                        <label class="onoffswitch-label" for="active">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                        <span></span>
+                    </div>
+                </dd>
+            </dl>
 
-        <dl class="onoff-field" id="active_field">
-            <dt>
-                <label for="active">Active</label>
-            </dt>
-            <dd>
-                <div class="onoffswitch switch-left">
-                    <input type="checkbox" ng-model="data.active" id="active" name="active" value="true" class="onoffswitch-checkbox">
-                    <label class="onoffswitch-label" for="active">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                    <span></span>
-                </div>
-            </dd>
-        </dl>
+            <dl class="switch-field onoff-field" id="serverToServerEnabled_field">
+                <dt>
+                    <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>
+                </dt>
+                <dd>
+                    <div class="onoffswitch switch-left">
+                        <input type="checkbox" ng-model="data.serverToServerEnabled" id="serverToServerEnabled" name="serverToServerEnabled" value="true" class="onoffswitch-checkbox">
+                        <label class="onoffswitch-label" for="serverToServerEnabled">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                        <span></span>
+                    </div>
+                </dd>
+            </dl>
 
-        <h1>Reward Handling</h1>
-        <dl class="onoff-field" id="serverToServerEnabled_field">
-            <dt>
-                <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>
-            </dt>
-            <dd>
-                <div class="onoffswitch switch-left">
-                    <input type="checkbox" ng-model="data.serverToServerEnabled" id="serverToServerEnabled" name="serverToServerEnabled" value="true" class="onoffswitch-checkbox">
-                    <label class="onoffswitch-label" for="serverToServerEnabled">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                    <span></span>
-                </div>
-            </dd>
-        </dl>
+            <dl id="callback_url">
+                <dt><label for="callback_url">Callback URL</label></dt>
+                <dd ng-class="errors.callbackURLClass">
+                    <input type="text" ng-model="data.callbackURL" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
+                </dd>
+                <dd class="error">{{errors.callbackURL}}</dd>
+            </dl>
+            <dl id="currency_name">
+                <dt><label for="currency_name">*Virtual Currency</label></dt>
+                <dd ng-class="errors.currencyNameClass">
+                    <input type="text" ng-model="data.currencyName" ng-change="checkInputs(data)" id="currencyName" name="currencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
+                    <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
+                </dd>
+                <dd class="error">{{errors.currencyName}}</dd>
+            </dl>
+        </div>
+        <div class="right_column">
 
-        <dl id="callback_url">
-            <dt><label for="callback_url"></label></dt>
-            <dd ng-class="errors.callbackURLClass">
-                <input type="text" ng-model="data.callbackURL" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
-            </dd>
-            <dd class="error">{{errors.callbackURL}}</dd>
-        </dl>
+            <dl id="exchange_rate">
+                <dt><label for="exchange_rate">*Exchange Rate</label></dt>
+                <dd ng-class="errors.exchangeRateClass">
+                    <input type="number" ng-model="data.exchangeRate" ng-change="checkInputs(data)" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+                    <div class="tip">The number of virtual currency units per $1.</div>
+                </dd>
+                <dd class="error">{{errors.exchangeRate}}</dd>
+            </dl>
 
-        <dl id="currency_name">
-            <dt><label for="currency_name"></label></dt>
-            <dd ng-class="errors.currencyNameClass">
-                <input type="text" ng-model="data.currencyName" ng-change="checkInputs(data)" id="currencyName" name="currencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
-                <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
-            </dd>
-            <dd class="error">{{errors.currencyName}}</dd>
-        </dl>
+            <dl id="reward_min">
+                <dt><label for="reward_min">*Minimum Currency to Reward per Completed Offer</label></dt>
+                <dd ng-class="errors.rewardMinClass">
+                    <input type="number" ng-model="data.rewardMin" ng-change="checkInputs(data)" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                </dd>
+                <dd class="error">{{errors.rewardMin}}</dd>
+            </dl>
 
-        <dl id="exchange_rate">
-            <dt><label for="exchange_rate"></label></dt>
-            <dd ng-class="errors.exchangeRateClass">
-                <input type="number" ng-model="data.exchangeRate" ng-change="checkInputs(data)" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
-                <div class="tip">The number of virtual currency units per $1.</div>
-            </dd>
-            <dd class="error">{{errors.exchangeRate}}</dd>
-        </dl>
+            <dl id="reward_max">
+                <dt><label for="reward_max">Maximum Currency to Reward per Completed Offer</label></dt>
+                <dd ng-class="errors.rewardMaxClass">
+                    <input type="number" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
+                </dd>
+                <dd class="error">{{errors.rewardMax}}</dd>
+            </dl>
 
-        <dl id="reward_min">
-            <dt><label for="reward_min"></label></dt>
-            <dd ng-class="errors.rewardMinClass">
-                <input type="number" ng-model="data.rewardMin" ng-change="checkInputs(data)" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
-            </dd>
-            <dd class="error">{{errors.rewardMin}}</dd>
-        </dl>
-
-        <dl id="reward_max">
-            <dt><label for="reward_max"></label></dt>
-            <dd ng-class="errors.rewardMaxClass">
-                <input type="number" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
-            </dd>
-            <dd class="error">{{errors.rewardMax}}</dd>
-        </dl>
-
-        <dl class=" " id="roundUp_field">
-            <dt>
-                <label for="roundUp">Round Up Reward</label>
-            </dt>
-            <dd>
-                <div class="onoffswitch switch-left">
-                    <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox" ng-model="data.roundUp"/>
-                    <label class="onoffswitch-label" for="roundUp">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                    <span></span>
-                </div>
-            </dd>
-        </dl>
-        <div>
-            <label class="switch-checkbox-label">
-                Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
-            </label>
+            <dl class="switch-field" id="roundUp_field">
+                <dt>
+                    <label for="roundUp">Round Up Reward</label>
+                </dt>
+                <dd>
+                    <div class="onoffswitch switch-left">
+                        <input type="checkbox" id="roundUp" name="roundUp" value="true" class="onoffswitch-checkbox" ng-model="data.roundUp"/>
+                        <label class="onoffswitch-label" for="roundUp">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                        <span></span>
+                    </div>
+                </dd>
+            </dl>
+            <div>
+                <label class="switch-checkbox-label">
+                    Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+                </label>
+            </div>
         </div>
 
         <input type="number" ng-model="data.currencyID" id="currencyID" name="currencyID" style="display: none">
         <input type="number" ng-model="data.generationNumber" id="generationNumber" name="generationNumber" style="display: none">
 
         <button ng-disabled="invalidForm" ng-class="inactiveClass" type="submit" name="submit">Save Changes</button>
-        <button ng-click='toggleEditAppModal()' id="cancel-app-settings" type="button" name="cancel-app-settings">Cancel</button>
     </form>
 </div>

@@ -1417,7 +1417,7 @@ hr {
     margin-left: 18px;
 }
 
-#new-app h1 {
+.ng-modal-dialog-content h1 {
     margin-top: 0;
     margin-bottom: 10px;
 }
@@ -1431,15 +1431,19 @@ hr {
 
 #roundUp_field {
     height: 40px;
+}
+
+.ng-modal-dialog-content .switch-field {
+    height: 30px;
     margin-bottom: 10px;
 }
 
-#roundUp_field dt {
+.ng-modal-dialog-content .switch-field dt {
     float: left;
     margin-right: 5px;
     margin-top: 7px;
 }
 
-#roundUp_field dl {
+.ng-modal-dialog-content .switch-field dl {
     margin-bottom: 0;
 }
