@@ -24,7 +24,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   }
 
   "DistributorUsersController.create" should {
-    "if the user's email is taken, render the sign up page with all fields filled except the password fields" in new WithFakeBrowser {
+    "if the user's email is taken, render the sign up page with all fields filled" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
       goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
       browser.fill("#company").`with`(companyName)
@@ -36,11 +36,9 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.pageSource must contain("This email has been registered already")
       browser.find("#company").getValue must beEqualTo(companyName)
       browser.find("#email").getValue must beEqualTo(email)
-      browser.find("#password").getValue must beEqualTo("")
-      browser.find("#confirmation").getValue must beEqualTo("")
     }
 
-    "respond with a 303 when email is taken" in new WithFakeBrowser {
+    "respond with a 400 when email is taken" in new WithFakeBrowser {
       val request = FakeRequest(POST, "/distributor_users").withFormUrlEncodedBody(
         "company" -> companyName,
         "email" -> "user@jungroup.com",
@@ -50,7 +48,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       )
       DistributorUser.create(email, password, companyName)
       val Some(result) = route(request)
-      status(result) must equalTo(303)
+      status(result) must equalTo(400)
     }
   }
 
@@ -59,7 +57,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       val user = DistributorUser.findByEmail(email).get
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.logout.url)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
+      browser.goTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
       browser.pageSource must contain("Welcome Back")
     }
   }
