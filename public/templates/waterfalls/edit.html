@@ -2,6 +2,7 @@
 <div ng-controller="WaterfallController">
     @views.html.Partials.subHeader("waterfall", distributorID, Some(waterfall.app_id), Some(waterfall.id))
     @views.html.Partials.appList(distributorID, Some(waterfall.app_id), appsWithWaterfalls)
+    <div ng-include="appList"></div>
     <div id="waterfall-edit" class="split_content waterfall_list" data-app-id="@waterfall.app_id" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID" data-generation-number="@{generationNumber match {case Some(id) => id; case None => 0}}">
 
         <div id="waterfall-edit-success" class="flash-message success"></div>
@@ -111,7 +112,6 @@
             }
         </div>
         </li>
-        }
         </ul>
     </div>
 </div>
