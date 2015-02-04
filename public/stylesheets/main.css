@@ -524,10 +524,7 @@ span#viewTerms:hover {
 }
 
 .registration {
-    width: 400px;
-    padding: 40px;
     text-align: center;
-    margin: 120px auto 0 auto;
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration input[type="number"], .registration input[type="email"], .registration button[type="submit"], .registration button[type="button"] {
@@ -535,7 +532,8 @@ span#viewTerms:hover {
 }
 
 .registration dt {
-    display: none;
+    text-align: left;
+    font-size: 12px;
 }
 
 .registration h3 {
@@ -1106,12 +1104,6 @@ dd.error {
     font-size: 11px;
 }
 
-.switch-checkbox-label {
-    margin-top: -3px;
-    max-width: 450px;
-    padding-left: 15px;
-}
-
 ::-webkit-input-placeholder { /* WebKit browsers */
     color: #DEDEDE;
 }
@@ -1360,10 +1352,7 @@ hr {
     display: none;
 }
 
-
-
 .ng-modal-overlay {
-    display: none;
     position: fixed;
     top: 0;
     right: 0;
@@ -1374,36 +1363,71 @@ hr {
     opacity: 0.9;
     z-index: 9999;
 }
-.ng-modal-dialog {
 
+.ng-modal-dialog {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     bottom: 0;
-    margin-top: 20px;
     width: 400px;
     background: #fff;
-    overflow-y: scroll;
     padding: 40px;
     z-index: 10000;
     text-align: center;
     font-size: 13px;
     color: #333;
-
+    border: 1px solid #dddde0;
 }
 .ng-modal-dialog-content {
-    padding:10px;
     text-align: left;
 }
-.ng-modal-close {
-    position: absolute;
-    top: 3px;
-    right: 5px;
-    padding: 5px;
-    cursor: pointer;
-    font-size: 120%;
-    display: inline-block;
-    font-weight: bold;
-    font-family: 'arial', 'sans-serif';
+
+.ng-modal-dialog-content .tip {
+    font-size: 11px;
+    font-style: italic;
+    text-align: left;
+    color: #333;
+}
+
+.ng-modal-dialog-content dl {
+    margin-bottom: 20px;
+}
+
+.left_column {
+    width: 330px;
+    float: left;
+}
+.right_column {
+    width: 330px;
+    float: left;
+
+    margin-left: 18px;
+}
+
+#new-app h1 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.switch-checkbox-label {
+    font-size: 11px;
+    font-style: italic;
+    text-align: left;
+    color: #333;
+}
+
+#roundUp_field {
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+#roundUp_field dt {
+    float: left;
+    margin-right: 5px;
+    margin-top: 7px;
+}
+
+#roundUp_field dl {
+    margin-bottom: 0;
 }
