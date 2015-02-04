@@ -4,6 +4,7 @@ import java.sql.Connection
 import play.api.db.DB
 import play.api.mvc._
 import models._
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.Play.current
 import scala.language.implicitConversions
@@ -54,6 +55,53 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       }
     }
   }
+
+  def waterfallInfo(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+    Waterfall.find(waterfallID, distributorID) match {
+      case Some(waterfall) => {
+        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
+          new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
+        }
+        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
+        Ok(Json.obj("distributorID" -> distributorID, "waterfall" -> waterfall, "waterfallAdProviderList" -> waterfallAdProviderList,
+          "appsWithWaterfalls" -> appsWithWaterfalls, "generationNumber" -> waterfall.generationNumber))
+      }
+      case None => {
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
+      }
+    }
+  }
+
+  implicit val OrderedWaterfallAdProviderWrites: Writes[OrderedWaterfallAdProvider] = (
+    (JsPath \ "name").write[String] and
+    (JsPath \ "waterfallAdProviderID").write[Long] and
+    (JsPath \ "cpm").writeNullable[Double] and
+    (JsPath \ "active").write[Boolean] and
+    (JsPath \ "waterfallOrder").writeNullable[Long] and
+    (JsPath \ "unconfigured").write[Boolean] and
+    (JsPath \ "newRecord").write[Boolean] and
+    (JsPath \ "configurable").write[Boolean] and
+    (JsPath \ "pending").write[Boolean]
+  )(unlift(OrderedWaterfallAdProvider.unapply))
+
+  implicit val WaterfallWrites: Writes[Waterfall] = (
+    (JsPath \ "id").write[Long] and
+    (JsPath \ "appID").write[Long] and
+    (JsPath \ "name").write[String] and
+    (JsPath \ "token").write[String] and
+    (JsPath \ "optimizedOrder").write[Boolean] and
+    (JsPath \ "testMode").write[Boolean] and
+    (JsPath \ "generationNumber").writeNullable[Long] and
+    (JsPath \ "appToken").write[String]
+  )(unlift(Waterfall.unapply))
+
+  implicit val AppWithWaterfallIDWrites: Writes[AppWithWaterfallID] = (
+    (JsPath \ "id").write[Long] and
+    (JsPath \ "active").write[Boolean] and
+    (JsPath \ "distributorID").write[Long] and
+    (JsPath \ "name").write[String] and
+    (JsPath \ "waterfallID").write[Long]
+  )(unlift(AppWithWaterfallID.unapply))
 
   /**
    * Renders form for editing Waterfall if an App/Waterfall has been previously selected.
