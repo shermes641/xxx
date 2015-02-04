@@ -14,7 +14,7 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, configData, wap.reportingActive))
       val appToken = App.find(waterfall.app_id).get.token
       val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
-      val adProviderConfigs = (JsonBuilder.appConfigResponseV1(waterfallOrder) \ "adProviderConfigurations").as[List[JsValue]]
+      val adProviderConfigs = (JsonBuilder.appConfigResponseV1(waterfallOrder, waterfallOrder(0)) \ "adProviderConfigurations").as[List[JsValue]]
       adProviderConfigs.map { config =>
         adProviders must contain((config \ "providerName").as[String])
       }

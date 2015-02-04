@@ -123,7 +123,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
     }
 
-    "respond with an error when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
+    "respond with an empty adProviderConfigurations array when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
       val roundUp = false
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 100, None, roundUp))
       Waterfall.update(waterfall.id, true, false)
@@ -136,10 +136,9 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
         ""
       )
       val Some(result) = route(request)
-      status(result) must equalTo(400)
+      status(result) must equalTo(200)
       val jsonResponse: JsValue = Json.parse(contentAsString(result))
-      (jsonResponse \ "status").as[String] must beEqualTo("error")
-      (jsonResponse \ "message").as[String] must beEqualTo("At this time there are no ad providers that are both active and have an eCPM that meets the minimum reward threshold.")
+      (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
     }
   }
 
