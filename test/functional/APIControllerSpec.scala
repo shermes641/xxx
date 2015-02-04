@@ -1,5 +1,6 @@
 package functional
 
+import controllers.APIController
 import models._
 import org.specs2.runner._
 import org.junit.runner._
@@ -230,8 +231,9 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val openUDID = Some("")
     val udid = Some("")
     val uid = Some("")
-    val verifier = Some("15c16e889f382cb60d5b4550380bd5f7")
+    val verifier = Some("6c9186f082be09baef312da505114fa2")
     val transactionID = Some("0123456789")
+    val customID = Some("testuser")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
       val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyID, None, None, true, true).get
       WaterfallAdProvider.find(id).get
@@ -244,7 +246,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
+        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID).url,
         FakeHeaders(),
         ""
       )
@@ -258,7 +260,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, Some("invalid-transaction-id"), uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
+        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, Some("invalid-transaction-id"), uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID).url,
         FakeHeaders(),
         ""
       )
@@ -271,7 +273,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val completionCount = tableCount("completions")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, None, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier).url,
+        controllers.routes.APIController.adColonyCompletionV1(completionApp.token, None, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID).url,
         FakeHeaders(),
         ""
       )
@@ -333,6 +335,33 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(400)
       tableCount("completions") must beEqualTo(completionCount)
+    }
+  }
+
+  "APIController.requestBuilder" should {
+    val time = "some time"
+    val sig = "some sig"
+    val route = controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, Some(time), Some(sig), None, None, None, None, None)
+    val getRequest = FakeRequest(
+      GET,
+      route.url,
+      FakeHeaders(),
+      ""
+    )
+    val adProviderRequest = APIController.requestToJsonBuilder(getRequest)
+
+    "store the HTTP method in a standardized JSON format" in new WithFakeBrowser {
+      (adProviderRequest \ "method").as[String] must beEqualTo(route.method)
+    }
+
+    "store the URL path in a standardized JSON format" in new WithFakeBrowser {
+      (adProviderRequest \ "path").as[String] must beEqualTo(route.url.split("""\?""")(0))
+    }
+
+    "store the query string in a standardized JSON format" in new WithFakeBrowser {
+      (adProviderRequest \ "query") must haveClass[JsObject]
+      (adProviderRequest \ "query" \ "time").as[String] must beEqualTo(time)
+      (adProviderRequest \ "query" \ "sig").as[String] must beEqualTo(sig)
     }
   }
 }
