@@ -15,12 +15,10 @@ object AnalyticsController extends Controller with Secured {
     Ok(views.html.Analytics.show(distributorID = distributorID, appID = currentAppID, apps = App.findAllAppsWithWaterfalls(distributorID), adProviders = AdProvider.findAll, keenProject = Play.current.configuration.getString("keen.project").get, scopedKey = getScopedReadKey(distributorID)))
   }
 
-  /*
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    KeenExport().exportToCSV(distributorID, request.body.asFormUrlEncoded.get("email").mkString(""))
+    KeenExport().exportToCSV(distributorID, (request.body.asJson.get \ "email").toString())
     Ok("success")
   }
-  */
 
   // Uses the keen library to get a scoped read key
   def getScopedReadKey(distributorID: Long) = {
