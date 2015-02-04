@@ -21,18 +21,11 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
   val distributorID = distributorUser.distributorID.get
 
   "Analytics show action" should {
-    def userLogin(browser: TestBrowser) = {
-
-      browser.goTo(controllers.routes.DistributorUsersController.login().url)
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
-    }
 
     "show analytics for an app" in new WithFakeBrowser {
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
-      userLogin(browser)
+      logInUser()
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
       browser.pageSource must contain("Analytics")
@@ -42,7 +35,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
@@ -55,7 +48,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
@@ -67,7 +60,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
@@ -83,7 +76,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // eCPM must be set correctly (placeholder for now)
@@ -94,7 +87,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
       browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
