@@ -17,41 +17,34 @@ object JsonBuilder extends ValueToJsonHelper {
    * @return JSON object with an ordered array of ad providers and their respective configuration info.
    */
   def appConfigResponseV1(adProviderList: List[AdProviderInfo], configInfo: AdProviderInfo): JsValue = {
-    def buildAdProviderConfigurations: JsValue = {
-      if(adProviderList.size == 0) {
-        JsArray(Seq())
-      } else {
-        adProviderList.foldLeft(JsArray())((array, el) =>
-          array ++
-            JsArray(
-              JsObject(
-                Seq(
-                  "providerName" -> el.providerName,
-                  "providerID" -> el.providerID,
-                  "eCPM" -> (el.cpm match {
-                    case Some(eCPM) => JsNumber(eCPM)
-                    case None => JsNull
-                  })
-                )
-              ).deepMerge(
-                  el.configurationData match {
-                    case Some(data) => {
-                      (data \ "requiredParams") match {
-                        case _: JsUndefined => JsObject(Seq())
-                        case json: JsValue => json.as[JsObject]
-                      }
-                    }
-                    case None => JsObject(Seq())
-                  }
-                ) :: Nil
-            )
-        )
-      }
-    }
     val adProviderConfigurations = {
       JsObject(
         Seq(
-          "adProviderConfigurations" -> buildAdProviderConfigurations
+          "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
+            array ++
+              JsArray(
+                JsObject(
+                  Seq(
+                    "providerName" -> el.providerName,
+                    "providerID" -> el.providerID,
+                    "eCPM" -> (el.cpm match {
+                      case Some(eCPM) => JsNumber(eCPM)
+                      case None => JsNull
+                    })
+                  )
+                ).deepMerge(
+                    el.configurationData match {
+                      case Some(data) => {
+                        (data \ "requiredParams") match {
+                          case _: JsUndefined => JsObject(Seq())
+                          case json: JsValue => json.as[JsObject]
+                        }
+                      }
+                      case None => JsObject(Seq())
+                    }
+                  ) :: Nil
+              )
+          )
         )
       )
     }

@@ -170,10 +170,7 @@ object AppConfig extends JsonConversion {
   def responseV1(appToken: String)(implicit connection: Connection): JsValue = {
     // Removes ad providers that are inactive or do not have a high enough eCPM value from the response.
     def filteredAdProviders(unfilteredAdProviders: List[AdProviderInfo]): List[AdProviderInfo] = {
-      unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold) match {
-        case adProviders: List[AdProviderInfo] if(adProviders.size == 0) => List()
-        case adProviders: List[AdProviderInfo] => adProviders
-      }
+      unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold)
     }
     Waterfall.order(appToken) match {
       // App token was not found in app_configs table.
