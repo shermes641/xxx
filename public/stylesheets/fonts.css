@@ -39,4 +39,12 @@
 }
 
 
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('fonts/HelveticaNeue.ttf')  format('truetype');
+
+    font-style:   normal;
+    font-weight:  400;
+}
+
 
