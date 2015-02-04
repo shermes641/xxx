@@ -32,7 +32,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       browser.fill("#password").`with`(password)
       browser.fill("#confirmation").`with`(password)
       browser.$("#terms").click()
-      browser.click("button")
+      clickAndWaitForAngular("button")
       browser.pageSource must contain("This email has been registered already")
       browser.find("#company").getValue must beEqualTo(companyName)
       browser.find("#email").getValue must beEqualTo(email)

@@ -53,6 +53,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(!browser.url().contains("login"))
     }
 
     /**
