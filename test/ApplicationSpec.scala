@@ -1,3 +1,5 @@
+import com.google.common.base.Predicate
+import org.fluentlenium.core.{FluentPage, Fluent}
 import org.specs2.runner._
 import org.junit.runner._
 import play.api.test._
@@ -20,11 +22,11 @@ class ApplicationSpec extends SpecificationWithFixtures {
     "redirect a logged in user to the Analytics index page" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
       val user = DistributorUser.findByEmail(email).get
-      browser.goTo("http://localhost:" + port + "/login")
+      goToAndWaitForAngular("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
-      browser.url() must beEqualTo("/distributors/" + user.distributorID.get + "/analytics")
+      assertUrlEquals("/distributors/" + user.distributorID.get + "/analytics")
     }
   }
 }

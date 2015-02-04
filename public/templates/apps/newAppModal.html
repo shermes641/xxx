@@ -1,73 +1,74 @@
 <div id="error-message" class="flash-message error"></div>
 <div id="success-message" class="flash-message success"></div>
 <form name="new-app-form" ng-submit="submitNewApp()">
-    <div data-distributor-id="{{distributorID}}" id="new-app" class="content registration">
-        <h1>New App</h1>
+    <div data-distributor-id="{{distributorID}}" id="new-app">
+        <h1>Create New App</h1>
+        <div class="left_column">
+            <dl id="new_app_app_name">
+                <dt><label for="new_app_app_name">*App Name</label></dt>
+                <dd ng-class="errors.appNameClass">
+                    <input type="text" ng-model="newApp.appName" ng-change="checkInputs(newApp)" id="newAppName" name="newAppName" value="" placeholder="name" label="*App Name">
+                </dd>
+                <dd class="error">{{errors.appName}}</dd>
+            </dl>
 
-        <dl id="new_app_app_name">
-            <dt><label for="new_app_app_name"></label></dt>
-            <dd ng-class="errors.appNameClass">
-                <input type="text" ng-model="newApp.appName" ng-change="checkInputs(newApp)" id="newAppName" name="newAppName" value="" placeholder="name" label="*App Name">
-            </dd>
-            <dd class="error">{{errors.appName}}</dd>
-        </dl>
+            <dl id="new_app_currency_name">
+                <dt><label for="new_app_currency_name">*Virtual Currency Name</label></dt>
+                <dd ng-class="errors.currencyNameClass">
+                    <input type="text" ng-model="newApp.currencyName" ng-change="checkInputs(newApp)" id="newAppCurrencyName" name="newAppCurrencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
+                    <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
+                <dd class="error">{{errors.currencyName}}</dd>
+                </dd>
+            </dl>
 
-        <dl id="new_app_currency_name">
-            <dt><label for="new_app_currency_name"></label></dt>
-            <dd ng-class="errors.currencyNameClass">
-                <input type="text" ng-model="newApp.currencyName" ng-change="checkInputs(newApp)" id="newAppCurrencyName" name="newAppCurrencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
-                <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
-            <dd class="error">{{errors.currencyName}}</dd>
-            </dd>
-        </dl>
+            <dl id="new_app_exchange_rate">
+                <dt><label for="new_app_exchange_rate">*Exchange Rate</label></dt>
+                <dd ng-class="errors.exchangeRateClass">
+                    <input type="number" ng-model="newApp.exchangeRate" ng-change="checkInputs(newApp)" label="*Exchange Rate" id="newAppExchangeRate" name="newAppExchangeRate" value="" placeholder="e.g. 100">
+                    <div class="tip">The number of virtual currency units per $1.</div>
+                <dd class="error">{{errors.exchangeRate}}</dd>
+                </dd>
+            </dl>
+        </div>
+        <div class="right_column">
+            <dl id="new_app_reward_min">
+                <dt><label for="new_app_reward_min">Minimum Currency to Reward per Completed Offer</label></dt>
+                <dd ng-class="errors.rewardMinClass">
+                    <input type="number" ng-model="newApp.rewardMin" ng-change="checkInputs(newApp)" label="*Minimum Currency to Reward per Completed Offer" id="newAppRewardMin" name="newAppRewardMin" value="" placeholder="e.g. 1">
+                <dd class="error">{{errors.rewardMin}}</dd>
+                </dd>
+            </dl>
 
-        <dl id="new_app_exchange_rate">
-            <dt><label for="new_app_exchange_rate"></label></dt>
-            <dd ng-class="errors.exchangeRateClass">
-                <input type="number" ng-model="newApp.exchangeRate" ng-change="checkInputs(newApp)" label="*Exchange Rate" id="newAppExchangeRate" name="newAppExchangeRate" value="" placeholder="e.g. 100">
-                <div class="tip">The number of virtual currency units per $1.</div>
-            <dd class="error">{{errors.exchangeRate}}</dd>
-            </dd>
-        </dl>
+            <dl id="new_app_reward_max">
+                <dt><label for="new_app_reward_max">Maximum Currency to Reward per Completed Offer</label></dt>
+                <dd ng-class="errors.rewardMaxClass">
+                    <input type="number" ng-model="newApp.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="newAppRewardMax" name="newAppRewardMax" value="" placeholder="e.g. 1">
+                <dd class="error">{{errors.rewardMax}}</dd>
+                </dd>
+            </dl>
 
-        <dl id="new_app_reward_min">
-            <dt><label for="new_app_reward_min"></label></dt>
-            <dd ng-class="errors.rewardMinClass">
-                <input type="number" ng-model="newApp.rewardMin" ng-change="checkInputs(newApp)" label="*Minimum Currency to Reward per Completed Offer" id="newAppRewardMin" name="newAppRewardMin" value="" placeholder="e.g. 1">
-            <dd class="error">{{errors.rewardMin}}</dd>
-            </dd>
-        </dl>
-
-        <dl id="new_app_reward_max">
-            <dt><label for="new_app_reward_max"></label></dt>
-            <dd ng-class="errors.rewardMaxClass">
-                <input type="number" ng-model="newApp.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="newAppRewardMax" name="newAppRewardMax" value="" placeholder="e.g. 1">
-            <dd class="error">{{errors.rewardMax}}</dd>
-            </dd>
-        </dl>
-
-        <dl class=" " id="roundUp_field">
-            <dt>
-                <label for="newAppRoundUp">Round Up Reward</label>
-            </dt>
-            <dd>
-                <div class="onoffswitch switch-left">
-                    <input type="checkbox" id="newAppRoundUp" name="newAppRoundUp" value="true" class="onoffswitch-checkbox" ng-model="newApp.roundUp" ng-init="data.roundUp=true" checked="checked"/>
-                    <label class="onoffswitch-label" for="newAppRoundUp">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                    <span></span>
-                </div>
-            </dd>
-        </dl>
-        <div>
-            <label class="switch-checkbox-label">
-                Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
-            </label>
+            <dl class=" " id="roundUp_field">
+                <dt>
+                    <label for="newAppRoundUp">Round Up Reward</label>
+                </dt>
+                <dd>
+                    <div class="onoffswitch switch-left">
+                        <input type="checkbox" id="newAppRoundUp" name="newAppRoundUp" value="true" class="onoffswitch-checkbox" ng-model="newApp.roundUp" ng-init="data.roundUp=true" checked="checked"/>
+                        <label class="onoffswitch-label" for="newAppRoundUp">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                        <span></span>
+                    </div>
+                </dd>
+            </dl>
+            <div>
+                <label class="switch-checkbox-label">
+                    Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+                </label>
+            </div>
         </div>
 
         <button ng-disabled="invalidForm" ng-class="inactiveClass" id="create-app" type="submit" name="new-app-form">Create App</button>
-        <button ng-click='toggleNewAppModal()' id="cancel-new-app" type="button" name="cancel-new-app">Cancel</button>
     </div>
 </form>

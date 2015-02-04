@@ -6,8 +6,8 @@
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
 
-mediationModule.controller( 'AnalyticsController', [ '$scope',
-    function( $scope ) {
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
+    function( $scope, $http ) {
         $scope.elements = {
             country: $( '#countries' ),
             adProvider: $( '#ad_providers' ),
@@ -26,7 +26,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope',
         };
 
         // Distributor ID to be used in AJAX calls.
-        $scope.distributorID = $(".content").attr("data-distributor-id");
+        $scope.distributorID = $(".split_content").attr("data-distributor-id");
         $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
 
         /**

@@ -13,8 +13,7 @@ body {
     height: 100%;
     background: #efefef;
     font-size: 14px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
-    font-weight: 400;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     color: #222;
 }
 
@@ -30,15 +29,15 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
     font-size: 30px;
-    font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
-    font-weight: 400;
+    font-family: "Helvetica", sans-serif;
+    font-weight: 100;
     color: #4285f4;
 }
 
 h2 {
     font-size: 20px;
-    font-family: "Avenir Black", "Arial", sans-serif;
-    font-weight: 400;
+    font-family: "Helvetica", sans-serif;
+    font-weight: bold;
 }
 
 input[type="text"], input[type="password"], input[type="number"], input[type="email"], button[type="submit"], button[type="button"] {
@@ -50,14 +49,14 @@ input[type="text"], input[type="password"], input[type="number"], input[type="em
     height: 35px;
 
     font-size: 13px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 button[type="submit"], button[type="button"] {
     width: 100%;
     color: #fff;
     background: #4f73e7;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-size: 14px;
     text-align: center;
     -webkit-appearance: none;
@@ -79,8 +78,8 @@ header {
     padding: 10px;
 
     font-size: 20px;
-    font-family: "Avenir Black", "Arial", sans-serif;
-    font-weight: 400;
+    font-family: "Helvetica", sans-serif;
+    font-weight: bold;
     box-shadow: 1px 1px 1px rgba(0,0,0,.1);
     z-index: 2000;
 }
@@ -113,7 +112,7 @@ header .actions {
     bottom: 0px;
 
     font-size: 13px;
-    font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-weight: 400;
 }
 
@@ -255,7 +254,8 @@ span#viewTerms:hover {
 
     -webkit-transition: 400ms ease all;
 
-    font-family: "Helvetica Bold", "Arial",sans-serif;
+    font-family: "Helvetica", sans-serif;
+    font-weight: bold;
     font-size: 13px;
     color: #fff;
     text-align: center;
@@ -317,7 +317,7 @@ span#viewTerms:hover {
 #apps_list_menu li {
     float: none;
     display: block;
-    font-family: "Avenir", "Arial",sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 #apps_list_menu li:hover {
@@ -382,7 +382,7 @@ span#viewTerms:hover {
 }
 
 #left_apps_list h2 {
-    font-family: "Avenir Next Ultra Light", "Arial", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     color: #6d6d72;
 }
 
@@ -446,7 +446,7 @@ span#viewTerms:hover {
     width: 173px;
     color: #fff;
     background: #333;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-size: 14px;
     text-align: center;
     -webkit-appearance: none;
@@ -481,7 +481,7 @@ span#viewTerms:hover {
     color: #fff;
 
     font-size: 16px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-weight: 400;
     padding: 10px;
     text-align: center;
@@ -518,7 +518,7 @@ span#viewTerms:hover {
     color: #4285f4;
 
     font-size: 14px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-weight: 400;
     text-decoration: none;
 }
@@ -589,7 +589,7 @@ span#viewTerms:hover {
     color: #4285f4;
 
     font-size: 40px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-weight: 400;
 }
 
@@ -599,13 +599,14 @@ span#viewTerms:hover {
 
 .dashboard .google-visualization-table-td {
     padding: 10px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .dashboard .google-visualization-table-tr-head .google-visualization-table-th-webkit.gradient {
     padding: 10px;
     background: #eee;
-    font-family: "Avenir Black", "Arial", sans-serif;
+    font-family: "Helvetica", sans-serif;
+    font-weight: bold;
     text-align: left;
 }
 
@@ -719,8 +720,8 @@ span#viewTerms:hover {
 
 .waterfall ul li b {
     font-size: 12px;
-    font-family: "Avenir Black", "Arial", sans-serif;
-    font-weight: 400;
+    font-family: "Helvetica", sans-serif;
+    font-weight: bold;
 }
 
 .waterfall ul li .actions {
@@ -730,7 +731,7 @@ span#viewTerms:hover {
     color: #4285f4;
 
     font-size: 14px;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-weight: 400;
     cursor: pointer;
     min-height: 90px;
@@ -816,10 +817,10 @@ div [class^="col-"] {
 }
 .chart-wrapper .chart-title {
     border-bottom: 1px solid #d7d7d7;
-    font-family: "Avenir Black", "Helvetica", sans-serif;
+    font-family: "Helvetica", sans-serif;
     color: #555;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: bold;
     padding: 8px 10px 5px;
 }
 
@@ -872,7 +873,7 @@ div [class^="col-"] {
 #form_errors {
     list-style: none;
     color: #ff0000;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-size: 13px;
 }
 
@@ -1106,12 +1107,6 @@ dd.error {
     font-size: 11px;
 }
 
-.switch-checkbox-label {
-    margin-top: -3px;
-    max-width: 450px;
-    padding-left: 15px;
-}
-
 ::-webkit-input-placeholder { /* WebKit browsers */
     color: #DEDEDE;
 }
@@ -1192,7 +1187,7 @@ dd.error {
     width: 157px;
     color: #fff;
     background: #4f73e7;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-size: 14px;
     text-align: center;
     -webkit-appearance: none;
@@ -1207,7 +1202,7 @@ dd.error {
 
 .waterfall-edit-description {
     max-width: 800px;
-    margin-top: 10px;
+    margin: 10px auto 0 auto;
     color: #222;
 }
 
@@ -1328,7 +1323,7 @@ hr {
     width: 100%;
     color: #fff;
     background: #4f73e7;
-    font-family: "Avenir Book", "Helvetica", sans-serif;
+    font-family: "Helvetica Neue", "Helvetica", sans-serif;
     font-size: 14px;
     text-align: center;
     -webkit-appearance: none;
@@ -1360,10 +1355,7 @@ hr {
     display: none;
 }
 
-
-
 .ng-modal-overlay {
-    display: none;
     position: fixed;
     top: 0;
     right: 0;
@@ -1374,36 +1366,84 @@ hr {
     opacity: 0.9;
     z-index: 9999;
 }
-.ng-modal-dialog {
 
+.ng-modal-dialog {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    bottom: 0;
-    margin-top: 20px;
     width: 400px;
     background: #fff;
-    overflow-y: scroll;
     padding: 40px;
     z-index: 10000;
     text-align: center;
     font-size: 13px;
     color: #333;
-
+    border: 1px solid #dddde0;
 }
+
 .ng-modal-dialog-content {
-    padding:10px;
     text-align: left;
 }
-.ng-modal-close {
-    position: absolute;
-    top: 3px;
-    right: 5px;
-    padding: 5px;
-    cursor: pointer;
-    font-size: 120%;
-    display: inline-block;
-    font-weight: bold;
-    font-family: 'arial', 'sans-serif';
+
+.ng-modal-dialog-content .tip {
+    font-size: 11px;
+    font-style: italic;
+    text-align: left;
+    color: #333;
+}
+
+.ng-modal-dialog-content input[type="text"], .ng-modal-dialog-content input[type="password"], .ng-modal-dialog-content input[type="number"], .ng-modal-dialog-content input[type="email"], .ng-modal-dialog-content button[type="submit"], .ng-modal-dialog-content button[type="button"] {
+    width: 100%;
+}
+
+.ng-modal-dialog-content dl {
+    margin-bottom: 20px;
+}
+
+.ng-modal-dialog-content dt {
+    text-align: left;
+    font-size: 12px;
+}
+
+.left_column {
+    width: 330px;
+    float: left;
+}
+.right_column {
+    width: 330px;
+    float: left;
+
+    margin-left: 18px;
+}
+
+.ng-modal-dialog-content h1 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.switch-checkbox-label {
+    font-size: 11px;
+    font-style: italic;
+    text-align: left;
+    color: #333;
+}
+
+#roundUp_field {
+    height: 40px;
+}
+
+.ng-modal-dialog-content .switch-field {
+    height: 30px;
+    margin-bottom: 10px;
+}
+
+.ng-modal-dialog-content .switch-field dt {
+    float: left;
+    margin-right: 5px;
+    margin-top: 7px;
+}
+
+.ng-modal-dialog-content .switch-field dl {
+    margin-bottom: 0;
 }
