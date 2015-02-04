@@ -524,7 +524,10 @@ span#viewTerms:hover {
 }
 
 .registration {
+    width: 400px;
+    padding: 40px;
     text-align: center;
+    margin: 120px auto 0 auto;
 }
 
 .registration input[type="text"], .registration input[type="password"], .registration input[type="number"], .registration input[type="email"], .registration button[type="submit"], .registration button[type="button"] {
@@ -532,8 +535,7 @@ span#viewTerms:hover {
 }
 
 .registration dt {
-    text-align: left;
-    font-size: 12px;
+    display: none;
 }
 
 .registration h3 {
@@ -1379,6 +1381,7 @@ hr {
     color: #333;
     border: 1px solid #dddde0;
 }
+
 .ng-modal-dialog-content {
     text-align: left;
 }
@@ -1390,8 +1393,17 @@ hr {
     color: #333;
 }
 
+.ng-modal-dialog-content input[type="text"], .ng-modal-dialog-content input[type="password"], .ng-modal-dialog-content input[type="number"], .ng-modal-dialog-content input[type="email"], .ng-modal-dialog-content button[type="submit"], .ng-modal-dialog-content button[type="button"] {
+    width: 100%;
+}
+
 .ng-modal-dialog-content dl {
     margin-bottom: 20px;
+}
+
+.ng-modal-dialog-content dt {
+    text-align: left;
+    font-size: 12px;
 }
 
 .left_column {
