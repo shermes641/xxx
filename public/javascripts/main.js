@@ -167,12 +167,10 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
     $locationProvider.hashPrefix('!');
 }]);
 
-appsControllers.directive('modalDialog', function() {
+mediationModule.directive('modalDialog', function() {
     return {
         restrict: 'E',
-        scope: {
-            show: '='
-        },
+        scope: false,
         replace: true, // Replace with the template below
         transclude: true, // we want to insert custom content inside the directive
         link: function(scope, element, attrs) {
@@ -182,7 +180,10 @@ appsControllers.directive('modalDialog', function() {
             if (attrs.height)
                 scope.dialogStyle.height = attrs.height;
             scope.hideModal = function() {
-                scope.show = false;
+                scope.errors = {};
+                scope.modalShown = false;
+                scope.showEditAppModal = false;
+                scope.showNewAppModal = false;
             };
         },
         templateUrl: "assets/templates/apps/modal.html"
@@ -402,26 +403,24 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleEditAppModal = function() {
                 $scope.invalidForm = false;
                 $scope.inactiveClass = "";
-                $scope.errors = {};
                 $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
                     $scope.data = data;
                 }).error(function(data) {
                 });
-                $scope.showEditAppModal = !$scope.showEditAppModal;
-                $scope.modalShown = !$scope.modalShown;
+                $scope.showEditAppModal = true;
+                $scope.modalShown = true
             };
 
             $scope.toggleNewAppModal = function() {
                 $scope.invalidForm = true;
                 $scope.inactiveClass = "inactive";
-                $scope.errors = {};
                 $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
-                $scope.showNewAppModal = !$scope.showNewAppModal;
-                $scope.modalShown = !$scope.modalShown;
+                $scope.showNewAppModal = true;
+                $scope.modalShown = true
             };
 
             $scope.checkInputs = function(data) {
-                var requiredFields = ['appName', 'currencyName', 'rewardMin', 'roundUp'];
+                var requiredFields = ['appName', 'currencyName', 'rewardMin', 'exchangeRate'];
                 if(appCheck.fieldsFilled(data, requiredFields)) {
                     $scope.invalidForm = false;
                     $scope.inactiveClass = "";
@@ -498,7 +497,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Updates waterfall properties via AJAX.
             $scope.postUpdate = function() {
-                debugger;
                 var path = "/distributors/" + $scope.distributorID + "/waterfalls/" + $scope.waterfallID;
                 $.ajax({
                     url: path,
