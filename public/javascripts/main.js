@@ -103,18 +103,25 @@ appsControllers.controller( 'EditAppsController', ['$scope', '$http', '$routePar
     }]
 );
 
-appsControllers.controller( 'NewAppsController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage',
-        function( $scope, $http, $routeParams, appCheck, flashMessage ) {
+appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'appCheck', 'flashMessage',
+        function( $scope, $window, $http, $routeParams, appCheck, flashMessage ) {
             var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]", ":input[id=rewardMin]"];
             $('body').addClass('new-app-page');
+
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
 
             // Default div for error messages.
-            var defaultErrorDiv = $("#new-app-error-message");
+            var defaultErrorDiv = $("#error-message");
 
             // Default div for success messages.
-            var defaultSuccessDiv = $("#new-app-success-message");
+            var defaultSuccessDiv = $("#full-success-message");
+
+            // show the new app page header
+            $("#new-app-modal-header").hide();
+            $("#new-app-page-header").show();
+
+            defaultSuccessDiv.text("Your confirmation email will arrive shortly.").show();
 
             $scope.checkInputs = function() {
                 if(appCheck.fieldsFilled($scope.data, requiredFields)) {
@@ -126,17 +133,38 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$http', '$routePar
                 }
             };
 
+            $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
+
             // Submit form if fields are valid.
-            $scope.submit = function() {
-                if(appCheck.validRewardAmounts() && appCheck.validExchangeRate()) {
-                    $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.data).
+            $scope.submitNewApp = function() {
+                $scope.errors = {};
+                var errorObjects = [appCheck.validRewardAmounts($scope.newApp), appCheck.validExchangeRate($scope.newApp.exchangeRate)];
+                if(checkAppFormErrors($scope.newApp, errorObjects)) {
+                    $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
-                            flashMessage(data.message, defaultSuccessDiv);
+                            window.location.href = "/distributors/"+$routeParams.distributorID+"/waterfalls/edit";
                         }).
                         error(function(data, status, headers, config) {
-                            flashMessage(data.message, defaultErrorDiv);
+                            if(data.fieldName) {
+                                $scope.errors[data.fieldName] = data.message;
+                                $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                flashMessage(data.message, defaultErrorDiv);
+                            }
                         });
                 }
+            };
+
+            var checkAppFormErrors = function(data, errorObjects) {
+                for(var i = 0; i < errorObjects.length; i++) {
+                    var error = errorObjects[i];
+                    if(error.message) {
+                        $scope.errors[error.fieldName] = error.message;
+                        $scope.errors[error.fieldName + "Class"] = "error";
+                        return false;
+                    }
+                }
+                return true;
             };
         }]
 );
@@ -315,7 +343,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
             if(!$scope.invalidForm && validFields([checkPassword()])) {
                 $http.post('/distributor_users', $scope.data).
                     success(function(data, status, headers, config) {
-                        $window.location.href = "/";
+                        $window.location.href = "/distributors/"+data.distributorID+"/apps/new";
                     }).
                     error(function(data, status, headers, config) {
                         if(data.fieldName) {

@@ -31,7 +31,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
             emailActor ! sendUserCreationEmail(signup.email, signup.company)
             DistributorUser.find(id) match {
               case Some(user: DistributorUser) => {
-                Redirect(routes.AppsController.newApp(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString).flashing("success" -> "Your confirmation email will arrive shortly.")
+                Ok(Json.obj("status" -> "success", "distributorID" -> user.distributorID.get.toString)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString)
               }
               case None => {
                 BadRequest(Json.obj("status" -> "error", "message" -> "Something went wrong. Please try logging in again."))

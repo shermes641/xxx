@@ -1,8 +1,15 @@
 <div id="error-message" class="flash-message error"></div>
 <div id="success-message" class="flash-message success"></div>
+<div id="full-success-message"></div>
 <form name="new-app-form" ng-submit="submitNewApp()">
     <div data-distributor-id="{{distributorID}}" id="new-app" class="app-form">
-        <h1>Create New App</h1>
+        <div id="new-app-modal-header">
+            <h1>Create New App</h1>
+        </div>
+        <div id="new-app-page-header">
+            <h1>Welcome to hyprMediate!</h1><hr><div class="modal_text">Begin by creating your first app</div>
+        </div>
+
         <div class="left_column">
             <dl id="new_app_app_name">
                 <dt><label for="new_app_app_name">*App Name</label></dt>
