@@ -983,6 +983,18 @@ div [class^="col-"] {
     display: none;
 }
 
+#full-success-message {
+    margin: 70px 10px 10px 10px;
+    padding: 20px;
+    left: 0;
+    color: #999933;
+    background: #ffff99;
+    text-align: center;
+    border-radius: 1px;
+    border: 2px solid #cccc99;
+    display: none;
+}
+
 dd.error {
     color: #E80000;
 }
@@ -1416,6 +1428,8 @@ hr {
 .app-form h1 {
     margin-top: 0;
     margin-bottom: 10px;
+    text-align: center;
+    font-size: 36px;
 }
 
 .switch-checkbox-label {
@@ -1446,7 +1460,7 @@ hr {
 
 .new-app-page #new-app {
     width: 740px;
-    margin: 140px auto 10px auto;
+    margin: 10px auto;
     background: #fff;
     padding: 30px;
     border: 1px solid #dddde0;
@@ -1455,4 +1469,12 @@ hr {
 
 .new-app-page #new-app input {
     width: 100%;
+}
+
+#new-app-page-header {
+    display: none;
+}
+
+#new-app-page-header .modal_text {
+    margin-bottom: 30px;
 }
