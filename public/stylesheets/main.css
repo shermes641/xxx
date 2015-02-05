@@ -787,11 +787,6 @@ span#viewTerms:hover {
     width: 100px;
 }
 
-.pending-ad-provider {
-    margin-left: -123px;
-    padding: 5px 0 5px 0;
-}
-
 button.inactive {
     background-color: #d3dcf9;
 }

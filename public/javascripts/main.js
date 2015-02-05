@@ -142,7 +142,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$http', '$routePar
 );
 
 // Initialize the mediation module
-var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'appsControllers', 'distributorUsersControllers']);
+var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters']);
 
 mediationModule.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/distributors/:distributorID/apps/new', {
@@ -328,6 +328,19 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
     }]
 );
 
+angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
+    return function(value) {
+        var formatted = Math.floor(100 * value) / 100;
+        return parseFloat(formatted).toFixed(2);
+    };
+});
+
+angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
+    return function(status) {
+        return status ? "Deactivate" : "Activate";
+    };
+});
+
 mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage',
         function( $scope, $http, $routeParams, appCheck, flashMessage ) {
             $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
@@ -391,10 +404,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.inactiveClass = "";
                 $scope.errors = {};
                 $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
-                    debugger;
                     $scope.data = data;
                 }).error(function(data) {
-                    debugger;
                 });
                 $scope.showEditAppModal = !$scope.showEditAppModal;
                 $scope.modalShown = !$scope.modalShown;
@@ -487,6 +498,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Updates waterfall properties via AJAX.
             $scope.postUpdate = function() {
+                debugger;
                 var path = "/distributors/" + $scope.distributorID + "/waterfalls/" + $scope.waterfallID;
                 $.ajax({
                     url: path,
@@ -648,6 +660,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             });
 
+            /*
             // Click event for when Optimized Mode is toggled.
             $scope.optimizeToggleButton.click(function() {
                 $(".waterfall-drag").toggleClass("disabled");
@@ -661,7 +674,10 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $("#waterfall-list").sortable(sortableOption);
                 $scope.postUpdate();
             });
+            */
 
+
+            /*
             // Click event for when Test Mode is toggled.
             $scope.testModeButton.click(function(event) {
                 var waterfallListItems = $("#waterfall-list").children("li");
@@ -675,6 +691,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.postUpdate();
                 }
             });
+            */
 
             // Sends AJAX request when waterfall order is changed via drag and drop.
             $("#waterfall-list").on("sortdeactivate", function(event, ui) {

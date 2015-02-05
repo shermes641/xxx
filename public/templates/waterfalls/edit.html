@@ -1,10 +1,7 @@
 <div id="modal-overlay" class="modal-overlay"></div>
 <div ng-controller="WaterfallController">
-    @views.html.Partials.subHeader("waterfall", distributorID, Some(waterfall.app_id), Some(waterfall.id))
-    @views.html.Partials.appList(distributorID, Some(waterfall.app_id), appsWithWaterfalls)
     <div ng-include="appList"></div>
     <div id="waterfall-edit" class="split_content waterfall_list" data-app-id="@waterfall.app_id" data-waterfall-id="@waterfall.id" data-distributor-id="@distributorID" data-generation-number="@{generationNumber match {case Some(id) => id; case None => 0}}">
-
         <div id="waterfall-edit-success" class="flash-message success"></div>
         <div id="waterfall-edit-error" class="flash-message error"></div>
         <h1>{{waterfallData.waterfall.name}} Waterfall</h1>
@@ -13,6 +10,7 @@
             <div class="app-token" data-app-token="@waterfall.appToken">API Token
                 <code class="copy-paste-code">{{waterfallData.waterfall.appToken}}</code>
             </div>
+
             <modal-dialog show='modalShown' width='760px'>
                 <div ng-show="showEditAppModal">
                     <div ng-include="editAppModal"></div>
@@ -21,15 +19,12 @@
                     <div ng-include="newAppModal"></div>
                 </div>
             </modal-dialog>
-            <div class="waterfall-buttons last">
+
+            <div class="waterfall-buttons">
                 <h4 class="tooltip" data-title="Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.">?</h4>
                 <label class="text-label">Optimized Mode</label>
                 <div class="onoffswitch">
-                    @if(waterfall.optimizedOrder) {
-                    <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch" checked>
-                    } else {
-                    <input type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
-                    }
+                    <input ng-click="" ng-model="waterfallData.waterfall.optimizedOrder" id="" type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
                     <label class="onoffswitch-label" for="optimized-mode-switch">
                         <span class="onoffswitch-inner"></span>
                         <span class="onoffswitch-switch"></span>
@@ -41,11 +36,7 @@
                 <h4 class="tooltip" data-title="Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.">?</h4>
                 <label class="text-label">Test Mode</label>
                 <div class="onoffswitch">
-                    @if(waterfall.testMode) {
-                    <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch" checked>
-                    } else {
-                    <input type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
-                    }
+                    <input ng-click="" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
                     <label class="onoffswitch-label" for="test-mode-switch">
                         <span class="onoffswitch-inner"></span>
                         <span class="onoffswitch-switch"></span>
@@ -53,6 +44,7 @@
                 </div>
             </div>
         </div>
+
         <div id="initialize_sdk">
             <div id="arrow_dropdown"></div>
             Initialize HyprMediate in your SDK
@@ -69,47 +61,37 @@
                 </code>
             </div>
         </div>
+
         <div class="waterfall ul">
-            <ul id="waterfall-list" class="waterfall-sort">
-                @for((adProviderConfig) <- adProviderOrder) {
-                <li class="@{if(adProviderConfig.active) "waterfall" else "inactive"}" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" data-pending="@adProviderConfig.pending" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
-                <div class="@{if(adProviderConfig.active) "hideable hideable-wap-info" else "hideable hidden-wap-info" }">
+            <ul ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="waterfall-list" class="waterfall-sort">
+                <li ng-class="{waterfall: adProviderConfig.active, inactive: ''}" data-configurable="@adProviderConfig.configurable" data-cpm="@adProviderConfig.cpm" data-order-number="@adProviderConfig.waterfallOrder" data-active="@adProviderConfig.active" data-new-record="@adProviderConfig.newRecord" data-id="@adProviderConfig.waterfallAdProviderID" data-pending="@adProviderConfig.pending" id="@{adProviderConfig.newRecord + "-" + adProviderConfig.waterfallAdProviderID}">
+                <div ng-class="{'hideable hideable-wap-info': adProviderConfig.active, 'hideable hidden-wap-info': ''}">
                 <div class="waterfall-app-info">
-                    <h3>@adProviderConfig.name</h3>
-                    <div class="waterfall ul li b">
-                        <label>eCPM:</label>
-                        <div name="cpm" style="display: inline-block;">$@adProviderConfig.cpm</div>
+                    <div ng-show="{{adProviderConfig.pending}}">
+                        <h4>{{adProviderConfig.name}} is Pending</h4>
+                        <h5>To check if it's ready, please refresh your browser.</h5>
+                    </div>
+                    <div ng-hide="{{adProviderConfig.pending}}">
+                        <h3>{{adProviderConfig.name}}</h3>
+                        <div class="waterfall ul li b">
+                            <label>eCPM:</label>
+                            <div name="cpm" style="display: inline-block;">${{adProviderConfig.cpm | monetaryFormat}}</div>
+                        </div>
                     </div>
                 </div>
-                <button class="status" type="submit" name="status">
-                    Deactivate
-                </button>
-                <button style="display: @{if(adProviderConfig.newRecord) "none" else "inline-block"}" name="configure-wap" class="configure active-button" type="submit">
-                Configure
-                </button>
+                <div ng-hide="{{adProviderConfig.pending}}">
+                    <button ng-hide="{{adProviderConfig.newRecord}}" class="status" type="submit" name="status">
+                        {{adProviderConfig.active | waterfallStatus}}
+                    </button>
+                    <button name="configure-wap" class="configure active-button" type="submit">
+                        Configure
+                    </button>
+                </div>
         </div>
         <div class="waterfall-drag">
             <div class="waterfall-drag-1"></div>
             <div class="waterfall-drag-2"></div>
             <div class="waterfall-drag-3"></div>
-        </div>
-        <div class="inactive-waterfall-content">
-            <div class="waterfall-app-info">
-                <h3 class="@{if(adProviderConfig.pending) "pending-ad-provider" else "" }">@adProviderConfig.name</h3>
-            </div>
-            @if(adProviderConfig.pending) {
-            <div class="pending-ad-provider">
-                <h4>Pending</h4>
-                <h5>To check the status for @{adProviderConfig.name}, please refresh your browser.</h5>
-            </div>
-            } else {
-            <button class="status inactive-button" type="submit" name="status">
-                Activate
-            </button>
-            <button class="configure inactive-button" name="configure-wap" type="submit">
-                Configure
-            </button>
-            }
         </div>
         </li>
         </ul>
