@@ -698,8 +698,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.postUpdate();
             });
 
-            $("#arrow_dropdown").click(function() {
-                $("#initialize_sdk").toggleClass("open");
-            });
+            $scope.showCodeBlock = false;
+            $scope.toggleCodeBlock = function() {
+                $scope.showCodeBlock = !$scope.showCodeBlock;
+            };
         } ]
 );

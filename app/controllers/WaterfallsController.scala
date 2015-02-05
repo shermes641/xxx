@@ -108,20 +108,6 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     )
   }
 
-  /*
-  implicit val OrderedWaterfallAdProviderWrites: Writes[OrderedWaterfallAdProvider] = (
-    (JsPath \ "name").write[String] and
-    (JsPath \ "waterfallAdProviderID").write[Long] and
-    (JsPath \ "cpm").writeNullable[Double] and
-    (JsPath \ "active").write[Boolean] and
-    (JsPath \ "waterfallOrder").writeNullable[Long] and
-    (JsPath \ "unconfigured").write[Boolean] and
-    (JsPath \ "newRecord").write[Boolean] and
-    (JsPath \ "configurable").write[Boolean] and
-    (JsPath \ "pending").write[Boolean]
-  )(unlift(OrderedWaterfallAdProvider.unapply))
-  */
-
   implicit def waterfallWrites(waterfall: Waterfall): Json.JsValueWrapper = {
     JsObject(
       Seq(
@@ -136,19 +122,6 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     )
   }
 
-  /*
-  implicit val WaterfallWrites: Writes[Waterfall] = (
-    (JsPath \ "id").write[Long] and
-    (JsPath \ "appID").write[Long] and
-    (JsPath \ "name").write[String] and
-    (JsPath \ "token").write[String] and
-    (JsPath \ "optimizedOrder").write[Boolean] and
-    (JsPath \ "testMode").write[Boolean] and
-    (JsPath \ "generationNumber").writeNullable[Long] and
-    (JsPath \ "appToken").write[String]
-  )(unlift(Waterfall.unapply))
-  */
-
   implicit def appWithWaterfallIDWrites(app: AppWithWaterfallID): JsObject = {
     JsObject(
       Seq(
@@ -160,16 +133,6 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       )
     )
   }
-
-  /*
-  implicit val AppWithWaterfallIDWrites: Writes[AppWithWaterfallID] = (
-    (JsPath \ "id").write[Long] and
-    (JsPath \ "active").write[Boolean] and
-    (JsPath \ "distributorID").write[Long] and
-    (JsPath \ "name").write[String] and
-    (JsPath \ "waterfallID").write[Long]
-  )(unlift(AppWithWaterfallID.unapply))
-  */
 
   /**
    * Renders form for editing Waterfall if an App/Waterfall has been previously selected.
