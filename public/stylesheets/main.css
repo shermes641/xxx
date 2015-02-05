@@ -231,7 +231,7 @@ span#viewTerms:hover {
     height: 60px;
 
     background: #222;
-    z-index: 3000;
+    z-index: 2001;
 }
 
 .sub_header .menu {
@@ -1351,7 +1351,7 @@ hr {
 
     background: #fff;
     opacity: 0.9;
-    z-index: 2000;
+    z-index: 2002;
 
 }
 
