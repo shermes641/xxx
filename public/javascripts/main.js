@@ -349,6 +349,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.waterfallData = data;
                 $scope.appID = data.waterfall.appID;
                 $scope.distributorID = $routeParams.distributorID;
+                $scope.generationNumber = data.generationNumber;
+                $scope.appToken = data.waterfall.appToken;
             }).error(function(data) {
             });
 
@@ -483,18 +485,20 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.editWaterfallAdProvider = function(adProviderConfig) {
                 $scope.invalidForm = false;
                 if(adProviderConfig.newRecord) {
-
-
-
-                    /*
                     var params = {};
                     var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers";
                     var generationNumber = $scope.generationNumber;
-                    params["waterfallID"] = $scope.waterfallID;
+                    params["waterfallID"] = $routeParams.waterfallID;
                     params["appToken"] = $scope.appToken;
-                    params["waterfallOrder"] = "";
+                    params["waterfallOrder"] = null;
                     params["generationNumber"] = generationNumber;
-                    $http.post(path, params).success(function(data) {});
+                    params["configurable"] = adProviderConfig.configurable;
+                    params["cpm"] = null;
+                    params["adProviderID"] = adProviderConfig.waterfallAdProviderID;
+                    $http.post(path, params).success(function(data) {
+                    }).error(function(data){
+                    });
+                    /*
                     $.ajax({
                         url: path,
                         type: 'POST',
