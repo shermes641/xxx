@@ -106,7 +106,7 @@ appsControllers.controller( 'EditAppsController', ['$scope', '$http', '$routePar
 appsControllers.controller( 'NewAppsController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage',
         function( $scope, $http, $routeParams, appCheck, flashMessage ) {
             var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]", ":input[id=rewardMin]"];
-
+            $('body').addClass('new-app-page');
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
 
@@ -117,7 +117,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$http', '$routePar
             var defaultSuccessDiv = $("#new-app-success-message");
 
             $scope.checkInputs = function() {
-                if(appCheck.fieldsFilled(requiredFields)) {
+                if(appCheck.fieldsFilled($scope.data, requiredFields)) {
                     $scope.invalidForm = false;
                     $scope.inactiveClass = "";
                 } else {
@@ -147,7 +147,7 @@ var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'appsContro
 mediationModule.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider.when('/distributors/:distributorID/apps/new', {
         controller: 'NewAppsController',
-        templateUrl: 'assets/templates/apps/newApp.html'
+        templateUrl: 'assets/templates/apps/newAppModal.html'
     }).when('/distributors/:distributorID/apps/:appID/edit', {
         controller: 'EditAppsController',
         templateUrl: 'assets/templates/apps/editApp.html'
