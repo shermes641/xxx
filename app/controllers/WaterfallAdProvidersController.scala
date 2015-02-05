@@ -7,6 +7,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import play.api.Play
 import play.api.Play.current
+import scala.language.implicitConversions
 
 object WaterfallAdProvidersController extends Controller with Secured with JsonToValueHelper {
   /**
@@ -61,13 +62,37 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           }
           case None => None
         }
+        /*
         Ok(views.html.WaterfallAdProviders.edit(distributorID, waterfallAdProviderID, configData.mappedFields("requiredParams"), configData.mappedFields("reportingParams"),
           configData.mappedFields("callbackParams"), configData.name, configData.reportingActive, callbackUrl, configData.cpm, Play.current.configuration.getString("app_domain").get))
+          */
+        Ok(Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
+          "reqParams" -> requiredParamsListJs(configData.mappedFields("requiredParams")), "reportingParams" -> requiredParamsListJs(configData.mappedFields("reportingParams")),
+          "callbackParams" -> requiredParamsListJs(configData.mappedFields("callbackParams")), "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive),
+          "callbackUrl" -> JsString(callbackUrl.getOrElse("")), "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get)))
       }
       case _ => {
         Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Could not find ad provider.")
       }
     }
+  }
+  //@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], callbackParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean, callbackUrl: Option[String], cpm: Option[Double], appDomain: String)(implicit flash: Flash, session: Session)
+  //case class RequiredParam(displayKey: Option[String], key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean)
+  implicit def requiredParamWrites(param: RequiredParam): JsObject = {
+    JsObject(
+      Seq(
+        "displayKey" -> JsString(param.displayKey.getOrElse("")),
+        "key" -> JsString(param.key.getOrElse("")),
+        "dataType" -> JsString(param.dataType.getOrElse("")),
+        "description" -> JsString(param.description.getOrElse("")),
+        "value" -> JsString(param.value.getOrElse("")),
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
+      )
+    )
+  }
+
+  def requiredParamsListJs(list: List[RequiredParam]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, param) => array ++ JsArray(Seq(param)))
   }
 
   /**
