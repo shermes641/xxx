@@ -210,6 +210,7 @@ mediationModule.directive('modalDialog', function() {
             scope.hideModal = function() {
                 scope.errors = {};
                 scope.modalShown = false;
+                scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
             };
@@ -435,16 +436,21 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.data = data;
                 }).error(function(data) {
                 });
-                $scope.showEditAppModal = true;
-                $scope.modalShown = true
+                $scope.showEditAppModal = !$scope.showEditAppModal;
+                $scope.modalShown = !$scope.modalShown;
             };
 
             $scope.toggleNewAppModal = function() {
                 $scope.invalidForm = true;
                 $scope.inactiveClass = "inactive";
                 $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
-                $scope.showNewAppModal = true;
-                $scope.modalShown = true
+                $scope.showNewAppModal = !$scope.showNewAppModal;
+                $scope.modalShown = !$scope.modalShown;
+            };
+
+            $scope.closeWapModal = function() {
+                $scope.modalShown = false;
+                $scope.showWaterfallAdProviderModal = false;
             };
 
             $scope.checkInputs = function(data) {
@@ -495,6 +501,61 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.editAppModal = 'assets/templates/apps/editAppModal.html';
 
             $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
+
+            $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
+
+            $scope.showWaterfallAdProviderModal = false;
+
+            $scope.adProviderModalShown = false;
+
+            $scope.editWaterfallAdProvider = function(adProviderConfig) {
+                $scope.invalidForm = false;
+                if(adProviderConfig.newRecord) {
+
+
+
+                    /*
+                    var params = {};
+                    var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers";
+                    var generationNumber = $scope.generationNumber;
+                    params["waterfallID"] = $scope.waterfallID;
+                    params["appToken"] = $scope.appToken;
+                    params["waterfallOrder"] = "";
+                    params["generationNumber"] = generationNumber;
+                    $http.post(path, params).success(function(data) {});
+                    $.ajax({
+                        url: path,
+                        type: 'POST',
+                        contentType: "application/json",
+                        data: JSON.stringify(params),
+                        success: function(result) {
+                            var item = $("li[id=true-" + params["adProviderID"] + "]");
+                            var configureButton = item.find("button[name=configure-wap]");
+                            item.attr("data-new-record", "false");
+                            item.attr("id", "false-" + result.wapID);
+                            item.attr("data-id", result.wapID);
+                            configureButton.show();
+                            if(newRecord) {
+                                retrieveConfigData(result.wapID, newRecord);
+                            }
+                            $(".split_content").attr("data-generation-number", result.newGenerationNumber)
+                            $scope.flashMessage(result.message, $("#waterfall-edit-success"))
+                        },
+                        error: function(result) {
+                            $scope.flashMessage(result.message, $("#waterfall-edit-error"));
+                        }
+                        */
+
+
+                } else {
+                    $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit').success(function(data) {
+                        $scope.wapData = data;
+                    }).error(function(data) {
+                    });
+                }
+                $scope.showWaterfallAdProviderModal = true;
+                $scope.modalShown = true
+            };
 
             // Submit form if fields are valid.
             $scope.submitEditApp = function() {

@@ -19,6 +19,9 @@
                 <div ng-show="showNewAppModal">
                     <div ng-include="newAppModal"></div>
                 </div>
+                <div ng-show="showWaterfallAdProviderModal">
+                    <div ng-include="editWaterfallAdProviderModal"></div>
+                </div>
             </modal-dialog>
 
             <div class="waterfall-buttons">
@@ -84,7 +87,7 @@
                             <button ng-hide="{{adProviderConfig.newRecord}}" class="status" type="submit" name="status">
                                 {{adProviderConfig.active | waterfallStatus}}
                             </button>
-                            <button name="configure-wap" class="configure active-button" type="submit">
+                            <button ng-click="editWaterfallAdProvider(adProviderConfig)" name="configure-wap" class="configure active-button" type="submit">
                                 Configure
                             </button>
                         </div>

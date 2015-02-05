@@ -1457,7 +1457,6 @@ hr {
 .app-form .switch-field dl {
     margin-bottom: 0;
 }
-
 .new-app-page #new-app {
     width: 740px;
     margin: 10px auto;
@@ -1465,7 +1464,6 @@ hr {
     padding: 30px;
     border: 1px solid #dddde0;
 }
-
 
 .new-app-page #new-app input {
     width: 100%;
