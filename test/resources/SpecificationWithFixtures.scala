@@ -65,11 +65,11 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
      * @param rewardMax The maximum reward a user can receive.  This is optional.
      */
     def fillInAppValues(appName: String = "New App", currencyName: String = "Coins", exchangeRate: String = "100", rewardMin: String = "1", rewardMax: String = "10"): Unit = {
-      browser.fill("#appName").`with`(appName)
-      browser.fill("#currencyName").`with`(currencyName)
-      browser.fill("#exchangeRate").`with`(exchangeRate)
-      browser.fill("#rewardMin").`with`(rewardMin)
-      browser.fill("#rewardMax").`with`(rewardMax)
+      browser.fill("#newAppName").`with`(appName)
+      browser.fill("#newAppCurrencyName").`with`(currencyName)
+      browser.fill("#newAppExchangeRate").`with`(exchangeRate)
+      browser.fill("#newAppRewardMin").`with`(rewardMin)
+      browser.fill("#newAppRewardMax").`with`(rewardMax)
     }
 
     def goToAndWaitForAngular(url: String) = {
@@ -78,6 +78,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     }
 
     def clickAndWaitForAngular(element: String) = {
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(element).isPresent
       browser.click(element)
       waitForAngular
     }

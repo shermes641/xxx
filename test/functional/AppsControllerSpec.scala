@@ -32,11 +32,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val appCount = App.findAll(user.distributorID.get).size
 
       logInUser()
-
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "100", rewardMax = "1")
       browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_reward_max").containsText("Reward Maximum must be greater than or equal to Reward Minimum.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -45,12 +44,12 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
       fillInAppValues()
       browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(true)
       browser.$("button[name=new-app-form]").first.click()
-      browser.pageSource must contain("Edit Waterfall")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains("New App Waterfall"))
       App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
     }
 
@@ -59,10 +58,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "0", rewardMax = "10")
       browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("Reward Minimum must be 1 or greater.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_reward_min").containsText("Reward Minimum must be 1 or greater.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -71,10 +70,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "0", rewardMin = "1", rewardMax = "10")
       browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("Exchange Rate must be 1 or greater.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_exchange_rate").containsText("Exchange Rate must be 1 or greater.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -84,10 +83,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
       fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
-      browser.$("button[name=new-app-form]").first.click()
+      clickAndWaitForAngular("button[name=new-app-form]")
       browser.pageSource must contain("You already have an active App with the same name.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
@@ -99,11 +98,11 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
       fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App created!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(currentApp.name + " Waterfall"))
       App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
     }
   }
@@ -114,10 +113,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = "Some new unique app name", currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
-      browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App created!")
+      clickAndWaitForAngular("button[name=new-app-form]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains("Some new unique app name Waterfall"))
 
       val apps = App.findAll(user.distributorID.get)
       val firstApp = apps(0)
@@ -139,7 +138,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val appConfigsCount = tableCount("app_configs")
 
       logInUser(newUserEmail, newUserPassword)
-      browser.goTo(controllers.routes.AppsController.newApp(newUser.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(newUser.distributorID.get).url)
 
       // Remove the distributor from the database just before attempting to create a new app.  This will cause a SQL error in AppsController.create
       DB.withConnection { implicit connection =>
@@ -149,7 +148,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1")
       browser.$("button[name=new-app-form]").first.click()
-      browser.pageSource must not contain(appName)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
 
       appsCount must beEqualTo(tableCount("apps"))
       waterfallsCount must beEqualTo(tableCount("waterfalls"))
@@ -161,10 +160,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
 
       val newAppName = "My new test app"
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       browser.$("button[name=new-app-form]").first.click()
-      browser.pageSource must contain("Edit Waterfall")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(newAppName + " Waterfall"))
       val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
       val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
       val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
@@ -178,31 +177,19 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     "find the app with virtual currency and render the edit form" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
-      browser.pageSource must contain(currentApp.name)
-      browser.pageSource must contain(currentVirtualCurrency.name)
-    }
-
-    "not submit the form if a required field is missing" in new WithAppBrowser(user.distributorID.get) {
-      logInUser()
-      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
-      browser.fill("#exchangeRate").`with`("")
-      browser.fill("#appName").`with`("")
-      browser.fill("#currencyName").`with`("")
-      browser.$("button[name=submit]").first.click()
-      browser.pageSource must contain("Numeric value expected")
-      browser.pageSource must contain("App name is required")
-      browser.pageSource must contain("Currency name is required")
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id, None).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.pageSource must contain("App Configuration")
     }
 
     "notify the user if server to server callbacks are enabled without a valid callback URL" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id, None).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
-      browser.$("button[name=submit]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("A valid HTTP or HTTPS callback URL is required.")
+      clickAndWaitForAngular("button[name=submit]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#callback_url").containsText("A valid HTTP or HTTPS callback URL is required.")
     }
 
     "redirect the distributor user to their own apps index page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
@@ -210,8 +197,8 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.AppsController.edit(maliciousDistributor.id.get, currentApp.id).url)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("App could not be found.")
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(maliciousDistributor.id.get, currentApp.id, None).url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("Waterfall could not be found.")
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
@@ -220,24 +207,26 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentWaterfall.id, None).url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
     "flash an error message if reward min is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id, None).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#rewardMin").`with`("0")
-      browser.$("button[name=submit]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("Reward Minimum must be 1 or greater.")
+      clickAndWaitForAngular("button[name=submit]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Reward Minimum must be 1 or greater.")
     }
 
     "flash an error message if exchange rate is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id, None).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#exchangeRate").`with`("0")
-      browser.$("button[name=submit]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").hasText("Exchange Rate must be 1 or greater.")
+      clickAndWaitForAngular("button[name=submit]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be 1 or greater.")
     }
   }
 
@@ -264,9 +253,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       val originalGeneration = generationNumber(currentApp.id)
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id, None).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#appName").`with`(newAppName)
-      browser.$("button[name=submit]").first.click()
+      clickAndWaitForAngular("button[name=submit]")
       browser.pageSource must contain(newAppName)
       App.find(currentApp.id).get.name must beEqualTo(newAppName)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
@@ -281,11 +271,13 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val rewardMax = 100
 
       logInUser()
-      browser.goTo(controllers.routes.AppsController.edit(user.distributorID.get, currentApp.id).url)
-      browser.pageSource must contain(currentVirtualCurrency.name)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id, None).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until({browser.findFirst("#currencyName").getValue() == currentVirtualCurrency.name})
+
       browser.fill("#rewardMin").`with`(rewardMin.toString)
       browser.fill("#rewardMax").`with`(rewardMax.toString)
-      browser.$("button[name=submit]").first.click()
+      clickAndWaitForAngular("button[name=submit]")
 
       val updatedVC = VirtualCurrency.find(currentVirtualCurrency.id).get
       updatedVC.rewardMin must beEqualTo(rewardMin)
