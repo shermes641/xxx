@@ -1274,7 +1274,7 @@ footer {
 }
 
 .inactive-input {
-    background-color: #CCCCCC;
+    background-color: #CCCCCC !important;
 }
 
 hr {

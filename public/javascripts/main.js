@@ -502,6 +502,14 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.showWaterfallAdProviderModal = false;
 
             $scope.adProviderModalShown = false;
+            var getWapData = function(wapID) {
+                $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID + '/edit').success(function(wapData) {
+                    $scope.wapData = wapData;
+                    $scope.showWaterfallAdProviderModal = true;
+                    $scope.modalShown = true
+                }).error(function(data) {
+                });
+            };
 
             $scope.editWaterfallAdProvider = function(adProviderConfig) {
                 $scope.invalidForm = false;
@@ -511,47 +519,57 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     var generationNumber = $scope.generationNumber;
                     params["waterfallID"] = $routeParams.waterfallID;
                     params["appToken"] = $scope.appToken;
-                    params["waterfallOrder"] = null;
+                    //params["waterfallOrder"] = null;
                     params["generationNumber"] = generationNumber;
                     params["configurable"] = adProviderConfig.configurable;
-                    params["cpm"] = null;
+                    //params["cpm"] = null;
                     params["adProviderID"] = adProviderConfig.waterfallAdProviderID;
                     $http.post(path, params).success(function(data) {
+                        for(var i = 0; i < $scope.waterfallData.waterfallAdProviderList.length; i++) {
+                            var provider = $scope.waterfallData.waterfallAdProviderList[i];
+                            if(provider.waterfallAdProviderID === params["adProviderID"]) {
+                                provider.newRecord = false;
+                            }
+                        }
+                        $scope.generationNumber = data.newGenerationNumber;
+                        getWapData(data.wapID);
                     }).error(function(data){
                     });
-                    /*
-                    $.ajax({
-                        url: path,
-                        type: 'POST',
-                        contentType: "application/json",
-                        data: JSON.stringify(params),
-                        success: function(result) {
-                            var item = $("li[id=true-" + params["adProviderID"] + "]");
-                            var configureButton = item.find("button[name=configure-wap]");
-                            item.attr("data-new-record", "false");
-                            item.attr("id", "false-" + result.wapID);
-                            item.attr("data-id", result.wapID);
-                            configureButton.show();
-                            if(newRecord) {
-                                retrieveConfigData(result.wapID, newRecord);
-                            }
-                            $(".split_content").attr("data-generation-number", result.newGenerationNumber)
-                            $scope.flashMessage(result.message, $("#waterfall-edit-success"))
-                        },
-                        error: function(result) {
-                            $scope.flashMessage(result.message, $("#waterfall-edit-error"));
-                        }
-                        */
-
-
                 } else {
-                    $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit').success(function(data) {
-                        $scope.wapData = data;
-                    }).error(function(data) {
-                    });
+                    getWapData(adProviderConfig.waterfallAdProviderID);
                 }
-                $scope.showWaterfallAdProviderModal = true;
-                $scope.modalShown = true
+            };
+
+            var retrieveFields = function(fieldType) {
+                return($scope.wapData[fieldType].reduce(function(fieldObj, el, index) {
+                    var label = el.key;
+                    var value = el.value;
+                    if(el.dataType == "Array") {
+                        fieldObj[label] = value.split(",").map(function(el, index) { return(el.trim()); });
+                    } else {
+                        fieldObj[label] = value;
+                    }
+                    return fieldObj;
+                }, {}))
+            };
+
+            $scope.updateWap = function(wapID) {
+                var wapData = {
+                    configurationData: {
+                        requiredParams: retrieveFields("reqParams"),
+                        reportingParams: retrieveFields("reportingParams"),
+                        callbackParams: retrieveFields("callbackParams")
+                    },
+                    reportingActive: $scope.wapData.reportingActive,
+                    appToken: $scope.appToken,
+                    waterfallID: $routeParams.waterfallID,
+                    cpm: $scope.wapData.cpm,
+                    generationNumber: $scope.generationNumber
+                };
+                $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
+                    $scope.generationNumber = data.newGenerationNumber;
+                }).error(function(data) {
+                });
             };
 
             // Submit form if fields are valid.
