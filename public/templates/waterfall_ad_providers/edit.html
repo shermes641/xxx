@@ -5,7 +5,7 @@
     <div class="app-form edit-app-form">
         <div class="waterfall-ad-provider-field">
             <label class="modal-label">*eCPM $</label>
-            <input name="eCPM" type="text" ng-model="wapData.cpm"></input>
+            <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" name="eCPM" type="number" ng-model="wapData.cpm"></input>
             <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
         </div>
 
@@ -40,7 +40,7 @@
             <td ng-show="wapData.callbackUrl != ''">
                 <label id="callback-url-label" class="modal-text">Callback URL:</label>
                 <h4 class="tooltip" data-title="Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.">?</h4>
-                <div class="callback"><pre>{{wapData.appDomain + wapData.callbackUrl}</pre></div>
+                <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
             </td>
         </table>
 
@@ -53,6 +53,6 @@
         </div>
     </div>
     <div class="modal-text">
-        <button type="submit" name="update-ad-provider">Save Changes</button>
+        <button ng-click="updateWap(wapData.waterfallAdProviderID)" type="submit" name="update-ad-provider">Save Changes</button>
     </div>
 </div>

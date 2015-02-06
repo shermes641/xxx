@@ -19,7 +19,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
     request.body.asJson.map { wapData =>
       DB.withTransaction { implicit connection =>
         try {
-          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, (wapData \ "waterfallOrder"), (wapData \ "cpm"), (wapData \ "configurable").as[String].toBoolean, active = false)
+          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, None, None, (wapData \ "configurable").as[Boolean], active = false)
           val appToken = (wapData \ "appToken").as[String]
           val waterfallID = (wapData \ "waterfallID").as[String].toLong
           val generationNumber = (wapData \ "generationNumber").as[String].toLong
@@ -62,10 +62,6 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           }
           case None => None
         }
-        /*
-        Ok(views.html.WaterfallAdProviders.edit(distributorID, waterfallAdProviderID, configData.mappedFields("requiredParams"), configData.mappedFields("reportingParams"),
-          configData.mappedFields("callbackParams"), configData.name, configData.reportingActive, callbackUrl, configData.cpm, Play.current.configuration.getString("app_domain").get))
-          */
         Ok(Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
           "reqParams" -> requiredParamsListJs(configData.mappedFields("requiredParams")), "reportingParams" -> requiredParamsListJs(configData.mappedFields("reportingParams")),
           "callbackParams" -> requiredParamsListJs(configData.mappedFields("callbackParams")), "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive),
@@ -76,8 +72,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
       }
     }
   }
-  //@(distributorID: Long, waterfallAdProviderID: Long, reqParams: List[RequiredParam], reportingParams: List[RequiredParam], callbackParams: List[RequiredParam], adProviderName: String, reportingActive: Boolean, callbackUrl: Option[String], cpm: Option[Double], appDomain: String)(implicit flash: Flash, session: Session)
-  //case class RequiredParam(displayKey: Option[String], key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean)
+
   implicit def requiredParamWrites(param: RequiredParam): JsObject = {
     JsObject(
       Seq(
@@ -111,13 +106,13 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               val appToken = (jsonResponse \ "appToken").as[String]
               val waterfallID = (jsonResponse \ "waterfallID").as[String].toLong
               val configData = (jsonResponse \ "configurationData").as[JsValue]
-              val reportingActive = (jsonResponse \ "reportingActive").as[String].toBoolean
+              val reportingActive = (jsonResponse \ "reportingActive").as[Boolean]
               val generationNumber = (jsonResponse \ "generationNumber").as[String].toLong
-              val eCPM = (jsonResponse \ "eCPM").as[String].toDouble
+              val eCPM = (jsonResponse \ "cpm").as[Double]
               val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(eCPM), record.active, record.fillRate, configData, reportingActive)
               WaterfallAdProvider.updateWithTransaction(newValues) match {
                 case 1 => {
-                  val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
+                  val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).toString
                   Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "newGenerationNumber" -> newGenerationNumber))
                 }
                 case _ => BadRequest(badResponse)
