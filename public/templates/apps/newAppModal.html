@@ -3,12 +3,7 @@
 <div id="full-success-message"></div>
 <form name="new-app-form" ng-submit="submitNewApp()">
     <div data-distributor-id="{{distributorID}}" id="new-app" class="app-form">
-        <div id="new-app-modal-header">
-            <h1>Create New App</h1>
-        </div>
-        <div id="new-app-page-header">
-            <h1>Welcome to hyprMediate!</h1><hr><div class="modal_text">Begin by creating your first app</div>
-        </div>
+        <h1>{{newAppModalTitle}}</h1>
 
         <div class="left_column">
             <dl id="new_app_app_name">
@@ -76,6 +71,6 @@
             </div>
         </div>
 
-        <button ng-disabled="invalidForm" ng-class="inactiveClass" id="create-app" type="submit" name="new-app-form">Create App</button>
+        <button ng-submit="submitNewApp()" ng-disabled="invalidForm" ng-class="inactiveClass" id="create-app" type="submit" name="new-app-form">Create App</button>
     </div>
 </form>

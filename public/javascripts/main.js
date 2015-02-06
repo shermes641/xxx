@@ -45,7 +45,7 @@ appsControllers.factory('appCheck', ['inputChecker', 'flashMessage', function(in
     appCheck.fieldsFilled = function(data, requiredFields) {
         for(var i=0; i < requiredFields.length; i++) {
             var field = data[requiredFields[i]];
-            if(field === "" || field === null) {
+            if(field === undefined || field === null || field === "") {
                 return false
             }
         }
@@ -105,9 +105,9 @@ appsControllers.controller( 'EditAppsController', ['$scope', '$http', '$routePar
 
 appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'appCheck', 'flashMessage',
         function( $scope, $window, $http, $routeParams, appCheck, flashMessage ) {
-            var requiredFields = [":input[id=appName]", ":input[id=currencyName]", ":input[id=exchangeRate]", ":input[id=rewardMin]"];
             $('body').addClass('new-app-page');
 
+            $scope.newAppModalTitle = "Welcome to hyprMediate!";
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
 
@@ -117,14 +117,11 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
             // Default div for success messages.
             var defaultSuccessDiv = $("#full-success-message");
 
-            // show the new app page header
-            $("#new-app-modal-header").hide();
-            $("#new-app-page-header").show();
-
             defaultSuccessDiv.text("Your confirmation email will arrive shortly.").show();
 
             $scope.checkInputs = function() {
-                if(appCheck.fieldsFilled($scope.data, requiredFields)) {
+                var requiredFields = ['appName', 'currencyName', 'rewardMin', 'exchangeRate'];
+                if(appCheck.fieldsFilled($scope.newApp, requiredFields)) {
                     $scope.invalidForm = false;
                     $scope.inactiveClass = "";
                 } else {
@@ -386,16 +383,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             $scope.page = 'waterfall';
             $scope.subHeader = 'assets/templates/sub_header.html';
+            $scope.newAppModalTitle = "Create New App";
 
             var content = $(".split_content");
-            // Distributor ID to be used in AJAX calls.
-            $scope.distributorID = content.attr("data-distributor-id");
-
-            // Waterfall ID to be used in AJAX calls.
-            $scope.waterfallID = content.attr("data-waterfall-id");
-
-            // App Token to be used in AJAX calls.
-            $scope.appToken = $(".app-token").attr("data-app-token");
 
             // Selector for button which toggles waterfall optimization.
             $scope.optimizeToggleButton = $(":checkbox[name=optimized-order]");
