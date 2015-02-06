@@ -78,6 +78,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     }
 
     def clickAndWaitForAngular(element: String) = {
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(element).isPresent
       browser.click(element)
       waitForAngular
     }
