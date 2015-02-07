@@ -945,6 +945,7 @@ div [class^="col-"] {
     display: inline-block;
     width: 150px;
     text-align: right;
+    color: #333;
 }
 
 .modal-inactive {

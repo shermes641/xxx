@@ -216,6 +216,22 @@ mediationModule.directive('modalDialog', function() {
     };
 });
 
+/*
+mediationModule.directive('formatEcpm', function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, element, attrs, modelCtrl) {
+            var format = function(value) {
+                var formatted = Math.floor(100 * value) / 100;
+                return parseFloat(formatted).toFixed(2);
+            };
+            modelCtrl.$parsers.push(format);
+            format($parse(attrs.ngModel)(scope));
+        }
+    };
+});
+*/
+
 appsControllers.controller('IndexAppsController', ['$scope', '$routeParams', function($scope, $routeParams) {
     $scope.modalShown = false;
     $scope.toggleModal = function() {
@@ -384,6 +400,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.page = 'waterfall';
             $scope.subHeader = 'assets/templates/sub_header.html';
             $scope.newAppModalTitle = "Create New App";
+            $scope.disableTestModeToggle = false;
 
             var content = $(".split_content");
 
@@ -512,6 +529,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             $scope.editWaterfallAdProvider = function(adProviderConfig) {
+                $scope.errors = {};
                 $scope.invalidForm = false;
                 if(adProviderConfig.newRecord) {
                     var params = {};
@@ -519,10 +537,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     var generationNumber = $scope.generationNumber;
                     params["waterfallID"] = $routeParams.waterfallID;
                     params["appToken"] = $scope.appToken;
-                    //params["waterfallOrder"] = null;
                     params["generationNumber"] = generationNumber;
                     params["configurable"] = adProviderConfig.configurable;
-                    //params["cpm"] = null;
                     params["adProviderID"] = adProviderConfig.waterfallAdProviderID;
                     $http.post(path, params).success(function(data) {
                         for(var i = 0; i < $scope.waterfallData.waterfallAdProviderList.length; i++) {
@@ -540,36 +556,73 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
-            var retrieveFields = function(fieldType) {
-                return($scope.wapData[fieldType].reduce(function(fieldObj, el, index) {
+            var retrieveFields = function(fieldType, required) {
+                return($scope.wapData[fieldType].reduce(function(fieldObj, el) {
                     var label = el.key;
                     var value = el.value;
                     if(el.dataType == "Array") {
-                        fieldObj[label] = value.split(",").map(function(el, index) { return(el.trim()); });
+                        var arrayValues = value.split(",").map(function(arrayValue) { return(arrayValue.trim()); });
+                        fieldObj[label] = arrayValues;
+                        if(required){
+                            checkForErrors(label, arrayValues[0], fieldType);
+                        }
                     } else {
                         fieldObj[label] = value;
+                        if(required) {
+                            checkForErrors(label, value, fieldType);
+                        }
                     }
                     return fieldObj;
                 }, {}))
             };
 
+            var checkForErrors = function(param, value, paramType) {
+                if(value === undefined || value === null || value === "") {
+                    $scope.errors[paramType + "-" + param] = "error";
+                    $scope.invalidForm = true;
+                }
+            };
+
             $scope.updateWap = function(wapID) {
+                $scope.errors = {};
+                $scope.invalidForm = false;
+                var reportingActive = $scope.wapData.reportingActive;
+                var cpm = $scope.wapData.cpm;
                 var wapData = {
                     configurationData: {
-                        requiredParams: retrieveFields("reqParams"),
-                        reportingParams: retrieveFields("reportingParams"),
-                        callbackParams: retrieveFields("callbackParams")
+                        requiredParams: retrieveFields("reqParams", true),
+                        reportingParams: retrieveFields("reportingParams", reportingActive ? true : false),
+                        callbackParams: retrieveFields("callbackParams", false)
                     },
-                    reportingActive: $scope.wapData.reportingActive,
+                    reportingActive: reportingActive,
                     appToken: $scope.appToken,
                     waterfallID: $routeParams.waterfallID,
-                    cpm: $scope.wapData.cpm,
+                    cpm: cpm,
                     generationNumber: $scope.generationNumber
                 };
-                $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
+                checkForErrors("cpm", cpm, "staticParams");
+                if(!$scope.invalidForm) {
+                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
+                        $scope.generationNumber = data.newGenerationNumber;
+                    }).error(function(data) {
+                    });
+                }
+            };
+
+            var updateWaterfall = function() {
+                $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, $scope.waterfallData).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
                 }).error(function(data) {
                 });
+            };
+
+            $scope.toggleTestMode = function() {
+                //updateWaterfall();
+            };
+
+            $scope.toggleWapStatus = function(adProviderConfig) {
+                adProviderConfig.active = !adProviderConfig.active;
+                //updateWaterfall();
             };
 
             // Submit form if fields are valid.

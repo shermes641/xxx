@@ -3,19 +3,25 @@
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure {{wapData.adProviderName}}</h1>
     <div class="app-form edit-app-form">
+        <dd class="modal-text error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
         <div class="waterfall-ad-provider-field">
-            <label class="modal-label">*eCPM $</label>
-            <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" name="eCPM" type="number" ng-model="wapData.cpm"></input>
-            <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
+            <dd ng-class="errors['staticParams-cpm']">
+                <label class="modal-label">*eCPM $</label>
+                <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" name="eCPM" type="number" ng-model="wapData.cpm" formatEcpm></input>
+                <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
+            </dd>
         </div>
 
         <div ng-repeat="param in wapData.reqParams">
             <div data-required-param="true" class="edit-waterfall-ad-provider-field">
-                <label class="modal-label">*{{param.displayKey}}</label>
-                <input type="text" ng-model="param.value"></input>
-                <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                <dd ng-class="errors['reqParams-{{param.key}}']">
+                    <label class="modal-label">*{{param.displayKey}}</label>
+                    <input type="text" ng-model="param.value"></input>
+                    <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                </dd>
             </div>
         </div>
+
         <table>
             <td>
                 <label class="modal-label">Reporting:</label>
@@ -31,9 +37,11 @@
 
         <div ng-repeat="param in wapData.reportingParams">
             <div class="reporting-waterfall-ad-provider-field">
-                <label class="modal-label">{{param.displayKey}}</label>
-                <input data-param-type="@param.dataType" type="text" ng-model="param.value"></input>
-                <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                <dd ng-class="errors['reportingParams-{{param.key}}']">
+                    <label class="modal-label">{{param.displayKey}}</label>
+                    <input data-param-type="@param.dataType" type="text" ng-model="param.value"></input>
+                    <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                </dd>
             </div>
         </div>
         <table class="modal-centered">
@@ -46,9 +54,11 @@
 
         <div ng-repeat="param in wapData.callbackParams">
             <div class="callback-waterfall-ad-provider-field">
-                <label class="modal-label">{{param.displayKey}}</label>
-                <input type="text" ng-model="param.value"></input>
-                <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                <dd ng-class="errors['callbackParams-{{param.key}}']">
+                    <label class="modal-label">{{param.displayKey}}</label>
+                    <input type="text" ng-model="param.value"></input>
+                    <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                </dd>
             </div>
         </div>
     </div>
