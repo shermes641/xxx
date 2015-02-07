@@ -115,7 +115,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = "Some new unique app name", currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
-      clickAndWaitForAngular("button[name=new-app-form]")
+      browser.$("button[name=new-app-form]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains("Some new unique app name Waterfall"))
 
       val apps = App.findAll(user.distributorID.get)
