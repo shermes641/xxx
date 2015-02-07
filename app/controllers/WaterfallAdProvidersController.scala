@@ -26,7 +26,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
           (wapID, newGenerationNumber) match {
             case (Some(wapIDVal), Some(newGenerationNumberVal)) => {
-              Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal, "newGenerationNumber" -> newGenerationNumberVal))
+              Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal.toString, "newGenerationNumber" -> newGenerationNumberVal.toString))
             }
             case (_, _) => {
               BadRequest(Json.obj("status" -> "error", "message" -> "Ad Provider was not created."))
@@ -108,7 +108,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               val configData = (jsonResponse \ "configurationData").as[JsValue]
               val reportingActive = (jsonResponse \ "reportingActive").as[Boolean]
               val generationNumber = (jsonResponse \ "generationNumber").as[String].toLong
-              val eCPM = (jsonResponse \ "cpm").as[Double]
+              val eCPM = (jsonResponse \ "cpm").as[String].toDouble
               val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(eCPM), record.active, record.fillRate, configData, reportingActive)
               WaterfallAdProvider.updateWithTransaction(newValues) match {
                 case 1 => {

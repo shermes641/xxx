@@ -99,7 +99,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "waterfallAdProviderID" -> JsString(wap.waterfallAdProviderID.toString),
         "cpm" -> wap.cpm,
         "active" -> JsBoolean(wap.active),
-        "waterfallOder" -> wap.waterfallOrder,
+        "waterfallOrder" -> wap.waterfallOrder,
         "unconfigured" -> JsBoolean(wap.unconfigured),
         "newRecord" -> JsBoolean(wap.newRecord),
         "configurable" -> JsBoolean(wap.configurable),

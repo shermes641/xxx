@@ -85,7 +85,7 @@
                             </div>
                         </div>
                         <div ng-hide="{{adProviderConfig.pending}}">
-                            <button ng-hide="{{adProviderConfig.newRecord || adProviderConfig.unconfigured}}" ng-click="toggleWapStatus(adProviderConfig)" class="status" type="submit" name="status">
+                            <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWapStatus(adProviderConfig)" class="status" type="submit" name="status">
                                 {{adProviderConfig.active | waterfallStatus}}
                             </button>
                             <button ng-click="editWaterfallAdProvider(adProviderConfig)" name="configure-wap" class="configure active-button" type="submit">

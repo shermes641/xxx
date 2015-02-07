@@ -1,17 +1,6 @@
 var appsControllers = angular.module('appsControllers', ['ngRoute']);
 
-appsControllers.factory('inputChecker', [function(input) {
-    var inputChecker = {};
-
-    // Checks if input is not empty before performing any other validations.
-    inputChecker.validInput = function(input) {
-        return (typeof input === "string" && input !== "")
-    };
-
-    return inputChecker;
-}]);
-
-appsControllers.factory('appCheck', ['inputChecker', 'flashMessage', function(inputChecker, flashMessage) {
+appsControllers.factory('appCheck', ['flashMessage', function(flashMessage) {
     // Default div for error messages.
     var defaultErrorDiv = $("#error-message");
 
@@ -74,35 +63,6 @@ appsControllers.factory('flashMessage', [function(message, div) {
     };
 }]);
 
-appsControllers.controller( 'EditAppsController', ['$scope', '$http', '$routeParams', 'appCheck', 'flashMessage',
-    function( $scope, $http, $routeParams, appCheck, flashMessage ) {
-        // Default div for error messages.
-        var defaultErrorDiv = $("#error-message");
-
-        // Default div for success messages.
-        var defaultSuccessDiv = $("#success-message");
-
-        // Submit form if fields are valid.
-        $scope.submit = function() {
-            if(appCheck.validRewardAmounts() && appCheck.validExchangeRate() && appCheck.validCallback()) {
-                $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $routeParams.appID, $scope.data).
-                    success(function(data, status, headers, config) {
-                        $scope.data.generationNumber = data.generationNumber;
-                        flashMessage(data.message, defaultSuccessDiv);
-                    }).
-                    error(function(data, status, headers, config) {
-                        flashMessage(data.message, defaultErrorDiv);
-                    });
-            }
-        };
-
-        $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $routeParams.appID + '/edit').success(function(data) {
-            $scope.data = data;
-        }).error(function(data) {
-        });
-    }]
-);
-
 appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'appCheck', 'flashMessage',
         function( $scope, $window, $http, $routeParams, appCheck, flashMessage ) {
             $('body').addClass('new-app-page');
@@ -110,9 +70,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
-
-            // Default div for error messages.
-            var defaultErrorDiv = $("#error-message");
 
             // Default div for success messages.
             var defaultSuccessDiv = $("#full-success-message");
@@ -216,22 +173,6 @@ mediationModule.directive('modalDialog', function() {
     };
 });
 
-/*
-mediationModule.directive('formatEcpm', function() {
-    return {
-        require: 'ngModel',
-        link: function(scope, element, attrs, modelCtrl) {
-            var format = function(value) {
-                var formatted = Math.floor(100 * value) / 100;
-                return parseFloat(formatted).toFixed(2);
-            };
-            modelCtrl.$parsers.push(format);
-            format($parse(attrs.ngModel)(scope));
-        }
-    };
-});
-*/
-
 appsControllers.controller('IndexAppsController', ['$scope', '$routeParams', function($scope, $routeParams) {
     $scope.modalShown = false;
     $scope.toggleModal = function() {
@@ -261,11 +202,8 @@ distributorUsersControllers.factory('flashMessage', [function(message, div) {
     };
 }]);
 
-distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage', 'fieldsFilled',
-        function($scope, $http, $routeParams, $window, flashMessage, fieldsFilled) {
-            // Default div for error messages.
-            var defaultErrorDiv = $("#error-message");
-
+distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'fieldsFilled',
+        function($scope, $http, $routeParams, $window, fieldsFilled) {
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
             $scope.errors = {};
@@ -302,21 +240,20 @@ distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$
         }]
 );
 
-distributorUsersControllers.controller('SignupController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage', 'fieldsFilled',
-    function($scope, $http, $routeParams, $window, flashMessage, fieldsFilled) {
-        // Default div for error messages.
-        var defaultErrorDiv = $("#error-message");
+distributorUsersControllers.controller('SignupController', ['$scope', '$http', '$routeParams', '$window', 'fieldsFilled',
+    function($scope, $http, $routeParams, $window, fieldsFilled) {
         $scope.showTerms = false;
+        $scope.invalidForm = true;
+        $scope.inactiveClass = "inactive";
+        $scope.errors = {};
+        $scope.termsTemplate = 'assets/templates/distributor_users/terms.html';
+
         $scope.toggleTerms = function() {
             $scope.showTerms = !$scope.showTerms;
         };
 
-        $scope.invalidForm = true;
-        $scope.inactiveClass = "inactive";
-        $scope.errors = {};
-
         $scope.checkInputs = function() {
-            var requiredFields = ['companyName', 'email', 'password', 'confirmation'];
+            var requiredFields = ['company', 'email', 'password', 'confirmation'];
             if(fieldsFilled($scope.data, requiredFields) && $scope.data.terms) {
                 $scope.invalidForm = false;
                 $scope.inactiveClass = "";
@@ -325,8 +262,6 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
                 $scope.inactiveClass = "inactive";
             }
         };
-
-        $scope.termsTemplate = 'assets/templates/distributor_users/terms.html';
 
         var checkPassword = function() {
             if($scope.data.password.length < 8) {
@@ -384,8 +319,8 @@ angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
     };
 });
 
-mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage',
-        function( $scope, $http, $routeParams, appCheck, flashMessage ) {
+mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage', '$filter',
+        function( $scope, $http, $routeParams, appCheck, flashMessage, $filter ) {
             $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
                 $scope.waterfallData = data;
                 $scope.appID = data.waterfall.appID;
@@ -395,27 +330,30 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             }).error(function(data) {
             });
 
+            // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
+            $scope.subHeader = 'assets/templates/sub_header.html';
+            $scope.editAppModal = 'assets/templates/apps/editAppModal.html';
+            $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
+            $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
 
             $scope.page = 'waterfall';
-            $scope.subHeader = 'assets/templates/sub_header.html';
             $scope.newAppModalTitle = "Create New App";
             $scope.disableTestModeToggle = false;
+            $scope.showWaterfallAdProviderModal = false;
+            $scope.adProviderModalShown = false;
+            $scope.showCodeBlock = false;
+
+            $scope.toggleCodeBlock = function() {
+                $scope.showCodeBlock = !$scope.showCodeBlock;
+            };
 
             var content = $(".split_content");
-
-            // Selector for button which toggles waterfall optimization.
-            $scope.optimizeToggleButton = $(":checkbox[name=optimized-order]");
-
-            // Selector for button which toggles waterfall from live to test mode.
-            $scope.testModeButton = $(":checkbox[name=test-mode]");
-
-            // Drop down menu to select the desired waterfall edit page.
-            $scope.waterfallSelection = $(":input[id=waterfall-selection]");
 
             // Stores params that have been changed which require an app restart.
             $scope.appRestartParams = {};
 
+            /*
             // Rearranges the waterfall order list either by eCPM or original order.
             $scope.orderList = function(orderAttr, ascending) {
                 var newOrder = $scope.providersByActive("true").sort(function(li1, li2) {
@@ -433,6 +371,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     list.append(listItem);
                 })
             };
+            */
 
             // Default div for error messages.
             var defaultErrorDiv = $("#error-message");
@@ -510,18 +449,10 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
 
-            $scope.editAppModal = 'assets/templates/apps/editAppModal.html';
-
-            $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
-
-            $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
-
-            $scope.showWaterfallAdProviderModal = false;
-
-            $scope.adProviderModalShown = false;
             var getWapData = function(wapID) {
                 $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID + '/edit').success(function(wapData) {
                     $scope.wapData = wapData;
+                    $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
                     $scope.showWaterfallAdProviderModal = true;
                     $scope.modalShown = true
                 }).error(function(data) {
@@ -545,6 +476,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             var provider = $scope.waterfallData.waterfallAdProviderList[i];
                             if(provider.waterfallAdProviderID === params["adProviderID"]) {
                                 provider.newRecord = false;
+                                provider.waterfallAdProviderID = data.wapID;
                             }
                         }
                         $scope.generationNumber = data.newGenerationNumber;
@@ -583,7 +515,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
-            $scope.updateWap = function(wapID) {
+            $scope.updateWap = function(wapID, adProviderName) {
                 $scope.errors = {};
                 $scope.invalidForm = false;
                 var reportingActive = $scope.wapData.reportingActive;
@@ -604,6 +536,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(!$scope.invalidForm) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
                         $scope.generationNumber = data.newGenerationNumber;
+                        var adProviders = $scope.waterfallData.waterfallAdProviderList;
+                        for(var i = 0; i < adProviders.length; i++) {
+                            if(adProviders[i].name === adProviderName) {
+                                adProviders[i].cpm = cpm;
+                                adProviders[i].unconfigured = false;
+                            }
+                        }
                     }).error(function(data) {
                     });
                 }
@@ -647,6 +586,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
+            /*
             // Retrieves ordered list of ad providers who are either active or inactive
             $scope.providersByActive = function(active) {
                 return $("#waterfall-list").children("li").filter(function(index, li) { return($(li).attr("data-active") === active) });
@@ -669,68 +609,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     },
                     error: function(result) {
                         $scope.flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
-                    }
-                });
-            };
-
-            // Retrieves configuration data for a waterfall ad provider.
-            $scope.retrieveConfigData = function(waterfallAdProviderID, newRecord) {
-                var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers/" + waterfallAdProviderID + "/edit";
-                $.ajax({
-                    url: path,
-                    data: {app_token: $scope.appToken},
-                    type: 'GET',
-                    success: function(data) {
-                        $("#edit-waterfall-ad-provider").html(data).dialog({
-                            modal: true,
-                            open: function() {
-                                $(".split_content.waterfall_list").addClass("unclickable");
-                                $("#modal-overlay").toggle();
-                            },
-                            close: function() {
-                                $(".split_content.waterfall_list").removeClass("unclickable");
-                                $("#modal-overlay").toggle();
-                            }
-                        }).dialog("open");
-                        if(!newRecord) {
-                            $scope.setRefreshOnRestartListeners();
-                        }
-                        $(".ui-dialog-titlebar").hide();
-                    },
-                    error: function(data) {
-                        $scope.flashMessage(data.responseJSON.message, $("#waterfall-edit-error"));
-                    }
-                });
-            };
-
-            // Creates waterfall ad provider via AJAX.
-            $scope.createWaterfallAdProvider = function(params, newRecord) {
-                var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers";
-                var generationNumber = $(".split_content").attr("data-generation-number");
-                params["waterfallID"] = $scope.waterfallID;
-                params["appToken"] = $scope.appToken;
-                params["waterfallOrder"] = "";
-                params["generationNumber"] = generationNumber;
-                $.ajax({
-                    url: path,
-                    type: 'POST',
-                    contentType: "application/json",
-                    data: JSON.stringify(params),
-                    success: function(result) {
-                        var item = $("li[id=true-" + params["adProviderID"] + "]");
-                        var configureButton = item.find("button[name=configure-wap]");
-                        item.attr("data-new-record", "false");
-                        item.attr("id", "false-" + result.wapID);
-                        item.attr("data-id", result.wapID);
-                        configureButton.show();
-                        if(newRecord) {
-                            retrieveConfigData(result.wapID, newRecord);
-                        }
-                        $(".split_content").attr("data-generation-number", result.newGenerationNumber)
-                        $scope.flashMessage(result.message, $("#waterfall-edit-success"))
-                    },
-                    error: function(result) {
-                        $scope.flashMessage(result.message, $("#waterfall-edit-error"));
                     }
                 });
             };
@@ -780,42 +658,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 } );
             };
 
-            // Initiates AJAX request to update waterfall.
-            $( ":button[name=submit]" ).click( function() {
-                $scope.postUpdate();
-            } );
-
-            // Direct the user to the selected Waterfall edit page.
-            $scope.waterfallSelection.change(function() {
-                window.location.href = waterfallSelection.val();
-            });
-
-            // Controls activation/deactivation of each ad provider in a waterfall.
-            $("button[name=status]").click(function(event) {
-                var listItem = $(event.target).parents("li");
-                var originalVal = listItem.attr("data-active") === "true";
-                listItem.children(".hideable").toggleClass("hidden-wap-info", originalVal);
-                listItem.attr("data-active", (!originalVal).toString());
-                listItem.toggleClass("inactive");
-                if(listItem.attr("data-new-record") === "true") {
-                    $scope.createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: true});
-                } else {
-                    $scope.postUpdate();
-                }
-            });
-
-            // Opens modal for editing waterfall ad provider configuration info.
-            $(":button[name=configure-wap]").click(function(event) {
-                var listItem = $(event.target).parents("li");
-                var waterfallAdProviderID = listItem.attr("data-id");
-                if(listItem.attr("data-new-record") === "true") {
-                    $scope.createWaterfallAdProvider({adProviderID: listItem.attr("data-id"), cpm: listItem.attr("data-cpm"), configurable: listItem.attr("data-configurable"), active: false}, true);
-                } else {
-                    $scope.retrieveConfigData(waterfallAdProviderID);
-                }
-            });
-
-            /*
             // Click event for when Optimized Mode is toggled.
             $scope.optimizeToggleButton.click(function() {
                 $(".waterfall-drag").toggleClass("disabled");
@@ -829,10 +671,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $("#waterfall-list").sortable(sortableOption);
                 $scope.postUpdate();
             });
-            */
 
-
-            /*
             // Click event for when Test Mode is toggled.
             $scope.testModeButton.click(function(event) {
                 var waterfallListItems = $("#waterfall-list").children("li");
@@ -846,16 +685,12 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.postUpdate();
                 }
             });
-            */
 
             // Sends AJAX request when waterfall order is changed via drag and drop.
             $("#waterfall-list").on("sortdeactivate", function(event, ui) {
                 $scope.postUpdate();
             });
+            */
 
-            $scope.showCodeBlock = false;
-            $scope.toggleCodeBlock = function() {
-                $scope.showCodeBlock = !$scope.showCodeBlock;
-            };
         } ]
 );

@@ -88,7 +88,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                       case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
                         AppConfig.create(appID, app.token, 0)
                         // Set up HyprMarketplace ad provider
-                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), false, false)
+                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), configurable = false, active = false, pending = true)
                         val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
                         (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                           case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
