@@ -321,15 +321,6 @@ angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
 
 mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage', '$filter',
         function( $scope, $http, $routeParams, appCheck, flashMessage, $filter ) {
-            $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
-                $scope.waterfallData = data;
-                $scope.appID = data.waterfall.appID;
-                $scope.distributorID = $routeParams.distributorID;
-                $scope.generationNumber = data.generationNumber;
-                $scope.appToken = data.waterfall.appToken;
-            }).error(function(data) {
-            });
-
             // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
             $scope.subHeader = 'assets/templates/sub_header.html';
@@ -339,10 +330,20 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             $scope.page = 'waterfall';
             $scope.newAppModalTitle = "Create New App";
-            $scope.disableTestModeToggle = false;
             $scope.showWaterfallAdProviderModal = false;
             $scope.adProviderModalShown = false;
             $scope.showCodeBlock = false;
+            $scope.disableTestModeToggle = false;
+
+            $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
+                $scope.waterfallData = data;
+                $scope.appID = data.waterfall.appID;
+                $scope.distributorID = $routeParams.distributorID;
+                $scope.generationNumber = data.generationNumber;
+                $scope.appToken = data.waterfall.appToken;
+                $scope.disableTestModeToggle = checkTestModeToggle();
+            }).error(function(data) {
+            });
 
             $scope.toggleCodeBlock = function() {
                 $scope.showCodeBlock = !$scope.showCodeBlock;
@@ -533,6 +534,12 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     generationNumber: $scope.generationNumber
                 };
                 checkForErrors("cpm", cpm, "staticParams");
+                var parsedCpm = parseFloat(cpm);
+                if(isNaN(cpm) || parsedCpm < 0.01) {
+                    $scope.errors.cpmMessage = "eCPM must be greater than $0.00";
+                    $scope.invalidForm = true;
+                    $scope.errors["staticParams-cpm"] = "error";
+                }
                 if(!$scope.invalidForm) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
                         $scope.generationNumber = data.newGenerationNumber;
@@ -551,17 +558,36 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var updateWaterfall = function() {
                 $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, $scope.waterfallData).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
+                    $scope.disableTestModeToggle = checkTestModeToggle();
                 }).error(function(data) {
                 });
             };
 
-            $scope.toggleTestMode = function() {
-                //updateWaterfall();
+            var checkTestModeToggle = function() {
+                var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
+                return !($scope.waterfallData.waterfall.testMode || activeAdProviders.length >= 1);
             };
 
+            $scope.toggleTestMode = function() {
+                if(!$scope.disableTestModeToggle) {
+                    //updateWaterfall();
+                    $scope.disableTestModeToggle = checkTestModeToggle();
+                } else {
+                }
+            };
+
+
             $scope.toggleWapStatus = function(adProviderConfig) {
-                adProviderConfig.active = !adProviderConfig.active;
-                //updateWaterfall();
+                var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
+                var originalVal = adProviderConfig.active;
+                // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
+                if(!originalVal || $scope.waterfallData.waterfall.testMode || (originalVal && (activeAdProviders.length > 1))) {
+                    adProviderConfig.active = !adProviderConfig.active;
+                    //updateWaterfall();
+                    $scope.disableTestModeToggle = checkTestModeToggle();
+                } else {
+                    //flashMessage("At least one Ad Provider must be active.", waterfallErrorDiv);
+                }
             };
 
             // Submit form if fields are valid.

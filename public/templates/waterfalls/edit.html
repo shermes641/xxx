@@ -41,7 +41,7 @@
                 <h4 class="tooltip" data-title="Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.">?</h4>
                 <label class="text-label">Test Mode</label>
                 <div class="onoffswitch">
-                    <input ng-change="toggleTestMode()" ng-disabled="disableTestModeToggle" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
+                    <input ng-click="toggleTestMode()" ng-disabled="disableTestModeToggle" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
                     <label class="onoffswitch-label" for="test-mode-switch">
                         <span class="onoffswitch-inner"></span>
                         <span class="onoffswitch-switch"></span>

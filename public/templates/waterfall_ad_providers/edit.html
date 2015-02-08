@@ -9,6 +9,7 @@
                 <label class="modal-label">*eCPM $</label>
                 <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" name="eCPM" type="text" ng-model="wapData.cpm"></input>
                 <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
+                <dd class="modal-text error">{{errors.cpmMessage}}</dd>
             </dd>
         </div>
 
