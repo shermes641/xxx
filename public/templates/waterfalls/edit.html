@@ -29,7 +29,7 @@
                 <h4 class="tooltip" data-title="Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.">?</h4>
                 <label class="text-label">Optimized Mode</label>
                 <div class="onoffswitch">
-                    <input ng-click="" ng-model="waterfallData.waterfall.optimizedOrder" id="" type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
+                    <input ng-click="toggleOptimizedMode()" ng-model="waterfallData.waterfall.optimizedOrder" id="" type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
                     <label class="onoffswitch-label" for="optimized-mode-switch">
                         <span class="onoffswitch-inner"></span>
                         <span class="onoffswitch-switch"></span>
@@ -68,8 +68,8 @@
         </div>
 
         <div class="waterfall ul">
-            <ul ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="waterfall-list" class="waterfall-sort">
-                <li ng-class="{waterfall: adProviderConfig.active, inactive: ''}">
+            <ul ui-sortable="sortableOptions" ng-model="waterfallData.waterfallAdProviderList" id="waterfall-list" class="waterfall-sort">
+                <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" ng-class="{waterfall: adProviderConfig.active, inactive: ''}">
                     <div ng-class="{'hideable hideable-wap-info': adProviderConfig.active, 'hideable hidden-wap-info': ''}">
                         <div class="waterfall-app-info">
                             <div ng-show="{{adProviderConfig.pending}}">
@@ -92,7 +92,7 @@
                                 Configure
                             </button>
                         </div>
-                        <div class="waterfall-drag">
+                        <div ng-hide="waterfallData.optimizedMode" class="waterfall-drag">
                             <div class="waterfall-drag-1"></div>
                             <div class="waterfall-drag-2"></div>
                             <div class="waterfall-drag-3"></div>
