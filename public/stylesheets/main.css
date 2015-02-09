@@ -845,6 +845,7 @@ div [class^="col-"] {
     border-radius: 10px;
     text-align: center;
     color: #fff;
+    z-index: auto;
 }
 
 #datepicker, #ad_providers, #countries {
@@ -882,25 +883,25 @@ div [class^="col-"] {
     background: #ffff99;
     border-radius: 5px;
     border: 2px solid #cccc99;
-    bottom: 26px;
+    top: 29px;
     color: #999933;
     content: attr(data-title);
     left: -25%;
     padding: 5px 15px;
     position: absolute;
-    z-index: 98;
+    z-index: 1200;
     width: 220px;
 }
 
 .tooltip:hover:before {
     border: solid;
     border-color: #cccc99 transparent;
-    border-width: 6px 6px 0 6px;
-    bottom: 20px;
+    border-width: 0 6px 6px 6px;
+    top: 23px;
     content: "";
     left: 22%;
     position: absolute;
-    z-index: 99;
+    z-index: 1300;
 }
 
 .modal {
@@ -1442,7 +1443,6 @@ hr {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
     background: #fff;
     padding: 40px;
     z-index: 10000;
@@ -1452,8 +1452,26 @@ hr {
     border: 1px solid #dddde0;
 }
 
+.ng-modal-dialog-content h1 {
+    margin: 0 0 10px 0;
+}
+
 .app-form {
     text-align: left;
+    width: 678px;
+}
+
+.app-form.edit-ad-providers {
+    width: 400px;
+}
+
+.app-form.edit-ad-providers label {
+    display: block;
+}
+
+.app-form.edit-ad-providers input[type="text"], .app-form.edit-ad-providers input[type="password"], .app-form.edit-ad-providers input[type="number"],
+.app-form.edit-ad-providers input[type="email"], .app-form.edit-ad-providers button[type="submit"], .app-form.edit-ad-providers button[type="button"] {
+    width: 376px;
 }
 
 .app-form .tip {

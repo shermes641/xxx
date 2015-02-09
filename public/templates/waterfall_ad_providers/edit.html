@@ -2,12 +2,12 @@
     <div class="flash-message success" id="wap-edit-success"></div>
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure {{wapData.adProviderName}}</h1>
-    <div class="app-form edit-app-form">
-        <dd id="waterfall-ad-provider-error" class="modal-text modal-error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
+    <div class="app-form edit-ad-providers">
+        <dd class="modal-text modal-error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
         <div class="waterfall-ad-provider-field">
             <dd ng-class="errors['staticParams-cpm']">
-                <label class="modal-label">*eCPM $</label>
-                <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" name="eCPM" type="text" ng-model="wapData.cpm"></input>
+            <dt><label for="eCPM">*eCPM $</label></dt>
+                <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
                 <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
                 <dd class="modal-text error">{{errors.cpmMessage}}</dd>
             </dd>
@@ -16,38 +16,44 @@
         <div ng-repeat="param in wapData.reqParams">
             <div data-required-param="true" class="edit-waterfall-ad-provider-field">
                 <dd ng-class="errors['reqParams-{{param.key}}']">
-                    <label class="modal-label">*{{param.displayKey}}</label>
+                    <dt>
+                         <label>*{{param.displayKey}}</label>
+                    </dt>
                     <input type="text" ng-model="param.value"></input>
                     <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                    <dd class="modal-text error"></dd>
                 </dd>
             </div>
         </div>
 
-        <table>
-            <td>
-                <label class="modal-label">Reporting:</label>
-                <div class="onoffswitch">
-                    <input ng-model="wapData.reportingActive" type="checkbox" name="reporting-active" class="onoffswitch-checkbox" id="reporting-active-switch">
-                    <label class="onoffswitch-label" for="reporting-active-switch">
-                        <span class="onoffswitch-inner"></span>
-                        <span class="onoffswitch-switch"></span>
-                    </label>
-                </div>
-            </td>
-        </table>
+        <div class="switch-field">
+            <dt>
+                <label>Reporting</label>
+            </dt>
+            <div class="onoffswitch switch-left">
+                <input ng-model="wapData.reportingActive" type="checkbox" name="reporting-active" class="onoffswitch-checkbox" id="reporting-active-switch">
+                <label class="onoffswitch-label" for="reporting-active-switch">
+                    <span class="onoffswitch-inner"></span>
+                    <span class="onoffswitch-switch"></span>
+                </label>
+            </div>
+        </div>
 
         <div ng-repeat="param in wapData.reportingParams">
             <div class="reporting-waterfall-ad-provider-field">
                 <dd ng-class="errors['reportingParams-{{param.key}}']">
-                    <label class="modal-label">{{param.displayKey}}</label>
+                    <dt>
+                        <label>{{param.displayKey}}</label>
+                    </dt>
                     <input data-param-type="@param.dataType" type="text" ng-model="param.value"></input>
                     <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                <dd class="modal-text error"></dd>
                 </dd>
             </div>
         </div>
         <table class="modal-centered">
             <td ng-show="wapData.callbackUrl != ''">
-                <label id="callback-url-label" class="modal-text">Callback URL:</label>
+                <label id="callback-url-label">Callback URL:</label>
                 <h4 class="tooltip" data-title="Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.">?</h4>
                 <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
             </td>
@@ -56,9 +62,12 @@
         <div ng-repeat="param in wapData.callbackParams">
             <div class="callback-waterfall-ad-provider-field">
                 <dd ng-class="errors['callbackParams-{{param.key}}']">
-                    <label class="modal-label">{{param.displayKey}}</label>
-                    <input type="text" ng-model="param.value"></input>
+                    <dt>
+                        <label for="{{param.key}}">{{param.displayKey}}</label>
+                    </dt>
+                    <input type="text" id="{{param.key}}" ng-model="param.value"></input>
                     <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                    <dd class="modal-text error"></dd>
                 </dd>
             </div>
         </div>
