@@ -168,10 +168,10 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         try {
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean, (jsArray \ "pending").as[String].toBoolean)
+            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], Some((jsArray \ "cpm").as[Double]), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
           }
-          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
-          val testMode: Boolean = (json \ "testMode").as[String].toBoolean
+          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
+          val testMode: Boolean = (json \ "testMode").as[Boolean]
           val generationNumber: Long = (json \ "generationNumber").as[String].toLong
           Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode) match {
             case 1 => {

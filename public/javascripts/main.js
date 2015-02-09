@@ -357,7 +357,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.sortableOptions = {
                 stop: function(e, ui) {
                     $scope.setWaterfallOrder();
-                    //updateWaterfall();
+                    updateWaterfall();
                 }
             };
 
@@ -567,7 +567,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             var updateWaterfall = function() {
-                $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, $scope.waterfallData).success(function(data) {
+                $scope.setWaterfallOrder();
+                var params = {
+                    adProviderOrder: $scope.waterfallData.waterfallAdProviderList.filter(function(el) { return(!el.newRecord); }),
+                    optimizedOrder: $scope.waterfallData.waterfall.optimizedOrder,
+                    testMode: $scope.waterfallData.waterfall.testMode,
+                    appToken: $scope.appToken,
+                    generationNumber: $scope.generationNumber
+                };
+                $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, params).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 }).error(function(data) {
@@ -581,7 +589,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             $scope.toggleTestMode = function() {
                 if(!$scope.disableTestModeToggle) {
-                    //updateWaterfall();
+                    updateWaterfall();
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
                 }
@@ -592,6 +600,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if($scope.waterfallData.waterfall.optimizedOrder) {
                     $scope.orderList();
                 }
+                updateWaterfall();
             };
 
             $scope.toggleWapStatus = function(adProviderConfig) {
@@ -600,7 +609,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
                 if(!originalVal || $scope.waterfallData.waterfall.testMode || (originalVal && (activeAdProviders.length > 1))) {
                     adProviderConfig.active = !adProviderConfig.active;
-                    //updateWaterfall();
+                    updateWaterfall();
                 } else {
                     //flashMessage("At least one Ad Provider must be active.", waterfallErrorDiv);
                 }
@@ -632,7 +641,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             $scope.setWaterfallOrder = function() {
                 for (var index in $scope.waterfallData.waterfallAdProviderList) {
-                    $scope.waterfallData.waterfallAdProviderList[index].waterfallOrder = index;
+                    $scope.waterfallData.waterfallAdProviderList[index].waterfallOrder = parseInt(index);
                 }
             };
 
