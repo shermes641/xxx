@@ -347,6 +347,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.appToken = data.waterfall.appToken;
                 $scope.disableTestModeToggle = checkTestModeToggle();
                 $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
+                $scope.sortableOptions.containment = "#waterfall-edit";
             }).error(function(data) {
             });
 
