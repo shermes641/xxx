@@ -559,7 +559,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         var adProviders = $scope.waterfallData.waterfallAdProviderList;
                         for(var i = 0; i < adProviders.length; i++) {
                             if(adProviders[i].name === adProviderName) {
-                                adProviders[i].cpm = cpm;
+                                adProviders[i].cpm = parsedCpm;
                                 adProviders[i].unconfigured = false;
                             }
                         }
