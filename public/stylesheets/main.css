@@ -845,6 +845,7 @@ div [class^="col-"] {
     border-radius: 10px;
     text-align: center;
     color: #fff;
+    z-index: auto;
 }
 
 #datepicker, #ad_providers, #countries {
@@ -882,25 +883,25 @@ div [class^="col-"] {
     background: #ffff99;
     border-radius: 5px;
     border: 2px solid #cccc99;
-    bottom: 26px;
+    top: 29px;
     color: #999933;
     content: attr(data-title);
     left: -25%;
     padding: 5px 15px;
     position: absolute;
-    z-index: 98;
+    z-index: 1200;
     width: 220px;
 }
 
 .tooltip:hover:before {
     border: solid;
     border-color: #cccc99 transparent;
-    border-width: 6px 6px 0 6px;
-    bottom: 20px;
+    border-width: 0 6px 6px 6px;
+    top: 23px;
     content: "";
     left: 22%;
     position: absolute;
-    z-index: 99;
+    z-index: 1300;
 }
 
 .modal {
@@ -1445,6 +1446,10 @@ hr {
     font-size: 13px;
     color: #333;
     border: 1px solid #dddde0;
+}
+
+.ng-modal-dialog-content h1 {
+    margin: 0 0 10px 0;
 }
 
 .app-form {
