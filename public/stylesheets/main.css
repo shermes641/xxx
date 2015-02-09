@@ -206,6 +206,7 @@ header .actions a:hover {
     height: 300px;
     overflow: scroll;
     color: #666;
+    text-align: left;
 }
 
 .clickable {
@@ -874,6 +875,7 @@ div [class^="col-"] {
 
 .error input, input.ng-touched.ng-invalid {
     border: 1px solid #ff0000;
+    color: #000;
 }
 
 .tooltip:hover:after {
@@ -1284,13 +1286,35 @@ dd.modal-error {
 }
 
 footer {
-    left: 0;
-    bottom: 0;
-    height: 15px;
     width: 100%;
+    margin: 20px 0;
     text-align: center;
-    font-size: 10px;
+    font-size: 11px;
     display: inline-block;
+    color: #999;
+
+}
+
+footer a {
+    color: #999;
+}
+
+footer span {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    display: inline-block;
+    margin-right: 10px;
+    padding-right: 10px;
+    border-right: 1px solid #ccc;
+}
+
+footer span.last {
+    border-right: 0;
+    margin-right: 0;
+    padding-right: 0;
+}
+
+footer .version-info {
+    font-style: italic;
 }
 
 .footer-text-format {
@@ -1299,7 +1323,6 @@ footer {
 }
 
 .content-wrapper {
-    min-height: 100%;
     margin: 0 auto -15px;
 }
 
