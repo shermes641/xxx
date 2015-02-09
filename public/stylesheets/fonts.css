@@ -48,3 +48,18 @@
 }
 
 
+@font-face {
+    font-family: 'Helvetica Neue Light';
+    src: url('fonts/HelveticaNeueLight.ttf')  format('truetype');
+
+    font-style:   normal;
+    font-weight:  400;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue Ultra Light';
+    src: url('fonts/HelveticaNeueUltraLight.ttf')  format('truetype');
+
+    font-style:   normal;
+    font-weight:  400;
+}

@@ -39,6 +39,24 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
         };
 
         /**
+         * Begin CSV export and let the user know the export has been requested
+         */
+        $scope.submit = function() {
+            if($scope.exportForm.$valid) {
+                $scope.elements.emailForm.hide();
+                var emailAddress = $scope.elements.emailInput.val();
+                $http.post( $scope.exportEndpoint, { email: emailAddress })
+                    .success(_.bind( function() {
+                        $scope.elements.exportComplete.show();
+                    }, $scope ))
+                    .error( _.bind( function() {
+                        $scope.elements.exportError.show();
+                    }, $scope )
+                );
+            }
+        };
+
+        /**
          * Show overlay
          */
         $scope.showOverlay = function () {
@@ -56,27 +74,10 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
             $scope.elements.exportError.hide();
         };
 
-        /**
-         * Begin CSV export and let the user know the export has been requested
-         */
-        $scope.startExport = function () {
-            $scope.elements.emailForm.hide();
-            var emailAddress = $scope.elements.emailInput.val();
-            $http.post( $scope.exportEndpoint, { email: emailAddress })
-                .success(_.bind( function() {
-                    $scope.elements.exportComplete.show();
-                }, $scope ))
-                .error( _.bind( function() {
-                    $scope.elements.exportError.show();
-                }, $scope )
-            );
-        };
-
         $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
         $scope.elements.overlay.click( _.bind( $scope.hideOverlay, $scope ) );
         $scope.elements.exportComplete.click( _.bind( $scope.hideOverlay, $scope ) );
         $scope.elements.closeButton.click( _.bind( $scope.hideOverlay, $scope ) );
-        $scope.elements.submitExport.click( _.bind( $scope.startExport, $scope ) );
 
         /**
          * Check if date is valid.  Provide a valid Javascript date object.
