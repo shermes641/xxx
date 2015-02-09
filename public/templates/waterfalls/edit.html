@@ -17,13 +17,13 @@
             </div>
 
             <modal-dialog show='modalShown' width='760px'>
-                <div ng-show="showEditAppModal">
+                <div id="edit-app" ng-show="showEditAppModal">
                     <div ng-include="editAppModal"></div>
                 </div>
-                <div ng-show="showNewAppModal">
+                <div id="create-app" ng-show="showNewAppModal">
                     <div ng-include="newAppModal"></div>
                 </div>
-                <div ng-show="showWaterfallAdProviderModal">
+                <div id="edit-waterfall-ad-provider" ng-show="showWaterfallAdProviderModal">
                     <div ng-include="editWaterfallAdProviderModal"></div>
                 </div>
             </modal-dialog>
@@ -72,7 +72,7 @@
 
         <div class="waterfall ul">
             <ul ui-sortable="sortableOptions" ng-model="waterfallData.waterfallAdProviderList" id="waterfall-list" class="waterfall-sort">
-                <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" ng-class="{waterfall: adProviderConfig.active, inactive: ''}">
+                <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="{{adProviderConfig.name}}" ng-class="{waterfall: adProviderConfig.active, inactive: ''}">
                     <div ng-class="{'hideable hideable-wap-info': adProviderConfig.active, 'hideable hidden-wap-info': ''}">
                         <div class="waterfall-app-info">
                             <div ng-show="{{adProviderConfig.pending}}">
@@ -87,7 +87,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div ng-hide="{{adProviderConfig.pending}}">
+                        <div ng-hide="{{adProviderConfig.pending}}" class="wap-buttons">
                             <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWapStatus(adProviderConfig)" class="status" type="submit" name="status">
                                 {{adProviderConfig.active | waterfallStatus}}
                             </button>
@@ -106,4 +106,3 @@
         </div>
     </div>
 </div>
-<div id="edit-waterfall-ad-provider" class="modal"></div>

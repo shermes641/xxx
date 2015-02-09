@@ -24,7 +24,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "return waterfall edit page with one waterfall" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
       browser.pageSource must contain("Edit Waterfall")
       browser.pageSource must contain(currentWaterfall.name)
     }
@@ -33,7 +33,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New Waterfall") }
-      browser.goTo(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
       browser.pageSource must contain("Waterfall could not be found.")
     }
   }
@@ -104,7 +104,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "reorder the waterfall in the same configuration as the drag and drop list" in new WithFakeBrowser {
-      /*
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
       val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
@@ -112,14 +111,13 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("$('ul').prepend($('li').last());")
       browser.executeScript("angular.element(\"#waterfall-edit\").scope().postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder(0).providerName must not equalTo(firstProvider)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
-      */
     }
 
     "remove an ad provider from the order when a user clicks the Deactivate button" in new WithFakeBrowser {
@@ -128,7 +126,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.$("button[name=status]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
@@ -148,7 +146,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.$("button[name=configure-wap]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val configKey = "some key"
@@ -166,7 +164,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=optimized-mode-switch]'); button.prop('checked', true); angular.element(\"#waterfall-edit\").scope().postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
@@ -175,7 +173,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle waterfall test mode on and off" in new WithFakeBrowser {
-      /*
       Waterfall.update(waterfall.id, false, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
@@ -183,14 +180,13 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); angular.element(\"#waterfall-edit\").scope().postUpdate();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
-      */
     }
 
     "not set waterfall to live mode when no ad providers are active" in new WithAppBrowser(distributor.id.get) {
@@ -198,7 +194,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       browser.executeScript("var button = $(':checkbox[id=test-mode-switch]'); button.prop('checked', true); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("You must activate an ad provider before the waterfall can go live.")
@@ -214,7 +210,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("$('li[data-active=true]').children('.hideable').children(':button[name=status]').click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("At least one Ad Provider must be active.")
       WaterfallAdProvider.find(wap1.id).get.active.get must beEqualTo(true)
@@ -229,7 +225,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.$("li[id=true-" + adProviderWithDefaultEcpmID + "]").getAttribute("data-cpm") must beEqualTo(defaultEcpm)
     }
 
@@ -238,7 +234,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(maliciousDistributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(maliciousDistributor.id.get, currentWaterfall.id).url)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("Waterfall could not be found.")
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
@@ -248,7 +244,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
@@ -258,7 +254,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
       browser.find("#waterfall-selection").getValue.contains(appName)
     }
 
@@ -266,7 +262,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newAppName = "Some new test app"
       logInUser()
 
-      browser.goTo(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.fill("#appName").`with`(newAppName)
       browser.fill("#currencyName").`with`("New Currency")
       browser.fill("#exchangeRate").`with`("100")
@@ -284,7 +280,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       hyprMarketplace.pending must beEqualTo(true)
 
       DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(hyprMarketplace, 12345, currentApp.token, currentApp.name) }
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
 
       browser.pageSource must not contain ("To check the status for " + adProviders(1) + ", please refresh your browser.")
       WaterfallAdProvider.find(hyprMarketplaceID).get.pending must beFalse
@@ -293,14 +289,14 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "not display the activate button for WaterfallAdProviders that have not yet been configured" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.find(".inactive-waterfall-content").getText must not contain("Activate")
     }
 
     "not display the activate button if the user cancels out of the configuration" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.find(".inactive-waterfall-content").getText must not contain("Activate")
       browser.$(".configure.inactive-button").first().click()
       browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
@@ -310,7 +306,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "display the Activate button after a WaterfallAdProvider has been configured" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.$(".configure.inactive-button").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", "some key")
