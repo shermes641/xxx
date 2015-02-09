@@ -1443,7 +1443,6 @@ hr {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
     background: #fff;
     padding: 40px;
     z-index: 10000;
@@ -1459,6 +1458,20 @@ hr {
 
 .app-form {
     text-align: left;
+    width: 678px;
+}
+
+.app-form.edit-ad-providers {
+    width: 400px;
+}
+
+.app-form.edit-ad-providers label {
+    display: block;
+}
+
+.app-form.edit-ad-providers input[type="text"], .app-form.edit-ad-providers input[type="password"], .app-form.edit-ad-providers input[type="number"],
+.app-form.edit-ad-providers input[type="email"], .app-form.edit-ad-providers button[type="submit"], .app-form.edit-ad-providers button[type="button"] {
+    width: 376px;
 }
 
 .app-form .tip {
