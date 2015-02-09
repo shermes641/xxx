@@ -54,14 +54,19 @@
             <div class="push"></div>
         </div>
         <footer>
-            Copyright 2014 HyprMX. All Rights Reserved | Privacy Policy | Terms of Use<br>
-            SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
-            <div class="footer-text-format"></div>
-            @if(play.api.Play.isDev(play.api.Play.current) || Play.current.configuration.getString("staging").getOrElse("false") == "true") {
-                Branch: @{
-                    Play.current.configuration.getString("latestBranch").getOrElse("")
+            <span>&copy; 2014 HyprMX. All Rights Reserved</span>
+            <span><a target="_blank" href="http://jungroup.com/pp.html">Privacy Policy</a></span>
+            <span class="last"><a target="_blank" href="http://jungroup.com/tou.html">Terms of Use</a></span>
+            <br>
+            <div class="version-info">
+                SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
+                <div class="footer-text-format"></div>
+                @if(play.api.Play.isDev(play.api.Play.current) || Play.current.configuration.getString("staging").getOrElse("false") == "true") {
+                    Branch: @{
+                        Play.current.configuration.getString("latestBranch").getOrElse("")
+                    }
                 }
-            }
+            </div>
         </footer>
     </body>
 </html>
