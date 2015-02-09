@@ -179,7 +179,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
                 case true => {
                   val appToken = (json \ "appToken").as[String]
                   val newGenerationNumber: Option[Long] = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
-                  Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber.getOrElse(0).toString))
+                  Ok(Json.obj("status" -> "success", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber.getOrElse(0).toString))
                 }
                 case _ => {
                   BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))

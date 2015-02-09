@@ -323,8 +323,8 @@ angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
     };
 });
 
-mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', 'appCheck', 'flashMessage', '$filter',
-        function( $scope, $http, $routeParams, appCheck, flashMessage, $filter ) {
+mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout',
+        function( $scope, $http, $routeParams, appCheck, $filter, $timeout ) {
             // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
             $scope.subHeader = 'assets/templates/sub_header.html';
@@ -338,6 +338,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.adProviderModalShown = false;
             $scope.showCodeBlock = false;
             $scope.disableTestModeToggle = false;
+            $scope.messages = [];
 
             $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
                 $scope.waterfallData = data;
@@ -349,6 +350,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                 $scope.sortableOptions.containment = "#waterfall-edit";
             }).error(function(data) {
+                $scope.flashMessage(data);
             });
 
             $scope.toggleCodeBlock = function() {
@@ -446,15 +448,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(checkAppFormErrors($scope.newApp, errorObjects)) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
-                            flashMessage(data.message, defaultSuccessDiv);
                             $scope.toggleNewAppModal();
+                            $scope.flashMessage(data);
                         }).
                         error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
-                            } else {
-                                flashMessage(data.message, defaultErrorDiv);
                             }
                         });
                 }
@@ -468,6 +468,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.showWaterfallAdProviderModal = true;
                     $scope.modalShown = true
                 }).error(function(data) {
+                    $scope.flashMessage(data);
                 });
             };
 
@@ -493,7 +494,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         }
                         $scope.generationNumber = data.newGenerationNumber;
                         getWapData(data.wapID);
-                    }).error(function(data){
+                    }).error(function(data) {
+                        $scope.flashMessage(data);
                     });
                 } else {
                     getWapData(adProviderConfig.waterfallAdProviderID);
@@ -563,8 +565,36 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         }
                         $scope.orderList();
                     }).error(function(data) {
+                        $scope.flashMessage(data);
                     });
                 }
+            };
+
+            $scope.flashMessage = function(data) {
+                var messages = $scope.messages.concat([{text: data.message, status: data.status}]);
+                if(messages.length > 3) {
+                    messages.pop();
+                }
+                $scope.messages = messages;
+                $scope.setMessageTimeout(data.message);
+            };
+
+            $scope.acknowledgeMessage = function(index) {
+                var messages = $scope.messages;
+                messages.splice(index, 1);
+                $scope.messages = messages;
+            };
+
+            $scope.setMessageTimeout = function(messageText) {
+                $timeout(function() {
+                    for(var index in $scope.messages) {
+                        if($scope.messages[index].text === messageText) {
+                            var messages = $scope.messages;
+                            messages.splice(index, 1);
+                            return $scope.messages = messages;
+                        }
+                    }
+                }, 5000)
             };
 
             var updateWaterfall = function() {
@@ -579,6 +609,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, params).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
                     $scope.disableTestModeToggle = checkTestModeToggle();
+                    $scope.flashMessage(data);
                 }).error(function(data) {
                 });
             };
@@ -593,6 +624,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     updateWaterfall();
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
+                    $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
+                    $scope.flashMessage({message: "You must activate at least one Ad Provider.", status: "error"})
                 }
             };
 
@@ -612,7 +645,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     adProviderConfig.active = !adProviderConfig.active;
                     updateWaterfall();
                 } else {
-                    //flashMessage("At least one Ad Provider must be active.", waterfallErrorDiv);
+                    $scope.flashMessage({message: "At least one Ad Provider must be active", status: "error"})
                 }
                 $scope.disableTestModeToggle = checkTestModeToggle();
                 $scope.orderList();
@@ -645,107 +678,5 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.waterfallData.waterfallAdProviderList[index].waterfallOrder = parseInt(index);
                 }
             };
-
-            /*
-            // Updates waterfall properties via AJAX.
-            $scope.postUpdate = function() {
-                var path = "/distributors/" + $scope.distributorID + "/waterfalls/" + $scope.waterfallID;
-                $.ajax({
-                    url: path,
-                    type: 'POST',
-                    contentType: "application/json",
-                    data: $scope.updatedData(),
-                    success: function(result) {
-                        $(".split_content").attr("data-generation-number", result.newGenerationNumber);
-                        $scope.flashMessage(result.message, $("#waterfall-edit-success"));
-                        if(optimizeToggleButton.is(":checked")) {
-                            $scope.orderList("data-cpm", false);
-                        }
-                    },
-                    error: function(result) {
-                        $scope.flashMessage(result.responseJSON.message, $("#waterfall-edit-error"));
-                    }
-                });
-            };
-
-            // Retrieves current list order and value of waterfall name field.
-            $scope.updatedData = function() {
-                var adProviderList = $scope.providersByActive("true");
-                var optimizedOrder = optimizeToggleButton.prop("checked").toString();
-                var testMode = testModeButton.prop("checked").toString();
-                var generationNumber = $(".split_content").attr("data-generation-number");
-                adProviderList.push.apply(adProviderList, $scope.providersByActive("false").length > 0 ? $scope.providersByActive("false") : []);
-                var order = adProviderList.map(function(index, el) {
-                    return({
-                        id: $(this).attr("data-id"),
-                        newRecord: $(this).attr("data-new-record"),
-                        active: $(this).attr("data-active"),
-                        waterfallOrder: index.toString(),
-                        cpm: $(this).attr("data-cpm"),
-                        configurable: $(this).attr("data-configurable"),
-                        pending: $(this).attr("data-pending")
-                    });
-                }).get();
-                return(JSON.stringify({adProviderOrder: order, optimizedOrder: optimizedOrder, testMode: testMode, appToken: appToken, generationNumber: generationNumber}));
-            };
-
-            // Displays success or error of AJAX request.
-            $scope.flashMessage = function(message, div) {
-                div.html(message).fadeIn();
-                div.delay(3000).fadeOut("slow");
-            };
-
-            if( $scope.optimizeToggleButton.prop("checked") ) {
-                // Order ad providers by eCPM, disable sortable list, and hide draggable icon if waterfall has optimized_order set to true.
-                $scope.orderList( "data-cpm", false );
-                //$( "#waterfall-list" ).sortable( "disable" );
-                $( ".waterfall-drag" ).addClass('disabled');
-            } else {
-                // Enable sortable list if waterfall has optimized_order set to true.
-                //$( "#waterfall-list" ).sortable( "enable" );
-            }
-
-            // Adds event listeners to appropriate inputs when the WaterfallAdProvider edit modal pops up.
-            $scope.setRefreshOnRestartListeners = function() {
-                $( ":input[data-refresh-on-app-restart=true]" ).change( function( event ) {
-                    var param = $( event.target.parentElement ).children( "label" ).html();
-                    appRestartParams[ param ] = true;
-                } );
-            };
-
-            // Click event for when Optimized Mode is toggled.
-            $scope.optimizeToggleButton.click(function() {
-                $(".waterfall-drag").toggleClass("disabled");
-                var sortableOption;
-                if(optimizeToggleButton.prop("checked")) {
-                    sortableOption = "disable";
-                    $scope.orderList("data-cpm", false);
-                } else {
-                    sortableOption = "enable";
-                }
-                $("#waterfall-list").sortable(sortableOption);
-                $scope.postUpdate();
-            });
-
-            // Click event for when Test Mode is toggled.
-            $scope.testModeButton.click(function(event) {
-                var waterfallListItems = $("#waterfall-list").children("li");
-                var newRecords = waterfallListItems.filter(function(index, li) { return($(li).attr("data-new-record") === "true") }).length;
-                var allRecords = waterfallListItems.length;
-                // Prevent the user from setting the waterfall to live without configuring any ad providers.
-                if(newRecords == allRecords) {
-                    event.preventDefault();
-                    $scope.flashMessage("You must activate an ad provider before the waterfall can go live.", $("#waterfall-edit-error"));
-                } else {
-                    $scope.postUpdate();
-                }
-            });
-
-            // Sends AJAX request when waterfall order is changed via drag and drop.
-            $("#waterfall-list").on("sortdeactivate", function(event, ui) {
-                $scope.postUpdate();
-            });
-            */
-
         } ]
 );

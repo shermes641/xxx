@@ -94,7 +94,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                           case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
                             val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, new JunGroupAPI)))
                             actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
-                            Ok(Json.obj("status" -> "OK", "message" -> "App Created!"))
+                            Ok(Json.obj("status" -> "success", "message" -> "App Created!"))
                           }
                           case (_, _) => rollbackWithError(createErrorMessage)
                         }
@@ -166,7 +166,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                           case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
                             val waterfall = waterfalls(0)
                             val newGeneration = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
-                            Ok(Json.obj("status" -> "OK", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
+                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
                           }
                         }
                       }
