@@ -3,8 +3,9 @@
     <div ng-include="subHeader"></div>
     <div ng-include="appList"></div>
     <div id="waterfall-edit" class="split_content waterfall_list">
-        <div id="waterfall-edit-success" class="flash-message success"></div>
-        <div id="waterfall-edit-error" class="flash-message error"></div>
+        <div ng-repeat="message in messages" ng-click="acknowledgeMessage($index)" id="waterfall-edit-message" class="full-{{message.status}}-message">
+            {{message.text}}
+        </div>
         <h1>{{waterfallData.waterfall.name}} Waterfall</h1>
         <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
         <div id="waterfall_sub_header">
@@ -41,7 +42,7 @@
                 <h4 class="tooltip" data-title="Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.">?</h4>
                 <label class="text-label">Test Mode</label>
                 <div class="onoffswitch">
-                    <input ng-click="toggleTestMode()" ng-disabled="disableTestModeToggle" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
+                    <input ng-click="toggleTestMode()" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
                     <label class="onoffswitch-label" for="test-mode-switch">
                         <span class="onoffswitch-inner"></span>
                         <span class="onoffswitch-switch"></span>

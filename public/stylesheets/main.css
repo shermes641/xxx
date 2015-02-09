@@ -985,7 +985,7 @@ div [class^="col-"] {
     display: none;
 }
 
-#full-success-message {
+#full-system-message {
     margin: 70px 10px 10px 10px;
     padding: 20px;
     left: 0;
@@ -999,9 +999,35 @@ div [class^="col-"] {
     font-family: "Helvetica Neue", "Helvetica", sans-serif;
 }
 
+.full-error-message {
+    margin: 5px 10px 5px 10px;
+    padding: 20px;
+    left: 0;
+    color: #fff;
+    background: #ff9999;
+    text-align: center;
+    border-radius: 1px;
+    border: 2px solid #ff6666;
+}
+
+.full-success-message {
+    margin: 5px 10px 5px 10px;
+    padding: 20px;
+    left: 0;
+    color: #4f73e7;
+    background: #dce3fa;
+    text-align: center;
+    border-radius: 1px;
+    border: 2px solid #b9c7f5;
+}
+
 dd.error {
     color: #E80000;
     text-align: left;
+}
+
+dd.modal-error {
+    color: #E80000;
 }
 
 .flash-message.success {
