@@ -166,7 +166,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                           case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
                             val waterfall = waterfalls(0)
                             val newGeneration = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
-                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
+                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration.getOrElse(0).toString))
                           }
                         }
                       }

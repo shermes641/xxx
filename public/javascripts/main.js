@@ -564,6 +564,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.orderList();
+                        $scope.showEditAppModal = false;
+                        $scope.modalShown = false;
+                        $scope.flashMessage({message: adProviderName + " updated!", status: "success"});
                     }).error(function(data) {
                         $scope.flashMessage(data);
                     });
@@ -658,16 +661,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(checkAppFormErrors($scope.data, errorObjects)) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
                         success(function(data, status, headers, config) {
-                            $scope.data.generationNumber = data.generationNumber;
-                            flashMessage(data.message, defaultSuccessDiv);
-                            $scope.toggleEditAppModal();
+                            $scope.generationNumber = data.generationNumber;
+                            $scope.showEditAppModal = false;
+                            $scope.modalShown = false;
+                            $scope.flashMessage(data);
                         }).
                         error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
-                            } else {
-                                flashMessage(data.message, defaultErrorDiv);
                             }
                         });
                 }

@@ -1024,6 +1024,10 @@ dd.error {
     text-align: left;
 }
 
+dd.modal-error {
+    color: #E80000;
+}
+
 .flash-message.success {
     color: #4285f4;
 }
