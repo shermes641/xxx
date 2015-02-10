@@ -5,6 +5,7 @@ import play.api.Play.current
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import play.api.Play
 
 /** Encapsulates methods which send email. */
 trait Mailer {
@@ -15,6 +16,7 @@ trait Mailer {
    * @param body Email body
    */
   def sendEmail(recipient: String, subject: String, body: String, attachment: String = ""): Unit = {
+    val host = Play.current.configuration.getString("app_domain").get
     if(play.api.Play.isProd(play.api.Play.current)) {
       val mail = use[MailerPlugin].email
       mail.setRecipient(recipient)
@@ -24,7 +26,8 @@ trait Mailer {
         val format = new SimpleDateFormat("d-M-y")
         mail.addAttachment(format.format(Calendar.getInstance().getTime()) + "-export.csv", new File(attachment))
       }
-      mail.send(body)
+      val template = views.html.Mails.emailTemplate(subject, body, host).toString()
+      mail.sendHtml(template)
     }
   }
 }

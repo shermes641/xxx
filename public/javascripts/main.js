@@ -68,6 +68,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
             $('body').addClass('new-app-page');
 
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
+            $scope.newAppPage = true;
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
 
