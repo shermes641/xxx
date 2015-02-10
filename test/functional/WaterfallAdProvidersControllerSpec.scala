@@ -64,7 +64,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       WaterfallAdProvider.find(wapID).get must haveClass[WaterfallAdProvider]
     }
 
-    "increment the AppConfig generation number when the AppConfig changes as a result of creating a new WaterfallAdProvider" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "not increment the AppConfig generation number when the AppConfig changes as a result of creating a new, inactive WaterfallAdProvider" in new WithAppBrowser(distributorUser.distributorID.get) {
       WaterfallAdProvider.create(currentWaterfall.id, adProvider2ID, None, Some(5.0), true, true)
       Waterfall.update(currentWaterfall.id, true, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
@@ -77,7 +77,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val jsonResult = Json.parse(contentAsString(result))
       val wapID = (jsonResult \ "wapID").as[String].toLong
       val newGeneration = (jsonResult \ "newGenerationNumber").as[String].toLong
-      newGeneration must beEqualTo(originalGeneration + 1)
+      newGeneration must beEqualTo(originalGeneration)
       WaterfallAdProvider.find(wapID).get must haveClass[WaterfallAdProvider]
     }
 
@@ -179,7 +179,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       browser.fill("input").`with`(invalidEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-ad-provider-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".modal-error").areDisplayed()
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -197,7 +197,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
-      browser.executeScript("$('button[name=update-ad-provider]').click();")
+      browser.click("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").withText().contains("Your App must be restarted")
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
@@ -252,10 +252,10 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      Thread.sleep(10000)
       browser.executeScript("$('.waterfall li').last().children().children('.wap-buttons').children('button[name=configure-wap]').click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.findFirst("input[name=eCPM]").getValue must beEqualTo("20.00")
+      browser.fill("input").`with`("20.00", "12345")
       browser.executeScript("$('button[name=update-ad-provider]').click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
@@ -271,8 +271,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input[name=eCPM]").`with`("5.0")
-      browser.executeScript("$('button[name=update-ad-provider]').click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-ad-provider-error").areDisplayed()
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal-error").areDisplayed()
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
@@ -294,13 +294,13 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       newWap.reportingActive must beEqualTo(false)
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
-      browser.executeScript("$('button[name=update-ad-provider]').click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-ad-provider-error").areDisplayed()
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".modal-error").areDisplayed()
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
       browser.executeScript("$('button[name=configure-wap]').first().click();")
-      browser.fill("input").`with`("5.0")
+      browser.fill("input").`with`("5.0", "12345")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
-      browser.executeScript("$('button[name=update-ad-provider]').click();")
+      browser.click("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
     }

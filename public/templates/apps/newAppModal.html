@@ -1,6 +1,6 @@
 <div id="error-message" class="flash-message error"></div>
 <div id="success-message" class="flash-message success"></div>
-<div id="full-success-message"></div>
+<div ng-show="systemMessage != ''" id="full-success-message">{{systemMessage}}</div>
 <form name="new-app-form" ng-submit="submitNewApp()">
     <div data-distributor-id="{{distributorID}}" id="new-app" class="app-form">
         <h1>{{newAppModalTitle}}</h1>

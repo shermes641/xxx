@@ -3,7 +3,7 @@
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure {{wapData.adProviderName}}</h1>
     <div class="app-form edit-ad-providers">
-        <dd class="modal-text modal-error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
+        <dd id="modal-error" class="modal-text modal-error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
         <div class="waterfall-ad-provider-field">
             <dd ng-class="errors['staticParams-cpm']">
             <dt><label for="eCPM">* eCPM $</label></dt>

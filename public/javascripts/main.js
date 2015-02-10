@@ -74,8 +74,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
             // Default div for success messages.
             var defaultSuccessDiv = $("#full-success-message");
 
-            defaultSuccessDiv.text("Your confirmation email will arrive shortly.").show();
-
             $scope.checkInputs = function() {
                 var requiredFields = ['appName', 'currencyName', 'rewardMin', 'exchangeRate'];
                 if(appCheck.fieldsFilled($scope.newApp, requiredFields)) {
@@ -96,12 +94,15 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                 if(checkAppFormErrors($scope.newApp, errorObjects)) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
+                            $scope.systemMessage = "Your confirmation email will arrive shortly.";
                             window.location.href = "/distributors/"+$routeParams.distributorID+"/waterfalls/edit";
                         }).
                         error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                $scope.systemMessage = data.message;
                             }
                         });
                 }
@@ -336,6 +337,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.adProviderModalShown = false;
             $scope.showCodeBlock = false;
             $scope.disableTestModeToggle = false;
+            $scope.systemMessage = "";
             $scope.messages = [];
 
             $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
