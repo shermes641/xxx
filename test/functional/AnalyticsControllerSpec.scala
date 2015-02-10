@@ -112,5 +112,32 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
+
+    "export analytics data as csv" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val app2Name = "App 2"
+      val appID = App.create(distributorID, app2Name).get
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("test@test.com")
+      clickAndWaitForAngular("#export_submit")
+
+      browser.pageSource() must contain("Export Requested")
+    }
+
+    "export analytics data as csv must fail with invalid email" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val app2Name = "App 2"
+      val appID = App.create(distributorID, app2Name).get
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("test@test.com")
+      clickAndWaitForAngular("#export_submit")
+
+      browser.pageSource must contain("The email you entered is invalid.")
+    }
   }
 }

@@ -886,7 +886,7 @@ div [class^="col-"] {
     top: 29px;
     color: #999933;
     content: attr(data-title);
-    left: -25%;
+    left: -900%;
     padding: 5px 15px;
     position: absolute;
     z-index: 1200;
@@ -1471,10 +1471,6 @@ hr {
 
 .ng-modal-dialog-content h1 {
     margin: 0 0 10px 0;
-}
-
-.ng-modal-dialog .tooltip:hover:after {
-    left: -900%;
 }
 
 .app-form {
