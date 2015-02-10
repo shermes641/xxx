@@ -25,7 +25,7 @@ trait Mailer {
         mail.addAttachment(format.format(Calendar.getInstance().getTime()) + "-export.csv", new File(attachment))
       }
       val template = views.html.Mails.emailTemplate(subject, body).toString()
-      mail.send(template)
+      mail.sendHtml(template)
     }
   }
 }
