@@ -1525,11 +1525,13 @@ hr {
 .left_column {
     width: 330px;
     float: left;
+    margin-top: 10px;
 }
 .right_column {
     width: 330px;
     float: left;
 
+    margin-top: 10px;
     margin-left: 18px;
 }
 
@@ -1567,7 +1569,7 @@ hr {
 }
 .new-app-page #new-app {
     width: 740px;
-    margin: 10px auto;
+    margin: 100px auto 10px auto;
     background: #fff;
     padding: 30px;
     border: 1px solid #dddde0;
