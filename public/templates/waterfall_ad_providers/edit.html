@@ -26,6 +26,7 @@
             </div>
         </div>
 
+        <h3>Reporting</h3>
         <div class="switch-field">
             <dt>
                 <label>Reporting</label>
@@ -51,13 +52,13 @@
                 </dd>
             </div>
         </div>
-        <table class="modal-centered">
-            <td ng-show="wapData.callbackUrl != ''">
-                <label id="callback-url-label">Callback URL:</label>
-                <h4 class="tooltip" data-title="Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.">?</h4>
-                <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
-            </td>
-        </table>
+
+        <h3>Callback</h3>
+        <dd ng-show="wapData.callbackUrl != ''">
+            <label id="callback-url-label">Callback URL</label>
+            <h4 class="tooltip" data-title="Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.">?</h4>
+            <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
+        </dd>
 
         <div ng-repeat="param in wapData.callbackParams">
             <div class="callback-waterfall-ad-provider-field">

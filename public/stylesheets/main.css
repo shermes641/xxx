@@ -886,7 +886,7 @@ div [class^="col-"] {
     top: 29px;
     color: #999933;
     content: attr(data-title);
-    left: -25%;
+    left: -900%;
     padding: 5px 15px;
     position: absolute;
     z-index: 1200;
@@ -1135,9 +1135,24 @@ dd.modal-error {
     width: 250px;
 }
 
+#callback-url-label {
+    display: inline-block;
+    width: 376px;
+}
+
+.callback pre {
+    padding: 5px;
+    border: 0;
+    border-bottom: 1px solid #c8c7cc;
+    -webkit-appearance: none;
+    background: #f9f9f9;
+    text-align: left;
+    color: #6d6d72;
+}
+
 .callback {
     font-size: 10px;
-    max-width: 300px;
+    max-width: 376px;
     text-align: center;
 }
 
@@ -1450,6 +1465,8 @@ hr {
     font-size: 13px;
     color: #333;
     border: 1px solid #dddde0;
+    overflow-y: auto;
+    max-height: 90%;
 }
 
 .ng-modal-dialog-content h1 {
@@ -1485,10 +1502,18 @@ hr {
     width: 100%;
 }
 
+.app-form h3 {
+    text-align: center;
+    font-size: 14px;
+    color: #6d6d72;
+    font-family: helvetica;
+    margin: 10px 0;
+}
+
+
 .app-form dl {
     margin-bottom: 20px;
 }
-
 .app-form dt {
     text-align: left;
     font-size: 12px;
