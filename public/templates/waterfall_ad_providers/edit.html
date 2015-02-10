@@ -6,7 +6,7 @@
         <dd class="modal-text modal-error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
         <div class="waterfall-ad-provider-field">
             <dd ng-class="errors['staticParams-cpm']">
-            <dt><label for="eCPM">*eCPM $</label></dt>
+            <dt><label for="eCPM">* eCPM $</label></dt>
                 <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
                 <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
                 <dd class="modal-text error">{{errors.cpmMessage}}</dd>
@@ -17,7 +17,7 @@
             <div data-required-param="true" class="edit-waterfall-ad-provider-field">
                 <dd ng-class="errors['reqParams-{{param.key}}']">
                     <dt>
-                         <label>*{{param.displayKey}}</label>
+                         <label>* {{param.displayKey}}</label>
                     </dt>
                     <input type="text" ng-model="param.value"></input>
                     <h4 class="tooltip" data-title="{{param.description}}">?</h4>
