@@ -74,11 +74,16 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           "callbackUrl" -> JsString(callbackUrl.getOrElse("")), "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get)))
       }
       case _ => {
-        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Could not find ad provider.")
+        BadRequest(Json.obj("status" -> "error", "message" -> "Could not find ad provider."))
       }
     }
   }
 
+  /**
+   * Converts RequiredParam class to JSON object.
+   * @param param The an instance of the RequiredParam class to be converted.
+   * @return JSON object to be used in the edit action.
+   */
   implicit def requiredParamWrites(param: RequiredParam): JsObject = {
     JsObject(
       Seq(
@@ -92,6 +97,11 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
     )
   }
 
+  /**
+   * Assembles a JsArray from a list of RequiredParam JSON objects.
+   * @param list The list of RequiredParams to be converted.
+   * @return A JsArray containing RequiredParam JSON objects.
+   */
   def requiredParamsListJs(list: List[RequiredParam]): JsArray = {
     list.foldLeft(JsArray(Seq()))((array, param) => array ++ JsArray(Seq(param)))
   }

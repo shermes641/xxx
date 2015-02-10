@@ -67,17 +67,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
           "appsWithWaterfalls" -> appsWithWaterfallListJs(appsWithWaterfalls), "generationNumber" -> JsString(waterfall.generationNumber.getOrElse(0).toString)))
       }
       case None => {
-        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
+        BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall could not be found."))
       }
     }
-  }
-
-  def adProviderListJs(list: List[OrderedWaterfallAdProvider]): JsArray = {
-    list.foldLeft(JsArray(Seq()))((array, wap) => array ++ JsArray(Seq(wap)))
-  }
-
-  def appsWithWaterfallListJs(list: List[AppWithWaterfallID]): JsArray = {
-    list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
   }
 
   /**
@@ -92,6 +84,11 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     }
   }
 
+  /**
+   * Converts an instance of the OrderedWaterfallAdProvider class to a JSON object.
+   * @param wap An instance of the OrderedWaterfallAdProvider class.
+   * @return A JSON object.
+   */
   implicit def orderedWaterfallAdProviderWrites(wap: OrderedWaterfallAdProvider): JsObject = {
     JsObject(
       Seq(
@@ -108,6 +105,20 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     )
   }
 
+  /**
+   * Converts a list of OrderedWaterfallAdProvider instances to a JsArray.
+   * @param list A list of OrderedWaterfallAdProvider instances.
+   * @return A JsArray containing OrderedWaterfallAdProvider objects.
+   */
+  def adProviderListJs(list: List[OrderedWaterfallAdProvider]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, wap) => array ++ JsArray(Seq(wap)))
+  }
+
+  /**
+   * Converts an instance of the Waterfall class to a JSON object.
+   * @param waterfall An instance of the Waterfall class.
+   * @return A JSON object.
+   */
   implicit def waterfallWrites(waterfall: Waterfall): Json.JsValueWrapper = {
     JsObject(
       Seq(
@@ -122,6 +133,11 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     )
   }
 
+  /**
+   * Converts an instance of the AppWithWaterfallID class to a JSON object.
+   * @param app An instance of the AppWithWaterfallID class.
+   * @return A JSON object.
+   */
   implicit def appWithWaterfallIDWrites(app: AppWithWaterfallID): JsObject = {
     JsObject(
       Seq(
@@ -132,6 +148,15 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "waterfallID" -> JsString(app.waterfallID.toString)
       )
     )
+  }
+
+  /**
+   * Converts a list of AppWithWaterfallID instances to a JsArray.
+   * @param list A list of AppWithWaterfallID instances.
+   * @return A JsArray containing AppWithWaterfallID objects.
+   */
+  def appsWithWaterfallListJs(list: List[AppWithWaterfallID]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
   }
 
   /**
