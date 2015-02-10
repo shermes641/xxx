@@ -4,8 +4,8 @@
     <h1 class="modal-text">Configure {{wapData.adProviderName}}</h1>
     <div class="app-form edit-ad-providers">
         <dd id="modal-error" class="modal-text modal-error" ng-show="invalidForm">Please correct the invalid fields highlighted</dd>
-        <div class="waterfall-ad-provider-field">
-            <dd ng-class="errors['staticParams-cpm']">
+        <div ng-class="errors['staticParams-cpm']" class="waterfall-ad-provider-field">
+            <dd>
             <dt><label for="eCPM">* eCPM $</label></dt>
                 <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
                 <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
@@ -14,8 +14,8 @@
         </div>
 
         <div ng-repeat="param in wapData.reqParams">
-            <div data-required-param="true" class="edit-waterfall-ad-provider-field">
-                <dd ng-class="errors['reqParams-{{param.key}}']">
+            <div ng-class="errors['reqParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
+                <dd>
                     <dt>
                          <label>* {{param.displayKey}}</label>
                     </dt>
@@ -41,8 +41,8 @@
         </div>
 
         <div ng-repeat="param in wapData.reportingParams">
-            <div class="reporting-waterfall-ad-provider-field">
-                <dd ng-class="errors['reportingParams-{{param.key}}']">
+            <div ng-class="errors['reportingParams-{{param.key}}']" class="reporting-waterfall-ad-provider-field">
+                <dd>
                     <dt>
                         <label>{{param.displayKey}}</label>
                     </dt>
@@ -61,8 +61,8 @@
         </dd>
 
         <div ng-repeat="param in wapData.callbackParams">
-            <div class="callback-waterfall-ad-provider-field">
-                <dd ng-class="errors['callbackParams-{{param.key}}']">
+            <div ng-class="errors['callbackParams-{{param.key}}']" class="callback-waterfall-ad-provider-field">
+                <dd>
                     <dt>
                         <label for="{{param.key}}">{{param.displayKey}}</label>
                     </dt>

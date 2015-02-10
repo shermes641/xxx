@@ -294,6 +294,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
                         $window.location.href = "/distributors/"+data.distributorID+"/apps/new";
                     }).
                     error(function(data, status, headers, config) {
+                        debugger;
                         if(data.fieldName) {
                             $scope.errors[data.fieldName] = data.message;
                             $scope.errors[data.fieldName + "Class"] = "error";
@@ -477,15 +478,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.errors = {};
                 $scope.invalidForm = false;
                 if(adProviderConfig.newRecord) {
-                    var params = {};
                     var path = "/distributors/" + $scope.distributorID + "/waterfall_ad_providers";
-                    var generationNumber = $scope.generationNumber;
-                    params["waterfallID"] = $routeParams.waterfallID;
-                    params["appToken"] = $scope.appToken;
-                    params["generationNumber"] = generationNumber;
-                    params["configurable"] = adProviderConfig.configurable;
-                    params["adProviderID"] = adProviderConfig.waterfallAdProviderID;
-                    params["cpm"] = adProviderConfig.cpm;
+                    var params = {
+                        waterfallID: $routeParams.waterfallID,
+                        appToken: $scope.appToken,
+                        generationNumber: $scope.generationNumber,
+                        configurable: adProviderConfig.configurable,
+                        adProviderID: adProviderConfig.waterfallAdProviderID,
+                        cpm: adProviderConfig.cpm
+                    };
                     $http.post(path, params).success(function(data) {
                         for(var i = 0; i < $scope.waterfallData.waterfallAdProviderList.length; i++) {
                             var provider = $scope.waterfallData.waterfallAdProviderList[i];
@@ -556,7 +557,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
                 checkForErrors("cpm", cpm, "staticParams");
                 var parsedCpm = parseFloat(cpm);
-                if(isNaN(cpm) || parsedCpm < 0.01) {
+                if(isNaN(parsedCpm) || parsedCpm < 0.01) {
                     $scope.errors.cpmMessage = "eCPM must be greater than $0.00";
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
