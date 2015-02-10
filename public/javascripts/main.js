@@ -364,11 +364,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
-            var content = $(".split_content");
-
-            // Stores params that have been changed which require an app restart.
-            $scope.appRestartParams = {};
-
             // Rearranges the waterfall order list either by eCPM or original order.
             $scope.orderList = function() {
                 if($scope.waterfallData.waterfall.optimizedOrder) {
@@ -460,19 +455,24 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
-
             var getWapData = function(wapID) {
                 $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID + '/edit').success(function(wapData) {
                     $scope.wapData = wapData;
                     $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
                     $scope.showWaterfallAdProviderModal = true;
-                    $scope.modalShown = true
+                    $scope.modalShown = true;
+                    for(var i = 0; i < wapData.reqParams.length; i++) {
+                        var param = wapData.reqParams[i];
+                        $scope.restartableParams[param.displayKey] = param.value;
+                    }
                 }).error(function(data) {
                     $scope.flashMessage(data);
                 });
             };
 
             $scope.editWaterfallAdProvider = function(adProviderConfig) {
+                $scope.restartableParams = {};
+                $scope.changedRestartParams = {};
                 $scope.errors = {};
                 $scope.invalidForm = false;
                 if(adProviderConfig.newRecord) {
@@ -547,6 +547,12 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     cpm: cpm,
                     generationNumber: $scope.generationNumber
                 };
+                for (var i = 0; i < $scope.wapData.reqParams.length; i++) {
+                    var param = $scope.wapData.reqParams[i];
+                    if (param.displayKey != "" && param.value != $scope.restartableParams[param.displayKey]) {
+                        $scope.changedRestartParams[param.displayKey] = param.value;
+                    }
+                }
                 checkForErrors("cpm", cpm, "staticParams");
                 var parsedCpm = parseFloat(cpm);
                 if(isNaN(cpm) || parsedCpm < 0.01) {
@@ -560,6 +566,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         var adProviders = $scope.waterfallData.waterfallAdProviderList;
                         for(var i = 0; i < adProviders.length; i++) {
                             if(adProviders[i].name === adProviderName) {
+                                if(adProviders[i].unconfigured) {
+                                    $scope.changedRestartParams = {};
+                                }
                                 adProviders[i].cpm = parsedCpm;
                                 adProviders[i].unconfigured = false;
                             }
@@ -567,7 +576,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.orderList();
                         $scope.showWaterfallAdProviderModal = false;
                         $scope.modalShown = false;
-                        $scope.flashMessage({message: adProviderName + " updated!", status: "success"});
+                        var restartParams = Object.keys($scope.changedRestartParams);
+                        var successMessage = adProviderName + " updated!";
+                        if(restartParams.length > 0) {
+                            var paramMessage = restartParams.length == 1 ? restartParams[0] : restartParams.slice(0, restartParams.length - 1).join(", ") + ", and " + restartParams[restartParams.length - 1];
+                            successMessage += " Changes to " + paramMessage + " will require your app to be restarted to take effect.";
+                        }
+                        $scope.flashMessage({message: successMessage, status: "success"});
                     }).error(function(data) {
                         $scope.flashMessage(data);
                     });
