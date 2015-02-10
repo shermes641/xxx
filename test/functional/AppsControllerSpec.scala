@@ -148,7 +148,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1")
       browser.$("button[name=new-app-form]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#error-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#full-success-message").areDisplayed()
 
       appsCount must beEqualTo(tableCount("apps"))
       waterfallsCount must beEqualTo(tableCount("waterfalls"))
@@ -257,7 +257,6 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#appName").`with`(newAppName)
       clickAndWaitForAngular("button[name=submit]")
-      browser.pageSource must contain(newAppName)
       App.find(currentApp.id).get.name must beEqualTo(newAppName)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
