@@ -102,8 +102,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
-                            } else {
-                                flashMessage(data.message, defaultErrorDiv);
                             }
                         });
                 }
@@ -484,6 +482,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     params["generationNumber"] = generationNumber;
                     params["configurable"] = adProviderConfig.configurable;
                     params["adProviderID"] = adProviderConfig.waterfallAdProviderID;
+                    params["cpm"] = adProviderConfig.cpm;
                     $http.post(path, params).success(function(data) {
                         for(var i = 0; i < $scope.waterfallData.waterfallAdProviderList.length; i++) {
                             var provider = $scope.waterfallData.waterfallAdProviderList[i];
@@ -564,7 +563,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.orderList();
-                        $scope.showEditAppModal = false;
+                        $scope.showWaterfallAdProviderModal = false;
                         $scope.modalShown = false;
                         $scope.flashMessage({message: adProviderName + " updated!", status: "success"});
                     }).error(function(data) {

@@ -54,14 +54,13 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
     "create a new WaterfallAdProvider instance" in new WithAppBrowser(distributorUser.distributorID.get) {
       Waterfall.update(currentWaterfall.id, true, false)
-      val configurationData = Seq("configurable" -> JsString("true"), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token),
-        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(currentAppConfig.generationNumber.toString), "cpm" -> JsString("5.0"),
-        "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
+      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
+        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(currentAppConfig.generationNumber.toString), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
       val Some(result) = route(wapCreateRequest(body).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must beEqualTo(200)
       val jsonResult = Json.parse(contentAsString(result))
-      val wapID = (jsonResult \ "wapID").as[Long]
+      val wapID = (jsonResult \ "wapID").as[String].toLong
       WaterfallAdProvider.find(wapID).get must haveClass[WaterfallAdProvider]
     }
 
@@ -70,15 +69,14 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       Waterfall.update(currentWaterfall.id, true, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalGeneration = generationNumber(currentApp.id)
-      val configurationData = Seq("configurable" -> JsString("true"), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token),
-        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "cpm" -> JsString("5.0"),
-        "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
+      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
+        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
       val Some(result) = route(wapCreateRequest(body).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must beEqualTo(200)
       val jsonResult = Json.parse(contentAsString(result))
-      val wapID = (jsonResult \ "wapID").as[Long]
-      val newGeneration = (jsonResult \ "newGenerationNumber").as[Long]
+      val wapID = (jsonResult \ "wapID").as[String].toLong
+      val newGeneration = (jsonResult \ "newGenerationNumber").as[String].toLong
       newGeneration must beEqualTo(originalGeneration + 1)
       WaterfallAdProvider.find(wapID).get must haveClass[WaterfallAdProvider]
     }
@@ -88,9 +86,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       Waterfall.update(currentWaterfall.id, true, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalGeneration = generationNumber(currentApp.id)
-      val configurationData = Seq("configurable" -> JsString("true"), "adProviderID" -> JsString(adProvider2ID.toString), "appToken" -> JsString(currentApp.token),
-        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "cpm" -> JsString("5.0"),
-        "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
+      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsString(adProvider2ID.toString), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
+        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
       val Some(result) = route(wapCreateRequest(body).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must beEqualTo(400)
@@ -126,8 +123,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       clearGeneration(currentApp.id)
       val originalGeneration = generationNumber(currentApp.id)
       val updatedParam = "Some new value"
-      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsString("false"),
-        "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "eCPM" -> JsString("5.0"))
+      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsBoolean(false),
+        "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "cpm" -> JsString("5.0"))
       val body = JsObject(configurationData)
       val postRequest = FakeRequest(
         POST,
@@ -159,13 +156,13 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.$(".configure.inactive-button").first().click()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       browser.fill("input").`with`(validEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       val updatedWap = WaterfallAdProvider.find(newWap.id).get
       updatedWap.cpm.get.toString must beEqualTo(validEcpm)
     }
@@ -175,14 +172,14 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
       Waterfall.find(currentWaterfall.id, distributorUser.distributorID.get).get.testMode must beEqualTo(true)
-      browser.$(".configure.inactive-button").first().click()
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       browser.fill("input").`with`(invalidEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("eCPM must be a valid number.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-ad-provider-error").areDisplayed()
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -196,12 +193,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.find("button[name=configure-wap]").first.click()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
       browser.executeScript("$('button[name=update-ad-provider]').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").withText().contains("Your App must be restarted")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").withText().contains("Your App must be restarted")
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -214,14 +211,15 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.$(".configure.active-button").first.click()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.find(wap1ID).get
       newWap.reportingActive must beEqualTo(false)
       browser.fill("input").`with`("5.0", "Some key")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      browser.executeScript("$('button[name=update-ad-provider]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areNotDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
@@ -232,12 +230,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.$(".configure.inactive-button").first().click()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
-      browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").isPresent()
+      browser.executeScript("$('button[name=update-ad-provider]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent()
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.active.get must beEqualTo(false)
       (wap.configurationData \ "requiredParams" \ configurationParams(0)).as[String] must beEqualTo(configKey)
@@ -248,13 +246,18 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       Waterfall.update(currentWaterfall.id, true, false)
       val originalGeneration = generationNumber(currentApp.id)
       val defaultEcpm = Some(20.0)
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", configurationData, None, false, defaultEcpm).get
+      val adProviderName = "Test Ad Provider With Default eCPM"
+      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, configurationData, None, false, defaultEcpm).get
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('li[id=true-" + adProviderWithDefaultEcpmID + "]').children('.inactive-waterfall-content').children('.status.inactive-button').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      Thread.sleep(10000)
+      browser.executeScript("$('.waterfall li').last().children().children('.wap-buttons').children('button[name=configure-wap]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.findFirst("input[name=eCPM]").getValue must beEqualTo("20.00")
+      browser.executeScript("$('button[name=update-ad-provider]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).filter(wap => wap.adProviderID == adProviderWithDefaultEcpmID).head.cpm must beEqualTo(defaultEcpm)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
@@ -264,12 +267,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.$(".configure.inactive-button").first().click()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input[name=eCPM]").`with`("5.0")
-      browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").areDisplayed()
+      browser.executeScript("$('button[name=update-ad-provider]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-ad-provider-error").areDisplayed()
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
@@ -284,19 +287,21 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.$(".configure.active-button").first.click()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.find(wap1ID).get
       newWap.reportingActive must beEqualTo(false)
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-error").hasText("eCPM must be a valid number.")
+      browser.executeScript("$('button[name=update-ad-provider]').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-ad-provider-error").areDisplayed()
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
-      browser.fill("input[name=eCPM]").`with`("5.0")
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.fill("input").`with`("5.0")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-success").areDisplayed()
-      browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
+      browser.executeScript("$('button[name=update-ad-provider]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
     }
   }

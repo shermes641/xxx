@@ -19,7 +19,13 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
     request.body.asJson.map { wapData =>
       DB.withTransaction { implicit connection =>
         try {
-          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, None, None, (wapData \ "configurable").as[Boolean], active = false)
+          val cpm: Option[Double] = (wapData \ "cpm") match {
+            case _: JsUndefined => None
+            case cpmVal: JsNumber => Some(cpmVal.as[Double])
+            case cpmVal: JsString => Some(cpmVal.as[String].toDouble)
+            case _ => None
+          }
+          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, None, cpm, (wapData \ "configurable").as[Boolean], active = false)
           val appToken = (wapData \ "appToken").as[String]
           val waterfallID = (wapData \ "waterfallID").as[String].toLong
           val generationNumber = (wapData \ "generationNumber").as[String].toLong
