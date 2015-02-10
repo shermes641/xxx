@@ -1,5 +1,5 @@
 <div id="modal-overlay" class="modal-overlay"></div>
-<div ng-controller="WaterfallController">
+<div id="waterfall-controller" ng-controller="WaterfallController">
     <div ng-include="subHeader"></div>
     <div ng-include="appList"></div>
     <div id="waterfall-edit" class="split_content waterfall_list">
@@ -75,7 +75,7 @@
                 <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="{{adProviderConfig.name}}" ng-class="{waterfall: adProviderConfig.active, inactive: ''}">
                     <div ng-class="{'hideable hideable-wap-info': adProviderConfig.active, 'hideable hidden-wap-info': ''}">
                         <div class="waterfall-app-info">
-                            <div ng-show="{{adProviderConfig.pending}}">
+                            <div class="pending-status" ng-show="{{adProviderConfig.pending}}">
                                 <h4>{{adProviderConfig.name}} is Pending</h4>
                                 <h5>To check if it's ready, please refresh your browser.</h5>
                             </div>

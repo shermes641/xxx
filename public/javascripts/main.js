@@ -358,7 +358,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.sortableOptions = {
                 stop: function(e, ui) {
                     $scope.setWaterfallOrder();
-                    updateWaterfall();
+                    $scope.updateWaterfall();
                 }
             };
 
@@ -599,7 +599,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }, 5000)
             };
 
-            var updateWaterfall = function() {
+            $scope.updateWaterfall = function() {
                 $scope.setWaterfallOrder();
                 var params = {
                     adProviderOrder: $scope.waterfallData.waterfallAdProviderList.filter(function(el) { return(!el.newRecord); }),
@@ -623,11 +623,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             $scope.toggleTestMode = function() {
                 if(!$scope.disableTestModeToggle) {
-                    updateWaterfall();
+                    $scope.updateWaterfall();
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
                     $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
-                    $scope.flashMessage({message: "You must activate at least one Ad Provider.", status: "error"})
+                    $scope.flashMessage({message: "You must activate at least one Ad Provider", status: "error"})
                 }
             };
 
@@ -636,7 +636,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if($scope.waterfallData.waterfall.optimizedOrder) {
                     $scope.orderList();
                 }
-                updateWaterfall();
+                $scope.updateWaterfall();
             };
 
             $scope.toggleWapStatus = function(adProviderConfig) {
@@ -645,7 +645,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
                 if(!originalVal || $scope.waterfallData.waterfall.testMode || (originalVal && (activeAdProviders.length > 1))) {
                     adProviderConfig.active = !adProviderConfig.active;
-                    updateWaterfall();
+                    $scope.updateWaterfall();
                 } else {
                     $scope.flashMessage({message: "At least one Ad Provider must be active", status: "error"})
                 }

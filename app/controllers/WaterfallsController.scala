@@ -166,9 +166,15 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     request.body.asJson.map { json =>
       DB.withTransaction { implicit connection =>
         try {
+          val cpm: Option[Double] = (json \ "cpm") match {
+            case _: JsUndefined => None
+            case cpmVal: JsNumber => Some(cpmVal.as[Double])
+            case cpmVal: JsString => Some(cpmVal.as[String].toDouble)
+            case _ => None
+          }
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], Some((jsArray \ "cpm").as[Double]), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
+            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], cpm, (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
           }
           val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
           val testMode: Boolean = (json \ "testMode").as[Boolean]
