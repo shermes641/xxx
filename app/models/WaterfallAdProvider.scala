@@ -321,22 +321,21 @@ object WaterfallAdProvider extends JsonConversion {
   /**
    * Retrieves configuration data for WaterfallAdProviders and AdProviders.
    * @param waterfallAdProviderID ID of the current WaterfallAdProvider.
+   * @param connection A shared database connection.
    * @return Instance of WaterallAdProviderConfig class if records exist; otherwise, returns None.
    */
-  def findConfigurationData(waterfallAdProviderID: Long): Option[WaterfallAdProviderConfig] = {
-    DB.withConnection { implicit connection =>
-      val query = SQL(
-        """
-          SELECT name, cpm, ad_providers.configuration_data as ad_provider_configuration, ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
-          FROM waterfall_ad_providers wap
-          JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
-          WHERE wap.id = {id};
-        """
-      ).on("id" -> waterfallAdProviderID)
-      query.as(waterfallAdProviderConfigParser*) match {
-        case List(waterfallAdProviderConfig) => Some(waterfallAdProviderConfig)
-        case _ => None
-      }
+  def findConfigurationData(waterfallAdProviderID: Long)(implicit connection: Connection): Option[WaterfallAdProviderConfig] = {
+    val query = SQL(
+      """
+        SELECT name, cpm, ad_providers.configuration_data as ad_provider_configuration, ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
+        FROM waterfall_ad_providers wap
+        JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
+        WHERE wap.id = {id};
+      """
+    ).on("id" -> waterfallAdProviderID)
+    query.as(waterfallAdProviderConfigParser*) match {
+      case List(waterfallAdProviderConfig) => Some(waterfallAdProviderConfig)
+      case _ => None
     }
   }
 

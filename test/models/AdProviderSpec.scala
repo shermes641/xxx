@@ -2,6 +2,7 @@ package models
 
 import org.specs2.runner._
 import org.junit.runner._
+import play.api.db.DB
 import play.api.libs.json.Json
 import resources.WaterfallSpecSetup
 
@@ -48,7 +49,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       val callbackUrl = Some("/v1/reward_callbacks/%s/new_ad_provider?amount=1&uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
       val newProviderID = AdProvider.create("New AdProvider", adProviderConfigData, callbackUrl).get
       val wapID = WaterfallAdProvider.create(currentWaterfall.id, newProviderID, None, None, true, true).get
-      val config = WaterfallAdProvider.findConfigurationData(wapID).get
+      val config = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(wapID).get }
       config.callbackUrlFormat must beEqualTo(callbackUrl)
     }
 

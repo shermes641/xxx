@@ -457,19 +457,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
-            var getWapData = function(wapID) {
-                $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID + '/edit').success(function(wapData) {
-                    $scope.wapData = wapData;
-                    $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
-                    $scope.showWaterfallAdProviderModal = true;
-                    $scope.modalShown = true;
-                    for(var i = 0; i < wapData.reqParams.length; i++) {
-                        var param = wapData.reqParams[i];
-                        $scope.restartableParams[param.displayKey] = param.value;
-                    }
-                }).error(function(data) {
-                    $scope.flashMessage(data);
-                });
+            var setWapData = function(wapData) {
+                $scope.wapData = wapData;
+                $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
+                $scope.showWaterfallAdProviderModal = true;
+                $scope.modalShown = true;
+                for(var i = 0; i < wapData.reqParams.length; i++) {
+                    var param = wapData.reqParams[i];
+                    $scope.restartableParams[param.displayKey] = param.value;
+                }
             };
 
             $scope.editWaterfallAdProvider = function(adProviderConfig) {
@@ -496,12 +492,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.generationNumber = data.newGenerationNumber;
-                        getWapData(data.wapID);
+                        setWapData(data)
                     }).error(function(data) {
                         $scope.flashMessage(data);
                     });
                 } else {
-                    getWapData(adProviderConfig.waterfallAdProviderID);
+                    $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit').success(function(wapData) {
+                        setWapData(wapData)
+                    }).error(function(data) {
+                        $scope.flashMessage(data);
+                    });
                 }
             };
 
@@ -632,6 +632,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.disableTestModeToggle = checkTestModeToggle();
                     $scope.flashMessage(data);
                 }).error(function(data) {
+                    $scope.flashMessage(data);
                 });
             };
 

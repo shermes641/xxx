@@ -32,7 +32,8 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
           (wapID, newGenerationNumber) match {
             case (Some(wapIDVal), Some(newGenerationNumberVal)) => {
-              Ok(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal.toString, "newGenerationNumber" -> newGenerationNumberVal.toString))
+              val jsonParams = Some(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal.toString, "newGenerationNumber" -> newGenerationNumberVal.toString))
+              retrieveWaterfallAdProvider(wapIDVal, distributorID, Some((wapData \ "appToken").as[String]), jsonParams)
             }
             case (_, _) => {
               BadRequest(Json.obj("status" -> "error", "message" -> "Ad Provider was not created."))
@@ -56,6 +57,21 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
    * @return Form for editing WaterfallAdProvider.
    */
   def edit(distributorID: Long, waterfallAdProviderID: Long, appToken: Option[String]) = withAuth(Some(distributorID)) { username => implicit request =>
+    DB.withConnection { implicit connection =>
+      retrieveWaterfallAdProvider(waterfallAdProviderID, distributorID, appToken, jsonParams = None)
+    }
+  }
+
+  /**
+   * Helper function to find WaterfallAdProvider configuration data in the create and edit actions.
+   * @param waterfallAdProviderID ID of the current WaterfallAdProvider.
+   * @param distributorID ID of the Distributor who owns the current WaterfallAdProvider.
+   * @param appToken String identifier for the App to which the Waterfall belongs.
+   * @param jsonParams Optional additional JSON params to be added to the response.
+   * @param connection A shared database connection.
+   * @return JSON containing WaterfallAdProvider data if a WaterfallAdProvider is found; otherwise, a JSON error message.
+   */
+  def retrieveWaterfallAdProvider(waterfallAdProviderID: Long, distributorID: Long, appToken: Option[String], jsonParams: Option[JsObject])(implicit connection: Connection) = {
     WaterfallAdProvider.findConfigurationData(waterfallAdProviderID) match {
       case Some(configData) => {
         val callbackUrl: Option[String] = configData.callbackUrlFormat match {
@@ -68,10 +84,14 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           }
           case None => None
         }
-        Ok(Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
+        val response = Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
           "reqParams" -> requiredParamsListJs(configData.mappedFields("requiredParams")), "reportingParams" -> requiredParamsListJs(configData.mappedFields("reportingParams")),
           "callbackParams" -> requiredParamsListJs(configData.mappedFields("callbackParams")), "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive),
-          "callbackUrl" -> JsString(callbackUrl.getOrElse("")), "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get)))
+          "callbackUrl" -> JsString(callbackUrl.getOrElse("")), "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get))
+        jsonParams match {
+          case Some(params) => Ok(response.deepMerge(params))
+          case None => Ok(response)
+        }
       }
       case _ => {
         BadRequest(Json.obj("status" -> "error", "message" -> "Could not find ad provider."))
