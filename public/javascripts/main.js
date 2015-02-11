@@ -130,9 +130,6 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
     $routeProvider.when('/distributors/:distributorID/apps/new', {
         controller: 'NewAppsController',
         templateUrl: 'assets/templates/apps/newAppModal.html'
-    }).when('/distributors/:distributorID/apps/:appID/edit', {
-        controller: 'EditAppsController',
-        templateUrl: 'assets/templates/apps/editApp.html'
     }).when('/distributors/:distributorID/waterfalls/:waterfallID/edit', {
         controller: 'WaterfallController',
         templateUrl: 'assets/templates/waterfalls/edit.html'
@@ -294,7 +291,6 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
                         $window.location.href = "/distributors/"+data.distributorID+"/apps/new";
                     }).
                     error(function(data, status, headers, config) {
-                        debugger;
                         if(data.fieldName) {
                             $scope.errors[data.fieldName] = data.message;
                             $scope.errors[data.fieldName + "Class"] = "error";

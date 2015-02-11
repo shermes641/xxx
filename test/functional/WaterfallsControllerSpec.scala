@@ -13,11 +13,11 @@ import resources._
 @RunWith(classOf[JUnitRunner])
 class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
   val wap1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, None, true, true)
+    createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, Some(5.0), true, true)
   }
 
   val wap2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    createWaterfallAdProvider(waterfall.id, adProviderID2.get, None, None, true, true)
+    createWaterfallAdProvider(waterfall.id, adProviderID2.get, None, Some(5.0), true, true)
   }
 
   "WaterfallsController.list" should {

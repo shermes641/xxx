@@ -66,7 +66,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   /**
    * Creates a new App in the database along with an associated Waterfall, VirtualCurrency, and AppConfig.
    * @param distributorID ID associated with current Distributor.
-   * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
+   * @return Responds with 201 when App is persisted successfully.  Otherwise, returns 400.
    */
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>

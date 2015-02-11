@@ -54,7 +54,7 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
   def createWaterfallAdProvider(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean = true, active: Boolean = true, configuration: JsObject = JsObject(Seq("requiredParams" -> JsObject(Seq())))): WaterfallAdProvider = {
     val id = WaterfallAdProvider.create(waterfallID, adProviderID, waterfallOrder, cpm, configurable, active).get
     val wap = WaterfallAdProvider.find(id).get
-    WaterfallAdProvider.update(new WaterfallAdProvider(id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+    WaterfallAdProvider.update(new WaterfallAdProvider(id, wap.waterfallID, wap.adProviderID, None, cpm, Some(true), None, configuration, false))
     WaterfallAdProvider.find(id).get
   }
 }
