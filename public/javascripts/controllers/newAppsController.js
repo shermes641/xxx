@@ -1,5 +1,5 @@
-appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'appCheck',
-        function( $scope, $window, $http, $routeParams, appCheck ) {
+appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'appCheck', 'fieldsFilled',
+        function( $scope, $window, $http, $routeParams, appCheck, fieldsFilled ) {
             $('body').addClass('new-app-page');
 
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
@@ -9,7 +9,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
 
             $scope.checkInputs = function() {
                 var requiredFields = ['appName', 'currencyName', 'rewardMin', 'exchangeRate'];
-                if(appCheck.fieldsFilled($scope.newApp, requiredFields)) {
+                if(fieldsFilled($scope.newApp, requiredFields)) {
                     $scope.invalidForm = false;
                     $scope.inactiveClass = "";
                 } else {

@@ -28,9 +28,6 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
 
 // Factories
 appsControllers.factory('appCheck', [function() {
-    // Default div for error messages.
-    var defaultErrorDiv = $("#error-message");
-
     var appCheck = {};
 
     // Checks if Reward Minimum is greater than Reward Maximum.
@@ -57,17 +54,6 @@ appsControllers.factory('appCheck', [function() {
         }
     };
 
-    // Check if all required fields are filled.
-    appCheck.fieldsFilled = function(data, requiredFields) {
-        for(var i=0; i < requiredFields.length; i++) {
-            var field = data[requiredFields[i]];
-            if(field === undefined || field === null || field === "") {
-                return false
-            }
-        }
-        return true;
-    };
-
     // Checks for a valid callback URL when server to server callbacks are enabled.
     appCheck.validCallback = function(data) {
         var callbacksEnabled = data.serverToServerEnabled;//$(":input[id=serverToServerEnabled]").prop("checked");
@@ -83,12 +69,12 @@ appsControllers.factory('appCheck', [function() {
     return appCheck;
 }]);
 
-distributorUsersControllers.factory('fieldsFilled', [function(data, requiredFields) {
+mediationModule.factory('fieldsFilled', [function(data, requiredFields) {
     // Check if all required fields are filled.
     return function(data, requiredFields) {
         for(var i=0; i < requiredFields.length; i++) {
             var field = data[requiredFields[i]];
-            if(field === "" || field === null) {
+            if(field === undefined || field === "" || field === null) {
                 return false
             }
         }
