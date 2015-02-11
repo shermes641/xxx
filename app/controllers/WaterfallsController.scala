@@ -193,7 +193,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         try {
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], Some((jsArray \ "cpm").as[Double]), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
+            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], (jsArray \ "cpm"), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
           }
           val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
           val testMode: Boolean = (json \ "testMode").as[Boolean]
@@ -222,6 +222,19 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
+  }
+
+  /**
+   * Helper function to convert eCPM JsValue.
+   * @param param A JsValue that could be null.
+   * @return If the value exists, convert to an optional Double; otherwise, return None.
+   */
+  implicit def convertCpm(param: JsValue): Option[Double] = {
+    param match {
+      case value: JsValue if(value == JsNull) => None
+      case value: JsValue => Some(value.as[Double])
+      case _ => None
     }
   }
 

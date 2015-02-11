@@ -126,8 +126,10 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       }
       val hyprID = AdProvider.create("HyprMarketplace", hyprMarketplaceConfiguration, None, false, Some(20)).get
       val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, hyprID, None, None, true).get
-      val Some(result) = route(wapEditRequest(waterfallAdProviderID).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
-      contentAsString(result) must not contain param
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.find(".edit-waterfall-ad-provider-field").first().isDisplayed must beFalse
     }
   }
 
