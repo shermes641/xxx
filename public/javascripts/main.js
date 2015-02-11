@@ -23,7 +23,6 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
         templateUrl: 'assets/templates/distributor_users/login.html'
     });
     $locationProvider.html5Mode(true);
-    $locationProvider.hashPrefix('!');
 }]);
 
 // Factories
