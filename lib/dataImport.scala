@@ -23,7 +23,7 @@ val adColonyConfiguration = {
       "{\"description\": \"Your Reporting API Key\", \"displayKey\": \"Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"displayKey\": \"V4VC Secret Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"The V4VC Secret Key from Ad Colony's dashboard\", \"displayKey\": \"V4VC Secret Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "]" +
   "}"
 }
@@ -35,7 +35,7 @@ val hyprMarketplaceConfiguration = {
   "{" +
     "\"requiredParams\":[" +
       "{\"description\": \"Your HyprMX Distributor ID\", \"displayKey\": \"Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
-      "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"Property ID\", \"key\": \"propertyID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+      "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"\", \"key\": \"propertyID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"reportingParams\": [" +
       "{\"description\": \"Your API Key for HyprMX\", \"displayKey\": \"API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, " +
@@ -43,7 +43,6 @@ val hyprMarketplaceConfiguration = {
       "{\"description\": \"Your App ID\", \"displayKey\": \"App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "], " +
     "\"callbackParams\": [" +
-      "{\"description\": \"Your Event API Key\", \"displayKey\": \"Callback Secret\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
     "]" +
   "}"
 }

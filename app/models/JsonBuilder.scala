@@ -12,14 +12,15 @@ object JsonBuilder extends ValueToJsonHelper {
 
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
-   * @param adProviders List of AdProviderInfo instances containing ad provider names and configuration info.
+   * @param adProviderList List of AdProviderInfo instances containing ad provider names and configuration info.
+   * @param configInfo All other configuration info not related to specific AdProviders.
    * @return JSON object with an ordered array of ad providers and their respective configuration info.
    */
-  def appConfigResponseV1(adProviders: List[AdProviderInfo]): JsValue = {
+  def appConfigResponseV1(adProviderList: List[AdProviderInfo], configInfo: AdProviderInfo): JsValue = {
     val adProviderConfigurations = {
       JsObject(
         Seq(
-          "adProviderConfigurations" -> adProviders.foldLeft(JsArray())((array, el) =>
+          "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
             array ++
               JsArray(
                 JsObject(
@@ -32,23 +33,23 @@ object JsonBuilder extends ValueToJsonHelper {
                     })
                   )
                 ).deepMerge(
-                  el.configurationData match {
-                    case Some(data) => {
-                      (data \ "requiredParams") match {
-                        case _: JsUndefined => JsObject(Seq())
-                        case json: JsValue => json.as[JsObject]
+                    el.configurationData match {
+                      case Some(data) => {
+                        (data \ "requiredParams") match {
+                          case _: JsUndefined => JsObject(Seq())
+                          case json: JsValue => json.as[JsObject]
+                        }
                       }
+                      case None => JsObject(Seq())
                     }
-                    case None => JsObject(Seq())
-                  }
                   ) :: Nil
               )
           )
         )
       )
     }
-    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(adProviders(0)), appNameConfiguration(adProviders(0)),
-      distributorConfiguration(adProviders(0)), sdkConfiguration(adProviders(0).appConfigRefreshInterval), testModeConfiguration)
+    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
+      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
