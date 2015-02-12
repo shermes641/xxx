@@ -61,13 +61,14 @@ class JunGroupAPI {
 
   /**
    * Creates a JSON object of the adNetwork configuration
-   * @param distributorUser An instance of the distributorUser with the information need to create an ad network account
-   * @param appToken The unique identifier for an app.
+   * @param companyName The name of the Distributor to which the App belongs.
+   * @param appName The name of the App.
+   * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
    * @return A JsObject with ad network information.
    */
-  def adNetworkConfiguration(distributorUser: DistributorUser, appToken: String): JsObject = {
+  def adNetworkConfiguration(companyName: String, appName: String, appToken: String): JsObject = {
     val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
-    val adNetworkName = appToken + "." + distributorUser.email
+    val adNetworkName = companyName + " - " + appName
     JsObject(
       Seq(
         "ad_network" -> JsObject(
@@ -103,15 +104,17 @@ class JunGroupAPI {
  * Actor that creates requests and retries on failure up to RETRY_COUNT times every RETRY_FREQUENCY
  * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
  * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance that was just created.
- * @param appToken The unique identifier of the App to which the Waterfall and WaterfallAdProvider belong.
- * @param api Instance of the JunGroupAPI class.
+ * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
  * @param appName The name of the newly created App.
+ * @param distributorID The ID of the Distributor to which the App belongs.
+ * @param api Instance of the JunGroupAPI class.
  */
-class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, api: JunGroupAPI) extends Actor {
+class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, distributorID: Long, api: JunGroupAPI) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
   private val RETRY_FREQUENCY = 3.seconds
   var lastFailure = ""
+  val companyName = Distributor.find(distributorID).get.name
 
   /**
    * Retries the API call to Player.
@@ -129,7 +132,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
         api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
         context.stop(self)
       } else {
-        val adNetwork = api.adNetworkConfiguration(distributorUser, appToken)
+        val adNetwork = api.adNetworkConfiguration(companyName, appName, appToken)
         api.createRequest(adNetwork) map {
           response => {
             if(response.status != 500) {

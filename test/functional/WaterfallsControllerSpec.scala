@@ -220,7 +220,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   "WaterfallsController.edit" should {
     "display default eCPM values for Ad Providers" in new WithAppBrowser(distributor.id.get) {
       val defaultEcpm = "20.00"
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfigData, None, false, Some(defaultEcpm.toDouble)).get
+      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfigData, None, true, Some(defaultEcpm.toDouble)).get
 
       logInUser()
 

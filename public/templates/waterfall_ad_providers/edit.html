@@ -14,7 +14,7 @@
         </div>
 
         <div ng-repeat="param in wapData.reqParams">
-            <div ng-class="errors['reqParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
+            <div ng-hide="param.displayKey === ''" ng-class="errors['reqParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
                 <dd>
                     <dt>
                          <label>* {{param.displayKey}}</label>

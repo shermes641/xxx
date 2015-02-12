@@ -114,6 +114,23 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val Some(result) = route(wapEditRequest(waterfallAdProviderID).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       contentAsString(result) must contain(configParam)
     }
+
+    "hide the field if there is no display key present for a given app config param" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val param = "propertyID"
+      val hyprMarketplaceConfiguration = {
+        "{" +
+          "\"requiredParams\":[" +
+          "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"\", \"key\": \"" + param + "\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+          "], \"reportingParams\": [], \"callbackParams\": []" +
+        "}"
+      }
+      val hyprID = AdProvider.create("HyprMarketplace", hyprMarketplaceConfiguration, None, false, Some(20)).get
+      val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, hyprID, None, None, true).get
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.find(".edit-waterfall-ad-provider-field").first().isDisplayed must beFalse
+    }
   }
 
   "WaterfallAdProvidersController.update" should {
