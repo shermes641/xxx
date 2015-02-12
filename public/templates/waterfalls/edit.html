@@ -63,9 +63,9 @@
                 <code class="waterfall-edit-description copy-paste-code">
                     // Be sure to define myUsersUniqueId() using whatever strategy you choose to generate a user ID.
                     <br/>
-                    @{"NSString *userId = myUsersUniqueId();"}
+                    NSString *userId = myUsersUniqueId();
                     <br/>
-                    @{"[HYPRMediate initialize:@\"" + waterfall.appToken + "\" userId:userId];"}
+                    [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:userId];
                 </code>
             </div>
         </div>
