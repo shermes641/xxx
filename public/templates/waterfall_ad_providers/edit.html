@@ -12,15 +12,15 @@
             </dd>
         </div>
 
-        <div ng-repeat="param in wapData.reqParams">
-            <div id="{{param.key}}-input" ng-hide="param.displayKey === ''" ng-class="errors['reqParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
+        <div ng-repeat="param in wapData.requiredParams">
+            <div id="requiredParams-{{param.key}}-input" ng-hide="param.displayKey === ''" ng-class="errors['requiredParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
                 <dd>
                     <dt>
                          <label>* {{param.displayKey}}</label>
                     </dt>
                     <input type="text" ng-model="param.value"></input>
                     <h4 class="tooltip" data-title="{{param.description}}">?</h4>
-                    <dd class="modal-text error">{{errors['reqParams-' + param.key + '-message']}}</dd>
+                    <dd class="modal-text error">{{errors['requiredParams-' + param.key + '-message']}}</dd>
                 </dd>
             </div>
         </div>

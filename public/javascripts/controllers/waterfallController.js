@@ -229,8 +229,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
                 $scope.showWaterfallAdProviderModal = true;
                 $scope.showModal(true);
-                for(var i = 0; i < wapData.reqParams.length; i++) {
-                    var param = wapData.reqParams[i];
+                for(var i = 0; i < wapData.requiredParams.length; i++) {
+                    var param = wapData.requiredParams[i];
                     $scope.restartableParams[param.displayKey] = param.value;
                 }
             };
@@ -274,71 +274,43 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
             };
 
-            // Assembles dynamic WaterfallAdProvider fields into a standard format and checks each field for error while doing so
-            var retrieveFields = function(fieldType, required) {
-                return($scope.wapData[fieldType].reduce(function(fieldObj, el) {
-                    var label = el.key;
-                    var value = el.value;
-                    if(el.dataType == "Array") {
-                        var arrayValues = value.split(",").map(function(arrayValue) { return(arrayValue.trim()); });
-                        fieldObj[label] = arrayValues;
-                        if(required){
-                            checkForErrors(label, arrayValues[0], fieldType);
-                        }
-                    } else {
-                        fieldObj[label] = value;
-                        if(required) {
-                            checkForErrors(label, value, fieldType);
-                        }
+            // Checks dynamic WaterfallAdProvider fields for errors and sets the inline errors accordingly if found.
+            var checkFieldsForErrors = function(fieldType) {
+                return($scope.wapData[fieldType].map(function(el) {
+                    var value = el.dataType == "Array" ? el.value.split(",").map(function(arrayValue) { return(arrayValue.trim()); })[0] : el.value;
+                    if(value === undefined || value === null || value === "") {
+                        $scope.errors[fieldType + "-" + el.key] = "error";
+                        $scope.errors[fieldType + "-" + el.key + "-message"] = "Field is required";
+                        $scope.invalidForm = true;
                     }
-                    return fieldObj;
-                }, {}))
-            };
-
-            // Checks if a required dynamic WaterfallAdProvider field is missing and if so, renders an error and invalidates the form.
-            var checkForErrors = function(param, value, paramType) {
-                if(value === undefined || value === null || value === "") {
-                    $scope.errors[paramType + "-" + param] = "error";
-                    $scope.errors[paramType + "-" + param + "-message"] = "Field is required";
-                    $scope.invalidForm = true;
-                }
+                }))
             };
 
             // Checks WaterfallAdProvider modal form and submits update if valid.
             $scope.updateWAP = function(wapID, adProviderName) {
                 $scope.errors = {};
                 $scope.invalidForm = false;
-                var reportingActive = $scope.wapData.reportingActive;
-                var cpm = $scope.wapData.cpm;
-                var wapData = {
-                    configurationData: {
-                        requiredParams: retrieveFields("reqParams", true),
-                        reportingParams: retrieveFields("reportingParams", reportingActive ? true : false),
-                        callbackParams: retrieveFields("callbackParams", false)
-                    },
-                    reportingActive: reportingActive,
-                    appToken: $scope.appToken,
-                    waterfallID: $routeParams.waterfallID,
-                    cpm: cpm,
-                    generationNumber: $scope.generationNumber
-                };
+                checkFieldsForErrors("requiredParams", true);
+                if($scope.wapData.reportingActive) { checkFieldsForErrors("reportingParams") }
                 // Check for modified params that require an App restart
-                for (var i = 0; i < $scope.wapData.reqParams.length; i++) {
-                    var param = $scope.wapData.reqParams[i];
+                for (var i = 0; i < $scope.wapData.requiredParams.length; i++) {
+                    var param = $scope.wapData.requiredParams[i];
                     if (param.displayKey != "" && param.value != $scope.restartableParams[param.displayKey]) {
                         $scope.changedRestartParams[param.displayKey] = param.value;
                     }
                 }
-                var parsedCpm = parseFloat(cpm);
+                var parsedCpm = parseFloat($scope.wapData.cpm);
                 if(isNaN(parsedCpm) || parsedCpm < 0.01) {
                     $scope.errors.cpmMessage = "eCPM must be greater than $0.00";
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
                 }
-                console.log( $scope.errors);
                 if(!$scope.invalidForm) {
+                    $scope.wapData.generationNumber = $scope.generationNumber;
+                    $scope.wapData.appToken = $scope.appToken;
+                    $scope.wapData.waterfallID = $routeParams.waterfallID;
                     // Submit update for WaterfallAdProvider
-                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
+                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, $scope.wapData).success(function(data) {
                         $scope.generationNumber = data.newGenerationNumber;
                         var adProviders = $scope.waterfallData.waterfallAdProviderList;
                         for(var i = 0; i < adProviders.length; i++) {
