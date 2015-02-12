@@ -232,8 +232,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    */
   implicit def convertCpm(param: JsValue): Option[Double] = {
     param match {
-      case value: JsValue if(value == JsNull) => None
-      case value: JsValue => Some(value.as[Double])
+      case value: JsValue if(value == JsNumber) => Some(value.as[Double])
       case _ => None
     }
   }
