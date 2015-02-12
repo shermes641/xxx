@@ -59,7 +59,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     Ok(views.html.Apps.newApp(distributorID))
   }
 
-  def takenAppNameError = {
+  val takenAppNameError = {
     "You already have an active App with the same name.  To use this App name, you must first deactivate your existing App in its respective Settings Page"
   }
 

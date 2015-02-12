@@ -115,7 +115,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             // Toggles active/inactive status for an AdProvider
-            $scope.toggleWapStatus = function(adProviderConfig) {
+            $scope.toggleWAPStatus = function(adProviderConfig) {
                 var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
                 var originalVal = adProviderConfig.active;
                 // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
@@ -146,7 +146,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.modalShown = !$scope.modalShown;
             };
 
-            $scope.closeWapModal = function() {
+            $scope.closeWAPModal = function() {
                 $scope.modalShown = false;
                 $scope.showWaterfallAdProviderModal = false;
             };
@@ -224,7 +224,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             /* WaterfallAdProvider logic */
             // Sets WaterfallAdProvider data on a successful response from the server
-            var setWapData = function(wapData) {
+            var setWAPData = function(wapData) {
                 $scope.wapData = wapData;
                 $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
                 $scope.showWaterfallAdProviderModal = true;
@@ -260,14 +260,14 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.generationNumber = data.newGenerationNumber;
-                        setWapData(data)
+                        setWAPData(data)
                     }).error(function(data) {
                         $scope.flashMessage(data);
                     });
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit').success(function(wapData) {
-                        setWapData(wapData)
+                        setWAPData(wapData)
                     }).error(function(data) {
                         $scope.flashMessage(data);
                     });
@@ -304,7 +304,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             // Checks WaterfallAdProvider modal form and submits update if valid.
-            $scope.updateWap = function(wapID, adProviderName) {
+            $scope.updateWAP = function(wapID, adProviderName) {
                 $scope.errors = {};
                 $scope.invalidForm = false;
                 var reportingActive = $scope.wapData.reportingActive;
@@ -353,7 +353,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.modalShown = false;
                         var restartParams = Object.keys($scope.changedRestartParams);
                         var successMessage = adProviderName + " updated!";
-                        $scope.flashMessage({message: generateWapSuccessMesage(successMessage, restartParams), status: "success"});
+                        $scope.flashMessage({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
                     }).error(function(data) {
                         $scope.flashMessage(data);
                     });
@@ -361,7 +361,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             // If necessary, adds param names which require an App restart to the success message
-            var generateWapSuccessMesage = function(message, restartParams) {
+            var generateWAPSuccessMesage = function(message, restartParams) {
                 if(restartParams.length > 0) {
                     var paramMessage = restartParams.length == 1 ? restartParams[0] : restartParams.slice(0, restartParams.length - 1).join(", ") + ", and " + restartParams[restartParams.length - 1];
                     message += " Changes to " + paramMessage + " will require your app to be restarted to take effect.";
