@@ -120,7 +120,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val hyprMarketplaceConfiguration = {
         "{" +
           "\"requiredParams\":[" +
-          "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"\", \"key\": \"" + param + "\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}" +
+          "{\"description\": \"Your HyprMX Property ID\", \"displayKey\": \"\", \"key\": \"" + param + "\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
           "], \"reportingParams\": [], \"callbackParams\": []" +
         "}"
       }
@@ -324,6 +324,31 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.click("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
+    }
+
+    "not allow a user to enter less than the minimum number of characters for a WaterfallAdProvider configuration field" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val adProviderConfigData = {
+        "{" +
+          "\"requiredParams\":[" +
+            "{\"description\": \"Your Distributor ID\", \"displayKey\": \"Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": true, \"minLength\": 4}" +
+          "], " +
+          "\"reportingParams\": [], \"callbackParams\": []" +
+        "}"
+      }
+      val adProviderName = "Test Ad Provider 3"
+      AdProvider.create(adProviderName, adProviderConfigData, None, true, None)
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
+      browser.executeScript("$('button[name=configure-wap]').last().click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input").`with`("1.0", "123")
+      browser.click("button[name=update-ad-provider]")
+      browser.find(".modal-text", 2).getText must contain("This field requires at least 4 characters")
+      browser.fill("input").`with`("1.0", "1234")
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviderName + " updated!")
     }
   }
 }

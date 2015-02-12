@@ -278,9 +278,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var checkFieldsForErrors = function(fieldType) {
                 return($scope.wapData[fieldType].map(function(el) {
                     var value = el.dataType == "Array" ? el.value.split(",").map(function(arrayValue) { return(arrayValue.trim()); })[0] : el.value;
-                    if(value === undefined || value === null || value === "") {
+                    if(value === undefined || value === null || value === "" || value.length < el.minLength) {
                         $scope.errors[fieldType + "-" + el.key] = "error";
-                        $scope.errors[fieldType + "-" + el.key + "-message"] = "Field is required";
+                        $scope.errors[fieldType + "-" + el.key + "-message"] = el.minLength > 1 ? "This field requires at least " + el.minLength + " characters" : "Field is required";
                         $scope.invalidForm = true;
                     }
                 }))
