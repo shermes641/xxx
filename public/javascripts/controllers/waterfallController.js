@@ -64,7 +64,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleOptimizedMode = function() {
                 $scope.sortableOptions.disabled = !$scope.sortableOptions.disabled;
                 if($scope.waterfallData.waterfall.optimizedOrder) {
-                    $scope.orderList();
+                    $scope.orderOptimizedWaterfallList();
                 }
                 $scope.updateWaterfall();
             };
@@ -78,7 +78,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             // Sets the order of the Waterfall.
-            $scope.orderList = function() {
+            $scope.orderOptimizedWaterfallList = function() {
                 if($scope.waterfallData.waterfall.optimizedOrder) {
                     var newOrder = $scope.providersByActive(true).sort(function(li1, li2) {
                         return (Number(li2.cpm) - Number(li1.cpm))
@@ -126,7 +126,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.flashMessage({message: "At least one Ad Provider must be active", status: "error"})
                 }
                 $scope.disableTestModeToggle = checkTestModeToggle();
-                $scope.orderList();
+                $scope.orderOptimizedWaterfallList();
             };
 
             /* App logic */
@@ -181,8 +181,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         success(function(data, status, headers, config) {
                             $scope.toggleNewAppModal();
                             $scope.flashMessage(data);
-                        }).
-                        error(function(data, status, headers, config) {
+                        }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
@@ -214,8 +213,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             $scope.showEditAppModal = false;
                             $scope.modalShown = false;
                             $scope.flashMessage(data);
-                        }).
-                        error(function(data, status, headers, config) {
+                        }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
@@ -350,7 +348,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                                 adProviders[i].unconfigured = false;
                             }
                         }
-                        $scope.orderList();
+                        $scope.orderOptimizedWaterfallList();
                         $scope.showWaterfallAdProviderModal = false;
                         $scope.modalShown = false;
                         var restartParams = Object.keys($scope.changedRestartParams);
@@ -389,6 +387,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.messages = messages;
             };
 
+            // Sets message timeout and removes the last flash message
             $scope.setMessageTimeout = function(messageText) {
                 $timeout(function() {
                     for(var index in $scope.messages) {
