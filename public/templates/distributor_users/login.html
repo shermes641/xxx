@@ -1,0 +1,39 @@
+<div id="error-message" class="flash-message error"></div>
+<div id="success-message" class="flash-message success"></div>
+<div class="content registration">
+    <h1>Welcome Back!</h1>
+    <hr />
+    <div class="modal_text">
+        Enter your username and password below to gain access.
+    </div>
+    <form name="loginForm" ng-controller="LoginController" ng-submit="submit()" novalidate>
+
+        <dl id="email_field">
+            <dt><label for="email"></label></dt>
+            <dd ng-class="errors.emailClass">
+                <input ng-model="data.email" ng-change="checkInputs()" type="email" id="email" name="email" value="" placeholder="Email" required/>
+            </dd>
+            <div ng-show="loginForm.$submitted || loginForm.email.$touched">
+                <dd class="error">{{errors.email}}</dd>
+                <dd class="error" ng-show="loginForm.email.$error.required">Email address is required</dd>
+                <dd class="error" ng-show="loginForm.email.$error.email">The email you entered is invalid.</dd>
+            </div>
+        </dl>
+
+        <dl id="password_field">
+            <dt><label for="password"></label></dt>
+            <dd ng-class="errors.passwordClass">
+                <input ng-model="data.password" ng-change="checkInputs()" type="password" id="password" name="password" placeholder="Password" required/>
+            </dd>
+            <div ng-show="loginForm.$submitted || loginForm.password.$touched">
+                <dd class="error">{{errors.password}}</dd>
+                <dd class="error" ng-show="loginForm.password.$error.required">Password is required</dd>
+            </div>
+        </dl>
+
+        <button type="submit" name="submit">Sign In</button>
+    </form>
+</div>
+<div id="registration-link">
+    <a href="/signup">Create a hyprMediate Account</a>
+</div>

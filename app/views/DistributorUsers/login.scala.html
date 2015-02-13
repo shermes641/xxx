@@ -1,16 +1,3 @@
-@(form: Form[Login])(implicit flash: Flash, session: Session)
+@()(implicit flash: Flash, session: Session)
 @main("Log In") {
-    <div class="content registration">
-        <h1>Sign In</h1>
-        @println(session.get("user"))
-        @views.html.Partials.formErrors(form.hasErrors, form.errors)
-            @helper.form(action = routes.DistributorUsersController.authenticate) {
-                @helper.inputText(form("email"),'_showConstraints -> true, 'placeholder -> "Email", '_label -> null)
-                @helper.inputPassword(form("password"),'_showConstraints -> true, 'placeholder -> "Password", '_label -> null)
-                <button type="submit" name="submit">Log In</button>
-            }
-        <div id="registration-link">
-            <a href="@routes.DistributorUsersController.signup()">Or Sign Up</a>
-        </div>
-    </div>
 }

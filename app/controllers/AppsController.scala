@@ -1,60 +1,54 @@
 package controllers
 
-import java.sql.Connection
 import akka.actor.Props
+import java.sql.Connection
 import models._
-import play.api.data.{FormError, Form}
-import play.api.data.Forms._
 import play.api.db.DB
 import play.api.libs.concurrent.Akka
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 import play.api.mvc._
-import play.api.Play.current
 import play.api.Play
+import play.api.Play.current
 
 /** Controller for models.App instances. */
 object AppsController extends Controller with Secured with CustomFormValidation {
-  // Partial error messages used in newAppForm and editAppForm
-  val appNameError: String = "App name"
-  val currencyNameError: String = "Currency name"
+  implicit val newAppReads: Reads[NewAppMapping] = (
+    (JsPath \ "appName").read[String] and
+    (JsPath \ "currencyName").read[String] and
+    (JsPath \ "exchangeRate").read[Long] and
+    (JsPath \ "rewardMin").read[Long] and
+    (JsPath \ "rewardMax").readNullable[Long] and
+    (JsPath \ "roundUp").readNullable[Boolean]
+  )(NewAppMapping.apply _)
 
-  // Form mapping used in create action
-  val newAppForm = Form[NewAppMapping](
-    mapping(
-      "appName" -> text.verifying(nonEmptyConstraint(appNameError)),
-      "currencyName" -> text.verifying(nonEmptyConstraint(currencyNameError)),
-      "exchangeRate" -> longNumber,
-      "rewardMin" -> longNumber,
-      "rewardMax" -> optional(longNumber),
-      "roundUp" -> optional(checked(""))
-    )(NewAppMapping.apply)(NewAppMapping.unapply)
-  )
+  implicit val editAppReads: Reads[EditAppMapping] = (
+    (JsPath \ "currencyID").read[Long] and
+    (JsPath \ "active").readNullable[Boolean] and
+    (JsPath \ "appName").read[String] and
+    (JsPath \ "currencyName").read[String] and
+    (JsPath \ "exchangeRate").read[Long] and
+    (JsPath \ "rewardMin").read[Long] and
+    (JsPath \ "rewardMax").readNullable[Long] and
+    (JsPath \ "roundUp").readNullable[Boolean] and
+    (JsPath \ "callbackURL").readNullable[String] and
+    (JsPath \ "serverToServerEnabled").readNullable[Boolean] and
+    (JsPath \ "generationNumber").readNullable[Long]
+  )(EditAppMapping.apply _)
 
-  // Form mapping used in edit action.
-  val editAppForm = Form[EditAppMapping](
-    mapping(
-      "currencyID" -> longNumber,
-      "active" -> optional(checked("")),
-      "appName" -> text.verifying(nonEmptyConstraint(appNameError)),
-      "currencyName" -> text.verifying(nonEmptyConstraint(currencyNameError)),
-      "exchangeRate" -> longNumber,
-      "rewardMin" -> longNumber,
-      "rewardMax" -> optional(longNumber),
-      "roundUp" -> optional(checked("")),
-      "callbackURL" -> optional(text),
-      "serverToServerEnabled" -> optional(checked("")),
-      "generationNumber" -> optional(longNumber)
-    )(EditAppMapping.apply)(EditAppMapping.unapply)
-  )
-
-  /**
-   * Renders view of all apps associated with the current Distributor.
-   * @param distributorID ID associated with current DistributorUser
-   * @return Apps index view
-   */
-  def index(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    val apps = App.findAllAppsWithWaterfalls(distributorID)
-    Ok(views.html.Apps.index(apps, distributorID))
-  }
+  implicit val editAppWrites = (
+    (__ \ "currencyID").write[Long] and
+    (__ \ "active").writeNullable[Boolean] and
+    (__ \ "appName").write[String] and
+    (__ \ "currencyName").write[String] and
+    (__ \ "exchangeRate").write[Long] and
+    (__ \ "rewardMin").write[Long] and
+    (__ \ "rewardMax").writeNullable[Long] and
+    (__ \ "roundUp").writeNullable[Boolean] and
+    (__ \ "callbackURL").writeNullable[String] and
+    (__ \ "serverToServerEnabled").writeNullable[Boolean] and
+    (__ \ "generationNumber").writeNullable[Long]
+    )(unlift(EditAppMapping.unapply))
 
   /**
    * Renders the form for creating a new App.
@@ -62,25 +56,28 @@ object AppsController extends Controller with Secured with CustomFormValidation 
    * @return Form for creating a new App
    */
   def newApp(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    Ok(views.html.Apps.newApp(newAppForm, distributorID))
+    Ok(views.html.Apps.newApp(distributorID))
+  }
+
+  val takenAppNameError = {
+    "You already have an active App with the same name.  To use this App name, you must first deactivate your existing App in its respective Settings Page"
   }
 
   /**
    * Creates a new App in the database along with an associated Waterfall, VirtualCurrency, and AppConfig.
    * @param distributorID ID associated with current Distributor.
-   * @return Responds with 201 when App is persisted successfully.  Otherwise, redirect to Application index view.
+   * @return Responds with 201 when App is persisted successfully.  Otherwise, returns 400.
    */
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    newAppForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.Apps.newApp(formWithErrors, distributorID)),
-      newApp => {
+    request.body.asJson.map { json =>
+      json.validate[NewAppMapping].map { newApp =>
         App.nameExists(newApp.appName, distributorID) match {
           case Some(existingAppID) => {
-            val form = Form(newAppForm.mapping, newAppForm.data, takenAppNameError(distributorID, existingAppID), newAppForm.value).fill(newApp)
-            BadRequest(views.html.Apps.newApp(form, distributorID))
+            BadRequest(Json.obj("status" -> "error", "fieldName" -> "appName", "message" -> takenAppNameError))
           }
           case None => {
             DB.withTransaction { implicit connection =>
+              val createErrorMessage = "App could not be created."
               try {
                 App.createWithTransaction(distributorID, newApp.appName) match {
                   case Some(appID) => {
@@ -91,43 +88,36 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                       case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
                         AppConfig.create(appID, app.token, 0)
                         // Set up HyprMarketplace ad provider
-                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), false, false, true)
+                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), configurable = false, active = false, pending = true)
                         val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
                         (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                           case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
                             val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))
                             actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
-                            Redirect(routes.WaterfallsController.list(distributorID, appID, Some("App created!")))
+                            Ok(Json.obj("status" -> "success", "message" -> "App Created!"))
                           }
-                          case (_, _) => onCreateRollback(distributorID)
+                          case (_, _) => rollbackWithError(createErrorMessage)
                         }
                       }
-                      case (_, _, _) => onCreateRollback(distributorID)
+                      case (_, _, _) => rollbackWithError(createErrorMessage)
                     }
                   }
-                  case _ => onCreateRollback(distributorID)
+                  case _ => rollbackWithError(createErrorMessage)
                 }
               } catch {
                 case error: org.postgresql.util.PSQLException => {
-                  onCreateRollback(distributorID)
+                  rollbackWithError(createErrorMessage)
                 }
               }
             }
           }
         }
+      }.recoverTotal {
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
       }
-    )
-  }
-
-  /**
-   * Rolls back database and renders error message for App creation action.
-   * @param distributorID The ID of the Distributor to which the new App belongs.
-   * @param connection A shared database connection
-   * @return Redirect back to the Apps index page.
-   */
-  def onCreateRollback(distributorID: Long)(implicit connection: Connection) = {
-    connection.rollback()
-    Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be created.")
+    }.getOrElse {
+      BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
   }
 
   /**
@@ -139,12 +129,12 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
-        val form = editAppForm.fill(new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber))
-        Ok(views.html.Apps.edit(form, distributorID, appID))
+        val editAppInfo = new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber)
+        Ok(Json.toJson(editAppInfo))
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "App could not be found.")
+        BadRequest(Json.obj("status" -> "error", "message" -> "App could not be found."))
       }
     }
   }
@@ -156,15 +146,14 @@ object AppsController extends Controller with Secured with CustomFormValidation 
    * @return Responds with 200 if App is successfully updated.  Otherwise, flash error and respond with 304.
    */
   def update(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    editAppForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.Apps.edit(formWithErrors, distributorID, appID)),
-      appInfo => {
+    request.body.asJson.map { json =>
+      json.validate[EditAppMapping].map { appInfo =>
         App.nameExists(appInfo.appName, distributorID, Some(appID)) match {
           case Some(existingAppID) => {
-            val form = Form(editAppForm.mapping, editAppForm.data, takenAppNameError(distributorID, existingAppID), editAppForm.value).fill(appInfo)
-            BadRequest(views.html.Apps.edit(form, distributorID, appID))
+            BadRequest(Json.obj("status" -> "error", "fieldName" -> "appName", "message" -> takenAppNameError))
           }
           case None => {
+            val updateErrorMessage = "App could not be updated."
             val newAppValues = new UpdatableApp(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
             DB.withTransaction { implicit connection =>
               try {
@@ -176,49 +165,41 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                         Waterfall.findByAppID(appID) match {
                           case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
                             val waterfall = waterfalls(0)
-                            AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
+                            val newGeneration = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
+                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration.getOrElse(0).toString))
                           }
                         }
-                        Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "Configurations updated successfully.")
                       }
                       case _ => {
-                        NotModified.flashing("error" -> "App could not be updated.")
+                        BadRequest(Json.obj("status" -> "error", "message" -> updateErrorMessage))
                       }
                     }
-                    Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
                   }
-                  case _ => onUpdateRollback
+                  case _ => rollbackWithError(updateErrorMessage)
                 }
-                Redirect(routes.AppsController.index(distributorID)).flashing("success" -> "App updated successfully.")
               } catch {
-                case error: org.postgresql.util.PSQLException => onUpdateRollback
-                case error: IllegalArgumentException => onUpdateRollback
+                case error: org.postgresql.util.PSQLException => rollbackWithError(updateErrorMessage)
+                case error: IllegalArgumentException => rollbackWithError(updateErrorMessage + "Please refresh your browser.")
               }
             }
           }
         }
+      }.recoverTotal {
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
       }
-    )
+    }.getOrElse {
+      BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
   }
 
   /**
    * Rolls back the transaction and flashes an error message to the user.
+   * @param message The error message to be displayed to the user.
    * @param connection The shared connection for the database transaction.
    */
-  def onUpdateRollback(implicit connection: Connection) = {
+  def rollbackWithError(message: String)(implicit connection: Connection) = {
     connection.rollback()
-    NotModified.flashing("error" -> "App could not be updated.")
-  }
-
-  /**
-   * Creates form error Sequence when an App name is taken.
-   * @param distributorID The ID of the Distributor who owns the App
-   * @param existingAppID The ID of the existing App
-   * @return A Sequence containing the form error.
-   */
-  def takenAppNameError(distributorID: Long, existingAppID: Long): Seq[FormError] = {
-    val settingsLink = "<a href=" + routes.AppsController.edit(distributorID, existingAppID).url + ">Settings Page</a>"
-    Seq(new play.api.data.FormError("takenAppName", settingsLink))
+    BadRequest(Json.obj("status" -> "error", "message" -> message))
   }
 }
 

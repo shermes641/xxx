@@ -4,11 +4,12 @@ import java.sql.Connection
 import play.api.db.DB
 import play.api.mvc._
 import models._
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.Play.current
 import scala.language.implicitConversions
 
-object WaterfallsController extends Controller with Secured with JsonToValueHelper {
+object WaterfallsController extends Controller with Secured with JsonToValueHelper with ValueToJsonHelper {
   /**
    * Redirects to the waterfall assigned to App.
    * Future:  Will return list of waterfalls.
@@ -29,7 +30,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         }
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
       }
     }
   }
@@ -50,9 +51,112 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
       }
       case None => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Waterfall could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
       }
     }
+  }
+
+  def waterfallInfo(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+    Waterfall.find(waterfallID, distributorID) match {
+      case Some(waterfall) => {
+        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
+          new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
+        }
+        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
+        Ok(Json.obj("distributorID" -> JsString(distributorID.toString), "waterfall" -> waterfall, "waterfallAdProviderList" -> adProviderListJs(waterfallAdProviderList),
+          "appsWithWaterfalls" -> appsWithWaterfallListJs(appsWithWaterfalls), "generationNumber" -> JsString(waterfall.generationNumber.getOrElse(0).toString)))
+      }
+      case None => {
+        BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall could not be found."))
+      }
+    }
+  }
+
+  /**
+   * Converts an optional Double value to a JsValue.
+   * @param param The original optional Double value.
+   * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
+   */
+  implicit def optionalDoubleToJsValue(param: Option[Double]): JsValue = {
+    param match {
+      case Some(paramValue) => JsNumber(paramValue)
+      case None => JsNull
+    }
+  }
+
+  /**
+   * Converts an instance of the OrderedWaterfallAdProvider class to a JSON object.
+   * @param wap An instance of the OrderedWaterfallAdProvider class.
+   * @return A JSON object.
+   */
+  implicit def orderedWaterfallAdProviderWrites(wap: OrderedWaterfallAdProvider): JsObject = {
+    JsObject(
+      Seq(
+        "name" -> JsString(wap.name),
+        "waterfallAdProviderID" -> JsString(wap.waterfallAdProviderID.toString),
+        "cpm" -> wap.cpm,
+        "active" -> JsBoolean(wap.active),
+        "waterfallOrder" -> wap.waterfallOrder,
+        "unconfigured" -> JsBoolean(wap.unconfigured),
+        "newRecord" -> JsBoolean(wap.newRecord),
+        "configurable" -> JsBoolean(wap.configurable),
+        "pending" -> JsBoolean(wap.pending)
+      )
+    )
+  }
+
+  /**
+   * Converts a list of OrderedWaterfallAdProvider instances to a JsArray.
+   * @param list A list of OrderedWaterfallAdProvider instances.
+   * @return A JsArray containing OrderedWaterfallAdProvider objects.
+   */
+  def adProviderListJs(list: List[OrderedWaterfallAdProvider]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, wap) => array ++ JsArray(Seq(wap)))
+  }
+
+  /**
+   * Converts an instance of the Waterfall class to a JSON object.
+   * @param waterfall An instance of the Waterfall class.
+   * @return A JSON object.
+   */
+  implicit def waterfallWrites(waterfall: Waterfall): Json.JsValueWrapper = {
+    JsObject(
+      Seq(
+        "id" -> JsString(waterfall.id.toString),
+        "appID" -> JsString(waterfall.app_id.toString),
+        "name" -> JsString(waterfall.name),
+        "token" -> JsString(waterfall.token),
+        "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
+        "testMode" -> JsBoolean(waterfall.testMode),
+        "appToken" -> JsString(waterfall.appToken)
+      )
+    )
+  }
+
+  /**
+   * Converts an instance of the AppWithWaterfallID class to a JSON object.
+   * @param app An instance of the AppWithWaterfallID class.
+   * @return A JSON object.
+   */
+  implicit def appWithWaterfallIDWrites(app: AppWithWaterfallID): JsObject = {
+    JsObject(
+      Seq(
+        "id" -> JsString(app.id.toString),
+        "active" -> JsBoolean(app.active),
+        "distributorID" -> JsString(app.distributorID.toString),
+        "name" -> JsString(app.name),
+        "waterfallID" -> JsString(app.waterfallID.toString)
+      )
+    )
+  }
+
+  /**
+   * Converts a list of AppWithWaterfallID instances to a JsArray.
+   * @param list A list of AppWithWaterfallID instances.
+   * @return A JsArray containing AppWithWaterfallID objects.
+   */
+  def appsWithWaterfallListJs(list: List[AppWithWaterfallID]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
   }
 
   /**
@@ -72,7 +176,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       }
       case (None, None) => {
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
-        Ok(views.html.Waterfalls.editAll(distributorID, appsWithWaterfalls))
+        Redirect(routes.WaterfallsController.list(distributorID, appsWithWaterfalls.head.id, None))
       }
     }
   }
@@ -89,10 +193,10 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         try {
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "id").as[String].toLong, (jsArray \ "newRecord").as[String].toBoolean, (jsArray \ "active").as[String].toBoolean, (jsArray \ "waterfallOrder").as[String].toLong, (jsArray \ "cpm"), (jsArray \ "configurable").as[String].toBoolean, (jsArray \ "pending").as[String].toBoolean)
+            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], (jsArray \ "cpm"), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
           }
-          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[String].toBoolean
-          val testMode: Boolean = (json \ "testMode").as[String].toBoolean
+          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
+          val testMode: Boolean = (json \ "testMode").as[Boolean]
           val generationNumber: Long = (json \ "generationNumber").as[String].toLong
           Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode) match {
             case 1 => {
@@ -100,7 +204,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
                 case true => {
                   val appToken = (json \ "appToken").as[String]
                   val newGenerationNumber: Option[Long] = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
-                  Ok(Json.obj("status" -> "OK", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber.getOrElse(0).toString))
+                  Ok(Json.obj("status" -> "success", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber.getOrElse(0).toString))
                 }
                 case _ => {
                   BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
@@ -118,6 +222,18 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
+  }
+
+  /**
+   * Helper function to convert eCPM JsValue.
+   * @param param A JsValue that could be null.
+   * @return If the value exists, convert to an optional Double; otherwise, return None.
+   */
+  implicit def convertCpm(param: JsValue): Option[Double] = {
+    param match {
+      case value: JsValue if(value == JsNumber) => Some(value.as[Double])
+      case _ => None
     }
   }
 

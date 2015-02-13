@@ -7,6 +7,7 @@ import play.api.Play.current
 import play.api.db.DB
 import play.api.test._
 import resources._
+import com.google.common.base.Predicate
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
   /**
@@ -36,16 +37,23 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
    * Creates application for functional tests using a test database and a Firefox web browser.
    */
   abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) with DefaultUserValues {
+
+    /** makes it possible to use any f: => Boolean function with browser.await.until(f) */
+    implicit def fixPredicate[E1, E2](p: => Boolean): Predicate[E2] = new Predicate[Any] {
+      def apply(p1: Any) = p
+    }.asInstanceOf[Predicate[E2]]
+
     /**
      * Logs in a distributor user for automated browser tests
      * @param email A distributor user's email; defaults to the email value within the SpecificationWithFixtures class.
      * @param password A distributor user's password; defaults to the password value within the SpecificationWithFixtures class.
      */
     def logInUser(email: String = email, password: String = password): Unit = {
-      browser.goTo("http://localhost:" + port + "/login")
+      goToAndWaitForAngular("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
       browser.click("button")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(!browser.url().contains("login"))
     }
 
     /**
@@ -57,11 +65,44 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
      * @param rewardMax The maximum reward a user can receive.  This is optional.
      */
     def fillInAppValues(appName: String = "New App", currencyName: String = "Coins", exchangeRate: String = "100", rewardMin: String = "1", rewardMax: String = "10"): Unit = {
-      browser.fill("#appName").`with`(appName)
-      browser.fill("#currencyName").`with`(currencyName)
-      browser.fill("#exchangeRate").`with`(exchangeRate)
-      browser.fill("#rewardMin").`with`(rewardMin)
-      browser.fill("#rewardMax").`with`(rewardMax)
+      browser.fill("#newAppName").`with`(appName)
+      browser.fill("#newAppCurrencyName").`with`(currencyName)
+      browser.fill("#newAppExchangeRate").`with`(exchangeRate)
+      browser.fill("#newAppRewardMin").`with`(rewardMin)
+      browser.fill("#newAppRewardMax").`with`(rewardMax)
+    }
+
+    def goToAndWaitForAngular(url: String) = {
+      browser.goTo(url)
+      waitForAngular
+    }
+
+    def clickAndWaitForAngular(element: String) = {
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(element).isPresent
+      browser.click(element)
+      waitForAngular
+    }
+
+    def waitForAngular = {
+      val ngAppElement = "body"
+      val markerClass = "angularReady"
+
+      browser.executeScript(
+        "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
+          "angular.element(document.querySelector('" + ngAppElement + "'))" +
+          "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
+          "    function() {" +
+          "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
+          "    })")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+    }
+
+    /**
+     * Creates application for unit tests with set up code for a new App/Waterfall/VirtualCurrency/AppConfig combination.
+     * @param url The URL to check.
+     */
+    def assertUrlEquals(url: String) = {
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.url().contains(url))
     }
   }
 

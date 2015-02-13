@@ -24,5 +24,6 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2-junit" % "2.3.12",
   "com.newrelic.agent.java" % "newrelic-agent" % "3.7.0",
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test"
+  "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
+  "com.github.tototoshi" %% "scala-csv" % "1.1.2"
 )

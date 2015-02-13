@@ -21,20 +21,13 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
   val distributorID = distributorUser.distributorID.get
 
   "Analytics show action" should {
-    def userLogin(browser: TestBrowser) = {
-
-      browser.goTo(controllers.routes.DistributorUsersController.login().url)
-      browser.fill("#email").`with`(email)
-      browser.fill("#password").`with`(password)
-      browser.click("button")
-    }
 
     "show analytics for an app" in new WithFakeBrowser {
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
-      userLogin(browser)
+      logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
       browser.pageSource must contain("Analytics")
     }
 
@@ -42,10 +35,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // Verify first option defaults to "all"
       browser.$("#ad_providers").getValue() must beEqualTo("all")
@@ -55,9 +48,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // Verify first option defaults to "all"
       browser.$("#countries").getValue() must beEqualTo("all")
@@ -67,9 +60,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       var date = DateTime.now
       // End date must be todays date
@@ -83,8 +76,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       // eCPM must be set correctly (placeholder for now)
       browser.$("#keen_project").getValue() must beEqualTo(Play.current.configuration.getString("keen.project").get)
@@ -94,9 +87,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val app2Name = "App 2"
       val appID = App.create(distributorID, app2Name).get
 
-      userLogin(browser)
+      logInUser()
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
 
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
@@ -107,7 +100,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, Some(currentApp.id)).url)
       browser.pageSource() must not contain currentApp.name
     }
 
@@ -116,8 +109,35 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser(maliciousUser.email, password)
 
-      browser.goTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
-      browser.url() must beEqualTo(controllers.routes.AppsController.index(maliciousDistributor.id.get).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
+    }
+
+    "export analytics data as csv" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val app2Name = "App 2"
+      val appID = App.create(distributorID, app2Name).get
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("test@test.com")
+      clickAndWaitForAngular("#export_submit")
+
+      browser.pageSource() must contain("Export Requested")
+    }
+
+    "export analytics data as csv must fail with invalid email" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val app2Name = "App 2"
+      val appID = App.create(distributorID, app2Name).get
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("test@test.com")
+      clickAndWaitForAngular("#export_submit")
+
+      browser.pageSource must contain("The email you entered is invalid.")
     }
   }
 }

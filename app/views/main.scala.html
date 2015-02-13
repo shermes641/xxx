@@ -4,6 +4,7 @@
 
 <html>
     <head>
+        <base href="/">
         <title>@title - HyprMX Mediation</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/datepicker.css")">
@@ -12,21 +13,35 @@
         <script src="@routes.Assets.at("javascripts/jquery.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/jquery-ui.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/underscore.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.at("javascripts/browser_support.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/angular.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/angular-route.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/sortable.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/main.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/controllers/signupController.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/controllers/loginController.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/controllers/browserSupportController.js")" type="text/javascript"></script>
     </head>
-    <body>
+    <body ng-app="MediationModule">
+        <div ng-view></div>
         <div class="content-wrapper">
             <header>
-                <a href="@routes.AppsController.index(distributorID)" class=@{if(title == "") "inactive-link" else ""}>
-                    <img height="34" src="@routes.Assets.at("images/hypr_logo_rgb.jpeg")">
+                <a id="logo" href="@routes.AnalyticsController.show(distributorID, appID)" target="_self" class=@{if(title == "") "inactive-link" else ""}>
+                    <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
                 </a>
                 <div class="actions">
-                    <a href="http://documentation.hyprmx.com">Documentation</a>
                     @session.get("username").map { user =>
-                        <a href="@routes.DistributorUsersController.logout()">
-                            Log out
-                        </a>
+                        <div id="username_header" class="header-actions">
+                                @session.get("username")
+                            <div id="username_dropdown">
+                                <a href="@routes.DistributorUsersController.logout()" target="_self">
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
                     }
+                    <div class="header-actions">
+                        <a href="http://documentation.hyprmx.com">Documentation</a>
+                    </div>
                 </div>
             </header>
             @if(!flash.isEmpty) {
@@ -36,20 +51,24 @@
                     </div>
                 }
             }
-            <div id="browser_support">The browser you are using is not actively supported.<div id="dismiss_browser">Dismiss</div></div>
+            <div id="browser_support" ng-controller="BrowserSupportController">The browser you are using is not actively supported.<div id="dismiss_browser">Dismiss</div></div>
             @content
             <div class="push"></div>
         </div>
         <footer>
-            SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
-            <div class="footer-text-format"></div>
-            @if(play.api.Play.isDev(play.api.Play.current) || Play.current.configuration.getString("staging").getOrElse("false") == "true") {
-                Branch: @{
-                    Play.current.configuration.getString("latestBranch").getOrElse("")
+            <span>&copy; 2014 HyprMX. All Rights Reserved</span>
+            <span><a target="_blank" href="http://jungroup.com/pp.html">Privacy Policy</a></span>
+            <span class="last"><a target="_blank" href="http://jungroup.com/tou.html">Terms of Use</a></span>
+            <br>
+            <div class="version-info">
+                SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
+                <div class="footer-text-format"></div>
+                @if(play.api.Play.isDev(play.api.Play.current) || Play.current.configuration.getString("staging").getOrElse("false") == "true") {
+                    Branch: @{
+                        Play.current.configuration.getString("latestBranch").getOrElse("")
+                    }
                 }
-            }
+            </div>
         </footer>
     </body>
 </html>
-
-<script src="@routes.Assets.at("javascripts/shared/flashHandler.js")" type="text/javascript"></script>

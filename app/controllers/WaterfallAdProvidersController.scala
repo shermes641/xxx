@@ -7,6 +7,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import play.api.Play
 import play.api.Play.current
+import scala.language.implicitConversions
 
 object WaterfallAdProvidersController extends Controller with Secured with JsonToValueHelper {
   /**
@@ -18,14 +19,19 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
     request.body.asJson.map { wapData =>
       DB.withTransaction { implicit connection =>
         try {
-          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, (wapData \ "waterfallOrder"), (wapData \ "cpm"), (wapData \ "configurable").as[String].toBoolean, (wapData \ "active").as[Boolean])
+          val cpm: Option[Double] = (wapData \ "cpm") match {
+            case cpmVal: JsNumber => Some(cpmVal.as[Double])
+            case _ => None
+          }
+          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, None, cpm, (wapData \ "configurable").as[Boolean], active = false)
           val appToken = (wapData \ "appToken").as[String]
           val waterfallID = (wapData \ "waterfallID").as[String].toLong
           val generationNumber = (wapData \ "generationNumber").as[String].toLong
           val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
           (wapID, newGenerationNumber) match {
             case (Some(wapIDVal), Some(newGenerationNumberVal)) => {
-              Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal, "newGenerationNumber" -> newGenerationNumberVal))
+              val jsonParams = Some(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal.toString, "newGenerationNumber" -> newGenerationNumberVal.toString))
+              retrieveWaterfallAdProvider(wapIDVal, distributorID, Some((wapData \ "appToken").as[String]), jsonParams)
             }
             case (_, _) => {
               BadRequest(Json.obj("status" -> "error", "message" -> "Ad Provider was not created."))
@@ -49,6 +55,21 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
    * @return Form for editing WaterfallAdProvider.
    */
   def edit(distributorID: Long, waterfallAdProviderID: Long, appToken: Option[String]) = withAuth(Some(distributorID)) { username => implicit request =>
+    DB.withConnection { implicit connection =>
+      retrieveWaterfallAdProvider(waterfallAdProviderID, distributorID, appToken, jsonParams = None)
+    }
+  }
+
+  /**
+   * Helper function to find WaterfallAdProvider configuration data in the create and edit actions.
+   * @param waterfallAdProviderID ID of the current WaterfallAdProvider.
+   * @param distributorID ID of the Distributor who owns the current WaterfallAdProvider.
+   * @param appToken String identifier for the App to which the Waterfall belongs.
+   * @param jsonParams Optional additional JSON params to be added to the response.
+   * @param connection A shared database connection.
+   * @return JSON containing WaterfallAdProvider data if a WaterfallAdProvider is found; otherwise, a JSON error message.
+   */
+  def retrieveWaterfallAdProvider(waterfallAdProviderID: Long, distributorID: Long, appToken: Option[String], jsonParams: Option[JsObject])(implicit connection: Connection) = {
     WaterfallAdProvider.findConfigurationData(waterfallAdProviderID) match {
       case Some(configData) => {
         val callbackUrl: Option[String] = configData.callbackUrlFormat match {
@@ -61,13 +82,46 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           }
           case None => None
         }
-        Ok(views.html.WaterfallAdProviders.edit(distributorID, waterfallAdProviderID, configData.mappedFields("requiredParams"), configData.mappedFields("reportingParams"),
-          configData.mappedFields("callbackParams"), configData.name, configData.reportingActive, callbackUrl, configData.cpm, Play.current.configuration.getString("app_domain").get))
+        val response = Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
+          "reqParams" -> requiredParamsListJs(configData.mappedFields("requiredParams")), "reportingParams" -> requiredParamsListJs(configData.mappedFields("reportingParams")),
+          "callbackParams" -> requiredParamsListJs(configData.mappedFields("callbackParams")), "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive),
+          "callbackUrl" -> JsString(callbackUrl.getOrElse("")), "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get))
+        jsonParams match {
+          case Some(params) => Ok(response.deepMerge(params))
+          case None => Ok(response)
+        }
       }
       case _ => {
-        Redirect(routes.AppsController.index(distributorID)).flashing("error" -> "Could not find ad provider.")
+        BadRequest(Json.obj("status" -> "error", "message" -> "Could not find ad provider."))
       }
     }
+  }
+
+  /**
+   * Converts RequiredParam class to JSON object.
+   * @param param The an instance of the RequiredParam class to be converted.
+   * @return JSON object to be used in the edit action.
+   */
+  implicit def requiredParamWrites(param: RequiredParam): JsObject = {
+    JsObject(
+      Seq(
+        "displayKey" -> JsString(param.displayKey.getOrElse("")),
+        "key" -> JsString(param.key.getOrElse("")),
+        "dataType" -> JsString(param.dataType.getOrElse("")),
+        "description" -> JsString(param.description.getOrElse("")),
+        "value" -> JsString(param.value.getOrElse("")),
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
+      )
+    )
+  }
+
+  /**
+   * Assembles a JsArray from a list of RequiredParam JSON objects.
+   * @param list The list of RequiredParams to be converted.
+   * @return A JsArray containing RequiredParam JSON objects.
+   */
+  def requiredParamsListJs(list: List[RequiredParam]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, param) => array ++ JsArray(Seq(param)))
   }
 
   /**
@@ -86,14 +140,14 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               val appToken = (jsonResponse \ "appToken").as[String]
               val waterfallID = (jsonResponse \ "waterfallID").as[String].toLong
               val configData = (jsonResponse \ "configurationData").as[JsValue]
-              val reportingActive = (jsonResponse \ "reportingActive").as[String].toBoolean
+              val reportingActive = (jsonResponse \ "reportingActive").as[Boolean]
               val generationNumber = (jsonResponse \ "generationNumber").as[String].toLong
-              val eCPM = (jsonResponse \ "eCPM").as[String].toDouble
+              val eCPM = (jsonResponse \ "cpm").as[String].toDouble
               val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(eCPM), record.active, record.fillRate, configData, reportingActive)
               WaterfallAdProvider.updateWithTransaction(newValues) match {
                 case 1 => {
-                  val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
-                  Ok(Json.obj("status" -> "OK", "message" -> "Ad Provider configuration updated!", "newGenerationNumber" -> newGenerationNumber))
+                  val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).getOrElse(0).toString
+                  Ok(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "newGenerationNumber" -> newGenerationNumber))
                 }
                 case _ => BadRequest(badResponse)
               }

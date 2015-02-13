@@ -1,66 +1,53 @@
 package controllers
 
-import models.{sendUserCreationEmail, WelcomeEmailActor, DistributorUser}
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.mvc._
-import play.api.libs.concurrent.Akka
 import akka.actor.Props
+import models.{sendUserCreationEmail, WelcomeEmailActor, DistributorUser}
+import play.api.libs.concurrent.Akka
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Json, JsError, JsPath, Reads}
+import play.api.mvc._
 import play.api.Play.current
-import play.twirl.api.Html
 
 /** Controller for models.DistributorUser instances. */
 object DistributorUsersController extends Controller with Secured with CustomFormValidation {
-  // Form mapping used in new and create actions
-  val signupForm = Form[Signup](
-      mapping(
-      "company" -> text.verifying(nonEmptyConstraint("Company Name")),
-      "email" -> text.verifying(nonEmptyConstraint("Email")),
-      "password" -> text.verifying("Password must be at least 8 characters",
-      result => result match {
-        case (password: String) => password.length() >= 8
-      }),
-      "confirmation" -> text.verifying(nonEmptyConstraint("Password confirmation")),
-      "terms" -> checked("").verifying("Please agree to our terms and conditions",
-      result => result match {
-        case (check: Boolean) => check
-      })
-    )
-    (Signup.apply)(Signup.unapply)
-    verifying ("Passwords do not match", result => result match {
-      case (signup: Signup) => signup.password == signup.confirmation
-    })
-  )
+  implicit val signupReads: Reads[Signup] = (
+    (JsPath \ "company").read[String] and
+    (JsPath \ "email").read[String] and
+    (JsPath \ "password").read[String] and
+    (JsPath \ "confirmation").read[String] and
+    (JsPath \ "terms").read[Boolean]
+  )(Signup.apply _)
 
   /**
    * Creates a new DistributorUser in the database.
    * @return Responds with 201 when DistributorUser is properly persisted and redirects to the login page if the email is already taken.
    */
   def create = Action { implicit request =>
-    signupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.DistributorUsers.signup(formWithErrors)),
-      signup => {
+    request.body.asJson.map { json =>
+      json.validate[Signup].map { signup =>
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
             val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
             emailActor ! sendUserCreationEmail(signup.email, signup.company)
             DistributorUser.find(id) match {
               case Some(user: DistributorUser) => {
-                Redirect(routes.AppsController.index(user.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString).flashing("success" -> "Your confirmation email will arrive shortly.")
+                Ok(Json.obj("status" -> "success", "distributorID" -> user.distributorID.get.toString)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString)
               }
               case None => {
-                Redirect(routes.DistributorUsersController.signup).flashing("error" -> "User was not found.")
+                BadRequest(Json.obj("status" -> "error", "message" -> "Something went wrong. Please try logging in again."))
               }
             }
           }
           case _ => {
-            val emailError = Seq(new play.api.data.FormError("email", "This email has been registered already. Try logging in."))
-            val form = Form(signupForm.mapping, signupForm.data, emailError, signupForm.value).fill(signup)
-            delayedResponse(views.html.DistributorUsers.signup(form))
+            delayedResponse("This email has been registered already. Try logging in.", "email")
           }
         }
+      }.recoverTotal {
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
       }
-    )
+    }.getOrElse {
+      BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
   }
 
   /**
@@ -70,32 +57,10 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def signup = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
     }.getOrElse {
-      Ok(views.html.DistributorUsers.signup(signupForm))
+      Ok(views.html.DistributorUsers.signup())
     }
-  }
-
-  // Form mapping used in login and authenticate actions.
-  val loginForm = Form[Login](
-    mapping(
-      "email" -> text,
-      "password" -> text
-    )
-    (Login.apply)(Login.unapply)
-      verifying ("Invalid email or password", result => result match {
-      case (login: Login) => check(login.email, login.password)
-    })
-  )
-
-  /**
-   * Used to validate email/password combination on login.
-   * @param email Email of current DistributorUser
-   * @param password Password of current DistributorUser
-   * @return True if email/password combination is valid and false otherwise.
-   */
-  def check(email: String, password: String): Boolean = {
-    DistributorUser.checkPassword(email, password)
   }
 
   /**
@@ -105,26 +70,45 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def login = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AppsController.index(currentUser.distributorID.get))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
     }.getOrElse {
-      Ok(views.html.DistributorUsers.login(loginForm))
+      Ok(views.html.DistributorUsers.login())
     }
   }
+
+  implicit val loginReads: Reads[Login] = (
+    (JsPath \ "email").read[String] and
+      (JsPath \ "password").read[String]
+  )(Login.apply _)
 
   /**
    * Authenticates DistributorUser and creates a new session.
    * @return Redirect to Application index if successful and stay on log in page otherwise.
    */
   def authenticate = Action { implicit request =>
-    loginForm.bindFromRequest.fold(
-      formWithErrors => {
-        delayedResponse(views.html.DistributorUsers.login(formWithErrors))
-      },
-      user => {
-        val currentUser = DistributorUser.findByEmail(user.email).get
-        Redirect(routes.AppsController.index(currentUser.distributorID.get)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+    request.body.asJson.map { json =>
+      json.validate[Login].map { user =>
+        DistributorUser.findByEmail(user.email) match {
+          case Some(currentUser) => {
+            DistributorUser.checkPassword(user.email, user.password) match {
+              case true => {
+                Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+              }
+              case false => {
+                delayedResponse("Invalid Password.", "password")
+              }
+            }
+          }
+          case None => {
+            delayedResponse("Email not found.  Please Sign up.", "email")
+          }
+        }
+      }.recoverTotal {
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
       }
-    )
+    }.getOrElse {
+      BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
+    }
   }
 
   /**
@@ -140,12 +124,13 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   /**
    * Delays response before rendering a view to discourage brute force attacks.
    * This is used for failures on the sign up or sign in actions.
-   * @param view The form to be rendered after the delay.
+   * @param errorMessage The error message to be displayed in the login form.
+   * @param fieldName The name of the field under which the error message will be displayed.
    * @return a 400 response and render a form with errors.
    */
-  def delayedResponse(view: Html): Result = {
+  def delayedResponse(errorMessage: String, fieldName: String): Result = {
     Thread.sleep(1000)
-    BadRequest(view)
+    BadRequest(Json.obj("status" -> "error", "message" -> errorMessage, "fieldName" -> fieldName))
   }
 }
 

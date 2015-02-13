@@ -111,7 +111,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
 
   "WaterfallAdProvider.findConfigurationData" should {
     "return an instance of WaterfallAdProviderConfig containing configuration data for both WaterfallAdProvider and AdProvider" in new WithDB {
-      val configData = WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get
+      val configData = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get }
       val params = (configData.adProviderConfiguration \ "requiredParams").as[List[Map[String, String]]]
       params.map { param =>
         configurationParams must contain(param.get("key").get)
@@ -123,7 +123,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
 
   "WaterfallAdProviderConfig.mappedFields" should {
     "return a list of RequiredParam instances" in new WithDB{
-      val configData = WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get
+      val configData = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get }
       val fields = configData.mappedFields("requiredParams")
       for(index <- (0 to fields.size-1)) {
         fields(index).key.get must beEqualTo(configurationParams(index))
