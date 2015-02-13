@@ -82,7 +82,7 @@ mediationModule.factory('fieldsFilled', [function(data, requiredFields) {
 }]);
 
 // Directives
-mediationModule.directive('modalDialog', function() {
+mediationModule.directive('modalDialog', function($rootScope) {
     return {
         restrict: 'E',
         scope: false,
@@ -100,12 +100,13 @@ mediationModule.directive('modalDialog', function() {
                 scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
+                $rootScope.bodyClass = "";
             };
 
             // Add body class to prevent scrolling when modal open
             scope.showModal = function(display) {
                 scope.modalShown = display;
-                $('body').toggleClass('modal-active', scope.modalShown);
+                $rootScope.bodyClass = "modal-active";
             };
 
         },
