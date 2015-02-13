@@ -289,7 +289,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input[name=eCPM]").`with`("5.0")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#appID-input").containsText("Field is required")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#key1-input").containsText("Field is required")
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
