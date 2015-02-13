@@ -299,6 +299,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var checkForErrors = function(param, value, paramType) {
                 if(value === undefined || value === null || value === "") {
                     $scope.errors[paramType + "-" + param] = "error";
+                    $scope.errors[paramType + "-" + param + "-message"] = "Field is required";
                     $scope.invalidForm = true;
                 }
             };
@@ -334,6 +335,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
                 }
+                console.log( $scope.errors);
                 if(!$scope.invalidForm) {
                     // Submit update for WaterfallAdProvider
                     $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
