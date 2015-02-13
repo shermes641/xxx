@@ -196,7 +196,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       browser.fill("input").`with`(invalidEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".modal-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -289,7 +289,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input[name=eCPM]").`with`("5.0")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#appID-input").containsText("Field is required")
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
@@ -312,7 +312,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".modal-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
       browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.fill("input").`with`("5.0", "12345")

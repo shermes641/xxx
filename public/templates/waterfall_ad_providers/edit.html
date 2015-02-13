@@ -3,7 +3,7 @@
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure {{wapData.adProviderName}}</h1>
     <div class="app-form edit-ad-providers">
-        <div ng-class="errors['staticParams-cpm']" class="waterfall-ad-provider-field">
+        <div id="ecpm-input" ng-class="errors['staticParams-cpm']" class="waterfall-ad-provider-field">
             <dd>
             <dt><label for="eCPM">* eCPM $</label></dt>
                 <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
@@ -13,7 +13,7 @@
         </div>
 
         <div ng-repeat="param in wapData.reqParams">
-            <div ng-hide="param.displayKey === ''" ng-class="errors['reqParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
+            <div id="{{param.key}}-input" ng-hide="param.displayKey === ''" ng-class="errors['reqParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
                 <dd>
                     <dt>
                          <label>* {{param.displayKey}}</label>
@@ -40,7 +40,7 @@
         </div>
 
         <div ng-repeat="param in wapData.reportingParams">
-            <div ng-class="errors['reportingParams-{{param.key}}']" class="reporting-waterfall-ad-provider-field">
+            <div id="{{param.key}}-input" ng-class="errors['reportingParams-{{param.key}}']" class="reporting-waterfall-ad-provider-field">
                 <dd>
                     <dt>
                         <label>{{param.displayKey}}</label>
@@ -60,7 +60,7 @@
         </dd>
 
         <div ng-repeat="param in wapData.callbackParams">
-            <div ng-class="errors['callbackParams-{{param.key}}']" class="callback-waterfall-ad-provider-field">
+            <div id="{{param.key}}-input" ng-class="errors['callbackParams-{{param.key}}']" class="callback-waterfall-ad-provider-field">
                 <dd>
                     <dt>
                         <label for="{{param.key}}">{{param.displayKey}}</label>
