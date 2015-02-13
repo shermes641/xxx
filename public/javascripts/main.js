@@ -96,11 +96,18 @@ mediationModule.directive('modalDialog', function() {
                 scope.dialogStyle.height = attrs.height;
             scope.hideModal = function() {
                 scope.errors = {};
-                scope.modalShown = false;
+                scope.showModal(false);
                 scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
             };
+
+            // Add body class to prevent scrolling when modal open
+            scope.showModal = function(display) {
+                scope.modalShown = display;
+                $('body').toggleClass('modal-active', scope.modalShown);
+            };
+
         },
         templateUrl: "assets/templates/apps/modal.html"
     };
