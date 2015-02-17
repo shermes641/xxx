@@ -6,6 +6,9 @@
         <div ng-repeat="message in messages" ng-click="acknowledgeMessage($index)" id="waterfall-edit-message" class="full-{{message.status}}-message">
             {{message.text}}
         </div>
+        <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-error-message">
+            You are currently working in Test Mode.
+        </div>
         <div id="edit-top">
             <h1>{{waterfallData.waterfall.name}} Waterfall</h1>
             <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
