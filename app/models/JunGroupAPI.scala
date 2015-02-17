@@ -48,18 +48,6 @@ class JunGroupAPI {
   }
 
   /**
-   * Sends success email on ad network creation
-   * @param distributorUser The DistributorUser who will receive a success email when a new AdNetwork is created in Player.
-   * @param appName The name of the newly created App.
-   */
-  def sendSuccessEmail(distributorUser: DistributorUser, appName: String) {
-    val subject = "HyprMarketplace is ready for use in " + appName + "!"
-    val body = "HyprMarketplace is now ready to use in the waterfall for " + appName + "."
-    val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(distributorUser.email, subject, body)))
-    emailActor ! "email"
-  }
-
-  /**
    * Creates a JSON object of the adNetwork configuration
    * @param companyName The name of the Distributor to which the App belongs.
    * @param appName The name of the App.
@@ -147,14 +135,8 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                     if(success.as[JsBoolean] != JsBoolean(false)) {
                       DB.withTransaction { implicit connection =>
                         try {
-                          val updateResult = WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, appToken, appName)
+                          WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, appToken, appName)
                           AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
-                          updateResult match {
-                            case 1 => {
-                              api.sendSuccessEmail(distributorUser, appName)
-                            }
-                            case _ => None
-                          }
                         } catch {
                           case error: org.postgresql.util.PSQLException => {
                             connection.rollback()
