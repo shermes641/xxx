@@ -842,7 +842,8 @@ div [class^="col-"]
 
 .input-group .form-control
 {
-    padding:20px;
+    height: 100%;
+    padding:10px;
 }
 
 #form_errors
