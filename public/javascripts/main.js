@@ -105,8 +105,8 @@ mediationModule.directive('modalDialog', function($rootScope) {
 
             // Add body class to prevent scrolling when modal open
             scope.showModal = function(display) {
+                $rootScope.bodyClass = display ? "modal-active" : "";
                 scope.modalShown = display;
-                $rootScope.bodyClass = "modal-active";
             };
 
         },
