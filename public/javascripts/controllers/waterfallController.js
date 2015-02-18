@@ -143,11 +143,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 });
 
                 $scope.showEditAppModal = !$scope.showEditAppModal;
-                $scope.modalShown = !$scope.modalShown;
+                $scope.showModal(!$scope.modalShown);
             };
 
             $scope.closeWAPModal = function() {
-                $scope.modalShown = false;
+                $scope.showModal(false);
                 $scope.showWaterfallAdProviderModal = false;
             };
 
@@ -157,7 +157,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.inactiveClass = "inactive";
                 $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
                 $scope.showNewAppModal = !$scope.showNewAppModal;
-                $scope.modalShown = !$scope.modalShown;
+                $scope.showModal(!$scope.modalShown);
             };
 
             // Checks inputs for App creation page
@@ -211,7 +211,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         success(function(data, status, headers, config) {
                             $scope.generationNumber = data.generationNumber;
                             $scope.showEditAppModal = false;
-                            $scope.modalShown = false;
+                            $scope.showModal(false);
                             $scope.flashMessage(data);
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
@@ -228,7 +228,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.wapData = wapData;
                 $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
                 $scope.showWaterfallAdProviderModal = true;
-                $scope.modalShown = true;
+                $scope.showModal(true);
                 for(var i = 0; i < wapData.reqParams.length; i++) {
                     var param = wapData.reqParams[i];
                     $scope.restartableParams[param.displayKey] = param.value;
@@ -299,6 +299,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var checkForErrors = function(param, value, paramType) {
                 if(value === undefined || value === null || value === "") {
                     $scope.errors[paramType + "-" + param] = "error";
+                    $scope.errors[paramType + "-" + param + "-message"] = "Field is required";
                     $scope.invalidForm = true;
                 }
             };
@@ -334,6 +335,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
                 }
+                console.log( $scope.errors);
                 if(!$scope.invalidForm) {
                     // Submit update for WaterfallAdProvider
                     $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, wapData).success(function(data) {
@@ -350,7 +352,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         }
                         $scope.orderOptimizedWaterfallList();
                         $scope.showWaterfallAdProviderModal = false;
-                        $scope.modalShown = false;
+                        $scope.showModal(false);
                         var restartParams = Object.keys($scope.changedRestartParams);
                         var successMessage = adProviderName + " updated!";
                         $scope.flashMessage({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
