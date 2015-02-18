@@ -4,6 +4,7 @@ import play.api._
 import play.api.mvc._
 import play.api.Play.current
 import models.Waterfall.AdProviderInfo
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import scala.language.implicitConversions
 
@@ -143,6 +144,105 @@ object JsonBuilder extends ValueToJsonHelper {
     JsObject(
       Seq(
         "testMode" -> JsBoolean(false)
+      )
+    )
+  }
+
+  /**
+   * The top level keys for WaterfallAdProvider configurationData JSON.
+   */
+  val waterfallAdProviderParamList = List("requiredParams", "callbackParams", "reportingParams")
+
+  /**
+   * Constructs WaterfallAdProvider JSON data to either be stored in the database or displayed in the UI.
+   * @param jsonAssemblyFunction A function that determines how the JSON will be structured (for database or UI).
+   * @param config The WaterfallAdProvider configurationData either being passed in from UI or pulled from the database.
+   * @return A JSON object to be displayed in the UI or saved to the configuration_data column of the waterfall_ad_providers table.
+   */
+  def buildWAPParams(jsonAssemblyFunction: List[RequiredParam] => JsValue, config: Any): JsObject = {
+    waterfallAdProviderParamList.foldLeft(JsObject(Seq()))((outputJson, params) => {
+      outputJson.deepMerge(
+        JsObject(
+          Seq(
+            params -> jsonAssemblyFunction(
+              config match {
+                case configJson: JsValue => (configJson \ params).as[List[RequiredParam]]
+                case configData: WaterfallAdProviderConfig => configData.mappedFields(params)
+                case _ => List()
+              }
+            )
+          )
+        )
+      )
+    })
+  }
+
+  /**
+   * Assembles WaterfallAdProvider params in a standard JSON format to be displayed in the UI.
+   * @param list The list of RequiredParams to be stored in JSON.
+   * @return A JsArray containing RequiredParam JSON objects.
+   */
+  def buildWAPParamsForUI(list: List[RequiredParam]): JsArray = {
+    list.foldLeft(JsArray(Seq()))((array, param) => array ++ JsArray(Seq(param)))
+  }
+
+  /**
+   * Assembles WaterfallAdProvider params in a standard JSON format to be stored in the configuration_data field of the waterfall_ad_providers table.
+   * @param list The list of RequiredParams to be stored in JSON.
+   * @return A JsObject containing WaterfallAdProvider params.
+   */
+  def buildWAPParamsForDB(list: List[RequiredParam]): JsObject = {
+    list.foldLeft(JsObject(Seq()))((jsonObject, param) => {
+      jsonObject.deepMerge(
+        JsObject(
+          Seq(
+            param.key.get -> {
+              param.dataType match {
+                case Some(dataTypeVal) if(dataTypeVal == "Array") => {
+                  param.value match {
+                    case Some(arrayElements) => {
+                      arrayElements.split(",").foldLeft(JsArray(Seq()))((array, element) => array :+ JsString(element.trim))
+                    }
+                    case _ => JsArray(Seq())
+                  }
+                }
+                case _ => {
+                  JsString(param.value.getOrElse(""))
+                }
+              }
+            }
+          )
+        )
+      )
+    })
+  }
+
+  /**
+   * Converts RequiredParam class instance to JSON
+   */
+  implicit val requiredParamReads: Reads[RequiredParam] = (
+    (JsPath \ "displayKey").readNullable[String] and
+    (JsPath \ "key").readNullable[String] and
+    (JsPath \ "dataType").readNullable[String] and
+    (JsPath \ "description").readNullable[String] and
+    (JsPath \ "value").readNullable[String] and
+    (JsPath \ "refreshOnAppRestart").read[Boolean]
+  )(RequiredParam.apply _)
+
+  /**
+   * Converts RequiredParam class to JSON object.
+   * @param param The an instance of the RequiredParam class to be converted.
+   * @return JSON object to be used in the edit action.
+   */
+  implicit def requiredParamWrites(param: RequiredParam): JsObject = {
+    JsObject(
+      Seq(
+        "displayKey" -> JsString(param.displayKey.getOrElse("")),
+        "key" -> JsString(param.key.getOrElse("")),
+        "dataType" -> JsString(param.dataType.getOrElse("")),
+        "description" -> JsString(param.description.getOrElse("")),
+        "value" -> JsString(param.value.getOrElse("")),
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
       )
     )
   }
