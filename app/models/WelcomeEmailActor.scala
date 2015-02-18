@@ -23,7 +23,7 @@ class WelcomeEmailActor extends Actor with Mailer {
    * @param email Email of the new DistributorUser.
    */
   def sendWelcomeEmail(email: String): Unit = {
-    val subject = "Welcome to HyprMediation"
+    val subject = "Welcome to HyprMediate!"
     val body = views.html.Mails.welcomeEmailContent().toString()
     sendEmail(email, subject, body)
   }

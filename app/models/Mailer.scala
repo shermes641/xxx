@@ -21,7 +21,7 @@ trait Mailer {
     if(play.api.Play.isProd(play.api.Play.current)) {
       val mail = use[MailerPlugin].email
       mail.setRecipient(recipient)
-      mail.setFrom("noreply@hyprMediate.com")
+      mail.setFrom("HyprMediate <publishing@hyprmx.com>")
       mail.setSubject(subject)
       if(attachmentFileName != "") {
         val format = new SimpleDateFormat("d-M-y")
