@@ -18,18 +18,22 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.messages = [];
 
             // Retrieve Waterfall data
-            $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
-                $scope.waterfallData = data;
-                $scope.appID = data.waterfall.appID;
-                $scope.distributorID = $routeParams.distributorID;
-                $scope.generationNumber = data.generationNumber;
-                $scope.appToken = data.waterfall.appToken;
-                $scope.disableTestModeToggle = checkTestModeToggle();
-                $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
-                $scope.sortableOptions.containment = "#waterfall-edit";
-            }).error(function(data) {
-                $scope.flashMessage(data);
-            });
+            $scope.getWaterfallData = function() {
+                $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
+                    $scope.waterfallData = data;
+                    $scope.appID = data.waterfall.appID;
+                    $scope.distributorID = $routeParams.distributorID;
+                    $scope.generationNumber = data.generationNumber;
+                    $scope.appToken = data.waterfall.appToken;
+                    $scope.disableTestModeToggle = checkTestModeToggle();
+                    $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
+                    $scope.sortableOptions.containment = "#waterfall-edit";
+                }).error(function(data) {
+                    $scope.flashMessage(data);
+                });
+            };
+
+            $scope.getWaterfallData();
 
             // Callback for when the Waterfall order changes via the drag and drop
             $scope.sortableOptions = {
@@ -181,6 +185,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         success(function(data, status, headers, config) {
                             $scope.toggleNewAppModal();
                             $scope.flashMessage(data);
+                            $scope.getWaterfallData();
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;

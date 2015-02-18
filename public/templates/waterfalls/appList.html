@@ -1,7 +1,7 @@
 <div id="left_content">
     <div id="left_apps_list">
         <h2>Apps</h2>
-        <ul ng-repeat="appInfo in waterfallData.appsWithWaterfalls">
+        <ul ng-repeat="appInfo in waterfallData.appsWithWaterfalls" >
             <a href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit"><li ng-class="{active: appInfo.id == appID}">{{appInfo.name}}</li></a>
         </ul>
     </div>
