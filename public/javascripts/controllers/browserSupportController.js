@@ -60,6 +60,7 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
             $scope.popupElement.hide();
             var now = new Date();
             var time = now.getTime();
+            // 24 hours (1000 milliseconds * 60 seconds * 60 minutes * 24 hours)
             time += 24 * 60 * 60 * 1000;
             now.setTime(time);
             document.cookie = 'browser_support=' + $scope.cookieString + '; expires=' + now.toUTCString() + '; path=/';
