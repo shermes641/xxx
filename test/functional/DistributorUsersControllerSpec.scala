@@ -57,7 +57,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
       val user = DistributorUser.findByEmail(email).get
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.logout.url)
-      browser.goTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
       browser.pageSource must contain("Welcome Back")
     }
   }

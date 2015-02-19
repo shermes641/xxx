@@ -83,9 +83,8 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           case None => None
         }
         val response = Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
-          "reqParams" -> requiredParamsListJs(configData.mappedFields("requiredParams")), "reportingParams" -> requiredParamsListJs(configData.mappedFields("reportingParams")),
-          "callbackParams" -> requiredParamsListJs(configData.mappedFields("callbackParams")), "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive),
-          "callbackUrl" -> JsString(callbackUrl.getOrElse("")), "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get))
+          "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive), "callbackUrl" -> JsString(callbackUrl.getOrElse("")),
+          "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get)).deepMerge(JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForUI, configData))
         jsonParams match {
           case Some(params) => Ok(response.deepMerge(params))
           case None => Ok(response)
@@ -139,7 +138,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
             case Some(record) => {
               val appToken = (jsonResponse \ "appToken").as[String]
               val waterfallID = (jsonResponse \ "waterfallID").as[String].toLong
-              val configData = (jsonResponse \ "configurationData").as[JsValue]
+              val configData = JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForDB, jsonResponse)
               val reportingActive = (jsonResponse \ "reportingActive").as[Boolean]
               val generationNumber = (jsonResponse \ "generationNumber").as[String].toLong
               val eCPM = (jsonResponse \ "cpm").as[String].toDouble

@@ -11,7 +11,7 @@ object HTTPAuthFilter extends Filter {
       case None => false
     }
     request.tags.get("ROUTE_CONTROLLER") match {
-      case Some(controller: String) if(controller != "controllers.APIController" && isStaging) => {
+      case Some(controller: String) if(controller != "controllers.APIController" && controller != "controllers.Assets" && isStaging) => {
         val httpAuthUser = Play.current.configuration.getString("httpAuthUser").get
         val httpAuthPassword = Play.current.configuration.getString("httpAuthPassword").get
 

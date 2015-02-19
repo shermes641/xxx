@@ -140,19 +140,22 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       clearGeneration(currentApp.id)
       val originalGeneration = generationNumber(currentApp.id)
       val updatedParam = "Some new value"
-      val configurationData = Seq("configurationData" -> JsObject(Seq(configurationParams(0) -> JsString(updatedParam))), "reportingActive" -> JsBoolean(false),
-        "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "cpm" -> JsString("5.0"))
-      val body = JsObject(configurationData)
+      val requiredParamArray = JsArray(Seq(JsObject(Seq("key" -> JsString(configurationParams(0)), "value" -> JsString(updatedParam),
+        "displayKey" -> JsString(configurationParams(0)), "dataType" -> JsString("String"), "description" -> JsString("Description"), "refreshOnAppRestart" -> JsBoolean(false)))))
+      val requiredParamsData = JsObject(Seq("requiredParams" -> requiredParamArray))
+      val configurationData = JsObject(Seq("callbackParams" -> JsArray(Seq()), "reportingParams" -> JsArray(Seq()),
+        "reportingActive" -> JsBoolean(false), "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(currentWaterfall.id.toString),
+        "generationNumber" -> JsString(originalGeneration.toString), "cpm" -> JsString("5.0"))).deepMerge(requiredParamsData)
       val postRequest = FakeRequest(
         POST,
         controllers.routes.WaterfallAdProvidersController.update(distributorUser.distributorID.get, waterfallAdProviderID).url,
         FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
-        body
+        configurationData
       )
       val Some(result) = route(postRequest.withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must equalTo(200)
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
-      wap.configurationData must beEqualTo(body \ "configurationData")
+      (wap.configurationData \ "requiredParams" \ configurationParams(0)).as[String] must beEqualTo(updatedParam)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -196,7 +199,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       browser.fill("input").`with`(invalidEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".modal-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -289,7 +292,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input[name=eCPM]").`with`("5.0")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#requiredParams-key1-input").containsText("Field is required")
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
@@ -298,7 +301,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     "only allow the user to turn on reporting if a valid eCPM is already entered" in new WithAppBrowser(distributorUser.distributorID.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
       val wap = WaterfallAdProvider.find(wap1ID).get
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
+      val wapConfig = JsObject(Seq("requiredParams" -> JsObject(Seq()), "callbackParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, wapConfig, false))
       Waterfall.update(currentWaterfall.id, true, false)
       clearGeneration(currentApp.id)
 
@@ -312,7 +316,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".modal-error").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
       browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.fill("input").`with`("5.0", "12345")

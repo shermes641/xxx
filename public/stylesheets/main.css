@@ -20,6 +20,10 @@ body
     height:100%;
 }
 
+body.modal-active {
+    overflow: hidden;
+}
+
 a
 {
     color:#4285f4;
@@ -838,7 +842,8 @@ div [class^="col-"]
 
 .input-group .form-control
 {
-    padding:20px;
+    height: 100%;
+    padding:10px;
 }
 
 #form_errors
@@ -1167,6 +1172,7 @@ dd.error
     padding:22px;
     position:relative;
     text-align:center;
+    cursor: pointer;
 }
 
 #initialize_sdk .code-block
@@ -1251,7 +1257,7 @@ dd.error
 {
     margin-top:10px;
     text-align:left;
-    width:700px;
+    width:710px;
 }
 
 .copy-paste-code
