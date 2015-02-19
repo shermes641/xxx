@@ -171,6 +171,17 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       waterfallAdProviders.size must beEqualTo(1)
       hyprMarketplace.pending must beEqualTo(true)
     }
+
+    "new app on waterfall page should show new app in left column once created" in new WithFakeBrowser {
+      logInUser()
+
+      val newAppName = "My left list test app"
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(user.distributorID.get, None, None).url)
+      clickAndWaitForAngular("#create_new_app")
+      fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+      clickAndWaitForAngular("button[name=new-app-form]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#left_apps_list").containsText("My left list test app")
+    }
   }
 
   "AppsController.edit" should {
