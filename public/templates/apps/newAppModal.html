@@ -32,7 +32,7 @@
             <dl id="new_app_exchange_rate">
                 <dt><label for="new_app_exchange_rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input type="number" ng-model="newApp.exchangeRate" ng-change="checkInputs(newApp)" id="newAppExchangeRate" name="newAppExchangeRate" value="" placeholder="e.g. 100">
+                    <input type="text" ng-model="newApp.exchangeRate" ng-change="checkInputs(newApp)" id="newAppExchangeRate" name="newAppExchangeRate" value="" placeholder="e.g. 100">
                     <div class="tip">The number of virtual currency units per $1.</div>
                 <dd class="error">{{errors.exchangeRate}}</dd>
                 </dd>
@@ -42,7 +42,7 @@
             <dl id="new_app_reward_min">
                 <dt><label for="new_app_reward_min">*Minimum Currency to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input type="number" ng-model="newApp.rewardMin" ng-change="checkInputs(newApp)" id="newAppRewardMin" name="newAppRewardMin" value="" placeholder="e.g. 1">
+                    <input type="text" ng-model="newApp.rewardMin" ng-change="checkInputs(newApp)" id="newAppRewardMin" name="newAppRewardMin" value="" placeholder="e.g. 1">
                 <dd class="error">{{errors.rewardMin}}</dd>
                 </dd>
             </dl>
@@ -50,7 +50,7 @@
             <dl id="new_app_reward_max">
                 <dt><label for="new_app_reward_max">Maximum Currency to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input type="number" ng-model="newApp.rewardMax" id="newAppRewardMax" name="newAppRewardMax" value="" placeholder="e.g. 1">
+                    <input type="text" ng-model="newApp.rewardMax" id="newAppRewardMax" name="newAppRewardMax" value="" placeholder="e.g. 1">
                 <dd class="error">{{errors.rewardMax}}</dd>
                 </dd>
             </dl>

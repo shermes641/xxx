@@ -203,6 +203,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.errors = {};
                 var errorObjects = [appCheck.validRewardAmounts($scope.newApp), appCheck.validExchangeRate($scope.newApp.exchangeRate)];
                 if(checkAppFormErrors($scope.newApp, errorObjects)) {
+                    setNumberValues("newApp");
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
                             $scope.toggleNewAppModal();
@@ -215,6 +216,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         });
                 }
+            };
+
+            var setNumberValues = function(scopeObject) {
+                var parsedRewardMax = parseInt($scope[scopeObject].rewardMax);
+                $scope[scopeObject].rewardMax = isNaN(parsedRewardMax) ? null : parsedRewardMax;
+                $scope[scopeObject].rewardMin = parseInt($scope[scopeObject].rewardMin);
+                $scope[scopeObject].exchangeRate = parseInt($scope[scopeObject].exchangeRate);
             };
 
             var checkAppFormErrors = function(data, errorObjects) {
@@ -234,6 +242,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.errors = {};
                 var errorObjects = [appCheck.validRewardAmounts($scope.data), appCheck.validExchangeRate($scope.data.exchangeRate), appCheck.validCallback($scope.data)];
                 if(checkAppFormErrors($scope.data, errorObjects)) {
+                    setNumberValues("data");
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
                         success(function(data, status, headers, config) {
                             $scope.generationNumber = data.generationNumber;
@@ -327,8 +336,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     }
                 }
                 var parsedCpm = parseFloat($scope.wapData.cpm);
-                if(isNaN(parsedCpm) || parsedCpm < 0.01) {
-                    $scope.errors.cpmMessage = "eCPM must be greater than $0.00";
+                if(isNaN(parsedCpm) || parsedCpm < 0.01 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
+                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than $0.00";
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
                 }

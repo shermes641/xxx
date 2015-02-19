@@ -25,6 +25,10 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                 $scope.errors = {};
                 var errorObjects = [appCheck.validRewardAmounts($scope.newApp), appCheck.validExchangeRate($scope.newApp.exchangeRate)];
                 if(checkAppFormErrors($scope.newApp, errorObjects)) {
+                    var parsedRewardMax = parseInt($scope.newApp.rewardMax);
+                    $scope.newApp.rewardMax = isNaN(parsedRewardMax) ? null : parsedRewardMax;
+                    $scope.newApp.rewardMin = parseInt($scope.newApp.rewardMin);
+                    $scope.newApp.exchangeRate = parseInt($scope.newApp.exchangeRate);
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
                             $scope.systemMessage = "Your confirmation email will arrive shortly.";

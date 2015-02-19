@@ -49,7 +49,7 @@
             <dl id="exchange_rate">
                 <dt><label for="exchange_rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input type="number" ng-model="data.exchangeRate" ng-change="checkInputs(data)" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+                    <input type="text" ng-model="data.exchangeRate" ng-change="checkInputs(data)" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
                     <div class="tip">The number of virtual currency units per $1.</div>
                 </dd>
                 <dd class="error">{{errors.exchangeRate}}</dd>
@@ -58,7 +58,7 @@
             <dl id="reward_min">
                 <dt><label for="reward_min">*Minimum Currency to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input type="number" ng-model="data.rewardMin" ng-change="checkInputs(data)" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                    <input type="text" ng-model="data.rewardMin" ng-change="checkInputs(data)" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
                 <dd class="error">{{errors.rewardMin}}</dd>
             </dl>
@@ -66,7 +66,7 @@
             <dl id="reward_max">
                 <dt><label for="reward_max">Maximum Currency to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input type="number" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
+                    <input type="text" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
                 </dd>
                 <dd class="error">{{errors.rewardMax}}</dd>
             </dl>

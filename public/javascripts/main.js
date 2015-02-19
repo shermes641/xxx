@@ -29,16 +29,23 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
 appsControllers.factory('appCheck', [function() {
     var appCheck = {};
 
+    var invalidNumber = function(number) {
+        if(typeof number === "string") {
+            return number.match(/^[0-9]+?$/) === null
+        } else {
+            return false;
+        }
+    };
+
     // Checks if Reward Minimum is greater than Reward Maximum.
     appCheck.validRewardAmounts = function(data) {
-        var rewardMin = data.rewardMin;
-        var rewardMax = data.rewardMax;
-        if(rewardMin < 1) {
-            return({message: "Reward Minimum must be 1 or greater.", fieldName: "rewardMin"});
+        var parsedRewardMin = data.rewardMin;
+        if(invalidNumber(data.rewardMin) || parsedRewardMin < 1) {
+            return({message: "Reward Minimum must be a valid number greater than or equal to 1.", fieldName: "rewardMin"});
         }
-        if(rewardMax !== null) {
-            if(rewardMax < rewardMin) {
-                return({message: "Reward Maximum must be greater than or equal to Reward Minimum.", fieldName: "rewardMax"});
+        if(data.rewardMax !== "") {
+            if(invalidNumber(data.rewardMax) || parseInt(data.rewardMax) < parsedRewardMin) {
+                return({message: "Reward Maximum must be a valid number greater than or equal to Reward Minimum.", fieldName: "rewardMax"});
             }
         }
         return {};
@@ -46,8 +53,8 @@ appsControllers.factory('appCheck', [function() {
 
     // Checks if Exchange Rate is 1 or greater.
     appCheck.validExchangeRate = function(exchangeRate) {
-        if (exchangeRate < 1) {
-            return({message: "Exchange Rate must be 1 or greater.", fieldName: "exchangeRate"});
+        if (invalidNumber(exchangeRate) || exchangeRate < 1) {
+            return({message: "Exchange Rate must be a valid number greater than or equal to 1.", fieldName: "exchangeRate"});
         } else {
             return {};
         }
@@ -55,8 +62,8 @@ appsControllers.factory('appCheck', [function() {
 
     // Checks for a valid callback URL when server to server callbacks are enabled.
     appCheck.validCallback = function(data) {
-        var callbacksEnabled = data.serverToServerEnabled;//$(":input[id=serverToServerEnabled]").prop("checked");
-        var callbackURL = data.callbackURL;//$(":input[id=callbackURL]").val();
+        var callbacksEnabled = data.serverToServerEnabled;
+        var callbackURL = data.callbackURL;
         if(callbacksEnabled) {
             if(!(/(http|https):\/\//).test(callbackURL)) {
                 return({message: "A valid HTTP or HTTPS callback URL is required.", fieldName: "callbackURL"});
