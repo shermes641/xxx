@@ -33,15 +33,4 @@ object HTTPAuthFilter extends Filter {
   }
 }
 
-//object MaintenanceFilter extends Filter {
-//  def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
-//    // Check to see if we are in maintenance mode.  Default to not in maintenance mode
-//    val isInMaintenanceMode = Play.current.configuration.getBoolean("maintenance.enabled").getOrElse(false)
-//
-//    if(isInMaintenanceMode) {
-//      Redirect()
-//    }
-//  }
-//}
-
 object Global extends WithFilters(HTTPAuthFilter)

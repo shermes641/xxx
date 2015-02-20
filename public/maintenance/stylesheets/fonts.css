@@ -1,0 +1,65 @@
+@font-face {
+  font-family: 'Avenir Book';
+  src: url('fonts/Avenir.ttf')  format('truetype');
+       
+  font-style:   normal;
+  font-weight:  400;
+}
+
+@font-face {
+  font-family: 'Avenir Black';
+  src: url('fonts/AvenirBlack.ttf')  format('truetype');
+       
+  font-style:   normal;
+  font-weight:  400;
+}
+
+@font-face {
+  font-family: 'Avenir Medium';
+  src: url('fonts/AvenirMedium.ttf')  format('truetype');
+       
+  font-style:   normal;
+  font-weight:  400;
+}
+
+@font-face {
+  font-family: 'Avenir Light';
+  src: url('fonts/AvenirLight.ttf')  format('truetype');
+       
+  font-style:   normal;
+  font-weight:  100;
+}
+
+@font-face {
+  font-family: 'Avenir Next Ultra Light';
+  src: url('fonts/AvenirUltra.ttf')  format('truetype');
+       
+  font-style:   normal;
+  font-weight:  200;
+}
+
+
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('fonts/HelveticaNeue.ttf')  format('truetype');
+
+    font-style:   normal;
+    font-weight:  400;
+}
+
+
+@font-face {
+    font-family: 'Helvetica Neue Light';
+    src: url('fonts/HelveticaNeueLight.ttf')  format('truetype');
+
+    font-style:   normal;
+    font-weight:  400;
+}
+
+@font-face {
+    font-family: 'Helvetica Neue Ultra Light';
+    src: url('fonts/HelveticaNeueUltraLight.ttf')  format('truetype');
+
+    font-style:   normal;
+    font-weight:  400;
+}
