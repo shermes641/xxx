@@ -318,9 +318,9 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than $0.00")
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.fill("input").`with`("5.0", "12345")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
