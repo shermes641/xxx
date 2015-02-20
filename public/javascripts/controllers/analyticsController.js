@@ -6,28 +6,79 @@
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
 
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
-    function( $scope, $http ) {
-        $scope.elements = {
-            country: $( '#countries' ),
-            adProvider: $( '#ad_providers' ),
-            apps: $( '#apps' ),
-            startDate: $( '#start_date' ),
-            endDate: $( '#end_date' ),
-            exportAsCsv: $( '#export_as_csv' ),
-            emailModal: $( '#email_modal' ),
-            emailForm: $( '#csv_email_form' ),
-            emailInput: $( '#export_email' ),
-            overlay: $( '#analytics_overlay' ),
-            submitExport: $( '#export_submit' ),
-            exportComplete: $( '#csv_requested' ),
-            exportError: $( '#csv_export_error' ),
-            closeButton: $( '.close_button' )
-        };
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeout',
+    function( $scope, $http, $timeout ) {
+        // Angular Templates
+        $scope.analyticsTemplate = 'assets/templates/analytics/analytics.html';
 
-        // Distributor ID to be used in AJAX calls.
-        $scope.distributorID = $(".split_content").attr("data-distributor-id");
-        $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
+        $scope.startDatepicker = function() {
+            $scope.elements = {
+                country: $( '#countries' ),
+                adProvider: $( '#ad_providers' ),
+                apps: $( '#apps' ),
+                startDate: $( '#start_date' ),
+                endDate: $( '#end_date' ),
+                exportAsCsv: $( '#export_as_csv' ),
+                emailModal: $( '#email_modal' ),
+                emailForm: $( '#csv_email_form' ),
+                emailInput: $( '#export_email' ),
+                overlay: $( '#analytics_overlay' ),
+                submitExport: $( '#export_submit' ),
+                exportComplete: $( '#csv_requested' ),
+                exportError: $( '#csv_export_error' ),
+                closeButton: $( '.close_button' )
+            };
+
+            // Distributor ID to be used in AJAX calls.
+            $scope.distributorID = $(".split_content").attr("data-distributor-id");
+            $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
+
+
+
+
+            $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
+            $scope.elements.overlay.click( _.bind( $scope.hideOverlay, $scope ) );
+            $scope.elements.exportComplete.click( _.bind( $scope.hideOverlay, $scope ) );
+            $scope.elements.closeButton.click( _.bind( $scope.hideOverlay, $scope ) );
+
+
+            var selectizeOptions = {
+                maxItems: 6,
+                plugins: ['remove_button'],
+                onChange: $scope.updateCharts,
+                onItemAdd: function( value ) {
+                    if( value !== "all" ) {
+                        $scope.removeItem( "all" );
+                        $scope.refreshItems();
+                    }
+                }
+            };
+
+            $scope.getSelectizeInstance = function( element ) {
+                if( typeof element.selectize( selectizeOptions )[0] !== 'undefined' ){
+                    return element.selectize( selectizeOptions )[0].selectize;
+                } else {
+                    return false;
+                }
+            };
+            $scope.selectize = {
+                country: $scope.getSelectizeInstance( $scope.elements.country ),
+                apps: $scope.getSelectizeInstance( $scope.elements.apps ),
+                adProvider: $scope.getSelectizeInstance( $scope.elements.adProvider )
+            };
+
+            // Create date range picker
+            $( '.input-daterange' ).datepicker( {
+                orientation: "auto top",
+                format: "M dd, yyyy"
+            } ).on( "changeDate", $scope.updateCharts );
+
+            $scope.elements.startDate = $( '#start_date' );
+            $scope.elements.endDate = $( '#end_date' );
+            // Set initial start date to the last 30days
+            $scope.elements.startDate.datepicker( 'setDate', '-1m');
+            $scope.elements.endDate.datepicker( 'setDate', '0');
+        };
 
         /**
          * Pop up dialog for user to enter email
@@ -73,11 +124,6 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
             $scope.elements.exportComplete.hide();
             $scope.elements.exportError.hide();
         };
-
-        $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
-        $scope.elements.overlay.click( _.bind( $scope.hideOverlay, $scope ) );
-        $scope.elements.exportComplete.click( _.bind( $scope.hideOverlay, $scope ) );
-        $scope.elements.closeButton.click( _.bind( $scope.hideOverlay, $scope ) );
 
         /**
          * Check if date is valid.  Provide a valid Javascript date object.
@@ -161,6 +207,25 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
                 var element = $( "#" + element_id );
                 var template = '<div class="keen-widget keen-metric" style="background-color: #aaaaaa; width:' + element.width() + 'px;"><span class="keen-metric-value"><span class="keen-metric-suffix">N/A</span></span><span class="keen-metric-title">' + title + '</span></div>';
                 element.html( template );
+            };
+
+            $scope.filters = {
+                ad_providers: {
+                    open: false
+                }
+            };
+
+            // Open drop down for a given filter type
+            $scope.openDropdown = function(filterType) {
+                $scope.filters[filterType].open = true;
+                $timeout(function() {
+                    document.getElementById('filter_' + filterType).focus();
+                });
+            };
+
+            // Update Dropdown for a given filter
+            $scope.updateDropdown = function(filterType) {
+                console.log(filterType);
             };
 
             // Only create the charts if keen is ready
@@ -321,40 +386,6 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http',
                 }
             });
         };
-
-        var selectizeOptions = {
-            maxItems: 6,
-            plugins: ['remove_button'],
-            onChange: $scope.updateCharts,
-            onItemAdd: function( value ) {
-                if( value !== "all" ) {
-                    $scope.removeItem( "all" );
-                    $scope.refreshItems();
-                }
-            }
-        };
-
-        $scope.getSelectizeInstance = function( element ) {
-            if( typeof element.selectize( selectizeOptions )[0] !== 'undefined' ){
-                return element.selectize( selectizeOptions )[0].selectize;
-            } else {
-                return false;
-            }
-        }
-        $scope.selectize = {
-            country: $scope.getSelectizeInstance( $scope.elements.country ),
-            apps: $scope.getSelectizeInstance( $scope.elements.apps ),
-            adProvider: $scope.getSelectizeInstance( $scope.elements.adProvider )
-        };
-
-        // Create date range picker
-        $( '.input-daterange' ).datepicker( {
-            orientation: "top left"
-        } ).on( "changeDate", $scope.updateCharts );
-
-        // Set initial start date to the last 30days
-        $scope.elements.startDate.datepicker( 'setDate', '-1m');
-        $scope.elements.endDate.datepicker( 'setDate', '0');
     } ]
 );
 
