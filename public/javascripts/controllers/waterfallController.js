@@ -6,12 +6,14 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.editAppModal = 'assets/templates/apps/editAppModal.html';
             $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
             $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
+            $scope.testModeConfirmationModal = 'assets/templates/waterfalls/test_mode_confirmation.html';
 
             $scope.page = 'waterfall';
             $scope.newAppModalTitle = "Create New App";
             $scope.modalShown = false;
             $scope.showWaterfallAdProviderModal = false;
             $scope.adProviderModalShown = false;
+            $scope.showTestModeConfirmationModal = false;
             $scope.showCodeBlock = false;
             $scope.disableTestModeToggle = false;
             $scope.systemMessage = "";
@@ -50,14 +52,34 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             // Toggles test mode on/off
-            $scope.toggleTestMode = function() {
+            $scope.toggleTestMode = function(testMode) {
                 if(!$scope.disableTestModeToggle) {
-                    $scope.updateWaterfall();
+                    if(testMode) {
+                        $scope.showTestModeConfirmationModal = true;
+                        $scope.showModal(!$scope.modalShown);
+                    } else {
+                        $scope.updateWaterfall();
+                    }
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
                     $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
                     $scope.flashMessage({message: "You must activate at least one Ad Provider", status: "error"})
                 }
+            };
+
+            $scope.confirmTestMode = function() {
+                $scope.updateWaterfall();
+                closeTestModeModal();
+            };
+
+            $scope.cancelTestMode = function() {
+                $scope.waterfallData.waterfall.testMode = false;
+                closeTestModeModal();
+            };
+
+            var closeTestModeModal = function() {
+                $scope.showModal(false);
+                $scope.showTestModeConfirmationModal = false;
             };
 
             // Toggles optimized mode on/off

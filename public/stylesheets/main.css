@@ -439,6 +439,50 @@ span#viewTerms:hover
     width:173px;
 }
 
+.divider
+{
+    height:2px;
+    background:#dddde0;
+    width:25%;
+}
+
+#test-mode-confirmation-modal
+{
+    width:400px;
+}
+
+#warning-header
+{
+    font-size:36pt;
+    color:#ff6666;
+}
+
+#cancel-button
+{
+    -webkit-appearance:none;
+    background:#666;
+    border:0;
+    border-radius:3px;
+    color:#fff;
+    font-family:"Helvetica Neue", Helvetica, sans-serif;
+    font-size:14px;
+    height:58px;
+    text-align:center;
+}
+
+#confirm-button
+{
+    -webkit-appearance:none;
+    background:#ff6666;
+    border:0;
+    border-radius:3px;
+    color:#fff;
+    font-family:"Helvetica Neue", Helvetica, sans-serif;
+    font-size:14px;
+    height:58px;
+    text-align:center;
+}
+
 #create_new_app:hover,#export_as_csv:hover
 {
     background:#4f73e7;

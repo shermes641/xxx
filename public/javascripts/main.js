@@ -96,10 +96,14 @@ mediationModule.directive('modalDialog', function($rootScope) {
                 scope.dialogStyle.height = attrs.height;
             scope.hideModal = function() {
                 scope.errors = {};
+                if(scope.showTestModeConfirmationModal) {
+                    scope.waterfallData.waterfall.testMode = false;
+                }
                 scope.showModal(false);
                 scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
+                scope.showTestModeConfirmationModal = false;
                 $rootScope.bodyClass = "";
             };
 
