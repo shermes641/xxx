@@ -6,6 +6,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
             $scope.newAppPage = true;
             $scope.invalidForm = true;
             $scope.inactiveClass = "inactive";
+            $scope.systemMessage = "Your confirmation email will arrive shortly.";
 
             $scope.checkInputs = function() {
                 var requiredFields = ['appName', 'currencyName', 'rewardMin', 'exchangeRate'];
@@ -27,7 +28,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                 if(checkAppFormErrors($scope.newApp, errorObjects)) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
-                            $scope.systemMessage = "Your confirmation email will arrive shortly.";
                             window.location.href = "/distributors/"+$routeParams.distributorID+"/waterfalls/edit";
                         }).
                         error(function(data, status, headers, config) {
