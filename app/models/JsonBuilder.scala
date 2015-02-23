@@ -8,7 +8,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import scala.language.implicitConversions
 
-object JsonBuilder extends ValueToJsonHelper {
+object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   val LOG_FULL_CONFIG = true
 
   /**
@@ -218,18 +218,6 @@ object JsonBuilder extends ValueToJsonHelper {
   }
 
   /**
-   * Converts RequiredParam class instance to JSON
-   */
-  implicit val requiredParamReads: Reads[RequiredParam] = (
-    (JsPath \ "displayKey").readNullable[String] and
-    (JsPath \ "key").readNullable[String] and
-    (JsPath \ "dataType").readNullable[String] and
-    (JsPath \ "description").readNullable[String] and
-    (JsPath \ "value").readNullable[String] and
-    (JsPath \ "refreshOnAppRestart").read[Boolean]
-  )(RequiredParam.apply _)
-
-  /**
    * Converts RequiredParam class to JSON object.
    * @param param The an instance of the RequiredParam class to be converted.
    * @return JSON object to be used in the edit action.
@@ -242,10 +230,29 @@ object JsonBuilder extends ValueToJsonHelper {
         "dataType" -> JsString(param.dataType.getOrElse("")),
         "description" -> JsString(param.description.getOrElse("")),
         "value" -> JsString(param.value.getOrElse("")),
-        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart),
+        "minLength" -> JsNumber(param.minLength)
       )
     )
   }
+}
+
+/**
+ * Implicit value to convert JSON to an instance of RequiredParam.
+ */
+trait RequiredParamJsReader {
+  /**
+   * Converts RequiredParam class instance to JSON
+   */
+  implicit val requiredParamReads: Reads[RequiredParam] = (
+    (JsPath \ "displayKey").readNullable[String] and
+      (JsPath \ "key").readNullable[String] and
+      (JsPath \ "dataType").readNullable[String] and
+      (JsPath \ "description").readNullable[String] and
+      (JsPath \ "value").readNullable[String] and
+      (JsPath \ "refreshOnAppRestart").read[Boolean] and
+      (JsPath \ "minLength").read[Long].orElse(Reads.pure(0))
+    )(RequiredParam.apply _)
 }
 
 /**
