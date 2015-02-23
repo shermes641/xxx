@@ -18,7 +18,6 @@ object AnalyticsController extends Controller with Secured {
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
       (json \ "email").asOpt[String].map { email =>
-        println(email)
         KeenExport().exportToCSV(distributorID, email)
         Ok("success")
       }.getOrElse {
