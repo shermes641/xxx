@@ -707,9 +707,13 @@ span#viewTerms:hover
     top:21px;
 }
 
-.waterfall-drag.disabled .waterfall-drag-1,.waterfall-drag.disabled .waterfall-drag-2,.waterfall-drag.disabled .waterfall-drag-3
+.ui-sortable-disabled .waterfall-drag-1,.ui-sortable-disabled .waterfall-drag-2, .ui-sortable-disabled .waterfall-drag-3
 {
     background:#efefef;
+}
+
+.ui-sortable-disabled .waterfall-drag {
+    cursor: auto;
 }
 
 .waterfall-drag
