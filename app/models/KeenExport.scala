@@ -197,8 +197,9 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
 
                           counter += 1
                           if(appList.length <= counter) {
-                            // Sends email after all apps have received their stats
-                            sendEmail(email, "Exported CSV from HyprMediate", "Attached is your requested CSV file.", fileName)
+                            // Sends email after all apps have received their stats.
+                            val content = "Attached is your requested CSV file."
+                            sendEmail(email, "Exported CSV from HyprMediate", content, "", fileName)
                             writer.close()
                           }
                         }

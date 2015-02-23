@@ -16,7 +16,7 @@ trait Mailer {
    * @param body Email body
    * @param attachmentFileName Email attachment file name
    */
-  def sendEmail(recipient: String, subject: String, body: String, attachmentFileName: String = ""): Unit = {
+  def sendEmail(recipient: String, subject: String, body: String, plainText: String = "", attachmentFileName: String = ""): Unit = {
     val host = Play.current.configuration.getString("app_domain").get
     if(play.api.Play.isProd(play.api.Play.current)) {
       val mail = use[MailerPlugin].email
@@ -28,7 +28,8 @@ trait Mailer {
         mail.addAttachment(format.format(Calendar.getInstance().getTime()) + "-export.csv", new File(attachmentFileName))
       }
       val template = views.html.Mails.emailTemplate(subject, body, host).toString()
-      mail.sendHtml(template)
+      val text = if(plainText == "") body else plainText
+      mail.send(text, template)
     }
   }
 }

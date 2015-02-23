@@ -25,7 +25,8 @@ class WelcomeEmailActor extends Actor with Mailer {
   def sendWelcomeEmail(email: String): Unit = {
     val subject = "Welcome to HyprMediate!"
     val body = views.html.Mails.welcomeEmailContent().toString()
-    sendEmail(email, subject, body)
+    var plain = "Thank you for registering with HyprMediate.  To get started, please visit our documentation.  http://documentation.hyprmx.com"
+    sendEmail(email, subject, body, plain)
   }
 
   /**
