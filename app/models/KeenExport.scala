@@ -83,7 +83,7 @@ case class KeenExport() {
  */
 class KeenExportActor(distributorID: Long, email: String) extends Actor with Mailer {
   private var counter = 0
-  private val fileName = "public/exports/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
+  private val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
   /**
    * Parses the Keen response
    * @param body The keen response body
@@ -102,6 +102,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
    */
   def createCSVFile(): CSVWriter = {
     val f = new File(fileName)
+    f.getParentFile.mkdirs()
     CSVWriter.open(f)
   }
 
@@ -197,6 +198,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
 
                           counter += 1
                           if(appList.length <= counter) {
+                            println("Exported CSV: " + fileName)
                             // Sends email after all apps have received their stats
                             sendEmail(email, "Exported CSV from HyprMediate", "Attached is your requested CSV file.", fileName)
                             writer.close()
