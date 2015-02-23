@@ -171,7 +171,24 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
-    "toggle waterfall test mode on and off" in new WithFakeBrowser {
+    "toggle test mode to off when there is at least one ad provider" in new WithFakeBrowser {
+      Waterfall.update(waterfall.id, false, true)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      val originalGeneration = generationNumber(waterfall.app_id)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
+      browser.executeScript("$('#test-mode-switch').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+    }
+
+    "toggle test mode to on only when the user confirms the action" in new WithFakeBrowser {
       Waterfall.update(waterfall.id, false, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
@@ -182,12 +199,30 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("$('#test-mode-switch').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
+      browser.find("#confirm-button").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
-      // Message box alerting user in test mode must be displayed
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-message").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+    }
+
+    "not toggle test mode to on when the user cancels the action" in new WithFakeBrowser {
+      Waterfall.update(waterfall.id, false, false)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      val originalGeneration = generationNumber(waterfall.app_id)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      browser.executeScript("$('#test-mode-switch').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
+      browser.find("#cancel-button").click()
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      generationNumber(app1.id) must beEqualTo(originalGeneration)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
     }
 
     "not set waterfall to live mode when no ad providers are active" in new WithAppBrowser(distributor.id.get) {
