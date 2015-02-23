@@ -5,11 +5,26 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout', 'fieldsFilled',
+    function( $scope, $http, $routeParams, appCheck, $filter, $timeout, fieldsFilled ) {
+        $scope.$on('$viewContentLoaded', function(){
+            // Retrieve Waterfall data
+            $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
+                $scope.distributorID = $routeParams.distributorID;
+                $scope.adProviders = data.adProviders;
+                $scope.apps = data.apps;
+                $scope.scopedKey = data.scopedKey;
+                $scope.keenProject = data.keenProject;
+                $scope.startDatepicker();
 
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeout',
-    function( $scope, $http, $timeout ) {
-        // Angular Templates
-        $scope.analyticsTemplate = 'assets/templates/analytics/analytics.html';
+                // Initializes the keen library
+                $scope.keenClient = new Keen( {
+                    projectId: $scope.keenProject,
+                    readKey: $scope.scopedKey
+                } );
+
+            })
+        });
 
         $scope.startDatepicker = function() {
             $scope.elements = {
@@ -32,9 +47,6 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeou
             // Distributor ID to be used in AJAX calls.
             $scope.distributorID = $(".split_content").attr("data-distributor-id");
             $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
-
-
-
 
             $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
             $scope.elements.overlay.click( _.bind( $scope.hideOverlay, $scope ) );
@@ -242,7 +254,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeou
                     }
                 } );
 
-                client.run( ecpm_metric, function() {
+                $scope.keenClient.run( ecpm_metric, function() {
                     var eCPM = 0;
                     if ( this.data.result === null ) {
                         empty_metric( "ecpm_metric", "eCPM" );
@@ -272,7 +284,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeou
                     } );
 
                     // Calculate expected eCPM
-                    client.run( estimated_revenue, function() {
+                    $scope.keenClient.run( estimated_revenue, function() {
                         var table_data = [];
                         var chart_data = [];
                         var cumulative_revenue = 0;
@@ -365,7 +377,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeou
                         }
                     } );
 
-                    client.run( [ inventory_request, available_count ], function() {
+                    $scope.keenClient.run( [ inventory_request, available_count ], function() {
                         var conversion_rate = 0;
                         if ( this.data[ 0 ].result !== 0 ) {
                             conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100
@@ -388,9 +400,3 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$timeou
         };
     } ]
 );
-
-// Initializes the keen library
-var client = new Keen( {
-    projectId: $( "#keen_project" ).val(),
-    readKey: $( "#scoped_key" ).val()
-} );

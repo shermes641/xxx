@@ -10,6 +10,9 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
     $routeProvider.when('/distributors/:distributorID/apps/new', {
         controller: 'NewAppsController',
         templateUrl: 'assets/templates/apps/newAppModal.html'
+    }).when('/distributors/:distributorID/analytics', {
+        controller: 'AnalyticsController',
+        templateUrl: 'assets/templates/analytics/analytics.html'
     }).when('/distributors/:distributorID/waterfalls/:waterfallID/edit', {
         controller: 'WaterfallController',
         templateUrl: 'assets/templates/waterfalls/edit.html'
