@@ -1,7 +1,7 @@
 <div id="analytics-controller" ng-controller="AnalyticsController">
     <div ng-include="subHeader"></div>
     <div id="email_modal">
-        <div class="close_button"></div>
+        <div class="close_button" ng-click="hideOverlay()"></div>
         <div id="csv_email_form">
             <h1>Export All Data</h1>
             <hr />
@@ -19,18 +19,18 @@
             <h1>Export Requested</h1>
             <hr />
             <div class="modal_text">Export has been requested, email will be sent once complete.</div>
-            <button class="modal_submit">Close</button>
+            <button class="modal_submit" ng-click="hideOverlay()">Close</button>
         </div>
         <div id="csv_export_error">
             <h1>Export Error</h1>
             <hr />
             <div class="modal_text">There was an error when requesting the export, please try again.</div>
-            <button class="modal_submit">Close</button>
+            <button class="modal_submit" ng-click="hideOverlay()">Close</button>
         </div>
     </div>
-    <div id="analytics_overlay"></div>
+    <div id="analytics_overlay" ng-click="hideOverlay()"></div>
     <div id="left_content">
-        <div id="left_apps_list">
+        <div class="left_apps_list">
             <h2>Date Range</h2>
             <ul>
                 <div class="input-daterange input-group" id="datepicker">
@@ -43,40 +43,46 @@
                 </div>
             </ul>
         </div>
-        <div id="left_apps_list">
+        <div class="left_apps_list">
             <h2>Filter By Ad Provider</h2>
             <ul id="ad_providers_filter">
-                <li ng-repeat="provider in adProviders" data-provider-id="@provider.id" class="active removable">{{provider.name}}</li>
+                <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)">{{provider.name}}</li>
                 <li class="add" ng-click="openDropdown('ad_providers')" ng-class="{open: filters.ad_providers.open}">
                     <span class="dropdown-label">Add Provider</span>
-                    <input type="text" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers" />
-                    <ul class="dropdown" ng-repeat="provider in waterfallData.appsWithWaterfalls">
-                        <li data-provider-id="@provider.id" class="">{{provider.name}}</li>
+                    <input type="text" ng-model="providerFilter" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"/>
+                    <ul class="dropdown">
+                        <li ng-repeat="provider in filters.ad_providers.available | filter:providerFilter as results" ng-click="addToSelected('ad_providers', provider, $index)">{{provider.name}}</li>
                     </ul>
                 </li>
             </ul>
         </div>
-        <div id="left_apps_list">
+        <div class="left_apps_list">
             <h2>Filter By App</h2>
             <ul>
-                <li ng-repeat="appInfo in apps" class="active removable">{{appInfo.name}}</li>
-                <li class="add">Add App</li>
+                <li ng-repeat="appInfo in filters.apps.selected" class="active removable" ng-click="removeFromSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
+                <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
+                    <span class="dropdown-label">Add App</span>
+                    <input type="text" ng-model="appFilter" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter_apps" />
+                    <ul class="dropdown">
+                        <li ng-repeat="appInfo in filters.apps.available | filter:appFilter as results" ng-click="addToSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
+                    </ul>
+                </li>
             </ul>
         </div>
-        <div id="left_apps_list">
+        <div class="left_apps_list">
             <h2>Filter By Country</h2>
             <ul>
                 <li class="active removable">United States</li>
                 <li class="add">Add Country</li>
             </ul>
         </div>
-        <button id="export_as_csv">
+        <button id="export_as_csv" ng-click="showEmailForm()">
             Export All Data
         </button>
     </div>
     <div class="split_content dashboard" data-distributor-id="@distributorID">
         <div class="fluid-container">
-            <div class="analytics-row row">
+            <div class="analytics-row analytics-row-header row">
                 <div class="col-sm-12">
                     <h1 id="analytics-header">Analytics</h1>
                 </div>

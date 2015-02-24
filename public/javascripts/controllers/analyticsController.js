@@ -15,6 +15,20 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             $scope.distributorID = $routeParams.distributorID;
             $scope.adProviders = data.adProviders;
             $scope.apps = data.apps;
+
+            $scope.filters = {
+                ad_providers: {
+                    open: false,
+                    selected: [{id: 'all', name: 'All Ad Providers'}],
+                    available: data.adProviders
+                },
+                apps: {
+                    open: false,
+                    selected: [{id: 'all', name: 'All Apps'}],
+                    available: data.apps
+                }
+            };
+
             $scope.scopedKey = data.scopedKey;
             $scope.keenProject = data.keenProject;
             $scope.startDatepicker();
@@ -25,7 +39,56 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 readKey: $scope.scopedKey
             } );
 
-        })
+        });
+
+        // Open drop down for a given filter type
+        $scope.openDropdown = function(filterType) {
+            if($scope.filters[filterType].open !== true){
+                $scope.filters[filterType].available = _.sortBy($scope.filters[filterType].available, 'name');
+                $scope.filters[filterType].open = true;
+                $timeout(function() {
+                    document.getElementById('filter_' + filterType).focus();
+                });
+            }
+        };
+
+        // Close filter dropdown
+        $scope.closeDropdown = function(filterType) {
+            $scope.filters[filterType].open = false;
+            $scope.filters[filterType].selected = _.sortBy($scope.filters[filterType].selected, 'name');
+        };
+
+        // Update Dropdown for a given filter
+        $scope.addToSelected = function(filterType, object, index) {
+            if(object.id !== 'all'){
+                // Remove "all" if another item is selected
+                var all = _.find($scope.filters[filterType].selected, function(object){ return object.id === 'all'; });
+                if(typeof all !== "undefined") {
+                    $scope.filters[filterType].selected = _.reject($scope.filters[filterType].selected, function(object){ return object.id === 'all'; });
+                    $scope.filters[filterType].available.push(all);
+                }
+            } else {
+                // Remove selected items if "all" is selected
+                $scope.filters[filterType].available = $scope.filters[filterType].available.concat($scope.filters[filterType].selected);
+                $scope.filters[filterType].selected = [];
+            }
+            $scope.filters[filterType].selected.push(object);
+            $scope.filters[filterType].available.splice(index, 1);
+        };
+
+        $scope.removeFromSelected = function(filterType, object, index) {
+            if(object.id !== 'all'){
+                $scope.filters[filterType].available.push(object);
+                $scope.filters[filterType].selected.splice(index, 1);
+            }
+            // If nothing selected add all
+            if($scope.filters[filterType].selected.length === 0) {
+                var all = _.find($scope.filters[filterType].available, function(object){ return object.id === 'all'; });
+                $scope.filters[filterType].available = _.reject($scope.filters[filterType].available, function(object){ return object.id === 'all'; });
+                $scope.filters[filterType].selected.push(all);
+            }
+        };
+
 
         $scope.startDatepicker = function() {
             $scope.elements = {
@@ -48,45 +111,12 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             // Distributor ID to be used in AJAX calls.
             $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
 
-            $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
-            $scope.elements.overlay.click( _.bind( $scope.hideOverlay, $scope ) );
-            $scope.elements.exportComplete.click( _.bind( $scope.hideOverlay, $scope ) );
-            $scope.elements.closeButton.click( _.bind( $scope.hideOverlay, $scope ) );
-
-
-            var selectizeOptions = {
-                maxItems: 6,
-                plugins: ['remove_button'],
-                onChange: $scope.updateCharts,
-                onItemAdd: function( value ) {
-                    if( value !== "all" ) {
-                        $scope.removeItem( "all" );
-                        $scope.refreshItems();
-                    }
-                }
-            };
-
-            $scope.getSelectizeInstance = function( element ) {
-                if( typeof element.selectize( selectizeOptions )[0] !== 'undefined' ){
-                    return element.selectize( selectizeOptions )[0].selectize;
-                } else {
-                    return false;
-                }
-            };
-            $scope.selectize = {
-                country: $scope.getSelectizeInstance( $scope.elements.country ),
-                apps: $scope.getSelectizeInstance( $scope.elements.apps ),
-                adProvider: $scope.getSelectizeInstance( $scope.elements.adProvider )
-            };
-
             // Create date range picker
             $( '.input-daterange' ).datepicker( {
                 orientation: "auto top",
                 format: "M dd, yyyy"
             } ).on( "changeDate", $scope.updateCharts );
 
-            $scope.elements.startDate = $( '#start_date' );
-            $scope.elements.endDate = $( '#end_date' );
             // Set initial start date to the last 30days
             $scope.elements.startDate.datepicker( 'setDate', '-1m');
             $scope.elements.endDate.datepicker( 'setDate', '0');
@@ -214,28 +244,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             end_date.setHours(end_date.getHours() + 40);
             var end_date_iso = end_date.toISOString();
 
-            $scope.filters = {
-                ad_providers: {
-                    open: false
-                }
-            };
-
-            // Open drop down for a given filter type
-            $scope.openDropdown = function(filterType) {
-                $scope.filters[filterType].open = true;
-                $timeout(function() {
-                    document.getElementById('filter_' + filterType).focus();
-                });
-            };
-
-            // Update Dropdown for a given filter
-            $scope.updateDropdown = function(filterType) {
-                console.log(filterType);
-            };
-
             // Only create the charts if keen is ready
             Keen.ready( function() {
-
                 // Ad Provider eCPM
                 var ecpm_metric = new Keen.Query( "average", {
                     eventCollection: "ad_completed",
@@ -252,7 +262,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                     if ( this.data.result === null ) {
                         $scope.ecpmMetric = "N/A";
                     } else {
-                        $scope.ecpmMetric = '<sup>$</sup>' + this.data.result + '<sup>.00</sup>';
+                        var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".")
+                        $scope.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
 
                         eCPM = this.data.result;
                     }
@@ -279,11 +290,11 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
                             table_data.push( {
                                 "Date": date_string,
-                                "Estimated Revenue": '$' + days_revenue
+                                "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
                             } );
                             chart_data.push( {
                                 "Date": date_string,
-                                "Estimated Revenue": days_revenue
+                                "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
                             } );
                             cumulative_revenue = cumulative_revenue + days_revenue;
                         } );
@@ -292,7 +303,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                             result: cumulative_revenue / this.data.result.length
                         };
 
-                        $scope.revenueByDayMetric = '<sup>$</sup>' + average_revenue.result + '<sup>.00</sup>';
+                        var revenueSplit = $filter("monetaryFormat")(average_revenue.result).split(".")
+                        $scope.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
                         $scope.revenueTable = table_data.reverse();
                         $scope.$apply();
 
@@ -302,13 +314,39 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                             title: false,
                             height: 250,
                             width: "auto",
+                            colors: ["#42c187"],
                             filters: filters,
                             chartOptions: {
                                 chartArea: {
                                     height: "85%",
                                     left: "5%",
                                     top: "5%",
-                                    width: "80%"
+                                    width: "93%"
+                                },
+                                legend: {
+                                    position: "none"
+                                },
+                                vAxis: {
+                                    viewWindowMode: "explicit",
+                                    viewWindow:{
+                                        min: 0
+                                    },
+                                    format: "$#,###",
+                                    gridlines: {
+                                        color: "#f2f2f2",
+                                        count: 5
+                                    },
+                                    textStyle: {
+                                        color: '#999999'
+                                    }
+                                },
+                                hAxis: {
+                                    gridlines: {
+                                        color: "#d2d2d2"
+                                    },
+                                    textStyle: {
+                                        color: '#999999'
+                                    }
                                 },
                                 isStacked: true
                             }
