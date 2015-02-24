@@ -87,7 +87,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.$("button[name=new-app-form]").first.isEnabled must beEqualTo(false)
       fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       clickAndWaitForAngular("button[name=new-app-form]")
-      browser.pageSource must contain("You already have an active App with the same name.")
+      browser.pageSource must contain("You already have an App with the same name.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
