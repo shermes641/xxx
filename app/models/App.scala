@@ -295,7 +295,7 @@ object App {
           WHERE distributor_id = {distributor_id} AND active = true;
         """
       ).on("distributor_id" -> distributorID)().map(row => (row[Long]("id"), row[String]("name"))).toList
-      appNameInfo.find(info => info._2 == appName) match {
+      appNameInfo.find(info => info._2.toLowerCase == appName.toLowerCase) match {
         case None => None
         case Some(info) if(info._1 != appID.getOrElse(None)) => Some(info._1)
         case _ => None

@@ -60,7 +60,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   val takenAppNameError = {
-    "You already have an active App with the same name.  To use this App name, you must first deactivate your existing App in its respective Settings Page"
+    "You already have an App with the same name.  Please choose a unique name for your new App."
   }
 
   /**
