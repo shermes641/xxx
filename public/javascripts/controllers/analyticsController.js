@@ -191,9 +191,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         $scope.updateCharts = function() {
             // Get current element values
             // We do this every update just incase any fields have changed (including hidden)
-            var country = $scope.selectize.country.getValue(),
-                adProvider = $scope.selectize.adProvider.getValue(),
-                apps = $scope.selectize.apps.getValue(),
+            var country = ['all'],
+                adProvider = ['all'],
+                apps = ['all'],
                 start_date = $scope.elements.startDate.datepicker( 'getUTCDate'),
                 end_date = $scope.elements.endDate.datepicker( 'getUTCDate' );
 
@@ -215,9 +215,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             var end_date_iso = end_date.toISOString();
 
             // Empty styled metric
-            var empty_metric = function ( element_id, title ) {
+            var empty_metric = function ( element_id ) {
                 var element = $( "#" + element_id );
-                var template = '<div class="keen-widget keen-metric" style="background-color: #aaaaaa; width:' + element.width() + 'px;"><span class="keen-metric-value"><span class="keen-metric-suffix">N/A</span></span><span class="keen-metric-title">' + title + '</span></div>';
+                var template = 'N/A';
                 element.html( template );
             };
 
@@ -257,17 +257,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 $scope.keenClient.run( ecpm_metric, function() {
                     var eCPM = 0;
                     if ( this.data.result === null ) {
-                        empty_metric( "ecpm_metric", "eCPM" );
+                        empty_metric( "ecpm_metric" );
                     } else {
-                        new Keen.Visualization( this.data, document.getElementById( "ecpm_metric" ), {
-                            chartType: "metric",
-                            title: "eCPM",
-                            chartOptions: {
-                                decimals: 2
-                            },
-                            colors: [ "#4285f4" ],
-                            width: $( "#ecpm_metric" ).width()
-                        });
+                        $('#ecpm_metric').html('<sup>$</sup>' + this.data.result + '<sup>.00</sup>')
 
                         eCPM = this.data.result;
                     }
@@ -306,22 +298,17 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                         var average_revenue = {
                             result: cumulative_revenue / this.data.result.length
                         };
-                        new Keen.Visualization( average_revenue, document.getElementById( "unique_users" ), {
-                            chartType: "metric",
-                            title: "Average Revenue By Day",
-                            colors: [ "#4285f4" ],
-                            chartOptions: {
-                                prefix: "$",
-                                decimals: 2
-                            },
-                            width: $( "#unique_users" ).width()
-                        });
 
+                        $('#unique_users').html('<sup>$</sup>' + average_revenue.result + '<sup>.00</sup>');
+
+                        $scope.$apply(function () {
+                            $scope.revenueTable = table_data.reverse();
+                        });
                         // Estimated Revenue Table
                         new Keen.Visualization( { result: table_data.reverse() }, document.getElementById( "estimated_revenue" ), {
                             chartType: "table",
                             title: "Estimated Revenue",
-                            colors: [ "#4285f4" ],
+                            colors: [ "#42c187" ],
                             width: $( "#estimated_revenue" ).width()
                         } );
 
@@ -346,7 +333,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 } );
 
                 if ( adProvider.length > 1 ) {
-                    empty_metric( "fill_rate", "Fill Rate" );
+                    empty_metric( "fill_rate" );
                 } else {
                     var request_collection = "availability_requested";
                     var response_collection = "availability_response_true";
@@ -383,17 +370,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                             conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100
                         }
 
-                        // All or no ad providers are selected show waterfall fill rate.  If a single ad provider is selected show
-                        // that ad providers fill rate.  If multiple ad providers are selected show n/a.
-                        new Keen.Visualization( { result: conversion_rate }, document.getElementById( 'fill_rate' ), {
-                            chartType: "metric",
-                            title: "Fill Rate",
-                            chartOptions: {
-                                suffix: "%"
-                            },
-                            colors: [ "#4285f4" ],
-                            width: $( "#fill_rate" ).width()
-                        } );
+                        $('#fill_rate').html(conversion_rate + '%');
                     } );
                 }
             });

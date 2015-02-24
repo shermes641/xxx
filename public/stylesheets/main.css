@@ -1515,6 +1515,134 @@ hr
     z-index:2002;
 }
 
+#analytics-header {
+    text-align: center;
+    font-size: 36px;
+    font-family:"Helvetica Neue Light", Helvetica, sans-serif;
+}
+
+.analytics-row {
+    padding: 20px 0;
+}
+
+.analytics-circle
+{
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    background: url(../images/analytics_circles.png);
+    text-align: center;
+    padding-top: 62px;
+    font-family:"Helvetica Neue", Helvetica, sans-serif;
+    font-weight: bold;
+    font-size: 40px;
+}
+
+.analytics-circle-border {
+    border-right: 1px solid #e3e3e5;
+}
+
+.analytics-circle.average-ecpm
+{
+    background-position: 0 0;
+    color: #fff;
+}
+
+.analytics-circle.fill-rate
+{
+    color: #666;
+    background-position: -180px 0;
+}
+
+.analytics-circle.revenue-by-day
+{
+    color: #fff;
+    background-position: -360px 0;
+}
+
+.analytics-circle sup {
+    font-size: 24px;
+}
+
+.analytics-description {
+    margin: 15px 0;
+    font-size: 12px;
+    font-family:"Helvetica Neue", Helvetica, sans-serif;
+    color: #666;
+    text-align: center;
+}
+
+.analytics-description i {
+    font-family:"Helvetica Neue Light", Helvetica, sans-serif;
+    padding-left: 10px;
+}
+
+.analytics-bullet {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.analytics-bullet.average-ecpm {
+    background: #4f73e7;
+}
+
+.analytics-bullet.fill-rate {
+    background: #ffcc66;
+}
+
+.analytics-bullet.revenue-by-day {
+    background: #42c187;
+}
+
+.analytics-revenue-table {
+    width: 100%;
+    border: 1px solid #dddde0;
+    border-radius: 3px;
+    border-collapse: separate;
+    height: 600px;
+    overflow: scroll;
+}
+
+.analytics-revenue-table tr th {
+    background: #f9f9f9;
+    padding: 12px;
+    border-bottom: 1px solid #dddde0;
+    font-size: 12px;
+    color: #6d6d72;
+    font-family:"Helvetica Neue", Helvetica, sans-serif;
+}
+
+.analytics-revenue-table tr td {
+    padding: 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #dddde0;
+    font-family:"Helvetica Neue Light", Helvetica, sans-serif;
+}
+
+.analytics-revenue-table tr:nth-child(odd) td {
+    background: #f9f9f9;
+}
+
+.analytics-revenue-table tr td:last-child {
+    text-align: right;
+    font-family:"Helvetica Neue", Helvetica, sans-serif;
+    font-weight: bold;
+}
+
+/* A css way to get rounded corners to work in tables */
+.analytics-revenue-table tr:last-child td:first-child {
+    border-bottom-left-radius:3px;
+    border-bottom: 0px;
+}
+
+.analytics-revenue-table tr:last-child td:last-child {
+    border-bottom-right-radius:3px;
+    border-bottom: 0px;
+}
+
 .ng-modal-overlay
 {
     background:#fff;
