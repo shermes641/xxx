@@ -5,26 +5,27 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout', 'fieldsFilled',
-    function( $scope, $http, $routeParams, appCheck, $filter, $timeout, fieldsFilled ) {
-        $scope.$on('$viewContentLoaded', function(){
-            // Retrieve Waterfall data
-            $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
-                $scope.distributorID = $routeParams.distributorID;
-                $scope.adProviders = data.adProviders;
-                $scope.apps = data.apps;
-                $scope.scopedKey = data.scopedKey;
-                $scope.keenProject = data.keenProject;
-                $scope.startDatepicker();
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout',
+    function( $scope, $http, $routeParams, appCheck, $filter, $timeout ) {
+        $scope.subHeader = 'assets/templates/sub_header.html';
+        $scope.page = 'analytics';
 
-                // Initializes the keen library
-                $scope.keenClient = new Keen( {
-                    projectId: $scope.keenProject,
-                    readKey: $scope.scopedKey
-                } );
+        // Retrieve Waterfall data
+        $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
+            $scope.distributorID = $routeParams.distributorID;
+            $scope.adProviders = data.adProviders;
+            $scope.apps = data.apps;
+            $scope.scopedKey = data.scopedKey;
+            $scope.keenProject = data.keenProject;
+            $scope.startDatepicker();
 
-            })
-        });
+            // Initializes the keen library
+            $scope.keenClient = new Keen( {
+                projectId: $scope.keenProject,
+                readKey: $scope.scopedKey
+            } );
+
+        })
 
         $scope.startDatepicker = function() {
             $scope.elements = {
@@ -45,7 +46,6 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             };
 
             // Distributor ID to be used in AJAX calls.
-            $scope.distributorID = $(".split_content").attr("data-distributor-id");
             $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
 
             $scope.elements.exportAsCsv.click( _.bind( $scope.showEmailForm, $scope ) );
@@ -214,13 +214,6 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             end_date.setHours(end_date.getHours() + 40);
             var end_date_iso = end_date.toISOString();
 
-            // Empty styled metric
-            var empty_metric = function ( element_id ) {
-                var element = $( "#" + element_id );
-                var template = 'N/A';
-                element.html( template );
-            };
-
             $scope.filters = {
                 ad_providers: {
                     open: false
@@ -257,9 +250,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 $scope.keenClient.run( ecpm_metric, function() {
                     var eCPM = 0;
                     if ( this.data.result === null ) {
-                        empty_metric( "ecpm_metric" );
+                        $scope.ecpmMetric = "N/A";
                     } else {
-                        $('#ecpm_metric').html('<sup>$</sup>' + this.data.result + '<sup>.00</sup>')
+                        $scope.ecpmMetric = '<sup>$</sup>' + this.data.result + '<sup>.00</sup>';
 
                         eCPM = this.data.result;
                     }
@@ -282,8 +275,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                         var cumulative_revenue = 0;
                         _.each( this.data.result, function ( day ) {
                             var days_revenue = (day.value * eCPM);
-                            var date = new Date( day.timeframe.start );
-                            var date_string = ( date.getUTCMonth() + 1 ) + "/" + date.getUTCDate() + "/" + date.getUTCFullYear();
+                            var date_string = moment( day.timeframe.start).format("MMM DD, YYYY");
+
                             table_data.push( {
                                 "Date": date_string,
                                 "Estimated Revenue": '$' + days_revenue
@@ -299,18 +292,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                             result: cumulative_revenue / this.data.result.length
                         };
 
-                        $('#unique_users').html('<sup>$</sup>' + average_revenue.result + '<sup>.00</sup>');
-
-                        $scope.$apply(function () {
-                            $scope.revenueTable = table_data.reverse();
-                        });
-                        // Estimated Revenue Table
-                        new Keen.Visualization( { result: table_data.reverse() }, document.getElementById( "estimated_revenue" ), {
-                            chartType: "table",
-                            title: "Estimated Revenue",
-                            colors: [ "#42c187" ],
-                            width: $( "#estimated_revenue" ).width()
-                        } );
+                        $scope.revenueByDayMetric = '<sup>$</sup>' + average_revenue.result + '<sup>.00</sup>';
+                        $scope.revenueTable = table_data.reverse();
+                        $scope.$apply();
 
                         // Estimated Revenue Chart
                         new Keen.Visualization( { result: chart_data }, document.getElementById("estimated_revenue_chart"), {
@@ -333,7 +317,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 } );
 
                 if ( adProvider.length > 1 ) {
-                    empty_metric( "fill_rate" );
+                    $scope.fillRateMetric = "N/A";
                 } else {
                     var request_collection = "availability_requested";
                     var response_collection = "availability_response_true";
@@ -370,7 +354,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                             conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100
                         }
 
-                        $('#fill_rate').html(conversion_rate + '%');
+                        $scope.fillRateMetric = conversion_rate + '%';
                     } );
                 }
             });

@@ -1,5 +1,5 @@
 // Initialize the mediation module
-var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'ui.sortable']);
+var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'ui.sortable']);
 
 // Initialize controllers
 var distributorUsersControllers = angular.module('distributorUsersControllers', ['ngRoute']);

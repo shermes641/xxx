@@ -1,4 +1,5 @@
 <div id="analytics-controller" ng-controller="AnalyticsController">
+    <div ng-include="subHeader"></div>
     <div id="email_modal">
         <div class="close_button"></div>
         <div id="csv_email_form">
@@ -83,7 +84,7 @@
             <div class="analytics-row row">
 
                 <div class="col-sm-4 analytics-circle-border">
-                    <div id="ecpm_metric" class="analytics-circle average-ecpm">
+                    <div id="ecpm_metric" class="analytics-circle average-ecpm" ng-bind-html="ecpmMetric">
                     </div>
                     <div class="analytics-description">
                         <div class="analytics-bullet average-ecpm"></div>
@@ -92,7 +93,7 @@
                 </div>
 
                 <div class="col-sm-4 analytics-circle-border">
-                    <div id="fill_rate" class="analytics-circle fill-rate">
+                    <div id="fill_rate" class="analytics-circle fill-rate" ng-bind-html="fillRateMetric">
                     </div>
                     <div class="analytics-description">
                         <div class="analytics-bullet fill-rate"></div>
@@ -101,7 +102,7 @@
                 </div>
 
                 <div class="col-sm-4">
-                    <div id="unique_users" class="analytics-circle revenue-by-day">
+                    <div id="unique_users" class="analytics-circle revenue-by-day" ng-bind-html="revenueByDayMetric">
                     </div>
                     <div class="analytics-description">
                         <div class="analytics-bullet revenue-by-day"></div>
@@ -123,13 +124,17 @@
             <div class="analytics-row row">
                 <div class="col-sm-12">
                     <table class="analytics-revenue-table" cellspacing="0">
-                        <tr>
-                            <th colspan="2">Estimated Revenue by Day</th>
-                        </tr>
-                        <tr ng-repeat="day in revenueTable">
-                            <td>{{day.Date}}</td>
-                            <td>{{day["Estimated Revenue"]}}</td>
-                        </tr>
+                        <thead>
+                            <tr>
+                                <th colspan="2">Estimated Revenue by Day</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="day in revenueTable">
+                                <td>{{day.Date}}</td>
+                                <td>{{day["Estimated Revenue"]}}</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
