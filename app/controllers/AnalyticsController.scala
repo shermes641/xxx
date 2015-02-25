@@ -90,7 +90,6 @@ object AnalyticsController extends Controller with Secured {
     JsObject(
       Seq(
         "id" -> JsString(app.id.toString),
-        "active" -> JsBoolean(app.active),
         "distributorID" -> JsString(app.distributorID.toString),
         "name" -> JsString(app.name)
       )

@@ -5,8 +5,8 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout',
-    function( $scope, $http, $routeParams, appCheck, $filter, $timeout ) {
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout', '$document',
+    function( $scope, $http, $routeParams, appCheck, $filter, $timeout, $document ) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
 
@@ -20,12 +20,20 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 ad_providers: {
                     open: false,
                     selected: [{id: 'all', name: 'All Ad Providers'}],
-                    available: data.adProviders
+                    available: data.adProviders,
+                    input: ""
                 },
                 apps: {
                     open: false,
                     selected: [{id: 'all', name: 'All Apps'}],
-                    available: data.apps
+                    available: data.apps,
+                    input: ""
+                },
+                countries: {
+                    open: false,
+                    selected: [{id: 'all', name: 'All Countries'}],
+                    available: [{id:'United States', name:'United States'}, {id:'Afghanistan', name:'Afghanistan'},{id:'Albania', name:'Albania'},{id:'Algeria', name:'Algeria'},{id:'Andorra', name:'Andorra'},{id:'Angola', name:'Angola'},{id:'Antarctica', name:'Antarctica'},{id:'Antigua and Barbuda', name:'Antigua and Barbuda'},{id:'Argentina', name:'Argentina'},{id:'Armenia', name:'Armenia'},{id:'Australia', name:'Australia'},{id:'Austria', name:'Austria'},{id:'Azerbaijan', name:'Azerbaijan'},{id:'Bahamas', name:'Bahamas'},{id:'Bahrain', name:'Bahrain'},{id:'Bangladesh', name:'Bangladesh'},{id:'Barbados', name:'Barbados'},{id:'Belarus', name:'Belarus'},{id:'Belgium', name:'Belgium'},{id:'Belize', name:'Belize'},{id:'Benin', name:'Benin'},{id:'Bermuda', name:'Bermuda'},{id:'Bhutan', name:'Bhutan'},{id:'Bolivia', name:'Bolivia'},{id:'Bosnia and Herzegovina', name:'Bosnia and Herzegovina'},{id:'Botswana', name:'Botswana'},{id:'Brazil', name:'Brazil'},{id:'Brunei', name:'Brunei'},{id:'Bulgaria', name:'Bulgaria'},{id:'Burkina Faso', name:'Burkina Faso'},{id:'Burma', name:'Burma'},{id:'Burundi', name:'Burundi'},{id:'Cambodia', name:'Cambodia'},{id:'Cameroon', name:'Cameroon'},{id:'Canada', name:'Canada'},{id:'Cape Verde', name:'Cape Verde'},{id:'Central African Republic', name:'Central African Republic'},{id:'Chad', name:'Chad'},{id:'Chile', name:'Chile'},{id:'China', name:'China'},{id:'Colombia', name:'Colombia'},{id:'Comoros', name:'Comoros'},{id:'Congo, Democratic Republic', name:'Congo, Democratic Republic'},{id:'Congo, Republic of the', name:'Congo, Republic of the'},{id:'Costa Rica', name:'Costa Rica'},{id:'Cote d Ivoire', name:'Cote d Ivoire'},{id:'Croatia', name:'Croatia'},{id:'Cuba', name:'Cuba'},{id:'Cyprus', name:'Cyprus'},{id:'Czech Republic', name:'Czech Republic'},{id:'Denmark', name:'Denmark'},{id:'Djibouti', name:'Djibouti'},{id:'Dominica', name:'Dominica'},{id:'Dominican Republic', name:'Dominican Republic'},{id:'East Timor', name:'East Timor'},{id:'Ecuador', name:'Ecuador'},{id:'Egypt', name:'Egypt'},{id:'El Salvador', name:'El Salvador'},{id:'Equatorial Guinea', name:'Equatorial Guinea'},{id:'Eritrea', name:'Eritrea'},{id:'Estonia', name:'Estonia'},{id:'Ethiopia', name:'Ethiopia'},{id:'Fiji', name:'Fiji'},{id:'Finland', name:'Finland'},{id:'France', name:'France'},{id:'Gabon', name:'Gabon'},{id:'Gambia', name:'Gambia'},{id:'Georgia', name:'Georgia'},{id:'Germany', name:'Germany'},{id:'Ghana', name:'Ghana'},{id:'Greece', name:'Greece'},{id:'Greenland', name:'Greenland'},{id:'Grenada', name:'Grenada'},{id:'Guatemala', name:'Guatemala'},{id:'Guinea', name:'Guinea'},{id:'Guinea-Bissau', name:'Guinea-Bissau'},{id:'Guyana', name:'Guyana'},{id:'Haiti', name:'Haiti'},{id:'Honduras', name:'Honduras'},{id:'Hong Kong', name:'Hong Kong'},{id:'Hungary', name:'Hungary'},{id:'Iceland', name:'Iceland'},{id:'India', name:'India'},{id:'Indonesia', name:'Indonesia'},{id:'Iran', name:'Iran'},{id:'Iraq', name:'Iraq'},{id:'Ireland', name:'Ireland'},{id:'Israel', name:'Israel'},{id:'Italy', name:'Italy'},{id:'Jamaica', name:'Jamaica'},{id:'Japan', name:'Japan'},{id:'Jordan', name:'Jordan'},{id:'Kazakhstan', name:'Kazakhstan'},{id:'Kenya', name:'Kenya'},{id:'Kiribati', name:'Kiribati'},{id:'Korea, North', name:'Korea, North'},{id:'Korea, South', name:'Korea, South'},{id:'Kuwait', name:'Kuwait'},{id:'Kyrgyzstan', name:'Kyrgyzstan'},{id:'Laos', name:'Laos'},{id:'Latvia', name:'Latvia'},{id:'Lebanon', name:'Lebanon'},{id:'Lesotho', name:'Lesotho'},{id:'Liberia', name:'Liberia'},{id:'Libya', name:'Libya'},{id:'Liechtenstein', name:'Liechtenstein'},{id:'Lithuania', name:'Lithuania'},{id:'Luxembourg', name:'Luxembourg'},{id:'Macedonia', name:'Macedonia'},{id:'Madagascar', name:'Madagascar'},{id:'Malawi', name:'Malawi'},{id:'Malaysia', name:'Malaysia'},{id:'Maldives', name:'Maldives'},{id:'Mali', name:'Mali'},{id:'Malta', name:'Malta'},{id:'Marshall Islands', name:'Marshall Islands'},{id:'Mauritania', name:'Mauritania'},{id:'Mauritius', name:'Mauritius'},{id:'Mexico', name:'Mexico'},{id:'Micronesia', name:'Micronesia'},{id:'Moldova', name:'Moldova'},{id:'Mongolia', name:'Mongolia'},{id:'Morocco', name:'Morocco'},{id:'Monaco', name:'Monaco'},{id:'Mozambique', name:'Mozambique'},{id:'Namibia', name:'Namibia'},{id:'Nauru', name:'Nauru'},{id:'Nepal', name:'Nepal'},{id:'Netherlands', name:'Netherlands'},{id:'New Zealand', name:'New Zealand'},{id:'Nicaragua', name:'Nicaragua'},{id:'Niger', name:'Niger'},{id:'Nigeria', name:'Nigeria'},{id:'Norway', name:'Norway'},{id:'Oman', name:'Oman'},{id:'Pakistan', name:'Pakistan'},{id:'Panama', name:'Panama'},{id:'Papua New Guinea', name:'Papua New Guinea'},{id:'Paraguay', name:'Paraguay'},{id:'Peru', name:'Peru'},{id:'Philippines', name:'Philippines'},{id:'Poland', name:'Poland'},{id:'Portugal', name:'Portugal'},{id:'Qatar', name:'Qatar'},{id:'Romania', name:'Romania'},{id:'Russia', name:'Russia'},{id:'Rwanda', name:'Rwanda'},{id:'Samoa', name:'Samoa'},{id:'San Marino', name:'San Marino'},{id:'Sao Tome', name:'Sao Tome'},{id:'Saudi Arabia', name:'Saudi Arabia'},{id:'Senegal', name:'Senegal'},{id:'Serbia and Montenegro', name:'Serbia and Montenegro'},{id:'Seychelles', name:'Seychelles'},{id:'Sierra Leone', name:'Sierra Leone'},{id:'Singapore', name:'Singapore'},{id:'Slovakia', name:'Slovakia'},{id:'Slovenia', name:'Slovenia'},{id:'Solomon Islands', name:'Solomon Islands'},{id:'Somalia', name:'Somalia'},{id:'South Africa', name:'South Africa'},{id:'Spain', name:'Spain'},{id:'Sri Lanka', name:'Sri Lanka'},{id:'Sudan', name:'Sudan'},{id:'Suriname', name:'Suriname'},{id:'Swaziland', name:'Swaziland'},{id:'Sweden', name:'Sweden'},{id:'Switzerland', name:'Switzerland'},{id:'Syria', name:'Syria'},{id:'Taiwan', name:'Taiwan'},{id:'Tajikistan', name:'Tajikistan'},{id:'Tanzania', name:'Tanzania'},{id:'Thailand', name:'Thailand'},{id:'Togo', name:'Togo'},{id:'Tonga', name:'Tonga'},{id:'Trinidad and Tobago', name:'Trinidad and Tobago'},{id:'Tunisia', name:'Tunisia'},{id:'Turkey', name:'Turkey'},{id:'Turkmenistan', name:'Turkmenistan'},{id:'Uganda', name:'Uganda'},{id:'Ukraine', name:'Ukraine'},{id:'United Arab Emirates', name:'United Arab Emirates'},{id:'United Kingdom', name:'United Kingdom'},{id:'Uruguay', name:'Uruguay'},{id:'Uzbekistan', name:'Uzbekistan'},{id:'Vanuatu', name:'Vanuatu'},{id:'Venezuela', name:'Venezuela'},{id:'Vietnam', name:'Vietnam'},{id:'Yemen', name:'Yemen'},{id:'Zambia', name:'Zambia'},{id:'Zimbabwe', name:'Zimbabwe'}],
+                    input: ""
                 }
             };
 
@@ -41,10 +49,27 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
         });
 
+        $scope.resetAllFilters = function() {
+            _.each($scope.filters, function(filter) {
+                filter.selected = [{id:'all', name:'all'}];
+            });
+        };
+
+        // Close filter dropdown
+        $scope.closeDropdown = function(filterType) {
+            // Only close dropdown if we are sure the user is done with the input
+            $timeout(function() {
+                if(document.activeElement.tagName === "BODY") {
+                    $scope.filters[filterType].input = "";
+                    $scope.filters[filterType].open = false;
+                }
+            }, 200);
+        };
+
         // Open drop down for a given filter type
         $scope.openDropdown = function(filterType) {
+            $scope.filters[filterType].input = "";
             if($scope.filters[filterType].open !== true){
-                $scope.filters[filterType].available = _.sortBy($scope.filters[filterType].available, 'name');
                 $scope.filters[filterType].open = true;
                 $timeout(function() {
                     document.getElementById('filter_' + filterType).focus();
@@ -52,17 +77,12 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             }
         };
 
-        // Close filter dropdown
-        $scope.closeDropdown = function(filterType) {
-            $scope.filters[filterType].open = false;
-            $scope.filters[filterType].selected = _.sortBy($scope.filters[filterType].selected, 'name');
-        };
-
         // Update Dropdown for a given filter
-        $scope.addToSelected = function(filterType, object, index) {
+        $scope.addToSelected = function(filterType, object) {
+            $scope.filters[filterType].input = "";
             if(object.id !== 'all'){
                 // Remove "all" if another item is selected
-                var all = _.find($scope.filters[filterType].selected, function(object){ return object.id === 'all'; });
+                var all = _.find($scope.filters[filterType].selected, function(item){ return item.id === 'all'; });
                 if(typeof all !== "undefined") {
                     $scope.filters[filterType].selected = _.reject($scope.filters[filterType].selected, function(object){ return object.id === 'all'; });
                     $scope.filters[filterType].available.push(all);
@@ -72,8 +92,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 $scope.filters[filterType].available = $scope.filters[filterType].available.concat($scope.filters[filterType].selected);
                 $scope.filters[filterType].selected = [];
             }
+            $scope.filters[filterType].available = _.reject($scope.filters[filterType].available, function(item){ return item.id === object.id; });
             $scope.filters[filterType].selected.push(object);
-            $scope.filters[filterType].available.splice(index, 1);
         };
 
         $scope.removeFromSelected = function(filterType, object, index) {

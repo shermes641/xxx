@@ -365,6 +365,14 @@ span#viewTerms:hover
     font-size:13px;
 }
 
+.left_apps_list .reset_filters {
+    color: #333333;
+    text-decoration: underline;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 25px;
+}
+
 .left_apps_list ul
 {
     list-style:none;
@@ -377,9 +385,9 @@ span#viewTerms:hover
     border-radius:2px;
     cursor:pointer;
     display:block;
-    font-size:11px;
+    font-size:13px;
     margin-top:10px;
-    padding:10px;
+    padding: 8px 10px;
     position:relative;
 }
 
@@ -404,6 +412,10 @@ span#viewTerms:hover
     right:10px;
     top:11px;
     width:10px;
+}
+
+.left_apps_list ul li.add {
+    color: #4f73e7;
 }
 
 .left_apps_list ul li.add:hover
@@ -453,7 +465,7 @@ span#viewTerms:hover
     text-align: left;
 }
 
-.left_apps_list .dropdown {
+.left_apps_list .dropdown-menu {
     position: absolute;
     top: 35px;
     left: 0;
@@ -461,22 +473,40 @@ span#viewTerms:hover
     z-index: 100;
     border-top:#e0e0e9 1px solid;
     border-bottom:#c8c7cc 1px solid;
+    padding: 0;
+    margin: 0;
+    border: 0;
 }
 
-.left_apps_list .dropdown li {
+.left_apps_list .dropdown-menu li {
     margin-top: 0;
     background: #fff;
     border-radius: 0;
+    padding: 8px 10px;
     border-bottom: #e0e0e9 1px solid;
 }
 
-.left_apps_list .dropdown li:hover {
+.left_apps_list .dropdown-menu li:hover {
     background:#4f73e7;
     color:#fff;
 }
 
+.left_apps_list .dropdown-menu > .active > a, .left_apps_list .dropdown-menu > .active > a:hover, .left_apps_list .dropdown-menu > .active > a:focus {
+    background: none;
+    color:#fff;
+}
 
-.left_apps_list .dropdown li:hover:before
+.left_apps_list .dropdown-menu > li > a {
+    display: block;
+    padding: 0;
+    clear: both;
+    font-weight: normal;
+    line-height: normal;
+    color: #222;
+    white-space: nowrap;
+}
+
+.left_apps_list .dropdown-menu li:hover:before, .left_apps_list .dropdown-menu li.active:before
 {
     background:url(../images/icons.png);
     background-position:-15px -149px;
@@ -484,12 +514,8 @@ span#viewTerms:hover
     height:12px;
     position:absolute;
     right:10px;
-    top:12px;
+    top:11px;
     width:12px;
-}
-
-.left_apps_list .add .dropdown {
-    display: none;
 }
 
 .left_apps_list .add .dropdown-filter {
@@ -1622,6 +1648,11 @@ hr
     font-size: 12px;
     color: #6d6d72;
     font-family:"Helvetica Neue", Helvetica, sans-serif;
+}
+
+
+.analytics-revenue-table tr th .align-right {
+    float: right;
 }
 
 .analytics-revenue-table tr td {

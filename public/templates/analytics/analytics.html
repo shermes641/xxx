@@ -44,36 +44,43 @@
             </ul>
         </div>
         <div class="left_apps_list">
+            <div class="reset_filters" ng-click="resetAllFilters()">Reset all Filters</div>
             <h2>Filter By Ad Provider</h2>
             <ul id="ad_providers_filter">
                 <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)">{{provider.name}}</li>
                 <li class="add" ng-click="openDropdown('ad_providers')" ng-class="{open: filters.ad_providers.open}">
                     <span class="dropdown-label">Add Provider</span>
-                    <input type="text" ng-model="providerFilter" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"/>
-                    <ul class="dropdown">
-                        <li ng-repeat="provider in filters.ad_providers.available | filter:providerFilter as results" ng-click="addToSelected('ad_providers', provider, $index)">{{provider.name}}</li>
-                    </ul>
+                    <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"
+                           typeahead="ad_provider.name for ad_provider in filters.ad_providers.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead-on-select="addToSelected('ad_providers', $item)"
+                           ng-blur="closeDropdown('ad_providers')"/>
                 </li>
             </ul>
         </div>
         <div class="left_apps_list">
             <h2>Filter By App</h2>
             <ul>
-                <li ng-repeat="appInfo in filters.apps.selected" class="active removable" ng-click="removeFromSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
+                <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
                 <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
                     <span class="dropdown-label">Add App</span>
-                    <input type="text" ng-model="appFilter" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter_apps" />
-                    <ul class="dropdown">
-                        <li ng-repeat="appInfo in filters.apps.available | filter:appFilter as results" ng-click="addToSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
-                    </ul>
+                    <input type="text" ng-model="filters.apps.input" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter_apps"
+                           typeahead="app.name for app in filters.apps.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead-on-select="addToSelected('apps', $item)"
+                           ng-blur="closeDropdown('apps')"/>
                 </li>
             </ul>
         </div>
         <div class="left_apps_list">
             <h2>Filter By Country</h2>
             <ul>
-                <li class="active removable">United States</li>
-                <li class="add">Add Country</li>
+                <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)">{{country.name}}</li>
+                <li class="add" ng-click="openDropdown('countries')" ng-class="{open: filters.countries.open}">
+                    <span class="dropdown-label">Add Country</span>
+                    <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter_countries" id="filter_countries"
+                           typeahead="app.name for app in filters.countries.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead-on-select="addToSelected('countries', $item)"
+                           ng-blur="closeDropdown('countries')"/>
+                </li>
             </ul>
         </div>
         <button id="export_as_csv" ng-click="showEmailForm()">
@@ -132,7 +139,7 @@
                     <table class="analytics-revenue-table" cellspacing="0">
                         <thead>
                             <tr>
-                                <th colspan="2">Estimated Revenue by Day</th>
+                                <th colspan="2">Date<span class="align-right">Estimated Revenue</span></th>
                             </tr>
                         </thead>
                         <tbody>
