@@ -23,6 +23,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.getWaterfallData = function() {
                 $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
                     $scope.waterfallData = data;
+                    $scope.appName = data.waterfall.appName;
                     $scope.appID = data.waterfall.appID;
                     $scope.distributorID = $routeParams.distributorID;
                     $scope.generationNumber = data.generationNumber;
@@ -236,6 +237,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(checkAppFormErrors($scope.data, errorObjects)) {
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
                         success(function(data, status, headers, config) {
+                            if($scope.appName !== $scope.data.appName) {
+                                var apps = $scope.waterfallData.appsWithWaterfalls;
+                                $scope.appName = $scope.data.appName;
+                                for(index in apps) {
+                                    if(apps[index].id === $scope.appID) {
+                                        apps[index].name = $scope.data.appName;
+                                    }
+                                }
+                            }
                             $scope.generationNumber = data.generationNumber;
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
