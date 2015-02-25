@@ -49,9 +49,16 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
         });
 
+        // Resets all filters
         $scope.resetAllFilters = function() {
             _.each($scope.filters, function(filter) {
-                filter.selected = [{id:'all', name:'all'}];
+                var all = _.find(filter.available, function(item){ return item.id === 'all'; });
+                // If the view all option is not in the available array, then we do not have to do anything.
+                if(typeof all !== "undefined") {
+                    filter.available = _.reject(filter.available, function(item){ return item.id === 'all'; });
+                    filter.available = filter.available.concat(filter.selected);
+                    filter.selected = [all];
+                }
             });
         };
 
@@ -59,7 +66,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         $scope.closeDropdown = function(filterType) {
             // Only close dropdown if we are sure the user is done with the input
             $timeout(function() {
-                if(document.activeElement.tagName === "BODY") {
+                console.log();
+                if(document.activeElement.tagName === "BODY" || angular.element(document.activeElement)[0].name !== 'filter_' + filterType) {
                     $scope.filters[filterType].input = "";
                     $scope.filters[filterType].open = false;
                 }
@@ -96,6 +104,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             $scope.filters[filterType].selected.push(object);
         };
 
+        // Remove selected item from the "selected" array
         $scope.removeFromSelected = function(filterType, object, index) {
             if(object.id !== 'all'){
                 $scope.filters[filterType].available.push(object);
