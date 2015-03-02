@@ -105,8 +105,12 @@ val appLovinConfiguration = {
     "Your SDK Key can be found on the AppLovin dashboard.  For more information on configuring AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
   }
 
-  val appLovinReportingDescription = {
+  val appLovinReportKeyDescription = {
     "Your Report Key can be found on the AppLovin dashboard.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
+  }
+
+  val appLovinAppNameDescription = {
+    "The application name from AppLovin's dashboard.  This is also the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
   }
 
   "{" +
@@ -114,7 +118,8 @@ val appLovinConfiguration = {
       "{\"description\": \"" + appLovinSDKKeyDescription + "\", \"displayKey\": \"SDK Key\", \"key\": \"sdkKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": true, \"minLength\": 4}" +
     "], " +
     "\"reportingParams\": [" +
-      "{\"description\": \"" + appLovinReportingDescription + "\", \"displayKey\": \"Report Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
+      "{\"description\": \"" + appLovinReportKeyDescription + "\", \"displayKey\": \"Report Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}," +
+      "{\"description\": \"" + appLovinAppNameDescription + "\", \"displayKey\": \"Application Name\", \"key\": \"appName\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
     "], " +
     "\"callbackParams\": [" +
     "]" +

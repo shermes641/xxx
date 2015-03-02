@@ -322,8 +322,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     }
                 }
                 var parsedCpm = parseFloat($scope.wapData.cpm);
-                if(isNaN(parsedCpm) || parsedCpm < 0.01 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
-                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than $0.00";
+                if(isNaN(parsedCpm) || parsedCpm < 0 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
+                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than or equal to $0.00";
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
                 }
