@@ -1,6 +1,7 @@
 package models
 
 import java.security.MessageDigest
+import play.api.mvc.Controller
 
 /**
  * Encapsulates the logic for verifying server to server requests from Ad Colony.
@@ -16,12 +17,24 @@ import java.security.MessageDigest
  * @param verifier A hashed value to authenticate the origin of the request.
  * @param customID A custom param used to pass user ID.
  */
-class AdColonyCallback(appToken: String, transactionID: String, uid: String, amount: Int, currency: String, openUDID: String, udid: String, odin1: String, macSha1: String, verifier: String, customID: String) extends CallbackVerificationHelper {
+class AdColonyCallback(appToken: String, transactionID: String, uid: String, amount: Int, currency: String, openUDID: String, udid: String, odin1: String, macSha1: String, verifier: String, customID: String) extends CallbackVerificationHelper with Controller {
   override val adProviderName = "AdColony"
   override val token = appToken
   override val receivedVerification = verifier
   override val currencyAmount = amount
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
+  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
+
+  /**
+   * Per AdColony's documentation, we return 'vc_success' to acknowledge that the reward process was successful.
+   * @return A 200 response containing 'vc_success'
+   */
+  override def returnSuccess = Ok("vc_success")
+
+  /**
+   * Per AdColony's documentation, we return 'vc_decline' to acknowledge that the reward process was unsuccessful.
+   * @return A 400 response containing 'vc_decline'
+   */
+  override def returnFailure = BadRequest("vc_decline")
 
   /**
    * Generates a security digest using the steps provided in Ad Colony's documentation.
