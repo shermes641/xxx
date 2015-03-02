@@ -1,8 +1,8 @@
-<div id="analytics-controller" ng-controller="AnalyticsController">
+<div id="analytics-controller">
     <div ng-include="subHeader"></div>
-    <div id="email_modal">
-        <div class="close_button" ng-click="hideOverlay()"></div>
-        <div id="csv_email_form">
+    <div id="email_modal" ng-show="showExportModal">
+        <div class="close_button" ng-click="hideModal()"></div>
+        <div id="csv_email_form" ng-show="showExportForm">
             <h1>Export All Data</h1>
             <hr />
             <div class="modal_text">Enter the email address you would like to export all the data to.</div>
@@ -15,20 +15,20 @@
                 <input type="submit" class="modal_submit" id="export_submit" value="Export Data">
             </form>
         </div>
-        <div id="csv_requested">
+        <div id="csv_requested" ng-show="showExportComplete">
             <h1>Export Requested</h1>
             <hr />
             <div class="modal_text">Export has been requested, email will be sent once complete.</div>
-            <button class="modal_submit" ng-click="hideOverlay()">Close</button>
+            <button class="modal_submit" ng-click="hideModal()">Close</button>
         </div>
-        <div id="csv_export_error">
+        <div id="csv_export_error" ng-show="showExportError">
             <h1>Export Error</h1>
             <hr />
             <div class="modal_text">There was an error when requesting the export, please try again.</div>
-            <button class="modal_submit" ng-click="hideOverlay()">Close</button>
+            <button class="modal_submit" ng-click="hideModal()">Close</button>
         </div>
     </div>
-    <div id="analytics_overlay" ng-click="hideOverlay()"></div>
+    <div id="analytics_overlay" ng-click="hideModal()" ng-show="showExportModal"></div>
     <div id="left_content">
         <div class="left_apps_list">
             <h2>Date Range</h2>
@@ -83,7 +83,7 @@
                 </li>
             </ul>
         </div>
-        <button id="export_as_csv" ng-click="showEmailForm()">
+        <button id="export_as_csv" ng-click="showExportModal = true">
             Export All Data
         </button>
     </div>
@@ -91,13 +91,14 @@
         <div class="fluid-container">
             <div class="analytics-row analytics-row-header row">
                 <div class="col-sm-12">
-                    <h1 id="analytics-header">Analytics</h1>
+                    <h1 id="analytics-header">Analytics <span class="updating-status">Updating...</span></h1>
                 </div>
             </div>
             <div class="analytics-row row">
-
                 <div class="col-sm-4 analytics-circle-border">
-                    <div id="ecpm_metric" class="analytics-circle average-ecpm" ng-bind-html="ecpmMetric">
+                    <div id="ecpm_metric" class="analytics-circle average-ecpm" ng-class="{loaded: analyticsData.ecpmMetric != null}">
+                        <div ng-show="analyticsData.ecpmMetric != null" ng-bind-html="analyticsData.ecpmMetric"></div>
+                        <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     </div>
                     <div class="analytics-description">
                         <div class="analytics-bullet average-ecpm"></div>
@@ -106,7 +107,9 @@
                 </div>
 
                 <div class="col-sm-4 analytics-circle-border">
-                    <div id="fill_rate" class="analytics-circle fill-rate" ng-bind-html="fillRateMetric">
+                    <div id="fill_rate" class="analytics-circle fill-rate" ng-class="{loaded: analyticsData.fillRateMetric != null}">
+                        <div ng-show="analyticsData.fillRateMetric != null" ng-bind-html="analyticsData.fillRateMetric"></div>
+                        <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     </div>
                     <div class="analytics-description">
                         <div class="analytics-bullet fill-rate"></div>
@@ -115,7 +118,9 @@
                 </div>
 
                 <div class="col-sm-4">
-                    <div id="unique_users" class="analytics-circle revenue-by-day" ng-bind-html="revenueByDayMetric">
+                    <div id="unique_users" class="analytics-circle revenue-by-day" ng-class="{loaded: analyticsData.revenueByDayMetric != null}">
+                        <div ng-show="analyticsData.revenueByDayMetric != null" ng-bind-html="analyticsData.revenueByDayMetric"></div>
+                        <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     </div>
                     <div class="analytics-description">
                         <div class="analytics-bullet revenue-by-day"></div>
@@ -126,7 +131,9 @@
 
             <div class="analytics-row row">
                 <div class="col-sm-12">
-                    <div id="estimated_revenue_chart"></div>
+                    <div ng-show="analyticsData.revenueChart" id="estimated_revenue_chart">
+                    </div>
+                    <div ng-show="!analyticsData.revenueChart" class="analytics-loading chart-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     <div class="analytics-description">
                         <div class="analytics-bullet revenue-by-day"></div>
                         <b>Estimated Revenue</b><i>Above results use Ad Network eCPMs to estimate revenue.</i>
@@ -143,9 +150,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="day in revenueTable">
+                            <tr ng-repeat="day in analyticsData.revenueTable">
                                 <td>{{day.Date}}</td>
                                 <td>{{day["Estimated Revenue"]}}</td>
+                            </tr>
+                            <tr ng-if="analyticsData.revenueTable.length == 0">
+                                <td><div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div></td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>

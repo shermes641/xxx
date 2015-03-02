@@ -5,10 +5,11 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout', '$document',
-    function( $scope, $http, $routeParams, appCheck, $filter, $timeout, $document ) {
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout',
+    function( $scope, $http, $routeParams, appCheck, $filter, $timeout ) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
+        $scope.currentlyUpdating = false;
 
         // Retrieve Waterfall data
         $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
@@ -37,104 +38,39 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 }
             };
 
+            // $watchCollection does not support the new array $watch format.
+            $scope.$watchCollection('filters.ad_providers.selected', function(){
+                $scope.debouncedUpdate();
+            });
+
+            $scope.$watchCollection('filters.apps.selected', function(){
+                $scope.debouncedUpdate();
+            });
+
+            $scope.$watchCollection('filters.countries.selected', function(){
+                $scope.debouncedUpdate();
+            });
+
             $scope.scopedKey = data.scopedKey;
             $scope.keenProject = data.keenProject;
-            $scope.startDatepicker();
 
             // Initializes the keen library
             $scope.keenClient = new Keen( {
-                projectId: $scope.keenProject,
-                readKey: $scope.scopedKey
+                    projectId: $scope.keenProject,
+                    readKey: $scope.scopedKey
             } );
 
+            $scope.startDatepicker();
         });
 
-        // Resets all filters
-        $scope.resetAllFilters = function() {
-            _.each($scope.filters, function(filter) {
-                var all = _.find(filter.available, function(item){ return item.id === 'all'; });
-                // If the view all option is not in the available array, then we do not have to do anything.
-                if(typeof all !== "undefined") {
-                    filter.available = _.reject(filter.available, function(item){ return item.id === 'all'; });
-                    filter.available = filter.available.concat(filter.selected);
-                    filter.selected = [all];
-                }
-            });
-        };
-
-        // Close filter dropdown
-        $scope.closeDropdown = function(filterType) {
-            // Only close dropdown if we are sure the user is done with the input
-            $timeout(function() {
-                console.log();
-                if(document.activeElement.tagName === "BODY" || angular.element(document.activeElement)[0].name !== 'filter_' + filterType) {
-                    $scope.filters[filterType].input = "";
-                    $scope.filters[filterType].open = false;
-                }
-            }, 200);
-        };
-
-        // Open drop down for a given filter type
-        $scope.openDropdown = function(filterType) {
-            $scope.filters[filterType].input = "";
-            if($scope.filters[filterType].open !== true){
-                $scope.filters[filterType].open = true;
-                $timeout(function() {
-                    document.getElementById('filter_' + filterType).focus();
-                });
-            }
-        };
-
-        // Update Dropdown for a given filter
-        $scope.addToSelected = function(filterType, object) {
-            $scope.filters[filterType].input = "";
-            if(object.id !== 'all'){
-                // Remove "all" if another item is selected
-                var all = _.find($scope.filters[filterType].selected, function(item){ return item.id === 'all'; });
-                if(typeof all !== "undefined") {
-                    $scope.filters[filterType].selected = _.reject($scope.filters[filterType].selected, function(object){ return object.id === 'all'; });
-                    $scope.filters[filterType].available.push(all);
-                }
-            } else {
-                // Remove selected items if "all" is selected
-                $scope.filters[filterType].available = $scope.filters[filterType].available.concat($scope.filters[filterType].selected);
-                $scope.filters[filterType].selected = [];
-            }
-            $scope.filters[filterType].available = _.reject($scope.filters[filterType].available, function(item){ return item.id === object.id; });
-            $scope.filters[filterType].selected.push(object);
-        };
-
-        // Remove selected item from the "selected" array
-        $scope.removeFromSelected = function(filterType, object, index) {
-            if(object.id !== 'all'){
-                $scope.filters[filterType].available.push(object);
-                $scope.filters[filterType].selected.splice(index, 1);
-            }
-            // If nothing selected add all
-            if($scope.filters[filterType].selected.length === 0) {
-                var all = _.find($scope.filters[filterType].available, function(object){ return object.id === 'all'; });
-                $scope.filters[filterType].available = _.reject($scope.filters[filterType].available, function(object){ return object.id === 'all'; });
-                $scope.filters[filterType].selected.push(all);
-            }
-        };
-
-
+        /**
+         * Setup Date Range filter
+         */
         $scope.startDatepicker = function() {
             $scope.elements = {
-                country: $( '#countries' ),
-                adProvider: $( '#ad_providers' ),
-                apps: $( '#apps' ),
                 startDate: $( '#start_date' ),
                 endDate: $( '#end_date' ),
-                exportAsCsv: $( '#export_as_csv' ),
-                emailModal: $( '#email_modal' ),
-                emailForm: $( '#csv_email_form' ),
-                emailInput: $( '#export_email' ),
-                overlay: $( '#analytics_overlay' ),
-                submitExport: $( '#export_submit' ),
-                exportComplete: $( '#csv_requested' ),
-                exportError: $( '#csv_export_error' ),
-                closeButton: $( '.close_button' )
+                emailInput: $( '#export_email' )
             };
 
             // Distributor ID to be used in AJAX calls.
@@ -144,7 +80,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             $( '.input-daterange' ).datepicker( {
                 orientation: "auto top",
                 format: "M dd, yyyy"
-            } ).on( "changeDate", $scope.updateCharts );
+            } ).on( "changeDate", $scope.debouncedUpdate );
 
             // Set initial start date to the last 30days
             $scope.elements.startDate.datepicker( 'setDate', '-1m');
@@ -152,12 +88,95 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         };
 
         /**
-         * Pop up dialog for user to enter email
+         * Close filter dropdown
          */
-        $scope.showEmailForm = function () {
-            $scope.elements.emailModal.show();
-            $scope.elements.emailForm.show();
-            $scope.showOverlay();
+        $scope.closeDropdown = function(filterType) {
+            var filter = $scope.filters[filterType];
+            // Only close dropdown if we are sure the user is done with the input
+            $timeout(function() {
+                if(document.activeElement.tagName === "BODY" || angular.element(document.activeElement)[0].name !== 'filter_' + filterType) {
+                    filter.input = "";
+                    filter.open = false;
+                }
+            }, 200);
+        };
+
+        /**
+         * Open drop down for a given filter type
+         */
+        $scope.openDropdown = function(filterType) {
+            var filter = $scope.filters[filterType];
+            filter.input = "";
+            if(filter.open === false){
+                filter.open = true;
+                $timeout(function() {
+                    document.getElementById('filter_' + filterType).focus();
+                });
+            }
+        };
+
+        /**
+         * Resets all filters.
+         */
+        $scope.resetAllFilters = function() {
+            _.each($scope.filters, function(filter) {
+                var all = _.find(filter.available, function(item){ return item.id === 'all'; });
+                // If the view all option is not in the available array, then we do not have to do anything.
+                if(typeof all !== "undefined") {
+                    filter.available = removeAllItemFromFilter(filter.available);
+                    filter.available = filter.available.concat(filter.selected);
+                    filter.selected = [all];
+                }
+            });
+        };
+
+        /**
+         * Update Dropdown for a given filter
+         */
+        $scope.addToSelected = function(filterType, object) {
+            var filter = $scope.filters[filterType];
+            filter.input = "";
+            if(object.id !== 'all'){
+                // Remove "all" if another item is selected
+                var allItem = allItemForFilter(filter.selected);
+                if(typeof allItem !== "undefined") {
+                    filter.selected = removeAllItemFromFilter(filter.selected);
+                    filter.available.push(allItem);
+                }
+            } else {
+                // Remove selected items if "all" is selected
+                filter.available = filter.available.concat(filter.selected);
+                filter.selected = [];
+            }
+            filter.available = _.reject(filter.available, function(item){ return item.id === object.id; });
+            filter.selected.push(object);
+        };
+
+        /**
+         * Remove selected item from the "selected" array
+         */
+        $scope.removeFromSelected = function(filterType, object, index) {
+            var filter = $scope.filters[filterType];
+            if(object.id !== 'all'){
+                filter.available.push(object);
+                filter.selected.splice(index, 1);
+            }
+            // If nothing selected add all
+            if($scope.filters[filterType].selected.length === 0) {
+                var allItem = allItemForFilter(filter.available);
+                filter.available = removeAllItemFromFilter(filter.available);
+                filter.selected.push(allItem);
+            }
+        };
+
+        // Helper method for finding the "all" option
+        var allItemForFilter = function(array) {
+            return _.find(array, function(item){ return item.id === 'all'; });
+        };
+
+        // Helper method for removing the "all" option
+        var removeAllItemFromFilter = function(array) {
+            return _.reject(array, function(item){ return item.id === 'all'; });
         };
 
         /**
@@ -165,36 +184,34 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
          */
         $scope.submit = function() {
             if($scope.exportForm.$valid) {
-                $scope.elements.emailForm.hide();
+                $scope.showExportForm = false;
                 var emailAddress = $scope.elements.emailInput.val();
                 $http.post( $scope.exportEndpoint, { email: emailAddress })
                     .success(_.bind( function() {
-                        $scope.elements.exportComplete.show();
+                        $scope.showExportComplete = true;
                     }, $scope ))
                     .error( _.bind( function() {
-                        $scope.elements.exportError.show();
+                        $scope.showExportError = true;
                     }, $scope )
                 );
             }
         };
 
         /**
-         * Show overlay
-         */
-        $scope.showOverlay = function () {
-            $scope.elements.overlay.show();
-        };
-
-        /**
          * Show overlay and other modal elements
          */
-        $scope.hideOverlay = function () {
+        $scope.hideModal = function () {
             $scope.elements.emailInput.val( "" );
-            $scope.elements.overlay.hide();
-            $scope.elements.emailModal.hide();
-            $scope.elements.exportComplete.hide();
-            $scope.elements.exportError.hide();
+            $scope.showExportModal = false;
+            $scope.showExportComplete = false;
+            $scope.showExportError = false;
+            $scope.showExportForm = true;
         };
+
+        $scope.showExportForm = true;
+        $scope.showExportModal = false;
+        $scope.showExportComplete = false;
+        $scope.showExportError = false;
 
         /**
          * Check if date is valid.  Provide a valid Javascript date object.
@@ -240,29 +257,75 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 } );
             }
 
-            return filters
+            return filters;
         };
 
         /**
+         * Default config for the analytics update method.
+         * These objects have the current state of the analytics update.
+         */
+        $scope.setDefaultAnalyticsConfig = function() {
+            $scope.analyticsData = {
+                ecpmMetric: null,
+                fillRateMetric: null,
+                revenueByDayMetric: null,
+                revenueTable: [],
+                revenueChart: false
+            };
+
+            $scope.analyticsRequestStatus = {
+                ecpmMetricRequestComplete: false,
+                estimatedRevenueRequestComplete: false,
+                fillRateRequestComplete: false
+            };
+        }
+        $scope.setDefaultAnalyticsConfig();
+
+        /**
+         * Complete update once all requests have completed
+         */
+        $scope.$watch('analyticsRequestStatus', function(current){
+            if(_.every(_.values(current))) {
+                $scope.currentlyUpdating = false;
+            }
+        }, true);
+
+        /**
+         * "Creates and returns a new debounced version of the passed function which will postpone its execution until
+         * after *wait* milliseconds have elapsed since the last time it was invoked. Useful for implementing behavior
+         * that should only happen after the input has stopped arriving." http://underscorejs.org/#debounce
+         */
+        $scope.debouncedUpdate = _.debounce(function() {
+            _.defer(function(){$scope.$apply();});
+            $scope.updateCharts();
+        }, 2000);
+
+        /**
          * Update charts on dashboard page.  Uses the currently set dropdowns and dates.  This can be called anytime we want
-         * to update the dashboard.
+         * to update the dashboard.  Defer is used with Apply due to Keen being a separate library.  http://underscorejs.org/#defer
          */
         $scope.updateCharts = function() {
-            // Get current element values
-            // We do this every update just incase any fields have changed (including hidden)
-            var country = ['all'],
-                adProvider = ['all'],
-                apps = ['all'],
-                start_date = $scope.elements.startDate.datepicker( 'getUTCDate'),
+            $scope.setDefaultAnalyticsConfig();
+            _.defer(function(){$scope.$apply();});
+
+            $scope.currentlyUpdating = true;
+
+            // Get current filter values
+            var country = _.pluck($scope.filters.countries.selected, 'id');
+                adProvider = _.pluck($scope.filters.ad_providers.selected, 'id');
+                apps = _.pluck($scope.filters.apps.selected, 'id');
+                start_date = $scope.elements.startDate.datepicker( 'getUTCDate');
                 end_date = $scope.elements.endDate.datepicker( 'getUTCDate' );
 
             // Return if one or both of the dates are invalid
             if ( !$scope.isValidDate( start_date ) || !$scope.isValidDate( end_date ) ) {
+                $scope.currentlyUpdating = false;
                 return;
             }
 
             // Return if start date after end date
             if ( end_date.getTime() <= start_date.getTime() ) {
+                $scope.currentlyUpdating = false;
                 return;
             }
 
@@ -273,12 +336,38 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             end_date.setHours(end_date.getHours() + 40);
             var end_date_iso = end_date.toISOString();
 
-            // Only create the charts if keen is ready
-            Keen.ready( function() {
-                // Ad Provider eCPM
-                var ecpm_metric = new Keen.Query( "average", {
+            // Get Fill Rate
+            $scope.getFillRate(adProvider, filters, start_date_iso, end_date_iso);
+
+            // Ad Provider eCPM
+            var ecpm_metric = new Keen.Query( "average", {
+                eventCollection: "ad_completed",
+                targetProperty: "ad_provider_eCPM",
+                filters: filters,
+                timeframe: {
+                    start: start_date_iso,
+                    end: end_date_iso
+                }
+            } );
+
+            $scope.keenClient.run( ecpm_metric, function() {
+                // Update request status to complete
+                $scope.analyticsRequestStatus.ecpmMetricRequestComplete = true;
+                var eCPM = 0;
+                if ( this.data.result === null ) {
+                    $scope.analyticsData.ecpmMetric = "N/A";
+                } else {
+                    var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".")
+                    $scope.analyticsData.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
+
+                    eCPM = this.data.result;
+                }
+                _.defer(function(){$scope.$apply();});
+
+                // Estimated Revenue query
+                var estimated_revenue = new Keen.Query( "count", {
                     eventCollection: "ad_completed",
-                    targetProperty: "ad_provider_eCPM",
+                    interval: "daily",
                     filters: filters,
                     timeframe: {
                         start: start_date_iso,
@@ -286,145 +375,142 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                     }
                 } );
 
-                $scope.keenClient.run( ecpm_metric, function() {
-                    var eCPM = 0;
-                    if ( this.data.result === null ) {
-                        $scope.ecpmMetric = "N/A";
-                    } else {
-                        var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".")
-                        $scope.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
+                // Calculate expected eCPM
+                $scope.keenClient.run( estimated_revenue, function() {
+                    // Update request status to complete
+                    $scope.analyticsRequestStatus.estimatedRevenueRequestComplete = true;
 
-                        eCPM = this.data.result;
+                    var table_data = [];
+                    var chart_data = [];
+                    var cumulative_revenue = 0;
+                    _.each( this.data.result, function ( day ) {
+                        var days_revenue = (day.value * eCPM);
+                        var date_string = moment( day.timeframe.start).format("MMM DD, YYYY");
+
+                        table_data.push( {
+                            "Date": date_string,
+                            "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
+                        } );
+                        chart_data.push( {
+                            "Date": date_string,
+                            "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
+                        } );
+                        cumulative_revenue = cumulative_revenue + days_revenue;
+                    } );
+
+                    var average_revenue = {
+                        result: cumulative_revenue / this.data.result.length
+                    };
+
+                    var revenueSplit = $filter("monetaryFormat")(average_revenue.result).split(".")
+                    $scope.analyticsData.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
+                    $scope.analyticsData.revenueTable = table_data.reverse();
+                    $scope.analyticsData.revenueChart = true;
+
+                    var chartConfiguration = {
+                        chartType: "areachart",
+                        title: false,
+                        height: 250,
+                        width: "auto",
+                        colors: ["#42c187"],
+                        filters: filters,
+                        chartOptions: {
+                            animation: {
+                                duration: 1000,
+                                startup: true,
+                                easing: "in"
+                            },
+                            chartArea: {
+                                height: "85%",
+                                left: "5%",
+                                top: "5%",
+                                width: "93%"
+                            },
+                            legend: {
+                                position: "none"
+                            },
+                            vAxis: {
+                                viewWindowMode: "explicit",
+                                viewWindow:{
+                                    min: 0
+                                },
+                                format: "$#,###",
+                                gridlines: {
+                                    color: "#f2f2f2",
+                                    count: 5
+                                },
+                                textStyle: {
+                                    color: '#999999'
+                                }
+                            },
+                            hAxis: {
+                                gridlines: {
+                                    color: "#d2d2d2"
+                                },
+                                textStyle: {
+                                    color: '#999999'
+                                }
+                            },
+                            isStacked: true
+                        }
                     }
 
-                    // Estimated Revenue query
-                    var estimated_revenue = new Keen.Query( "count", {
-                        eventCollection: "ad_completed",
-                        interval: "daily",
-                        filters: filters,
-                        timeframe: {
-                            start: start_date_iso,
-                            end: end_date_iso
-                        }
-                    } );
-
-                    // Calculate expected eCPM
-                    $scope.keenClient.run( estimated_revenue, function() {
-                        var table_data = [];
-                        var chart_data = [];
-                        var cumulative_revenue = 0;
-                        _.each( this.data.result, function ( day ) {
-                            var days_revenue = (day.value * eCPM);
-                            var date_string = moment( day.timeframe.start).format("MMM DD, YYYY");
-
-                            table_data.push( {
-                                "Date": date_string,
-                                "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
-                            } );
-                            chart_data.push( {
-                                "Date": date_string,
-                                "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
-                            } );
-                            cumulative_revenue = cumulative_revenue + days_revenue;
-                        } );
-
-                        var average_revenue = {
-                            result: cumulative_revenue / this.data.result.length
-                        };
-
-                        var revenueSplit = $filter("monetaryFormat")(average_revenue.result).split(".")
-                        $scope.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
-                        $scope.revenueTable = table_data.reverse();
+                    _.defer(function(){
                         $scope.$apply();
-
                         // Estimated Revenue Chart
-                        new Keen.Visualization( { result: chart_data }, document.getElementById("estimated_revenue_chart"), {
-                            chartType: "areachart",
-                            title: false,
-                            height: 250,
-                            width: "auto",
-                            colors: ["#42c187"],
-                            filters: filters,
-                            chartOptions: {
-                                chartArea: {
-                                    height: "85%",
-                                    left: "5%",
-                                    top: "5%",
-                                    width: "93%"
-                                },
-                                legend: {
-                                    position: "none"
-                                },
-                                vAxis: {
-                                    viewWindowMode: "explicit",
-                                    viewWindow:{
-                                        min: 0
-                                    },
-                                    format: "$#,###",
-                                    gridlines: {
-                                        color: "#f2f2f2",
-                                        count: 5
-                                    },
-                                    textStyle: {
-                                        color: '#999999'
-                                    }
-                                },
-                                hAxis: {
-                                    gridlines: {
-                                        color: "#d2d2d2"
-                                    },
-                                    textStyle: {
-                                        color: '#999999'
-                                    }
-                                },
-                                isStacked: true
-                            }
-                        } );
-                    } );
+                        new Keen.Visualization({ result: chart_data }, document.getElementById("estimated_revenue_chart"), chartConfiguration);
+                    });
+                } );
+            } );
+        };
+
+        $scope.getFillRate = function(adProvider, filters, start_date_iso, end_date_iso) {
+            if ( adProvider.length > 1 ) {
+                $scope.analyticsData.fillRateMetric = "N/A";
+                // Update request status to complete
+                $scope.analyticsRequestStatus.fillRateRequestComplete = true;
+                _.defer(function(){$scope.$apply();});
+            } else {
+                var request_collection = "availability_requested";
+                var response_collection = "availability_response_true";
+
+                // If all or no ad providers are selected show waterfall fill rate
+                if ( adProvider.indexOf( "all" ) !== -1 ) {
+                    request_collection = "mediation_availability_requested";
+                    response_collection = "mediation_availability_response_true";
+                }
+
+                // Inventory Request count, metric
+                var inventory_request = new Keen.Query( "count", {
+                    eventCollection: request_collection,
+                    filters: filters,
+                    timeframe: {
+                        start: start_date_iso,
+                        end: end_date_iso
+                    }
                 } );
 
-                if ( adProvider.length > 1 ) {
-                    $scope.fillRateMetric = "N/A";
-                } else {
-                    var request_collection = "availability_requested";
-                    var response_collection = "availability_response_true";
-
-                    // If all or no ad providers are selected show waterfall fill rate
-                    if ( adProvider.indexOf( "all" ) !== -1 ) {
-                        request_collection = "mediation_availability_requested";
-                        response_collection = "mediation_availability_response_true";
+                // Calculate fill rate using inventory requests divided by inventory_available
+                var available_count = new Keen.Query( "count", {
+                    eventCollection: response_collection,
+                    filters: filters,
+                    timeframe: {
+                        start: start_date_iso,
+                        end: end_date_iso
                     }
+                } );
 
-                    // Inventory Request count, metric
-                    var inventory_request = new Keen.Query( "count", {
-                        eventCollection: request_collection,
-                        filters: filters,
-                        timeframe: {
-                            start: start_date_iso,
-                            end: end_date_iso
-                        }
-                    } );
-
-                    // Calculate fill rate using inventory requests divided by inventory_available
-                    var available_count = new Keen.Query( "count", {
-                        eventCollection: response_collection,
-                        filters: filters,
-                        timeframe: {
-                            start: start_date_iso,
-                            end: end_date_iso
-                        }
-                    } );
-
-                    $scope.keenClient.run( [ inventory_request, available_count ], function() {
-                        var conversion_rate = 0;
-                        if ( this.data[ 0 ].result !== 0 ) {
-                            conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100
-                        }
-
-                        $scope.fillRateMetric = conversion_rate + '%';
-                    } );
-                }
-            });
-        };
+                $scope.keenClient.run( [ inventory_request, available_count ], function() {
+                    var conversion_rate = 0;
+                    if ( this.data[ 0 ].result !== 0 ) {
+                        conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100
+                    }
+                    $scope.analyticsData.fillRateMetric = conversion_rate + '%';
+                    // Update request status to complete
+                    $scope.analyticsRequestStatus.fillRateRequestComplete = true;
+                    _.defer(function(){$scope.$apply();});
+                } );
+            }
+        }
     } ]
 );
