@@ -205,8 +205,9 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#callback_url").containsText("A valid HTTP or HTTPS callback URL is required.")
     }
 
-    "redirect the distributor user to their own apps index page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
+    "redirect the distributor user to their own Analytics page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
+      setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 
@@ -215,8 +216,9 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
-    "redirect the distributor user to their own apps index page if they try to edit an App using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
+    "redirect the distributor user to their own Analytics page if they try to edit an App using another distributor ID" in new WithAppBrowser(user.distributorID.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail3@gmail.com")
+      setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 

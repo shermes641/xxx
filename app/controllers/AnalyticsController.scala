@@ -12,7 +12,12 @@ import collection.JavaConversions._
 
 object AnalyticsController extends Controller with Secured {
   def show(distributorID: Long, currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
-    Ok(views.html.Analytics.show(distributorID = distributorID, appID = currentAppID, apps = App.findAllAppsWithWaterfalls(distributorID), adProviders = AdProvider.findAll, keenProject = Play.current.configuration.getString("keen.project").get, scopedKey = getScopedReadKey(distributorID)))
+    val apps = App.findAllAppsWithWaterfalls(distributorID)
+    if(apps.size == 0) {
+      Redirect(routes.AppsController.newApp(distributorID))
+    } else {
+      Ok(views.html.Analytics.show(distributorID = distributorID, appID = currentAppID, apps = apps, adProviders = AdProvider.findAll, keenProject = Play.current.configuration.getString("keen.project").get, scopedKey = getScopedReadKey(distributorID)))
+    }
   }
 
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
