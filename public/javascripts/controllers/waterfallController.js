@@ -61,6 +61,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleTestMode = function(testMode) {
                 if(!$scope.disableTestModeToggle) {
                     if(testMode) {
+                        $scope.waterfallData.waterfall.testMode = false;
                         $scope.showTestModeConfirmationModal = true;
                         $scope.showModal(!$scope.modalShown);
                     } else {
@@ -74,6 +75,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             $scope.confirmTestMode = function() {
+                $scope.waterfallData.waterfall.testMode = true;
                 $scope.updateWaterfall();
                 closeTestModeModal();
             };
