@@ -128,6 +128,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "token" -> JsString(waterfall.token),
         "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
         "testMode" -> JsBoolean(waterfall.testMode),
+        "appName" -> JsString(waterfall.appName),
         "appToken" -> JsString(waterfall.appToken)
       )
     )

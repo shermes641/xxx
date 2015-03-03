@@ -337,6 +337,26 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       WaterfallAdProvider.findAllOrdered(currentWaterfall.id).size must beEqualTo(1)
     }
+
+    "change the name of the App in the header and the sidebar when the App name is edited" in new WithFakeBrowser {
+      val newEmail = "somenewuser@gmail.com"
+      val (currentDistributorUser, currentDistributor) = newDistributorUser(newEmail)
+      val (newApp, newWaterfall, _, _) = setUpApp(currentDistributor.id.get)
+      logInUser(newEmail, password)
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(currentDistributor.id.get, newWaterfall.id).url)
+      val oldAppName = newApp.name
+      val newAppName = "Some Different App Name"
+      browser.executeScript("$('button[id=waterfall-app-settings-button]').first().click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed()
+      browser.fill("input[name=appName]").`with`(newAppName)
+      browser.executeScript("$('button[name=submit]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.find("#left_apps_list").getText must contain(newAppName)
+      browser.find("#left_apps_list").getText must not contain(oldAppName)
+      browser.find("#edit-top").getText must contain(newAppName)
+      browser.find("#edit-top").getText must not contain(oldAppName)
+    }
   }
 
   "WaterfallsController.editAll" should {
