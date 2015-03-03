@@ -1691,3 +1691,8 @@ header #username_header:hover #username_dropdown,#apps_list:hover #apps_list_men
     font-style:italic;
     text-align:left;
 }
+
+.preserve-whitespace
+{
+    white-space:pre;
+}
