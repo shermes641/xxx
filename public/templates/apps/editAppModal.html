@@ -1,15 +1,18 @@
 <div id="error-message" class="flash-message error"></div>
 <div id="success-message" class="flash-message success"></div>
 <div class="app-form">
-    <form id="edit-app" name="edit-app-form" ng-submit="submitEditApp()">
+    <form id="edit-app" name="form.editAppForm" ng-submit="submitEditApp(form.editAppForm)">
         <h1>App Configuration</h1>
         <div class="left_column">
             <dl id="app_name">
                 <dt><label for="app_name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
-                    <input type="text" ng-model="data.appName" ng-change="checkInputs(data)" id="appName" name="appName" value="" placeholder="name" label="*App Name">
+                    <input required type="text" ng-model="data.appName" ng-model-options="{updateOn: 'blur'}" id="appName" name="appName" value="" placeholder="name" label="*App Name">
                 </dd>
-                <dd class="error">{{errors.appName}}</dd>
+                <div ng-show="form.editAppForm.$submitted || form.editAppForm.appName.$touched">
+                    <dd class="error">{{errors.appName}}</dd>
+                    <dd class="error" ng-show="form.editAppForm.appName.$error.required">App Name is required.</dd>
+                </div>
             </dl>
 
             <dl class="switch-field onoff-field" id="serverToServerEnabled_field">
@@ -29,19 +32,29 @@
             </dl>
 
             <dl id="callback_url">
-                <dt><label for="callback_url">Callback URL</label></dt>
+                <dt>
+                    <label for="callback_url">
+                        {{"Callback URL" | conditionalRequiredField: data.serverToServerEnabled}}
+                    </label>
+                    <h4 class="tooltip" data-title="When a rewarded action is completed, our servers will make a POST request to a URL of your choosing, containing all the necessary reward information.">?</h4>
+                </dt>
                 <dd ng-class="errors.callbackURLClass">
-                    <input type="text" ng-model="data.callbackURL" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
+                    <input callback-validator="{{data.serverToServerEnabled}}" type="text" ng-model="data.callbackURL" ng-model-options="{updateOn: 'blur'}" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
                 </dd>
-                <dd class="error">{{errors.callbackURL}}</dd>
+                <div ng-show="form.editAppForm.$submitted || form.editAppForm.callbackURL.$touched">
+                    <dd class="error" ng-show="form.editAppForm.callbackURL.$error.callbackValidator">A valid HTTP or HTTPS callback URL is required.</dd>
+                </div>
             </dl>
+
             <dl id="currency_name">
-                <dt><label for="currency_name">*Virtual Currency</label></dt>
+                <dt><label for="currency_name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">
-                    <input type="text" ng-model="data.currencyName" ng-change="checkInputs(data)" id="currencyName" name="currencyName" value="" placeholder="e.g. Gold or Silver" label="*Virtual Currency">
-                    <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
+                    <input required type="text" ng-model="data.currencyName" ng-model-options="{updateOn: 'blur'}" id="currencyName" name="currencyName" placeholder="e.g. Gold or Silver" label="*Reward Name">
+                    <div class="tip">Reward Name is the name of your in-app reward.</div>
                 </dd>
-                <dd class="error">{{errors.currencyName}}</dd>
+                <div ng-show="form.editAppForm.$submitted || form.editAppForm.currencyName.$touched">
+                    <dd class="error" ng-show="form.editAppForm.currencyName.$error.required">Reward Name is required.</dd>
+                </div>
             </dl>
         </div>
         <div class="right_column">
@@ -49,26 +62,34 @@
             <dl id="exchange_rate">
                 <dt><label for="exchange_rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input type="number" ng-model="data.exchangeRate" ng-change="checkInputs(data)" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
-                    <div class="tip">The number of virtual currency units per $1.</div>
+                    <input required-integer type="text" ng-model="data.exchangeRate" ng-model-options="{updateOn: 'blur'}" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+                    <div class="tip">The amount to reward per $1.</div>
                 </dd>
-                <dd class="error">{{errors.exchangeRate}}</dd>
+                <div ng-show="form.editAppForm.$submitted || form.editAppForm.exchangeRate.$touched">
+                    <dd class="error">{{errors.exchangeRate}}</dd>
+                    <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.requiredInteger">Exchange Rate must be a valid integer greater than or equal to 1.</dd>
+                </div>
             </dl>
 
             <dl id="reward_min">
-                <dt><label for="reward_min">*Minimum Currency to Reward per Completed Offer</label></dt>
+                <dt><label for="reward_min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input type="number" ng-model="data.rewardMin" ng-change="checkInputs(data)" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                    <input required-integer type="text" ng-model="data.rewardMin" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
-                <dd class="error">{{errors.rewardMin}}</dd>
+                <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMin.$touched">
+                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
+                </div>
             </dl>
 
             <dl id="reward_max">
-                <dt><label for="reward_max">Maximum Currency to Reward per Completed Offer</label></dt>
+                <dt><label for="reward_max">Maximum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input type="number" ng-model="data.rewardMax" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 1">
+                    <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-model-options="{updateOn: 'blur'}" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
                 </dd>
-                <dd class="error">{{errors.rewardMax}}</dd>
+                <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMax.$touched">
+                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
+                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
+                </div>
             </dl>
 
             <dl class="switch-field" id="roundUp_field">
@@ -88,7 +109,7 @@
             </dl>
             <div>
                 <label class="switch-checkbox-label">
-                    Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+                    Pay the user the Minimum Reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
                 </label>
             </div>
         </div>
@@ -96,6 +117,6 @@
         <input type="number" ng-model="data.currencyID" id="currencyID" name="currencyID" style="display: none">
         <input type="number" ng-model="data.generationNumber" id="generationNumber" name="generationNumber" style="display: none">
 
-        <button ng-disabled="invalidForm" ng-class="inactiveClass" type="submit" name="submit">Save Changes</button>
+        <button id="update-app" ng-disabled="form.editAppForm.$invalid" ng-class="{inactive: form.editAppForm.$invalid}" type="submit" name="submit">Save Changes</button>
     </form>
 </div>

@@ -188,7 +188,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     }
 
     "not update the WaterfallAdProvider if the eCPM is not valid" in new WithAppBrowser(distributorUser.distributorID.get) {
-      val invalidEcpm = " "
+      val invalidEcpms = List(" ", "2 0", "2,0", "2e0")
 
       logInUser()
 
@@ -197,9 +197,11 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.executeScript("$('button[name=configure-wap]').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
-      browser.fill("input").`with`(invalidEcpm, "Some key")
-      browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
+      invalidEcpms.map { eCPM =>
+        browser.fill("input").`with`(eCPM, "Some key")
+        browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
+        browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than $0.00")
+      }
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -316,9 +318,9 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be greater than $0.00")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than $0.00")
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.fill("input").`with`("5.0", "12345")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
