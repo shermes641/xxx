@@ -1,5 +1,5 @@
 // Initialize the mediation module
-var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'ui.sortable', 'ui.bootstrap']);
+var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'requiredFieldFilters', 'ui.sortable', 'ui.bootstrap']);
 
 // Initialize controllers
 var distributorUsersControllers = angular.module('distributorUsersControllers', ['ngRoute']);
@@ -29,48 +29,6 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
 }]);
 
 // Factories
-appsControllers.factory('appCheck', [function() {
-    var appCheck = {};
-
-    // Checks if Reward Minimum is greater than Reward Maximum.
-    appCheck.validRewardAmounts = function(data) {
-        var rewardMin = data.rewardMin;
-        var rewardMax = data.rewardMax;
-        if(rewardMin < 1) {
-            return({message: "Reward Minimum must be 1 or greater.", fieldName: "rewardMin"});
-        }
-        if(rewardMax !== null) {
-            if(rewardMax < rewardMin) {
-                return({message: "Reward Maximum must be greater than or equal to Reward Minimum.", fieldName: "rewardMax"});
-            }
-        }
-        return {};
-    };
-
-    // Checks if Exchange Rate is 1 or greater.
-    appCheck.validExchangeRate = function(exchangeRate) {
-        if (exchangeRate < 1) {
-            return({message: "Exchange Rate must be 1 or greater.", fieldName: "exchangeRate"});
-        } else {
-            return {};
-        }
-    };
-
-    // Checks for a valid callback URL when server to server callbacks are enabled.
-    appCheck.validCallback = function(data) {
-        var callbacksEnabled = data.serverToServerEnabled;//$(":input[id=serverToServerEnabled]").prop("checked");
-        var callbackURL = data.callbackURL;//$(":input[id=callbackURL]").val();
-        if(callbacksEnabled) {
-            if(!(/(http|https):\/\//).test(callbackURL)) {
-                return({message: "A valid HTTP or HTTPS callback URL is required.", fieldName: "callbackURL"});
-            }
-        }
-        return {};
-    };
-
-    return appCheck;
-}]);
-
 mediationModule.factory('fieldsFilled', [function(data, requiredFields) {
     // Check if all required fields are filled.
     return function(data, requiredFields) {
@@ -99,15 +57,20 @@ mediationModule.directive('modalDialog', function($rootScope) {
                 scope.dialogStyle.height = attrs.height;
             scope.hideModal = function() {
                 scope.errors = {};
+                if(scope.showTestModeConfirmationModal) {
+                    scope.waterfallData.waterfall.testMode = false;
+                }
                 scope.showModal(false);
                 scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
+                scope.showTestModeConfirmationModal = false;
                 $rootScope.bodyClass = "";
             };
 
             // Add body class to prevent scrolling when modal open
             scope.showModal = function(display) {
+                scope.dialogStyle.overflowY = scope.showEditAppModal ? "visible" : "auto";
                 $rootScope.bodyClass = display ? "modal-active" : "";
                 scope.modalShown = display;
             };
@@ -149,6 +112,91 @@ mediationModule.directive('typeaheadFocus', function () {
         };
     });
 
+var invalidNumber = function(number) {
+    if(typeof number === "string") {
+        return number.match(/^[0-9]+?$/) === null
+    } else {
+        return false;
+    }
+};
+
+mediationModule.directive('requiredInteger', function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            ctrl.$validators.requiredInteger = function(modelValue) {
+                return !(ctrl.$isEmpty(modelValue) || invalidNumber(modelValue) || parseInt(modelValue) < 1);
+            };
+        }
+    };
+});
+
+var greaterThanDirectiveName = 'greaterThanOrEqualTo';
+mediationModule.directive(greaterThanDirectiveName, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function(viewValue) {
+                var comparisonModel = attrs.greaterThanOrEqualTo;
+                if(ctrl.$isEmpty(viewValue)) {
+                    ctrl.$setValidity(greaterThanDirectiveName, true);
+                } else {
+                    if(parseInt(viewValue) >= parseInt(comparisonModel)) {
+                        ctrl.$setValidity(greaterThanDirectiveName, true);
+                    } else {
+                        ctrl.$setValidity(greaterThanDirectiveName, false);
+                    }
+                }
+                return viewValue;
+            };
+
+            ctrl.$parsers.unshift(validate);
+            ctrl.$formatters.push(validate);
+
+            attrs.$observe(greaterThanDirectiveName, function(comparisonModel){
+                return validate(ctrl.$viewValue);
+            });
+        }
+    };
+});
+
+mediationModule.directive('rewardMaxValidator', function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            ctrl.$validators.rewardMaxValidator = function(modelValue, viewValue) {
+                return !(!ctrl.$isEmpty(modelValue) && invalidNumber(modelValue));
+            };
+        }
+    };
+});
+
+var callbackValidator = 'callbackValidator';
+
+mediationModule.directive(callbackValidator, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function(viewValue) {
+                var serverToServerEnabled = attrs.callbackValidator === "true";
+                if(serverToServerEnabled || !ctrl.$isEmpty(ctrl.$viewValue)) {
+                    ctrl.$setValidity(callbackValidator, (/(http|https):\/\//).test(ctrl.$viewValue));
+                } else {
+                    ctrl.$setValidity(callbackValidator, true);
+                }
+                return viewValue;
+            };
+
+            ctrl.$parsers.unshift(validate);
+            ctrl.$formatters.push(validate);
+
+            attrs.$observe(callbackValidator, function(){
+                return validate();
+            });
+        }
+    };
+});
+
 // Filters
 angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
     return function(value) {
@@ -164,5 +212,11 @@ angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
 angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
     return function(status) {
         return status ? "Deactivate" : "Activate";
+    };
+});
+
+angular.module('requiredFieldFilters', []).filter('conditionalRequiredField', function() {
+    return function(fieldName, condition) {
+        return condition ? "*" + fieldName : fieldName;
     };
 });

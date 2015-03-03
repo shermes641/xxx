@@ -58,7 +58,12 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
         // Closes popup and sets cookie
         $scope.dismissPopup = function() {
             $scope.popupElement.hide();
-            document.cookie = "browser_support=" + $scope.cookieString;
+            var expirationDate = new Date();
+            var time = expirationDate.getTime();
+            // 24 hours (1000 milliseconds * 60 seconds * 60 minutes * 24 hours)
+            time += 24 * 60 * 60 * 1000;
+            expirationDate.setTime(time);
+            document.cookie = 'browser_support=' + $scope.cookieString + '; expires=' + expirationDate.toUTCString() + '; path=/';
         };
 
         $scope.checkBrowser();

@@ -5,11 +5,12 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', 'appCheck', '$filter', '$timeout',
-    function( $scope, $http, $routeParams, appCheck, $filter, $timeout ) {
+mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout',
+    function( $scope, $http, $routeParams, $filter, $timeout ) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
+        $scope.updatingStatus = "Updating...";
 
         // Retrieve Waterfall data
         $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
@@ -40,15 +41,15 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
             // $watchCollection does not support the new array $watch format.
             $scope.$watchCollection('filters.ad_providers.selected', function(){
-                $scope.debouncedUpdate();
+                $scope.updateAnalytics();
             });
 
             $scope.$watchCollection('filters.apps.selected', function(){
-                $scope.debouncedUpdate();
+                $scope.updateAnalytics();
             });
 
             $scope.$watchCollection('filters.countries.selected', function(){
-                $scope.debouncedUpdate();
+                $scope.updateAnalytics();
             });
 
             $scope.scopedKey = data.scopedKey;
@@ -80,7 +81,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             $( '.input-daterange' ).datepicker( {
                 orientation: "auto top",
                 format: "M dd, yyyy"
-            } ).on( "changeDate", $scope.debouncedUpdate );
+            } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
             $scope.elements.startDate.datepicker( 'setDate', '-1m');
@@ -290,6 +291,14 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             }
         }, true);
 
+        $scope.updateAnalytics = function() {
+            $scope.updatingStatus = "Waiting...";
+            $scope.currentlyUpdating = true;
+            _.defer(function(){$scope.$apply();});
+
+            $scope.debouncedUpdate();
+        };
+
         /**
          * "Creates and returns a new debounced version of the passed function which will postpone its execution until
          * after *wait* milliseconds have elapsed since the last time it was invoked. Useful for implementing behavior
@@ -305,10 +314,10 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
          * to update the dashboard.  Defer is used with Apply due to Keen being a separate library.  http://underscorejs.org/#defer
          */
         $scope.updateCharts = function() {
+            var currentTimeStamp = $scope.updateTimeStamp = Date.now();
+            $scope.updatingStatus = "Updating...";
             $scope.setDefaultAnalyticsConfig();
             _.defer(function(){$scope.$apply();});
-
-            $scope.currentlyUpdating = true;
 
             // Get current filter values
             var country = _.pluck($scope.filters.countries.selected, 'id');
@@ -337,7 +346,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             var end_date_iso = end_date.toISOString();
 
             // Get Fill Rate
-            $scope.getFillRate(adProvider, filters, start_date_iso, end_date_iso);
+            $scope.getFillRate(adProvider, filters, start_date_iso, end_date_iso, currentTimeStamp);
 
             // Ad Provider eCPM
             var ecpm_metric = new Keen.Query( "average", {
@@ -351,6 +360,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             } );
 
             $scope.keenClient.run( ecpm_metric, function() {
+                if($scope.updateTimeStamp !== currentTimeStamp) {
+                    return;
+                }
                 // Update request status to complete
                 $scope.analyticsRequestStatus.ecpmMetricRequestComplete = true;
                 var eCPM = 0;
@@ -377,6 +389,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
                 // Calculate expected eCPM
                 $scope.keenClient.run( estimated_revenue, function() {
+                    if($scope.updateTimeStamp !== currentTimeStamp) {
+                        return;
+                    }
                     // Update request status to complete
                     $scope.analyticsRequestStatus.estimatedRevenueRequestComplete = true;
 
@@ -464,7 +479,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             } );
         };
 
-        $scope.getFillRate = function(adProvider, filters, start_date_iso, end_date_iso) {
+        $scope.getFillRate = function(adProvider, filters, start_date_iso, end_date_iso, currentTimeStamp) {
             if ( adProvider.length > 1 ) {
                 $scope.analyticsData.fillRateMetric = "N/A";
                 // Update request status to complete
@@ -501,6 +516,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 } );
 
                 $scope.keenClient.run( [ inventory_request, available_count ], function() {
+                    if($scope.updateTimeStamp !== currentTimeStamp) {
+                        return;
+                    }
                     var conversion_rate = 0;
                     if ( this.data[ 0 ].result !== 0 ) {
                         conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100

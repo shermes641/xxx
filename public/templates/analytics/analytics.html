@@ -91,7 +91,7 @@
         <div class="fluid-container">
             <div class="analytics-row analytics-row-header row">
                 <div class="col-sm-12">
-                    <h1 id="analytics-header">Analytics <span class="updating-status">Updating...</span></h1>
+                    <h1 id="analytics-header">Analytics <span class="updating-status" ng-show="currentlyUpdating">{{updatingStatus}}</span></h1>
                 </div>
             </div>
             <div class="analytics-row row">
