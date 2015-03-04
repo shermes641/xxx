@@ -1,15 +1,29 @@
 package models
 
 import play.api.libs.json.{JsUndefined, JsValue}
+import play.api.mvc.Controller
 
 // Helper functions included in Callback models.
-trait CallbackVerificationHelper {
+trait CallbackVerificationHelper extends Controller {
   val currencyAmount: Int
   val receivedVerification: String
   val adProviderName: String
   val token: String
+  val verificationInfo: CallbackVerificationInfo
   lazy val waterfallAdProviderInfo = WaterfallAdProvider.findByAdProvider(token, adProviderName)
   def generatedVerification: String
+
+  /**
+   * Default success response for rewarded postbacks.
+   * @return A 200 response.
+   */
+  def returnSuccess = Ok("")
+
+  /**
+   * Default failure response for rewarded postbacks.
+   * @return A 400 response.
+   */
+  def returnFailure = BadRequest("")
 
   /**
    * Pulls value from waterfall ad provider configuration data.
