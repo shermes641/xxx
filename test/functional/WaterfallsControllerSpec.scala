@@ -11,7 +11,7 @@ import play.api.test.Helpers._
 import resources._
 
 @RunWith(classOf[JUnitRunner])
-class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
+class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with DistributorUserSetup {
   val wap1 = running(FakeApplication(additionalConfiguration = testDB)) {
     createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, Some(5.0), true, true)
   }
@@ -171,7 +171,24 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
-    "toggle waterfall test mode on and off" in new WithFakeBrowser {
+    "toggle test mode to off when there is at least one ad provider" in new WithFakeBrowser {
+      Waterfall.update(waterfall.id, false, true)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      val originalGeneration = generationNumber(waterfall.app_id)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
+      browser.executeScript("$('#test-mode-switch').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+    }
+
+    "toggle test mode to on only when the user confirms the action" in new WithFakeBrowser {
       Waterfall.update(waterfall.id, false, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
@@ -182,12 +199,30 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("$('#test-mode-switch').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
+      browser.find("#confirm-button").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
-      // Message box alerting user in test mode must be displayed
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-message").areDisplayed()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+    }
+
+    "not toggle test mode to on when the user cancels the action" in new WithFakeBrowser {
+      Waterfall.update(waterfall.id, false, false)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      val originalGeneration = generationNumber(waterfall.app_id)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      browser.executeScript("$('#test-mode-switch').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
+      browser.find("#cancel-button").click()
+      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      generationNumber(app1.id) must beEqualTo(originalGeneration)
+      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
     }
 
     "not set waterfall to live mode when no ad providers are active" in new WithAppBrowser(distributor.id.get) {
@@ -230,8 +265,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.$("div[name=cpm]", 2).getText must contain(defaultEcpm)
     }
 
-    "redirect the distributor user to their own apps index page if they try to edit a Waterfall they do not own" in new WithAppBrowser(distributor.id.get) {
+    "redirect the distributor user to their own Analytics page if they try to edit a Waterfall they do not own" in new WithAppBrowser(distributor.id.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
+      setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 
@@ -240,8 +276,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
     }
 
-    "redirect the distributor user to their own apps index page if they try to edit a Waterfall using another distributor ID" in new WithAppBrowser(distributor.id.get) {
+    "redirect the distributor user to their own Analytics page if they try to edit a Waterfall using another distributor ID" in new WithAppBrowser(distributor.id.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
+      setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 
@@ -299,6 +336,64 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.$("button[name=status]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       WaterfallAdProvider.findAllOrdered(currentWaterfall.id).size must beEqualTo(1)
+    }
+
+    "change the name of the App in the header and the sidebar when the App name is edited" in new WithFakeBrowser {
+      val newEmail = "somenewuser@gmail.com"
+      val (currentDistributorUser, currentDistributor) = newDistributorUser(newEmail)
+      val (newApp, newWaterfall, _, _) = setUpApp(currentDistributor.id.get)
+      logInUser(newEmail, password)
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(currentDistributor.id.get, newWaterfall.id).url)
+      val oldAppName = newApp.name
+      val newAppName = "Some Different App Name"
+      browser.executeScript("$('button[id=waterfall-app-settings-button]').first().click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed()
+      browser.fill("input[name=appName]").`with`(newAppName)
+      browser.executeScript("$('button[name=submit]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.find("#left_apps_list").getText must contain(newAppName)
+      browser.find("#left_apps_list").getText must not contain(oldAppName)
+      browser.find("#edit-top").getText must contain(newAppName)
+      browser.find("#edit-top").getText must not contain(oldAppName)
+    }
+  }
+
+  "WaterfallsController.editAll" should {
+    "render the appropriate Waterfall page when an App ID is passed in" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(distributor.id.get, None, Some(currentApp.id)).url)
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.pageSource must contain(currentWaterfall.name)
+    }
+
+    "render the appropriate Waterfall page when a Waterfall ID is passed in" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(distributor.id.get, Some(currentWaterfall.id), None).url)
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.pageSource must contain(currentWaterfall.name)
+    }
+
+    "render the page for the first Waterfall found when no Waterfall or App ID is passed in but the Distributor has already created an App" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(distributor.id.get, None, None).url)
+      val waterfallID = App.findAllAppsWithWaterfalls(distributor.id.get).head.waterfallID
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfallID).url)
+      browser.pageSource must contain(currentWaterfall.name)
+    }
+
+    "redirect to the App creation page if the Distributor has not created any Apps" in new WithFakeBrowser {
+      val currentEmail = "newuser@gmail.com"
+      val (_, currentDistributor) = newDistributorUser(currentEmail, password, "New Company")
+
+      logInUser(currentEmail, password)
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(currentDistributor.id.get, None, None).url)
+      browser.url() must beEqualTo(controllers.routes.AppsController.newApp(currentDistributor.id.get).url)
+      browser.pageSource must contain("Begin by creating your first app")
     }
   }
 }

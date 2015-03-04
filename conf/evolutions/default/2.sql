@@ -15,7 +15,7 @@ CREATE TABLE ad_providers (
 CREATE SEQUENCE waterfalls_id_seq;
 
 CREATE TABLE waterfalls (
-  id bigint PRIMARY KEY DEFAULT pseudo_encrypt(nextval('waterfalls_id_seq')),
+  id bigint PRIMARY KEY DEFAULT pseudo_encrypt(nextval('waterfalls_id_seq')::int),
   app_id bigint NOT NULL,
   name varchar(255) NOT NULL,
   token varchar(255) NOT NULL,

@@ -12,7 +12,7 @@ import resources.DistributorUserSetup
 import collection.JavaConversions._
 import play.api.libs.json.{JsString, JsObject, Json}
 
-class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup {
+class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
 
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
@@ -23,47 +23,47 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
   "Analytics show action" should {
 
-    "show analytics for an app" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
+    "show analytics for an app" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
       browser.pageSource must contain("Analytics")
     }
 
-    "populate ad networks for show page" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
+    "redirect to the App creation page if the Distributor has not created any Apps" in new WithFakeBrowser {
+      val currentEmail = "newuser@gmail.com"
+      val (_, currentDistributor) = newDistributorUser(currentEmail, password, "New Company")
 
+      logInUser(currentEmail, password)
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(currentDistributor.id.get, None, None).url)
+      browser.url.contains(controllers.routes.AppsController.newApp(currentDistributor.id.get).url)
+      browser.pageSource must contain("Begin by creating your first app")
+    }
+
+    "populate ad networks for show page" in new WithAppBrowser(distributorID) {
       logInUser()
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
       // Verify first option defaults to "all"
       browser.$("#ad_providers").getValue() must beEqualTo("all")
     }
 
-    "country select box should exist and not be empty" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
-
+    "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
       // Verify first option defaults to "all"
       browser.$("#countries").getValue() must beEqualTo("all")
     }
 
-    "date picker should be setup correctly" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
-
+    "date picker should be setup correctly" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
       var date = DateTime.now
       // End date must be todays date
@@ -73,24 +73,18 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.$("#start_date").getValue() must beEqualTo(date.minusMonths(1).toString("MM/dd/yyyy"))
     }
 
-    "Keen project should be set correctly in hidden field" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
-
+    "Keen project should be set correctly in hidden field" in new WithAppBrowser(distributorID) {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
       // eCPM must be set correctly (placeholder for now)
       browser.$("#keen_project").getValue() must beEqualTo(Play.current.configuration.getString("keen.project").get)
     }
 
-    "Scoped key has been created correctly" in new WithFakeBrowser {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
-
+    "Scoped key has been created correctly" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
@@ -98,6 +92,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
     "not display analytics data for an App ID not owned by the current Distributor User" in new WithAppBrowser(distributorUser.distributorID.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
+      setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 
@@ -105,8 +100,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.pageSource() must not contain currentApp.name
     }
 
-    "redirect the distributor user to their own apps index page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
+      setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 

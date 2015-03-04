@@ -17,10 +17,11 @@ import scala.language.postfixOps
  * @param token A unique identifier used for looking up Waterfall information in the APIController.
  * @param optimizedOrder A Boolean value indicating if the WaterfallAdProviders associated with a Waterfall should be ordered by eCPM descending.
  * @param testMode A Boolean value indicating if the Waterfall will always show a test video or not.
+ * @param appName The name of the App to which the Waterfall belongs.
  * @param appToken A unique identifier used to identify an App in API calls.
  * @param generationNumber A number which indicates how many times the Waterfall and associated elements have been edited.  This number is retrieved from the app_configs table.
  */
-case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, generationNumber: Option[Long], appToken: String)
+case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, appName: String, generationNumber: Option[Long], appToken: String)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
@@ -31,9 +32,10 @@ object Waterfall extends JsonConversion {
     get[String]("token") ~
     get[Boolean]("optimized_order") ~
     get[Boolean]("test_mode") ~
+    get[String]("app_name") ~
     get[Option[Long]]("generation_number") ~
     get[String]("app_token") map {
-      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, generation_number, app_token)
+      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ app_name ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, app_name, generation_number, app_token)
     }
   }
 
@@ -104,7 +106,7 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT waterfalls.*, apps.token as app_token, generation_number
+          SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, generation_number
           FROM waterfalls
           JOIN apps ON apps.id = waterfalls.app_id
           JOIN app_configs ON app_configs.app_id = waterfalls.app_id
@@ -129,7 +131,7 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT waterfalls.*, apps.token as app_token, generation_number
+          SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, generation_number
           FROM waterfalls
           JOIN apps ON apps.id = waterfalls.app_id
           JOIN app_configs ON app_configs.app_id = waterfalls.app_id

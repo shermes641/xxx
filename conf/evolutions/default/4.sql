@@ -4,7 +4,7 @@
 CREATE SEQUENCE distributor_users_id_seq;
 
 CREATE TABLE distributor_users (
-  id bigint PRIMARY KEY DEFAULT pseudo_encrypt(nextval('distributor_users_id_seq')),
+  id bigint PRIMARY KEY DEFAULT pseudo_encrypt(nextval('distributor_users_id_seq')::int),
   email varchar(255) NOT NULL,
   hashed_password varchar(255) NOT NULL,
   salt varchar(255) NOT NULL
