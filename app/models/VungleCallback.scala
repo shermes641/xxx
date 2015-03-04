@@ -14,7 +14,7 @@ class VungleCallback(appToken: String, transactionID: String, digest: String, am
   override val token = appToken
   override val receivedVerification = digest
   override val currencyAmount = amount
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
+  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
 
   /**
    * Generates a security digest using the steps provided in Vungle's documentation.
