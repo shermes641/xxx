@@ -4,6 +4,13 @@ import java.security.MessageDigest
 import play.api.mvc.Controller
 
 /**
+ * Companion object to define DefaultFailure used in the APIController.
+ */
+object AdColonyCallback extends Controller {
+  val DefaultFailure = BadRequest("vc_decline")
+}
+
+/**
  * Encapsulates the logic for verifying server to server requests from Ad Colony.
  * @param appToken The token for the App to which the completion will belong.
  * @param transactionID A unique ID that verifies the completion.
@@ -34,7 +41,7 @@ class AdColonyCallback(appToken: String, transactionID: String, uid: String, amo
    * Per AdColony's documentation, we return 'vc_decline' to acknowledge that the reward process was unsuccessful.
    * @return A 400 response containing 'vc_decline'
    */
-  override def returnFailure = BadRequest("vc_decline")
+  override def returnFailure = AdColonyCallback.DefaultFailure
 
   /**
    * Generates a security digest using the steps provided in Ad Colony's documentation.

@@ -61,7 +61,7 @@ object APIController extends Controller {
         val callback = new AdColonyCallback(appToken, transactionIDValue, uidValue, amountValue, currencyValue, openUDIDValue, udidValue, odin1Value, macSha1Value, verifierValue, customIDValue)
         callbackResponse(callback, request)
       }
-      case (_, _, _, _, _, _, _, _, _, _) => BadRequest("vc_decline")
+      case (_, _, _, _, _, _, _, _, _, _) => AdColonyCallback.DefaultFailure
     }
   }
 
