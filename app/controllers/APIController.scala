@@ -35,7 +35,7 @@ object APIController extends Controller {
     (transactionID, digest, amount) match {
       case (Some(transactionIDValue: String), Some(digestValue: String), Some(amountValue: Int)) => {
         val callback = new VungleCallback(appToken, transactionIDValue, digestValue, amountValue)
-        callbackResponse(callback.verificationInfo, request)
+        callbackResponse(callback, request)
       }
       case (_, _, _) => BadRequest
     }
@@ -59,9 +59,9 @@ object APIController extends Controller {
     (transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID) match {
       case (Some(transactionIDValue: String), Some(uidValue: String), Some(amountValue: Int), Some(currencyValue: String), Some(openUDIDValue: String), Some(udidValue: String), Some(odin1Value: String), Some(macSha1Value: String), Some(verifierValue: String), Some(customIDValue: String)) => {
         val callback = new AdColonyCallback(appToken, transactionIDValue, uidValue, amountValue, currencyValue, openUDIDValue, udidValue, odin1Value, macSha1Value, verifierValue, customIDValue)
-        callbackResponse(callback.verificationInfo, request)
+        callbackResponse(callback, request)
       }
-      case (_, _, _, _, _, _, _, _, _, _) => BadRequest
+      case (_, _, _, _, _, _, _, _, _, _) => AdColonyCallback.DefaultFailure
     }
   }
 
@@ -80,7 +80,7 @@ object APIController extends Controller {
     (eventID, amount) match {
       case (Some(eventIDValue: String), Some(amountValue: Double)) => {
         val callback = new AppLovinCallback(eventIDValue, appToken, amountValue)
-        callbackResponse(callback.verificationInfo, request)
+        callbackResponse(callback, request)
       }
       case (_, _) => BadRequest
     }
@@ -101,7 +101,7 @@ object APIController extends Controller {
     (fguid, rewardQuantity, fhash) match {
       case (Some(fguidValue: String), Some(rewardQuantityValue: Int), Some(fhashValue: String)) => {
         val callback = new FlurryCallback(appToken, fguidValue, rewardQuantityValue, fhashValue)
-        callbackResponse(callback.verificationInfo, request)
+        callbackResponse(callback, request)
       }
       case (_, _, _) => BadRequest
     }
@@ -123,7 +123,7 @@ object APIController extends Controller {
     (uid, sig, time, subID, quantity) match {
       case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String), Some(quantityValue: Int)) => {
         val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
-        callbackResponse(callback.verificationInfo, request)
+        callbackResponse(callback, request)
       }
       case (_, _, _, _, _) => BadRequest
     }
@@ -141,19 +141,19 @@ object APIController extends Controller {
 
   /**
    * Creates a Completion if the reward callback is valid and notifies the Distributor if server to server callbacks are enabled.
-   * @param verificationInfo Encapsulates callback information to determine the validity of the incoming request.
+   * @param callback Any class instance which extends CallbackVerificationHelper.  This encapsulates callback information to determine the validity of the incoming request.
    * @param adProviderRequest The original postback from the ad provider.
    * @return Creates a Completion if the callback if valid and notifies the Distributor if server to server callbacks are enabled; otherwise, returns None.
    */
-  def callbackResponse(verificationInfo: CallbackVerificationInfo, adProviderRequest: JsValue) = {
-    verificationInfo.isValid match {
+  def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue) = {
+    callback.verificationInfo.isValid match {
       case true => {
-        Await.result(Completion.createWithNotification(verificationInfo, adProviderRequest), Duration(5000, "millis")) match {
-          case true => Ok
-          case false => BadRequest
+        Await.result(Completion.createWithNotification(callback.verificationInfo, adProviderRequest), Duration(5000, "millis")) match {
+          case true => callback.returnSuccess
+          case false => callback.returnFailure
         }
       }
-      case false => BadRequest
+      case false => callback.returnFailure
     }
   }
 }

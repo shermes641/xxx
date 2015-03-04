@@ -251,6 +251,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
+      contentAsString(result) must contain("vc_success")
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
 
@@ -265,6 +266,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
+      contentAsString(result) must contain("vc_decline")
       tableCount("completions") must beEqualTo(completionCount)
     }
 
@@ -278,6 +280,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
+      contentAsString(result) must contain("vc_decline")
       tableCount("completions") must beEqualTo(completionCount)
     }
   }

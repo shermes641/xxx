@@ -128,6 +128,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "token" -> JsString(waterfall.token),
         "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
         "testMode" -> JsBoolean(waterfall.testMode),
+        "appName" -> JsString(waterfall.appName),
         "appToken" -> JsString(waterfall.appToken)
       )
     )
@@ -175,8 +176,12 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         Redirect(routes.WaterfallsController.list(distributorID, appID, None))
       }
       case (None, None) => {
-        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
-        Redirect(routes.WaterfallsController.list(distributorID, appsWithWaterfalls.head.id, None))
+        val apps = App.findAllAppsWithWaterfalls(distributorID)
+        if(apps.size == 0) {
+            Redirect(routes.AppsController.newApp(distributorID))
+        } else {
+            Redirect(routes.WaterfallsController.list(distributorID, apps.head.id, None))
+        }
       }
     }
   }
