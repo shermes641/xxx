@@ -10,6 +10,7 @@ import play.api.Play
 import io.keen.client.java.ScopedKeys
 import resources.DistributorUserSetup
 import collection.JavaConversions._
+import play.api.libs.json.{JsString, JsObject, Json}
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup {
 
@@ -138,6 +139,36 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       clickAndWaitForAngular("#export_submit")
 
       browser.pageSource must contain("The email you entered is invalid.")
+    }
+
+    "Send JSON data without email and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val request = FakeRequest(
+        POST,
+        controllers.routes.AnalyticsController.export(distributorID).url,
+        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        JsObject(
+          Seq(
+            "noEmailParameter" -> JsString("some other parameter")
+          )
+        )
+      )
+
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(400)
+      contentAsString(result) must equalTo("Missing parameter [email]")
+    }
+
+    "Send bad JSON data and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {
+      val request = FakeRequest(
+        POST,
+        controllers.routes.AnalyticsController.export(distributorID).url,
+        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        "{BAD JSON DATA!@#}"
+      )
+
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(400)
+      contentAsString(result) must equalTo("Expecting Json data")
     }
   }
 }
