@@ -352,8 +352,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.fill("input[name=appName]").`with`(newAppName)
       browser.executeScript("$('button[name=submit]').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
-      browser.find("#left_apps_list").getText must contain(newAppName)
-      browser.find("#left_apps_list").getText must not contain(oldAppName)
+      browser.find(".left_apps_list").getText must contain(newAppName)
+      browser.find(".left_apps_list").getText must not contain(oldAppName)
       browser.find("#edit-top").getText must contain(newAppName)
       browser.find("#edit-top").getText must not contain(oldAppName)
     }
