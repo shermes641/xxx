@@ -109,7 +109,8 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
         "dataType" -> JsString(param.dataType.getOrElse("")),
         "description" -> JsString(param.description.getOrElse("")),
         "value" -> JsString(param.value.getOrElse("")),
-        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart),
+        "minLength" -> JsNumber(param.minLength)
       )
     )
   }

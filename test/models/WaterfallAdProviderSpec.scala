@@ -4,7 +4,7 @@ import anorm.SQL
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.db.DB
-import play.api.libs.json.{JsArray, JsString, JsObject}
+import play.api.libs.json.{JsValue, JsArray, JsString, JsObject}
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
@@ -112,9 +112,9 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   "WaterfallAdProvider.findConfigurationData" should {
     "return an instance of WaterfallAdProviderConfig containing configuration data for both WaterfallAdProvider and AdProvider" in new WithDB {
       val configData = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get }
-      val params = (configData.adProviderConfiguration \ "requiredParams").as[List[Map[String, String]]]
+      val params = (configData.adProviderConfiguration \ "requiredParams").as[List[JsValue]]
       params.map { param =>
-        configurationParams must contain(param.get("key").get)
+        configurationParams must contain((param \ "key").as[String])
       }
       val waterfallAdProviderParams = configData.waterfallAdProviderConfiguration \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configurationValues(0))

@@ -7,7 +7,7 @@ import play.api.test.Helpers._
 import models._
 
 @RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends SpecificationWithFixtures {
+class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
 
   "Application.index" should {
     "send 404 on a bad request" in new WithFakeBrowser {
@@ -20,8 +20,9 @@ class ApplicationSpec extends SpecificationWithFixtures {
     }
 
     "redirect a logged in user to the Analytics index page" in new WithFakeBrowser {
-      DistributorUser.create(email, password, companyName)
+      val distributorID = DistributorUser.create(email, password, companyName).get
       val user = DistributorUser.findByEmail(email).get
+      setUpApp(distributorID)
       goToAndWaitForAngular("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
