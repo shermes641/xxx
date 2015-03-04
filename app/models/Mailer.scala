@@ -18,7 +18,7 @@ trait Mailer {
    */
   def sendEmail(recipient: String, subject: String, body: String, plainText: String = "", attachmentFileName: String = ""): Unit = {
     val host = Play.current.configuration.getString("app_domain").get
-    if(play.api.Play.isProd(play.api.Play.current)) {
+    if(Environment.isProdOrStaging) {
       val mail = use[MailerPlugin].email
       mail.setRecipient(recipient)
       mail.setFrom("HyprMediate <publishing@hyprmx.com>")
