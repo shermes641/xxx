@@ -10,6 +10,13 @@ import play.api.Play
 import io.keen.client.java.ScopedKeys
 import resources.DistributorUserSetup
 import collection.JavaConversions._
+import play.api.libs.json._
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.test.FakeApplication
+import play.api.test.FakeHeaders
+import scala.Some
+import play.api.test.FakeApplication
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
 
@@ -24,7 +31,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
     "show analytics for an app" in new WithAppBrowser(distributorID) {
       logInUser()
-
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
       browser.pageSource must contain("Analytics")
     }
@@ -40,14 +46,20 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.pageSource must contain("Begin by creating your first app")
     }
 
-    "populate ad networks for show page" in new WithAppBrowser(distributorID) {
+    "populate ad networks and verify that All ad providers is default" in new WithAppBrowser(distributorID) {
       logInUser()
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
-      // Verify first option defaults to "all"
-      browser.$("#ad_providers").getValue() must beEqualTo("all")
+      // All Ad Providers should be selected
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad_providers_filter").containsText("All Ad Providers")
+
+      clickAndWaitForAngular("#ad_providers_filter .add")
+      clickAndWaitForAngular("#filter_ad_providers")
+
+      // hyprMX must be part of dropdown
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad_providers_filter .add").containsText("hyprMX")
     }
 
     "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {
@@ -55,8 +67,18 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
-      // Verify first option defaults to "all"
-      browser.$("#countries").getValue() must beEqualTo("all")
+      // All Countries should be selected
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter").containsText("All Countries")
+
+      clickAndWaitForAngular("#countries_filter .add")
+      clickAndWaitForAngular("#filter_countries")
+
+      // United States and Ireland must be part of dropdown
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter .add").containsText("United States")
+
+      // Test Autocomplete
+      fillAndWaitForAngular("#filter_countries", "Ire")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter .add").containsText("Ireland")
     }
 
     "date picker should be setup correctly" in new WithAppBrowser(distributorID) {
@@ -66,38 +88,35 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       var date = DateTime.now
       // End date must be todays date
-      browser.$("#end_date").getValue() must beEqualTo(date.toString("MM/dd/yyyy"))
+      browser.$("#end_date").getValue() must beEqualTo(date.toString("MMM dd, yyyy"))
 
       // Start date must be todays date minus 1 month
-      browser.$("#start_date").getValue() must beEqualTo(date.minusMonths(1).toString("MM/dd/yyyy"))
+      browser.$("#start_date").getValue() must beEqualTo(date.minusMonths(1).toString("MMM dd, yyyy"))
     }
 
-    "Keen project should be set correctly in hidden field" in new WithAppBrowser(distributorID) {
+    "Check Analytics configuration info JSON" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
 
-      // eCPM must be set correctly (placeholder for now)
-      browser.$("#keen_project").getValue() must beEqualTo(Play.current.configuration.getString("keen.project").get)
-    }
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AnalyticsController.info(distributorID).url,
+        FakeHeaders(),
+        ""
+      )
 
-    "Scoped key has been created correctly" in new WithAppBrowser(distributorID) {
-      logInUser()
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(200)
+      val response = Json.parse(contentAsString(result))
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      (response \ "distributorID").as[String].toLong must beEqualTo(distributorID)
+      (response \ "keenProject").as[String] must beEqualTo(Play.current.configuration.getString("keen.project").get)
 
-      val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, browser.$("#scoped_key").getValue()).toMap.toString()
+      // Verify scopedKey
+      val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, (response \ "scopedKey").as[String]).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
     }
 
-    "not display analytics data for an App ID not owned by the current Distributor User" in new WithAppBrowser(distributorUser.distributorID.get) {
-      val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail@gmail.com")
-      setUpApp(maliciousDistributor.id.get)
-
-      logInUser(maliciousUser.email, password)
-
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, Some(currentApp.id)).url)
-      browser.pageSource() must not contain currentApp.name
-    }
 
     "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
@@ -110,11 +129,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     }
 
     "export analytics data as csv" in new WithAppBrowser(distributorUser.distributorID.get) {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
       clickAndWaitForAngular("#export_as_csv")
       browser.fill("#export_email").`with`("test@test.com")
       clickAndWaitForAngular("#export_submit")
@@ -123,12 +140,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     }
 
     "export analytics data as csv must fail with invalid email" in new WithAppBrowser(distributorUser.distributorID.get) {
-      val app2Name = "App 2"
-      val appID = App.create(distributorID, app2Name).get
-
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(appID)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
       clickAndWaitForAngular("#export_as_csv")
       browser.fill("#export_email").`with`("test@test.com")
       clickAndWaitForAngular("#export_submit")

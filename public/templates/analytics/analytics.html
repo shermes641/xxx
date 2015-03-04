@@ -59,7 +59,7 @@
         </div>
         <div class="left_apps_list">
             <h2>Filter By App</h2>
-            <ul>
+            <ul id="apps_filter">
                 <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
                 <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
                     <span class="dropdown-label">Add App</span>
@@ -72,7 +72,7 @@
         </div>
         <div class="left_apps_list">
             <h2>Filter By Country</h2>
-            <ul>
+            <ul id="countries_filter">
                 <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)">{{country.name}}</li>
                 <li class="add" ng-click="openDropdown('countries')" ng-class="{open: filters.countries.open}">
                     <span class="dropdown-label">Add Country</span>

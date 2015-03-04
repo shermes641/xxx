@@ -83,6 +83,12 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       waitForAngular
     }
 
+    def fillAndWaitForAngular(element: String, content: String) = {
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(element).isPresent
+      browser.fill(element).`with`(content)
+      waitForAngular
+    }
+
     def waitForAngular = {
       val ngAppElement = "body"
       val markerClass = "angularReady"
