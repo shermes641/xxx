@@ -148,7 +148,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#full-success-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#full-system-message").areDisplayed()
 
       appsCount must beEqualTo(tableCount("apps"))
       waterfallsCount must beEqualTo(tableCount("waterfalls"))
@@ -180,7 +180,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       clickAndWaitForAngular("#create_new_app")
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       clickAndWaitForAngular("button[id=create-app]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#left_apps_list").containsText("My left list test app")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".left_apps_list").containsText("My left list test app")
     }
   }
 

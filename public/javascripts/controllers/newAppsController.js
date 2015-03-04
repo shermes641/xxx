@@ -4,6 +4,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
 
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
             $scope.newAppPage = true;
+            $scope.systemMessage = "Your confirmation email will arrive shortly.";
             $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
 
             // Submit form if fields are valid.
@@ -16,7 +17,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                     $scope.newApp.exchangeRate = parseInt($scope.newApp.exchangeRate);
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
-                            $scope.systemMessage = "Your confirmation email will arrive shortly.";
                             window.location.href = "/distributors/"+$routeParams.distributorID+"/waterfalls/edit";
                         }).
                         error(function(data, status, headers, config) {
