@@ -35,7 +35,7 @@ object AnalyticsController extends Controller with Secured {
 
   def info(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
         Ok(Json.obj(
-          "distributorID" -> JsString(distributorID.toString),
+          "distributorID" -> JsNumber(distributorID),
           "adProviders" -> adProviderListJs(AdProvider.findAll),
           "apps" -> appListJs(App.findAll(distributorID)),
           "keenProject" -> Play.current.configuration.getString("keen.project").get,
@@ -81,7 +81,7 @@ object AnalyticsController extends Controller with Secured {
     JsObject(
       Seq(
         "name" -> JsString(provider.name),
-        "id" -> JsString(provider.id.toString)
+        "id" -> JsNumber(provider.id)
       )
     )
   }
@@ -103,7 +103,7 @@ object AnalyticsController extends Controller with Secured {
     JsObject(
       Seq(
         "id" -> JsString(app.id.toString),
-        "distributorID" -> JsString(app.distributorID.toString),
+        "distributorID" -> JsNumber(app.distributorID),
         "name" -> JsString(app.name)
       )
     )
