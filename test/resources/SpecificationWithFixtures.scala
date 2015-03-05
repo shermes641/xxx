@@ -72,23 +72,49 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       browser.fill("#newAppRewardMax").`with`(rewardMax)
     }
 
+    /**
+     * Helper function to check if element contains text
+     * @param element Element selector to check
+     * @param content String to check
+     * @param timeout Timeout in seconds
+     */
+    def waitUntilContainsText(element: String, content: String, timeout: Long = 5) = {
+      browser.await().atMost(timeout, java.util.concurrent.TimeUnit.SECONDS).until(element).containsText(content)
+    }
+
+    /**
+     * Helper function to Goto URL and wait for angular to finish
+     * @param url Url to navigate to
+     */
     def goToAndWaitForAngular(url: String) = {
       browser.goTo(url)
       waitForAngular
     }
 
+    /**
+     * Helper function to Click element and wait for angular to finish
+     * @param element Element selector to click
+     */
     def clickAndWaitForAngular(element: String) = {
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(element).isPresent
       browser.click(element)
       waitForAngular
     }
 
+    /**
+     * Helper function to Fill element with content provided
+     * @param element Element selector to fill
+     * @param content String to fill
+     */
     def fillAndWaitForAngular(element: String, content: String) = {
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(element).isPresent
       browser.fill(element).`with`(content)
       waitForAngular
     }
 
+    /**
+     * Helper function to wait for angualar to finish processing its current requests
+     */
     def waitForAngular = {
       val ngAppElement = "body"
       val markerClass = "angularReady"
@@ -101,6 +127,22 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
           "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
           "    })")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+    }
+
+    /**
+     * Helper function to verify Analytics have loaded
+     */
+    def verifyAnalyticsHaveLoaded = {
+      // Extended wait for Keen to load
+      browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-header.loaded").isPresent
+      // eCPM metric
+      waitUntilContainsText("#ecpm_metric", "$", 5)
+      // Fill Rate metric
+      waitUntilContainsText("#fill_rate", "%", 5)
+      // Average Revenue metric
+      waitUntilContainsText("#unique_users", "$", 5)
+      // Revenue Table
+      waitUntilContainsText("#analytics_revenue_table", "$", 5)
     }
 
     /**

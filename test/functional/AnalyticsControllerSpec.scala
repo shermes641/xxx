@@ -95,6 +95,93 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.$("#start_date").getValue() must beEqualTo(date.minusMonths(1).toString("MMM dd, yyyy"))
     }
 
+    "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      // eCPM metric
+      waitUntilContainsText("#ecpm_metric_container", "Average eCPM")
+      // Fill Rate metric
+      waitUntilContainsText("#fill_rate_container", "Current App Fill Rate")
+      // Average Revenue metric
+      waitUntilContainsText("#unique_users_container", "Average Revenue By Day")
+      // Revenue Table
+      waitUntilContainsText("#estimated_revenue_chart_container", "Above results use Ad Network eCPMs to estimate revenue.")
+    }
+
+    "Verify Keen analytics are loading" in new WithAppBrowser(distributorID) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+
+      // eCPM metric
+      verifyAnalyticsHaveLoaded
+    }
+
+    "Update Countries drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
+      logInUser()
+      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#countries_filter .add")
+      clickAndWaitForAngular("#filter_countries")
+
+      waitUntilContainsText("#countries_filter .add", "United States")
+      clickAndWaitForAngular("#countries_filter .add .dropdown-menu .active")
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+
+      fillAndWaitForAngular("#filter_countries", "Ire")
+      waitUntilContainsText("#countries_filter .add", "Ireland")
+      clickAndWaitForAngular("#countries_filter .add .dropdown-menu .active")
+
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+    }
+
+    "Update Apps drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#apps_filter .add")
+      clickAndWaitForAngular("#filter_apps")
+
+      // hyprMX must be part of dropdown
+      waitUntilContainsText("#apps_filter .add", "New App", 5)
+      clickAndWaitForAngular("#apps_filter .add .dropdown-menu .active")
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+    }
+
+    "Update Ad Provider drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
+      logInUser()
+      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#ad_providers_filter .add")
+      clickAndWaitForAngular("#filter_ad_providers")
+
+      // hyprMX must be part of dropdown
+      waitUntilContainsText("#ad_providers_filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+    }
+
     "Check Analytics configuration info JSON" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
@@ -117,7 +204,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, (response \ "scopedKey").as[String]).toMap.toString()
       decrypted must contain("property_value="+distributorID.toString)
     }
-
 
     "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")

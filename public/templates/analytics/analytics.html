@@ -88,14 +88,17 @@
         </button>
     </div>
     <div class="split_content dashboard" data-distributor-id="@distributorID">
+        <div ng-show="analyticsTimeout" id="analytics-messaging" class="full-error-message">
+            The analytics page is currently experiencing issues.  Please wait or try again later.
+        </div>
         <div class="fluid-container">
             <div class="analytics-row analytics-row-header row">
                 <div class="col-sm-12">
-                    <h1 id="analytics-header">Analytics <span class="updating-status" ng-show="currentlyUpdating">{{updatingStatus}}</span></h1>
+                    <h1 id="analytics-header" ng-class="{loaded: currentlyUpdating === false}">Analytics <span class="updating-status" ng-show="currentlyUpdating" id="analytics_loading_status">{{updatingStatus}}</span></h1>
                 </div>
             </div>
             <div class="analytics-row row">
-                <div class="col-sm-4 analytics-circle-border">
+                <div class="col-sm-4 analytics-circle-border" id="ecpm_metric_container">
                     <div id="ecpm_metric" class="analytics-circle average-ecpm" ng-class="{loaded: analyticsData.ecpmMetric != null}">
                         <div ng-show="analyticsData.ecpmMetric != null" ng-bind-html="analyticsData.ecpmMetric"></div>
                         <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
@@ -106,7 +109,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-4 analytics-circle-border">
+                <div class="col-sm-4 analytics-circle-border" id="fill_rate_container">
                     <div id="fill_rate" class="analytics-circle fill-rate" ng-class="{loaded: analyticsData.fillRateMetric != null}">
                         <div ng-show="analyticsData.fillRateMetric != null" ng-bind-html="analyticsData.fillRateMetric"></div>
                         <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
@@ -117,7 +120,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-4">
+                <div class="col-sm-4" id="unique_users_container">
                     <div id="unique_users" class="analytics-circle revenue-by-day" ng-class="{loaded: analyticsData.revenueByDayMetric != null}">
                         <div ng-show="analyticsData.revenueByDayMetric != null" ng-bind-html="analyticsData.revenueByDayMetric"></div>
                         <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
@@ -130,7 +133,7 @@
             </div>
 
             <div class="analytics-row row">
-                <div class="col-sm-12">
+                <div class="col-sm-12" id="estimated_revenue_chart_container">
                     <div ng-show="analyticsData.revenueChart" id="estimated_revenue_chart">
                     </div>
                     <div ng-show="!analyticsData.revenueChart" class="analytics-loading chart-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
@@ -143,7 +146,7 @@
 
             <div class="analytics-row row">
                 <div class="col-sm-12">
-                    <table class="analytics-revenue-table" cellspacing="0">
+                    <table class="analytics-revenue-table" cellspacing="0" id="analytics_revenue_table">
                         <thead>
                             <tr>
                                 <th colspan="2">Date<span class="align-right">Estimated Revenue</span></th>

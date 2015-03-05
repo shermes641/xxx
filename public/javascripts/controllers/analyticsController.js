@@ -288,6 +288,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         $scope.$watch('analyticsRequestStatus', function(current){
             if(_.every(_.values(current))) {
                 $scope.currentlyUpdating = false;
+                $timeout.cancel($scope.updateTimeout);
             }
         }, true);
 
@@ -298,6 +299,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
             $scope.debouncedUpdate();
         };
+
+        $scope.updateTimeout = 0;
 
         /**
          * "Creates and returns a new debounced version of the passed function which will postpone its execution until
@@ -310,10 +313,19 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         }, 2000);
 
         /**
+         * Show timeout messaging if Keen has not responded in time.
+         */
+        $scope.showTimeoutMessage = function() {
+            $scope.analyticsTimeout = true;
+        };
+
+        /**
          * Update charts on dashboard page.  Uses the currently set dropdowns and dates.  This can be called anytime we want
          * to update the dashboard.  Defer is used with Apply due to Keen being a separate library.  http://underscorejs.org/#defer
          */
         $scope.updateCharts = function() {
+            // Display timeout messaging if Keen has not responded within 20seconds.
+            $scope.updateTimeout = $timeout($scope.showTimeoutMessage, 20000);
             var currentTimeStamp = $scope.updateTimeStamp = Date.now();
             $scope.updatingStatus = "Updating...";
             $scope.setDefaultAnalyticsConfig();
@@ -329,21 +341,22 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             // Return if one or both of the dates are invalid
             if ( !$scope.isValidDate( start_date ) || !$scope.isValidDate( end_date ) ) {
                 $scope.currentlyUpdating = false;
+                $timeout.cancel($scope.updateTimeout);
                 return;
             }
 
             // Return if start date after end date
-            if ( end_date.getTime() <= start_date.getTime() ) {
+            if ( end_date.getTime() < start_date.getTime() ) {
                 $scope.currentlyUpdating = false;
+                $timeout.cancel($scope.updateTimeout);
                 return;
             }
 
             // Build filters based on the dropdown selections and app_id
             var filters = $scope.buildFilters( apps, country, adProvider );
 
-            var start_date_iso = start_date.toISOString();
-            end_date.setHours(end_date.getHours() + 40);
-            var end_date_iso = end_date.toISOString();
+            var start_date_iso = moment(start_date).utc().format();
+            var end_date_iso = moment(end_date).utc().add(1, 'days').format();
 
             // Get Fill Rate
             $scope.getFillRate(adProvider, filters, start_date_iso, end_date_iso, currentTimeStamp);
@@ -361,6 +374,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
             $scope.keenClient.run( ecpm_metric, function() {
                 if($scope.updateTimeStamp !== currentTimeStamp) {
+                    $timeout.cancel($scope.updateTimeout);
                     return;
                 }
                 // Update request status to complete
@@ -375,110 +389,119 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                     eCPM = this.data.result;
                 }
                 _.defer(function(){$scope.$apply();});
-
-                // Estimated Revenue query
-                var estimated_revenue = new Keen.Query( "count", {
-                    eventCollection: "ad_completed",
-                    interval: "daily",
-                    filters: filters,
-                    timeframe: {
-                        start: start_date_iso,
-                        end: end_date_iso
-                    }
-                } );
-
-                // Calculate expected eCPM
-                $scope.keenClient.run( estimated_revenue, function() {
-                    if($scope.updateTimeStamp !== currentTimeStamp) {
-                        return;
-                    }
-                    // Update request status to complete
-                    $scope.analyticsRequestStatus.estimatedRevenueRequestComplete = true;
-
-                    var table_data = [];
-                    var chart_data = [];
-                    var cumulative_revenue = 0;
-                    _.each( this.data.result, function ( day ) {
-                        var days_revenue = (day.value * eCPM);
-                        var date_string = moment( day.timeframe.start).format("MMM DD, YYYY");
-
-                        table_data.push( {
-                            "Date": date_string,
-                            "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
-                        } );
-                        chart_data.push( {
-                            "Date": date_string,
-                            "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
-                        } );
-                        cumulative_revenue = cumulative_revenue + days_revenue;
-                    } );
-
-                    var average_revenue = {
-                        result: cumulative_revenue / this.data.result.length
-                    };
-
-                    var revenueSplit = $filter("monetaryFormat")(average_revenue.result).split(".")
-                    $scope.analyticsData.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
-                    $scope.analyticsData.revenueTable = table_data.reverse();
-                    $scope.analyticsData.revenueChart = true;
-
-                    var chartConfiguration = {
-                        chartType: "areachart",
-                        title: false,
-                        height: 250,
-                        width: "auto",
-                        colors: ["#42c187"],
-                        filters: filters,
-                        chartOptions: {
-                            animation: {
-                                duration: 1000,
-                                startup: true,
-                                easing: "in"
-                            },
-                            chartArea: {
-                                height: "85%",
-                                left: "5%",
-                                top: "5%",
-                                width: "93%"
-                            },
-                            legend: {
-                                position: "none"
-                            },
-                            vAxis: {
-                                viewWindowMode: "explicit",
-                                viewWindow:{
-                                    min: 0
-                                },
-                                format: "$#,###",
-                                gridlines: {
-                                    color: "#f2f2f2",
-                                    count: 5
-                                },
-                                textStyle: {
-                                    color: '#999999'
-                                }
-                            },
-                            hAxis: {
-                                gridlines: {
-                                    color: "#d2d2d2"
-                                },
-                                textStyle: {
-                                    color: '#999999'
-                                }
-                            },
-                            isStacked: true
-                        }
-                    }
-
-                    _.defer(function(){
-                        $scope.$apply();
-                        // Estimated Revenue Chart
-                        new Keen.Visualization({ result: chart_data }, document.getElementById("estimated_revenue_chart"), chartConfiguration);
-                    });
-                } );
+                $scope.getEstimatedRevenue(eCPM, filters, start_date_iso, end_date_iso, currentTimeStamp);
             } );
         };
 
+        /**
+         * Get Estimated revenue data from Keen.  Update Request Complete object once Keen has responded.
+         */
+        $scope.getEstimatedRevenue = function(eCPM, filters, start_date_iso, end_date_iso, currentTimeStamp) {
+            // Estimated Revenue query
+            var estimated_revenue = new Keen.Query( "count", {
+                eventCollection: "ad_completed",
+                interval: "daily",
+                filters: filters,
+                timeframe: {
+                    start: start_date_iso,
+                    end: end_date_iso
+                }
+            } );
+
+            // Calculate expected eCPM
+            $scope.keenClient.run(estimated_revenue, function() {
+                if($scope.updateTimeStamp !== currentTimeStamp) {
+                    $timeout.cancel($scope.updateTimeout);
+                    return;
+                }
+                // Update request status to complete
+                $scope.analyticsRequestStatus.estimatedRevenueRequestComplete = true;
+
+                var table_data = [];
+                var chart_data = [];
+                var cumulative_revenue = 0;
+                _.each(this.data.result, function (day) {
+                    var days_revenue = (day.value * eCPM);
+                    var date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    table_data.push( {
+                        "Date": date_string,
+                        "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
+                    } );
+                    chart_data.push( {
+                        "Date": date_string,
+                        "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
+                    } );
+                    cumulative_revenue = cumulative_revenue + days_revenue;
+                } );
+
+                var average_revenue = {
+                    result: cumulative_revenue / this.data.result.length
+                };
+
+                var revenueSplit = $filter("monetaryFormat")(average_revenue.result).split(".")
+                $scope.analyticsData.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
+                $scope.analyticsData.revenueTable = table_data.reverse();
+                $scope.analyticsData.revenueChart = true;
+
+                var chartConfiguration = {
+                    chartType: "areachart",
+                    title: false,
+                    height: 250,
+                    width: "auto",
+                    colors: ["#42c187"],
+                    filters: filters,
+                    chartOptions: {
+                        animation: {
+                            duration: 1000,
+                            startup: true,
+                            easing: "in"
+                        },
+                        chartArea: {
+                            height: "85%",
+                            left: "5%",
+                            top: "5%",
+                            width: "93%"
+                        },
+                        legend: {
+                            position: "none"
+                        },
+                        vAxis: {
+                            viewWindowMode: "explicit",
+                            viewWindow:{
+                                min: 0
+                            },
+                            format: "$#,###",
+                            gridlines: {
+                                color: "#f2f2f2",
+                                count: 5
+                            },
+                            textStyle: {
+                                color: '#999999'
+                            }
+                        },
+                        hAxis: {
+                            gridlines: {
+                                color: "#d2d2d2"
+                            },
+                            textStyle: {
+                                color: '#999999'
+                            }
+                        },
+                        isStacked: true
+                    }
+                }
+
+                _.defer(function(){
+                    $scope.$apply();
+                    // Estimated Revenue Chart
+                    new Keen.Visualization({ result: chart_data }, document.getElementById("estimated_revenue_chart"), chartConfiguration);
+                });
+            } );
+        };
+
+        /**
+         * Get Fill Rate data from Keen.  Update Request Complete object once Keen has responded.
+         */
         $scope.getFillRate = function(adProvider, filters, start_date_iso, end_date_iso, currentTimeStamp) {
             if ( adProvider.length > 1 ) {
                 $scope.analyticsData.fillRateMetric = "N/A";
@@ -517,6 +540,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
 
                 $scope.keenClient.run( [ inventory_request, available_count ], function() {
                     if($scope.updateTimeStamp !== currentTimeStamp) {
+                        $timeout.cancel($scope.updateTimeout);
                         return;
                     }
                     var conversion_rate = 0;
