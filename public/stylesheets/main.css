@@ -1032,7 +1032,6 @@ div [class^="col-"]
     border:2px solid #cc9;
     border-radius:1px;
     color:#993;
-    display:none;
     font-family:"Helvetica Neue", Helvetica, sans-serif;
     left:0;
     margin:70px 10px 10px;
@@ -1599,7 +1598,7 @@ hr
 {
     background:#fff;
     border:1px solid #dddde0;
-    margin:100px auto 10px;
+    margin:0 auto 10px;
     padding:30px;
     width:740px;
 }
