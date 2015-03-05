@@ -293,6 +293,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         }, true);
 
         $scope.updateAnalytics = function() {
+            $timeout.cancel($scope.updateTimeout);
             $scope.updatingStatus = "Waiting...";
             $scope.currentlyUpdating = true;
             _.defer(function(){$scope.$apply();});
