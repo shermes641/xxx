@@ -17,6 +17,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures with DistributorUserSe
 
   "Analytics keen tests" should {
 
+    tag("keen")
     "Verify Keen analytics are loading" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
@@ -28,6 +29,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures with DistributorUserSe
       verifyAnalyticsHaveLoaded
     }
 
+    tag("keen")
     "Update Countries drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
@@ -46,6 +48,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures with DistributorUserSe
       verifyAnalyticsHaveLoaded
     }
 
+    tag("keen")
     "Update Apps drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
@@ -64,6 +67,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures with DistributorUserSe
       verifyAnalyticsHaveLoaded
     }
 
+    tag("keen")
     "Update Ad Provider drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
