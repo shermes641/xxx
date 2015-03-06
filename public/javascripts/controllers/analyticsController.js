@@ -5,12 +5,13 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout',
-    function( $scope, $http, $routeParams, $filter, $timeout ) {
+mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routeParams', '$filter', '$timeout',
+    function($scope, $http, $routeParams, $filter, $timeout) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
         $scope.updatingStatus = "Updating...";
+        $scope.keenTimeout = 20000;
 
         // Retrieve Waterfall data
         $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
@@ -181,46 +182,12 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         };
 
         /**
-         * Begin CSV export and let the user know the export has been requested
-         */
-        $scope.submit = function() {
-            if($scope.exportForm.$valid) {
-                $scope.showExportForm = false;
-                var emailAddress = $scope.elements.emailInput.val();
-                $http.post( $scope.exportEndpoint, { email: emailAddress })
-                    .success(_.bind( function() {
-                        $scope.showExportComplete = true;
-                    }, $scope ))
-                    .error( _.bind( function() {
-                        $scope.showExportError = true;
-                    }, $scope )
-                );
-            }
-        };
-
-        /**
-         * Show overlay and other modal elements
-         */
-        $scope.hideModal = function () {
-            $scope.elements.emailInput.val( "" );
-            $scope.showExportModal = false;
-            $scope.showExportComplete = false;
-            $scope.showExportError = false;
-            $scope.showExportForm = true;
-        };
-
-        $scope.showExportForm = true;
-        $scope.showExportModal = false;
-        $scope.showExportComplete = false;
-        $scope.showExportError = false;
-
-        /**
          * Check if date is valid.  Provide a valid Javascript date object.
          * @param date
          * @returns {boolean}
          */
-        $scope.isValidDate = function( date ) {
-            if ( isNaN( date.getTime() ) ) {
+        $scope.isValidDate = function(date) {
+            if(isNaN( date.getTime())) {
                 return false;
             }
             return true;
@@ -233,9 +200,9 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
          * @param adProvider An array of ad Providers to include
          * @returns filter Array to be used in keen queries
          */
-        $scope.buildFilters = function( apps, country, adProvider ) {
+        $scope.buildFilters = function(apps, country, adProvider) {
             var filters = [];
-            if ( apps.indexOf( "all" ) === -1 && apps.length !== 0 ) {
+            if (apps.indexOf( "all" ) === -1 && apps.length !== 0) {
                 filters.push( {
                     property_name: "app_id",
                     operator: "in",
@@ -243,14 +210,14 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 } );
             }
             // ip_geo_info.country is generated using the IP address by keen.
-            if ( country.indexOf( "all" ) === -1 && country.length !== 0 ) {
+            if (country.indexOf("all" ) === -1 && country.length !== 0) {
                 filters.push( {
                     property_name: "ip_geo_info.country",
                     operator: "in",
                     property_value: country
                 } );
             }
-            if ( adProvider.indexOf( "all" ) === -1 && adProvider.length !== 0 ) {
+            if (adProvider.indexOf("all" ) === -1 && adProvider.length !== 0) {
                 filters.push( {
                     property_name: "ad_provider_id",
                     operator: "in",
@@ -292,6 +259,16 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
             }
         }, true);
 
+        /**
+         * Complete update once all requests have completed
+         */
+        $scope.$watch('analyticsRequestStatus', function(current){
+            if(_.every(_.values(current))) {
+                $scope.currentlyUpdating = false;
+                $timeout.cancel($scope.updateTimeout);
+            }
+        }, true);
+
         $scope.updateAnalytics = function() {
             $timeout.cancel($scope.updateTimeout);
             $scope.updatingStatus = "Waiting...";
@@ -302,6 +279,10 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         };
 
         $scope.updateTimeout = 0;
+
+        $scope.resetUpdate = function(config) {
+            $timeout.cancel(config.updateTimeout);
+        };
 
         /**
          * "Creates and returns a new debounced version of the passed function which will postpone its execution until
@@ -325,94 +306,91 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
          * to update the dashboard.  Defer is used with Apply due to Keen being a separate library.  http://underscorejs.org/#defer
          */
         $scope.updateCharts = function() {
-            // Display timeout messaging if Keen has not responded within 20seconds.
-            $scope.updateTimeout = $timeout($scope.showTimeoutMessage, 20000);
-            var currentTimeStamp = $scope.updateTimeStamp = Date.now();
-            $scope.updatingStatus = "Updating...";
-            $scope.setDefaultAnalyticsConfig();
-            _.defer(function(){$scope.$apply();});
-
             // Get current filter values
-            var country = _.pluck($scope.filters.countries.selected, 'id');
-                adProvider = _.pluck($scope.filters.ad_providers.selected, 'id');
-                apps = _.pluck($scope.filters.apps.selected, 'id');
-                start_date = $scope.elements.startDate.datepicker( 'getUTCDate');
-                end_date = $scope.elements.endDate.datepicker( 'getUTCDate' );
+            var config = {
+                country: _.pluck($scope.filters.countries.selected, 'id'),
+                adProvider: _.pluck($scope.filters.ad_providers.selected, 'id'),
+                apps: _.pluck($scope.filters.apps.selected, 'id'),
+                start_date: $scope.elements.startDate.datepicker( 'getUTCDate'),
+                end_date: $scope.elements.endDate.datepicker( 'getUTCDate' ),
+                currentTimeStamp: $scope.updateTimeStamp = Date.now()
+            };
 
             // Return if one or both of the dates are invalid
-            if ( !$scope.isValidDate( start_date ) || !$scope.isValidDate( end_date ) ) {
-                $scope.currentlyUpdating = false;
-                $timeout.cancel($scope.updateTimeout);
+            if (!$scope.isValidDate(config.start_date) || !$scope.isValidDate(config.end_date) ) {
                 return;
             }
 
             // Return if start date after end date
-            if ( end_date.getTime() < start_date.getTime() ) {
-                $scope.currentlyUpdating = false;
-                $timeout.cancel($scope.updateTimeout);
+            if (config.end_date.getTime() < config.start_date.getTime()) {
                 return;
             }
 
-            // Build filters based on the dropdown selections and app_id
-            var filters = $scope.buildFilters( apps, country, adProvider );
+            $scope.updatingStatus = "Updating...";
+            $scope.setDefaultAnalyticsConfig();
+            _.defer(function(){$scope.$apply();});
 
-            var start_date_iso = moment(start_date).utc().format();
-            var end_date_iso = moment(end_date).utc().add(1, 'days').format();
+            // Display timeout messaging if Keen has not responded within 20seconds.
+            config.updateTimeout = $timeout($scope.showTimeoutMessage, $scope.keenTimeout);
+
+            // Build filters based on the dropdown selections and app_id
+            config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
+
+            // Set timeframe for queries
+            config.timeframe = {
+                start: moment(config.start_date).utc().format(),
+                end: moment(config.end_date).utc().add(1, 'days').format()
+            };
 
             // Get Fill Rate
-            $scope.getFillRate(adProvider, filters, start_date_iso, end_date_iso, currentTimeStamp);
+            $scope.getFillRate(config);
 
             // Ad Provider eCPM
-            var ecpm_metric = new Keen.Query( "average", {
+            var ecpm_metric = new Keen.Query("average", {
                 eventCollection: "ad_completed",
                 targetProperty: "ad_provider_eCPM",
-                filters: filters,
-                timeframe: {
-                    start: start_date_iso,
-                    end: end_date_iso
-                }
-            } );
+                filters: config.filters,
+                timeframe: config.timeframe
+            });
 
-            $scope.keenClient.run( ecpm_metric, function() {
-                if($scope.updateTimeStamp !== currentTimeStamp) {
-                    $timeout.cancel($scope.updateTimeout);
+            $scope.keenClient.run(ecpm_metric, function() {
+                if($scope.updateTimeStamp !== config.currentTimeStamp) {
+                    $scope.resetUpdate(config);
                     return;
                 }
                 // Update request status to complete
                 $scope.analyticsRequestStatus.ecpmMetricRequestComplete = true;
-                var eCPM = 0;
+                config.eCPM = 0;
                 if ( this.data.result === null ) {
                     $scope.analyticsData.ecpmMetric = "N/A";
                 } else {
                     var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".")
                     $scope.analyticsData.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
 
-                    eCPM = this.data.result;
+                    config.eCPM = this.data.result;
                 }
                 _.defer(function(){$scope.$apply();});
-                $scope.getEstimatedRevenue(eCPM, filters, start_date_iso, end_date_iso, currentTimeStamp);
-            } );
+                $scope.getEstimatedRevenue(config);
+            });
         };
 
         /**
          * Get Estimated revenue data from Keen.  Update Request Complete object once Keen has responded.
          */
-        $scope.getEstimatedRevenue = function(eCPM, filters, start_date_iso, end_date_iso, currentTimeStamp) {
+        $scope.getEstimatedRevenue = function(config) {
             // Estimated Revenue query
-            var estimated_revenue = new Keen.Query( "count", {
+            var estimated_revenue = new Keen.Query("count", {
                 eventCollection: "ad_completed",
                 interval: "daily",
-                filters: filters,
-                timeframe: {
-                    start: start_date_iso,
-                    end: end_date_iso
-                }
-            } );
+                filters: config.filters,
+                timeframe: config.timeframe
+            });
 
             // Calculate expected eCPM
             $scope.keenClient.run(estimated_revenue, function() {
-                if($scope.updateTimeStamp !== currentTimeStamp) {
-                    $timeout.cancel($scope.updateTimeout);
+                // If this update is not longer the latest then reset and do nothing.
+                if($scope.updateTimeStamp !== config.currentTimeStamp) {
+                    $scope.resetUpdate(config);
                     return;
                 }
                 // Update request status to complete
@@ -422,7 +400,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 var chart_data = [];
                 var cumulative_revenue = 0;
                 _.each(this.data.result, function (day) {
-                    var days_revenue = (day.value * eCPM);
+                    var days_revenue = (day.value * config.eCPM);
                     var date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
                     table_data.push( {
                         "Date": date_string,
@@ -450,7 +428,7 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                     height: 250,
                     width: "auto",
                     colors: ["#42c187"],
-                    filters: filters,
+                    filters: config.filters,
                     chartOptions: {
                         animation: {
                             duration: 1000,
@@ -503,8 +481,8 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
         /**
          * Get Fill Rate data from Keen.  Update Request Complete object once Keen has responded.
          */
-        $scope.getFillRate = function(adProvider, filters, start_date_iso, end_date_iso, currentTimeStamp) {
-            if ( adProvider.length > 1 ) {
+        $scope.getFillRate = function(config) {
+            if (config.adProvider.length > 1) {
                 $scope.analyticsData.fillRateMetric = "N/A";
                 // Update request status to complete
                 $scope.analyticsRequestStatus.fillRateRequestComplete = true;
@@ -514,46 +492,75 @@ mediationModule.controller( 'AnalyticsController', [ '$scope', '$http', '$routeP
                 var response_collection = "availability_response_true";
 
                 // If all or no ad providers are selected show waterfall fill rate
-                if ( adProvider.indexOf( "all" ) !== -1 ) {
+                if (config.adProvider.indexOf("all") !== -1) {
                     request_collection = "mediation_availability_requested";
                     response_collection = "mediation_availability_response_true";
                 }
 
                 // Inventory Request count, metric
-                var inventory_request = new Keen.Query( "count", {
+                var inventory_request = new Keen.Query("count", {
                     eventCollection: request_collection,
-                    filters: filters,
-                    timeframe: {
-                        start: start_date_iso,
-                        end: end_date_iso
-                    }
-                } );
+                    filters: config.filters,
+                    timeframe: config.timeframe
+                });
 
                 // Calculate fill rate using inventory requests divided by inventory_available
-                var available_count = new Keen.Query( "count", {
+                var available_count = new Keen.Query("count", {
                     eventCollection: response_collection,
-                    filters: filters,
-                    timeframe: {
-                        start: start_date_iso,
-                        end: end_date_iso
-                    }
-                } );
+                    filters: config.filters,
+                    timeframe: config.timeframe
+                });
 
-                $scope.keenClient.run( [ inventory_request, available_count ], function() {
-                    if($scope.updateTimeStamp !== currentTimeStamp) {
-                        $timeout.cancel($scope.updateTimeout);
+                $scope.keenClient.run([inventory_request, available_count], function() {
+                    // If this update is not longer the latest then reset and do nothing.
+                    if($scope.updateTimeStamp !== config.currentTimeStamp) {
+                        $scope.resetUpdate(config);
                         return;
                     }
                     var conversion_rate = 0;
-                    if ( this.data[ 0 ].result !== 0 ) {
-                        conversion_rate = ( this.data[ 1 ].result / this.data[ 0 ].result ).toFixed( 2 )*100
+                    if (this.data[0].result !== 0) {
+                        conversion_rate = (this.data[1].result / this.data[0].result).toFixed(2)*100
                     }
                     $scope.analyticsData.fillRateMetric = conversion_rate + '%';
                     // Update request status to complete
                     $scope.analyticsRequestStatus.fillRateRequestComplete = true;
                     _.defer(function(){$scope.$apply();});
-                } );
+                });
             }
-        }
-    } ]
+        };
+
+        /**
+         * Begin CSV export and let the user know the export has been requested
+         */
+        $scope.submit = function() {
+            if($scope.exportForm.$valid) {
+                $scope.showExportForm = false;
+                var emailAddress = $scope.elements.emailInput.val();
+                $http.post( $scope.exportEndpoint, { email: emailAddress })
+                    .success(_.bind( function() {
+                        $scope.showExportComplete = true;
+                    }, $scope ))
+                    .error( _.bind( function() {
+                        $scope.showExportError = true;
+                    }, $scope )
+                    );
+            }
+        };
+
+        /**
+         * Show overlay and other modal elements
+         */
+        $scope.hideModal = function () {
+            $scope.elements.emailInput.val("");
+            $scope.showExportModal = false;
+            $scope.showExportComplete = false;
+            $scope.showExportError = false;
+            $scope.showExportForm = true;
+        };
+
+        $scope.showExportForm = true;
+        $scope.showExportModal = false;
+        $scope.showExportComplete = false;
+        $scope.showExportError = false;
+    }]
 );
