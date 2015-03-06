@@ -269,6 +269,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             }
         }, true);
 
+        /**
+         * Update analytics
+         */
         $scope.updateAnalytics = function() {
             $timeout.cancel($scope.updateTimeout);
             $scope.updatingStatus = "Waiting...";
@@ -330,8 +333,12 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             $scope.setDefaultAnalyticsConfig();
             _.defer(function(){$scope.$apply();});
 
-            // Display timeout messaging if Keen has not responded within 20seconds.
-            config.updateTimeout = $timeout($scope.showTimeoutMessage, $scope.keenTimeout);
+            //
+            /**
+             * config timeout used for cancelling just this timeout.  $scope.updateTimeout gets overwritten by subsequent
+             * updates.
+             */
+            $scope.updateTimeout = config.updateTimeout = $timeout($scope.showTimeoutMessage, $scope.keenTimeout);
 
             // Build filters based on the dropdown selections and app_id
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
