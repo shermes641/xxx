@@ -124,7 +124,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       status(result) must equalTo(200)
       val response = Json.parse(contentAsString(result))
 
-      (response \ "distributorID").as[String].toLong must beEqualTo(distributorID)
+      (response \ "distributorID").as[Long] must beEqualTo(distributorID)
       (response \ "keenProject").as[String] must beEqualTo(Play.current.configuration.getString("keen.project").get)
 
       // Verify scopedKey
