@@ -135,8 +135,6 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     def verifyAnalyticsHaveLoaded = {
       // Extended wait for Keen to load
       browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-header.loaded").isPresent
-      // Fill Rate metric
-      waitUntilContainsText("#fill_rate", "%")
       // Average Revenue metric
       waitUntilContainsText("#unique_users", "$")
       // Revenue Table

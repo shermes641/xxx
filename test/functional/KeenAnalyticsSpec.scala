@@ -37,24 +37,6 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     }
 
     tag("keen")
-    "Update Countries drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
-      logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
-
-      verifyAnalyticsHaveLoaded
-
-      clickAndWaitForAngular("#countries_filter .add")
-      clickAndWaitForAngular("#filter_countries")
-
-      fillAndWaitForAngular("#filter_countries", "Ire")
-      waitUntilContainsText("#countries_filter .add", "Ireland")
-      clickAndWaitForAngular("#countries_filter .add .dropdown-menu .active")
-
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
-      verifyAnalyticsHaveLoaded
-    }
-
-    tag("keen")
     "Update Apps drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
@@ -91,6 +73,62 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       // Verify analytics data has been loaded
       waitUntilContainsText("#analytics_loading_status", "Waiting...")
       verifyAnalyticsHaveLoaded
+    }
+
+    tag("keen")
+    "Add both HyprMX and Vungle to the filter list" in new WithAppBrowser(distributorID) {
+      logInUser()
+      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#ad_providers_filter .add")
+      clickAndWaitForAngular("#filter_ad_providers")
+
+      fillAndWaitForAngular("#filter_ad_providers", "Vungl")
+      waitUntilContainsText("#ad_providers_filter .add", "Vungle")
+      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+
+      fillAndWaitForAngular("#filter_ad_providers", "hyprMX")
+      waitUntilContainsText("#ad_providers_filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+    }
+
+    tag("keen")
+    "Clear all filters list" in new WithAppBrowser(distributorID) {
+      logInUser()
+      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#ad_providers_filter .add")
+      clickAndWaitForAngular("#filter_ad_providers")
+
+      fillAndWaitForAngular("#filter_ad_providers", "Vungl")
+      waitUntilContainsText("#ad_providers_filter .add", "Vungle")
+      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+
+      fillAndWaitForAngular("#filter_ad_providers", "hyprMX")
+      waitUntilContainsText("#ad_providers_filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular(".reset_filters")
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+
     }
   }
 }

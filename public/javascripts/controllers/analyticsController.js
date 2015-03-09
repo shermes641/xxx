@@ -85,8 +85,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker( 'setDate', '-1m');
-            $scope.elements.endDate.datepicker( 'setDate', '0');
+            $scope.elements.startDate.datepicker('setDate', '-1m');
+            $scope.elements.endDate.datepicker('setDate', '0');
         };
 
         /**
@@ -556,8 +556,12 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         /**
          * Hide overlay and other modal elements
          */
-        $scope.hideModal = function () {
+        $scope.hideModal = function() {
             $scope.elements.emailInput.val("");
+            $scope.modalDefaults();
+        };
+
+        $scope.modalDefaults = function() {
             $scope.showExportModal = false;
             $scope.showExportComplete = false;
             $scope.showExportError = false;
@@ -572,8 +576,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         }, true);
 
         /**
-         * Start with export modal hidden
+         * set Export Modal defaults
          */
-        $scope.hideModal();
+        $scope.modalDefaults();
     }]
 );
