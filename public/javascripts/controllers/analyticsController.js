@@ -5,8 +5,8 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routeParams', '$filter', '$timeout',
-    function($scope, $http, $routeParams, $filter, $timeout) {
+mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routeParams', '$filter', '$timeout', '$rootScope',
+    function($scope, $http, $routeParams, $filter, $timeout, $rootScope) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
@@ -554,7 +554,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         };
 
         /**
-         * Show overlay and other modal elements
+         * Hide overlay and other modal elements
          */
         $scope.hideModal = function () {
             $scope.elements.emailInput.val("");
@@ -565,11 +565,15 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         };
 
         /**
-         * Default export modal settings
+         * Complete update once all requests have completed
          */
-        $scope.showExportForm = true;
-        $scope.showExportModal = false;
-        $scope.showExportComplete = false;
-        $scope.showExportError = false;
+        $scope.$watch('showExportModal', function(current){
+            $rootScope.bodyClass = current ? "modal-active" : "";
+        }, true);
+
+        /**
+         * Start with export modal hidden
+         */
+        $scope.hideModal();
     }]
 );
