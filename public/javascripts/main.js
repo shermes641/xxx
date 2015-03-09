@@ -90,7 +90,7 @@ mediationModule.directive('typeaheadFocus', function () {
                     var viewValue = ngModel.$viewValue;
 
                     //restore to null value so that the typeahead can detect a change
-                    if (ngModel.$viewValue == ' ') {
+                    if(ngModel.$viewValue == ' ') {
                         ngModel.$setViewValue(null);
                     }
 
@@ -103,10 +103,10 @@ mediationModule.directive('typeaheadFocus', function () {
 
                 //compare function that treats the empty space as a match
                 scope.emptyOrMatch = function (actual, expected) {
-                    if (expected == ' ') {
+                    if(expected == ' ') {
                         return true;
                     }
-                    return actual.toLowerCase().indexOf(expected.toLowerCase()) > -1;
+                    return actual.toString().toLowerCase().indexOf(expected.toString().toLowerCase()) > -1;
                 };
             }
         };

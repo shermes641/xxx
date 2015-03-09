@@ -9,6 +9,7 @@ import models._
 import play.api.libs.json._
 import io.keen.client.java.{ScopedKeys, KeenProject, JavaKeenClientBuilder, KeenClient}
 import collection.JavaConversions._
+import scala.language.implicitConversions
 
 object AnalyticsController extends Controller with Secured {
   def show(distributorID: Long, currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>

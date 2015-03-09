@@ -433,6 +433,7 @@ span#viewTerms:hover
     right:10px;
     top:12px;
     width:12px;
+    pointer-events: none;
 }
 
 .left_apps_list ul li.arrowdown {

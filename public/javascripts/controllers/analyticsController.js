@@ -11,7 +11,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
         $scope.updatingStatus = "Updating...";
-        $scope.keenTimeout = 20000;
+        $scope.keenTimeout = 45000;
 
         // Retrieve Waterfall data
         $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
@@ -342,11 +342,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
 
             // Build filters based on the dropdown selections and app_id
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
-
-            // Set timeframe for queries
+            // Set timeframe for queries.  Also converts the times to EST
             config.timeframe = {
-                start: moment(config.start_date).utc().format(),
-                end: moment(config.end_date).utc().add(1, 'days').format()
+                start: moment(moment(config.start_date).utc().format("YYYY-MM-DD")).tz("America/New_York").format(),
+                end: moment(moment(config.end_date).utc().format("YYYY-MM-DD")).add(1, 'days').tz("America/New_York").format()
             };
 
             // Get Fill Rate
@@ -565,6 +564,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             $scope.showExportForm = true;
         };
 
+        /**
+         * Default export modal settings
+         */
         $scope.showExportForm = true;
         $scope.showExportModal = false;
         $scope.showExportComplete = false;
