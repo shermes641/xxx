@@ -559,7 +559,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         $scope.hideModal = function() {
             $scope.elements.emailInput.val("");
             $scope.modalDefaults();
-            console.log("asdfads");
             $scope.exportForm.$setPristine();
             $scope.exportForm.$setUntouched();
         };
