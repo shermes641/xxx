@@ -1,4 +1,4 @@
 @(distributorID: Long, waterfall: Waterfall, adProviderOrder: List[OrderedWaterfallAdProvider], appsWithWaterfalls: List[AppWithWaterfallID], generationNumber: Option[Long])(implicit flash: Flash, session: Session)
-    @main("Edit Waterfall", distributorID, Some(waterfall.app_id)) {
-    }
-    <script src="@routes.Assets.at("javascripts/controllers/waterfallController.js")" type="text/javascript"></script>
+@main("Edit Waterfall", distributorID, Some(waterfall.app_id)) {
+}
+<script src="@routes.Assets.at("javascripts/controllers/waterfallController.js")" type="text/javascript"></script>
