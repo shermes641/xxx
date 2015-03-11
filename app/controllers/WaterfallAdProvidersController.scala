@@ -78,7 +78,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               case Some(apiToken) => apiToken
               case None => None
             }
-            Some(callback.format(token))
+            Some(callback.format(token, configData.rewardMin))
           }
           case None => None
         }
