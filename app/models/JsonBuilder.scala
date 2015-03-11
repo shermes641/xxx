@@ -9,7 +9,8 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
-  val LOG_FULL_CONFIG = true
+  val LogFullConfig = true
+  val DefaultCanShowAdTimeout = 10 // This value represents seconds.
 
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
@@ -50,7 +51,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
       )
     }
     val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
-      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration)
+      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, canShowAdTimeoutConfiguration)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
@@ -65,7 +66,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
     JsObject(
       Seq(
         "appConfigRefreshInterval" -> JsNumber(appConfigRefreshInterval),
-        "logFullConfig" -> JsBoolean(LOG_FULL_CONFIG)
+        "logFullConfig" -> JsBoolean(LogFullConfig)
       )
     )
   }
@@ -144,6 +145,18 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
     JsObject(
       Seq(
         "testMode" -> JsBoolean(false)
+      )
+    )
+  }
+
+  /**
+   * Creates JSON object containing the default time to wait for a "can show ad" response from each ad provider in the SDK.
+   * @return JSON object to be merged in to the JSON API response.
+   */
+  def canShowAdTimeoutConfiguration: JsObject = {
+    JsObject(
+      Seq(
+        "canShowAdTimeout" -> JsNumber(DefaultCanShowAdTimeout)
       )
     )
   }
