@@ -16,28 +16,26 @@ object Environment {
   def stagingEnvSetting: Option[String] = Play.current.configuration.getString("staging")
 
   /**
-   * Checks if the app is running in production mode and compares the string passed as an argument to the STAGING ENV variable.
-   * @param targetStagingEnvSetting The expected string found in the STAGING ENV variable.
-   * @return True if the app is running in production mode and STAGING ENV variable matches targetStagingEnvSetting; otherwise, False.
-   */
-  def prodOrStagingCheck(targetStagingEnvSetting: String): Boolean = {
-    stagingEnvSetting match {
-      case Some(setting: String) if(isInProdMode && setting == targetStagingEnvSetting) => true
-      case _ => false
-    }
-  }
-
-  /**
    * Checks if the app is running in production mode and our STAGING ENV var is set to 'true.'
    * @return True if the app is running in production mode and STAGING is set to 'true'; otherwise, False.
    */
-  def isStaging: Boolean = prodOrStagingCheck("true")
+  def isStaging: Boolean = {
+    stagingEnvSetting match {
+      case Some(setting) => isInProdMode && setting == "true"
+      case None => false
+    }
+  }
 
   /**
    * Checks if the app is running in production mode and our STAGING ENV var is set to 'false.'
    * @return True if the app is running in production mode and STAGING is set to 'false'; otherwise, False.
    */
-  def isProd: Boolean = prodOrStagingCheck("false")
+  def isProd: Boolean = {
+    stagingEnvSetting match {
+      case Some(setting) => isInProdMode && setting == "false"
+      case None => false
+    }
+  }
 
   /**
    * Checks if the app is running in either the staging or production environment.
