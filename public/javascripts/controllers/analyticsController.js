@@ -525,7 +525,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                     }
                     var conversion_rate = 0;
                     if (this.data[0].result !== 0) {
-                        conversion_rate = (this.data[1].result / this.data[0].result).toFixed(2)*100
+                        conversion_rate = Math.round((this.data[1].result / this.data[0].result)*100);
                     }
                     $scope.analyticsData.fillRateMetric = conversion_rate + '%';
                     // Update request status to complete
