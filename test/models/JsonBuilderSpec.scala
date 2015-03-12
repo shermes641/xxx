@@ -3,21 +3,60 @@ package models
 import models.Waterfall.AdProviderInfo
 import play.api.db.DB
 import play.api.libs.json._
+import play.api.Play.current
+import play.api.test.Helpers._
+import play.api.test.FakeApplication
 import resources._
 
 class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallSpecSetup {
   "JsonBuilder.appConfigResponseV1" should {
-    "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {
+    val appConfig = running(FakeApplication(additionalConfiguration = testDB)) {
       val wapID1 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, Some(0), None, true, true)
       val wap = WaterfallAdProvider.find(wapID1.get).get
       val configData = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("value1")))))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, configData, wap.reportingActive))
       val appToken = App.find(waterfall.app_id).get.token
       val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
-      val adProviderConfigs = (JsonBuilder.appConfigResponseV1(waterfallOrder, waterfallOrder(0)) \ "adProviderConfigurations").as[List[JsValue]]
+      JsonBuilder.appConfigResponseV1(waterfallOrder, waterfallOrder(0))
+    }
+
+    "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {
+      val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[List[JsValue]]
       adProviderConfigs.map { config =>
         adProviders must contain((config \ "providerName").as[String])
       }
+    }
+
+    "should contain appName" in new WithDB {
+      (appConfig \ "appName").as[String] must beEqualTo(app1.name)
+    }
+
+    "should contain appID" in new WithDB {
+      (appConfig \ "appID") must haveClass[JsNumber]
+    }
+
+    "should contain distributorName" in new WithDB {
+      (appConfig \ "distributorName").as[String] must beEqualTo(distributor.name)
+    }
+
+    "should contain distributorID" in new WithDB {
+      (appConfig \ "distributorID").as[Long] must beEqualTo(distributor.id.get)
+    }
+
+    "should contain appConfigRefreshInterval" in new WithDB {
+      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(0)
+    }
+
+    "should contain logFullConfig" in new WithDB {
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
+    }
+
+    "should contain testMode" in new WithDB {
+      (appConfig \ "testMode").as[Boolean] must beEqualTo(false)
+    }
+
+    "should contain canShowAdTimeout" in new WithDB {
+      (appConfig \ "canShowAdTimeout").as[Long] must beEqualTo(JsonBuilder.DefaultCanShowAdTimeout)
     }
   }
 
@@ -58,10 +97,22 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       val expectedSdkConfigurationJson = JsObject(
         Seq(
           "appConfigRefreshInterval" -> JsNumber(expectedAppConfigRefreshInterval),
-          "logFullConfig" -> JsBoolean(JsonBuilder.LOG_FULL_CONFIG)
+          "logFullConfig" -> JsBoolean(JsonBuilder.LogFullConfig)
         )
       )
       JsonBuilder.sdkConfiguration(expectedAppConfigRefreshInterval) must beEqualTo(expectedSdkConfigurationJson)
+    }
+  }
+
+  "JsonBuilder.canShowAdTimeout" should {
+    "create a JSON object containing the appropriate timeout in seconds" in new WithDB {
+      val expectedCanShowAdTimeout = 10
+      val expectedCanShowAdTimeoutConfigurationJson = JsObject(
+        Seq(
+          "canShowAdTimeout" -> JsNumber(expectedCanShowAdTimeout)
+        )
+      )
+      JsonBuilder.canShowAdTimeoutConfiguration must beEqualTo(expectedCanShowAdTimeoutConfigurationJson)
     }
   }
 

@@ -72,7 +72,7 @@ class JunGroupAPI {
           Seq(
             "url" -> JsString(hyprMarketplacePayoutUrl),
             "method" -> JsString("get"),
-            "environment" -> JsString("production"),
+            "environment" -> JsString(Environment.mode),
             "signature" -> JsArray(
               Seq(
                 JsString("UID"),

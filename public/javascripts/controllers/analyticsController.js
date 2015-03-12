@@ -455,7 +455,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                             viewWindow:{
                                 min: 0
                             },
-                            format: "$#,###",
+                            format: "$#,##0.00",
                             gridlines: {
                                 color: "#f2f2f2",
                                 count: 5
