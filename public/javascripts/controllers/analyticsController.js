@@ -85,7 +85,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', '-1m');
+            $scope.elements.startDate.datepicker('setDate', '-14d');
             $scope.elements.endDate.datepicker('setDate', '0');
         };
 
