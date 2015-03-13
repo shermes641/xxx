@@ -23,9 +23,8 @@ val client = new Client(
 )
 
 val companyName = "Test Company"
-val email = "medation-testing-"+Random.alphanumeric.take(5).mkString+"@jungroup.com"
+val email = "mediation-testing-"+Random.alphanumeric.take(5).mkString+"@jungroup.com"
 val password = "testtest"
-val appName = "App Name"
 
 val adProviders = AdProvider.findAll
 
@@ -63,7 +62,6 @@ println("")
 println("Username:      "+email)
 println("Password:      "+password)
 println("Company Name:  "+companyName)
-println("App Name:      "+appName)
 println("")
 println("Distributor ID: "+distributorID.toString)
 
@@ -183,8 +181,10 @@ apps.foreach {
     date = DateTime.now
 
     val adCompletedCount = Random.nextInt(15)
-    val eCPMValue = Random.nextInt(10)+1
+    var eCPMSum = 0
     val adCompleted = Array.fill(adCompletedCount) {
+      val eCPMValue = Random.nextInt(10)+1
+      eCPMSum += eCPMValue
       date = date - 1.minute
       Json.obj(
         "distributor_id" -> distributorID,
@@ -216,6 +216,7 @@ apps.foreach {
         )
       )
     }
+    val eCPMAverage = eCPMSum.toFloat/adCompletedCount
 
     val batch_request: JsValue = Json.obj(
       "availability_requested" -> inventoryRequests,
@@ -246,7 +247,7 @@ apps.foreach {
     println("Mediation Fill Rate:       "+(mediationAvailableCount.toFloat/mediationRequestsCount))
     println("Ad Displayed Count:        "+adDisplayedCount)
     println("Ad Completed Count:        "+adCompletedCount)
-    println("eCPM Value:                "+eCPMValue)
+    println("Average eCPM Value:        "+eCPMAverage)
     println("")
 }
 
