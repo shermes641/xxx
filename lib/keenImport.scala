@@ -224,8 +224,8 @@ apps.foreach {
     )
 
     val batch_request_mediation: JsValue = Json.obj(
-      "mediation_availability_requested" -> mediationInventoryRequests,
-      "mediation_availability_response_true" -> mediationInventoryAvailable
+      "mediate_availability_requested" -> mediationInventoryRequests,
+      "mediate_availability_response_true" -> mediationInventoryAvailable
     )
 
     val batch_request_ads: JsValue = Json.obj(

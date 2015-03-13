@@ -499,8 +499,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
 
                 // If all or no ad providers are selected show waterfall fill rate
                 if (config.adProvider.indexOf("all") !== -1) {
-                    request_collection = "mediation_availability_requested";
-                    response_collection = "mediation_availability_response_true";
+                    request_collection = "mediate_availability_requested";
+                    response_collection = "mediate_availability_response_true";
                 }
 
                 // Inventory Request count, metric
