@@ -407,13 +407,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 var cumulative_revenue = 0;
                 _.each(this.data.result, function (day) {
                     var days_revenue = (day.value * config.eCPM);
-                    var date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {
-                        "Date": date_string,
+                        "Date": table_date_string,
                         "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
                     } );
                     chart_data.push( {
-                        "Date": date_string,
+                        "Date": chart_date_string,
                         "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
                     } );
                     cumulative_revenue = cumulative_revenue + days_revenue;
