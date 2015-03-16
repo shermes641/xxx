@@ -187,7 +187,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
          * @returns {boolean}
          */
         $scope.isValidDate = function(date) {
-            if(isNaN( date.getTime())) {
+            if(isNaN(date.getTime())) {
                 return false;
             }
             return true;
@@ -314,8 +314,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 country: _.pluck($scope.filters.countries.selected, 'id'),
                 adProvider: _.pluck($scope.filters.ad_providers.selected, 'id'),
                 apps: _.pluck($scope.filters.apps.selected, 'id'),
-                start_date: $scope.elements.startDate.datepicker( 'getUTCDate'),
-                end_date: $scope.elements.endDate.datepicker( 'getUTCDate' ),
+                start_date: $scope.elements.startDate.datepicker('getUTCDate'),
+                end_date: $scope.elements.endDate.datepicker('getUTCDate'),
                 currentTimeStamp: $scope.updateTimeStamp = Date.now()
             };
 
