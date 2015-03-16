@@ -50,7 +50,7 @@ val hyprMarketplaceConfiguration = {
 AdProvider.create("HyprMarketplace", hyprMarketplaceConfiguration, None, false, Some(20))
 
 // Create Vungle AdProvider
-val vungleCallbackUrl = Some("/v1/reward_callbacks/%s/vungle?amount=1&uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
+val vungleCallbackUrl = Some("/v1/reward_callbacks/%s/vungle?amount=%s&uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
 
 val vungleConfiguration = {
   "{" +
@@ -58,7 +58,7 @@ val vungleConfiguration = {
       "{\"description\": \"Your Vungle App ID\", \"displayKey\": \"App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": true, \"minLength\": 1}" +
     "], " +
     "\"reportingParams\": [" +
-      "{\"description\": \"Your Reporting API ID\", \"displayKey\": \"Reporting API ID\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
+      "{\"description\": \"The Reporting API Key from Vungle's Reports page.\", \"displayKey\": \"Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
     "], " +
     "\"callbackParams\": [" +
       "{\"description\": \"Secret Key for Secure Callback\", \"displayKey\": \"Secret Key for Secure Callback\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +

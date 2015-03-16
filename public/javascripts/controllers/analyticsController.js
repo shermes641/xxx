@@ -85,7 +85,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', '-1m');
+            $scope.elements.startDate.datepicker('setDate', '-14d');
             $scope.elements.endDate.datepicker('setDate', '0');
         };
 
@@ -407,13 +407,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 var cumulative_revenue = 0;
                 _.each(this.data.result, function (day) {
                     var days_revenue = (day.value * config.eCPM);
-                    var date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {
-                        "Date": date_string,
+                        "Date": table_date_string,
                         "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
                     } );
                     chart_data.push( {
-                        "Date": date_string,
+                        "Date": chart_date_string,
                         "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
                     } );
                     cumulative_revenue = cumulative_revenue + days_revenue;
@@ -455,7 +456,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                             viewWindow:{
                                 min: 0
                             },
-                            format: "$#,###",
+                            format: "$#,##0.00",
                             gridlines: {
                                 color: "#f2f2f2",
                                 count: 5

@@ -1,17 +1,14 @@
-import play.api.Play
+import models.Environment
 import play.api.mvc._
-import scala.concurrent.Future
 import play.api.mvc.Results.Unauthorized
+import play.api.Play
+import scala.concurrent.Future
 
 // Filter to secure staging server. We should remove this before Mediation goes live.
 object HTTPAuthFilter extends Filter {
   def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
-    val isStaging = Play.current.configuration.getString("staging") match {
-      case Some(_: String) if(play.api.Play.isProd(play.api.Play.current)) => true
-      case None => false
-    }
     request.tags.get("ROUTE_CONTROLLER") match {
-      case Some(controller: String) if(controller != "controllers.APIController" && controller != "controllers.Assets" && isStaging) => {
+      case Some(controller: String) if(controller != "controllers.APIController" && controller != "controllers.Assets" && Environment.isStaging) => {
         val httpAuthUser = Play.current.configuration.getString("httpAuthUser").get
         val httpAuthPassword = Play.current.configuration.getString("httpAuthPassword").get
 
