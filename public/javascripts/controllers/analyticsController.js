@@ -85,7 +85,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', '-1m');
+            $scope.elements.startDate.datepicker('setDate', '-14d');
             $scope.elements.endDate.datepicker('setDate', '0');
         };
 
@@ -187,7 +187,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
          * @returns {boolean}
          */
         $scope.isValidDate = function(date) {
-            if(isNaN( date.getTime())) {
+            if(isNaN(date.getTime())) {
                 return false;
             }
             return true;
@@ -314,8 +314,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 country: _.pluck($scope.filters.countries.selected, 'id'),
                 adProvider: _.pluck($scope.filters.ad_providers.selected, 'id'),
                 apps: _.pluck($scope.filters.apps.selected, 'id'),
-                start_date: $scope.elements.startDate.datepicker( 'getUTCDate'),
-                end_date: $scope.elements.endDate.datepicker( 'getUTCDate' ),
+                start_date: $scope.elements.startDate.datepicker('getUTCDate'),
+                end_date: $scope.elements.endDate.datepicker('getUTCDate'),
                 currentTimeStamp: $scope.updateTimeStamp = Date.now()
             };
 
@@ -344,8 +344,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
             // Set timeframe for queries.  Also converts the times to EST
             config.timeframe = {
-                start: moment(moment(config.start_date).utc().format("YYYY-MM-DD")).tz("America/New_York").format(),
-                end: moment(moment(config.end_date).utc().format("YYYY-MM-DD")).add(1, 'days').tz("America/New_York").format()
+                start: moment(config.start_date).utc().format(),
+                end: moment(config.end_date).utc().add(1, 'days').format()
             };
 
             // Get Fill Rate
@@ -407,13 +407,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 var cumulative_revenue = 0;
                 _.each(this.data.result, function (day) {
                     var days_revenue = (day.value * config.eCPM);
-                    var date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
+                    var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {
-                        "Date": date_string,
+                        "Date": table_date_string,
                         "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
                     } );
                     chart_data.push( {
-                        "Date": date_string,
+                        "Date": chart_date_string,
                         "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
                     } );
                     cumulative_revenue = cumulative_revenue + days_revenue;
@@ -443,9 +444,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                         },
                         chartArea: {
                             height: "85%",
-                            left: "5%",
+                            left: "7%",
                             top: "5%",
-                            width: "93%"
+                            width: "90%"
                         },
                         legend: {
                             position: "none"
@@ -455,7 +456,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                             viewWindow:{
                                 min: 0
                             },
-                            format: "$#,##0.00",
+                            minValue: 0,
+                            maxValue: 20,
+                            format: "$#,##0.##",
                             gridlines: {
                                 color: "#f2f2f2",
                                 count: 5
@@ -499,8 +502,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
 
                 // If all or no ad providers are selected show waterfall fill rate
                 if (config.adProvider.indexOf("all") !== -1) {
-                    request_collection = "mediation_availability_requested";
-                    response_collection = "mediation_availability_response_true";
+                    request_collection = "mediate_availability_requested";
+                    response_collection = "mediate_availability_response_true";
                 }
 
                 // Inventory Request count, metric
@@ -525,7 +528,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                     }
                     var conversion_rate = 0;
                     if (this.data[0].result !== 0) {
-                        conversion_rate = (this.data[1].result / this.data[0].result).toFixed(2)*100
+                        conversion_rate = Math.round((this.data[1].result / this.data[0].result)*100);
                     }
                     $scope.analyticsData.fillRateMetric = conversion_rate + '%';
                     // Update request status to complete

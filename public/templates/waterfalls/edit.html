@@ -35,7 +35,10 @@
             </modal-dialog>
 
             <div class="waterfall-buttons">
-                <h4 class="tooltip" data-title="Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.">?</h4>
+                <h4 ng-mouseenter="hoverOptimized=true" ng-mouseleave="hoverOptimized=false" class="tooltip">
+                    ?
+                    <div class="ngtooltip" ng-show="hoverOptimized">Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.</div>
+                </h4>
                 <label class="text-label">Optimized Mode</label>
                 <div class="onoffswitch">
                     <input ng-click="toggleOptimizedMode()" ng-model="waterfallData.waterfall.optimizedOrder" type="checkbox" name="optimized-order" class="onoffswitch-checkbox" id="optimized-mode-switch">
@@ -47,7 +50,10 @@
             </div>
 
             <div class="waterfall-buttons">
-                <h4 class="tooltip" data-title="Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.">?</h4>
+                <h4 ng-mouseenter="hoverTestMode=true" ng-mouseleave="hoverTestMode=false" class="tooltip">
+                    ?
+                    <div class="ngtooltip" ng-show="hoverTestMode">Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.</div>
+                </h4>
                 <label class="text-label">Test Mode</label>
                 <div class="onoffswitch">
                     <input ng-click="toggleTestMode(waterfallData.waterfall.testMode)" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
@@ -61,7 +67,7 @@
 
         <div id="initialize_sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}">
             <div id="arrow_dropdown"></div>
-            Initialize HyprMediate in your SDK
+            Click here for HyprMediate initialization code snippet
             <div class="code-block">
                 <div class="waterfall-edit-description">
                     Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.

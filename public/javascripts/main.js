@@ -1,5 +1,5 @@
 // Initialize the mediation module
-var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'requiredFieldFilters', 'ui.sortable', 'ui.bootstrap']);
+var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'requiredFieldFilters', 'ui.sortable', 'ui.bootstrap', 'escapeHtmlFilters']);
 
 // Initialize controllers
 var distributorUsersControllers = angular.module('distributorUsersControllers', ['ngRoute']);
@@ -86,7 +86,7 @@ mediationModule.directive('typeaheadFocus', function () {
             link: function (scope, element, attr, ngModel) {
                 //trigger the popup on 'click' because 'focus'
                 //is also triggered after the item selection
-                element.bind('click', function () {
+                element.bind('focus', function () {
                     var viewValue = ngModel.$viewValue;
 
                     //restore to null value so that the typeahead can detect a change
@@ -219,4 +219,10 @@ angular.module('requiredFieldFilters', []).filter('conditionalRequiredField', fu
     return function(fieldName, condition) {
         return condition ? "*" + fieldName : fieldName;
     };
+});
+
+angular.module('escapeHtmlFilters', []).filter('escapeHtml', function($sce) {
+    return function(value) {
+        return $sce.trustAsHtml(value);
+    }
 });

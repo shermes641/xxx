@@ -43,7 +43,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val originalGeneration = generationNumber(app1.id)
       val configInfo1 = JsObject(
         Seq(
-          "waterfallAdProviderID" -> JsString(wap1.id.toString),
+          "waterfallAdProviderID" -> JsNumber(wap1.id),
           "newRecord" -> JsBoolean(false),
           "active" -> JsBoolean(true),
           "waterfallOrder" -> JsNumber(0),
@@ -54,7 +54,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       )
       val configInfo2 = JsObject(
         Seq(
-          "waterfallAdProviderID" -> JsString(wap1.id.toString),
+          "waterfallAdProviderID" -> JsNumber(wap1.id),
           "newRecord" -> JsBoolean(false),
           "active" -> JsBoolean(true),
           "waterfallOrder" -> JsNumber(1),
@@ -74,7 +74,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
           "testMode" -> JsBoolean(false),
           "appToken" -> JsString(app1.token),
           "waterfallID" -> JsString(waterfall.id.toString),
-          "generationNumber" -> JsString((generationNumber(app1.id)).toString)
+          "generationNumber" -> JsNumber((generationNumber(app1.id)))
         )
       )
       val request = FakeRequest(
@@ -85,7 +85,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       )
       val Some(result) = route(request.withSession("distributorID" -> distributor.id.get.toString, "username" -> email))
       status(result) must equalTo(200)
-      val generationNumberResponse = (Json.parse(contentAsString(result)) \ "newGenerationNumber").as[String].toLong
+      val generationNumberResponse = (Json.parse(contentAsString(result)) \ "newGenerationNumber").as[Long]
       generationNumberResponse must beEqualTo(originalGeneration + 1)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }

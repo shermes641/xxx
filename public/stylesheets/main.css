@@ -402,6 +402,11 @@ span#viewTerms:hover
     color:#fff;
 }
 
+.left_apps_list ul li.active.removable
+{
+    white-space: pre;
+}
+
 .left_apps_list ul li.active.removable:before
 {
     background:url(../images/icons.png);
@@ -504,7 +509,7 @@ span#viewTerms:hover
     font-weight: normal;
     line-height: normal;
     color: #222;
-    white-space: nowrap;
+    white-space: pre;
 }
 
 .left_apps_list .dropdown-menu li:hover:before, .left_apps_list .dropdown-menu li.active:before
@@ -1026,22 +1031,29 @@ div [class^="col-"]
     color:#000;
 }
 
-.tooltip:hover:after
-{
+.ngtooltip {
+    opacity:1;
     background:#ff9;
     border:2px solid #cc9;
     border-radius:5px;
     color:#993;
-    content:attr(data-title);
-    left:-900%;
     padding:5px 15px;
     position:absolute;
+    left:-190px;
     top:29px;
     width:220px;
     z-index:1200;
 }
 
-.tooltip:hover:before
+.ngtooltip.ng-hide {
+    transition:all linear 0.5s;
+    -webkit-transition:all linear 0.5s;
+    display: block !important;
+    visibility: hidden;
+    opacity:0;
+}
+
+.tooltip:before
 {
     border:solid;
     border-color:#cc9 transparent;
@@ -1051,6 +1063,11 @@ div [class^="col-"]
     position:absolute;
     top:23px;
     z-index:1300;
+    visibility: hidden;
+}
+
+.tooltip:hover:before {
+    visibility: visible;
 }
 
 .modal

@@ -39,7 +39,13 @@ class RevenueDataActor(waterfallAdProviderID: Long, configurationData: JsValue) 
    */
   def receive = {
     case "HyprMarketplace" => {
-      new HyprMarketplaceAPI(waterfallAdProviderID, configurationData).updateRevenueData
+      new HyprMarketplaceReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
+    }
+    case "AdColony" => {
+      new AdColonyReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
+    }
+    case "AppLovin" => {
+      new AppLovinReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
     }
   }
 }
