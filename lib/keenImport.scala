@@ -63,7 +63,7 @@ println("Username:      "+email)
 println("Password:      "+password)
 println("Company Name:  "+companyName)
 println("")
-println("Distributor ID: "+distributorID.toString)
+println("Distributor ID: "+distributorID)
 
 apps.foreach {
   app =>
