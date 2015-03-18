@@ -220,6 +220,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.submitEditApp = function(form) {
                 if(form.$valid) {
                     setNumberValues("data");
+                    $scope.data.generationNumber = $scope.generationNumber;
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
                         success(function(data, status, headers, config) {
                             if($scope.appName !== $scope.data.appName) {
@@ -239,6 +240,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                $scope.flashMessage(data);
                             }
                         });
                 }
@@ -322,8 +325,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     }
                 }
                 var parsedCpm = parseFloat($scope.wapData.cpm);
-                if(isNaN(parsedCpm) || parsedCpm < 0.01 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
-                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than $0.00";
+                if(isNaN(parsedCpm) || parsedCpm < 0 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
+                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than or equal to $0.00";
                     $scope.invalidForm = true;
                     $scope.errors["staticParams-cpm"] = "error";
                 }

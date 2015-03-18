@@ -18,6 +18,7 @@ import play.api.test.FakeHeaders
 import scala.Some
 import play.api.test.FakeApplication
 import play.api.libs.json.{JsString, JsObject, Json}
+import controllers.routes
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
 
@@ -29,7 +30,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
   val distributorID = distributorUser.distributorID.get
 
   "Analytics show action" should {
-
     "show analytics for an app" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
@@ -192,6 +192,11 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
       status(result) must equalTo(400)
       contentAsString(result) must equalTo("Expecting Json data")
+    }
+
+    "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
+      browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
+      browser.pageSource must contain("bar passed")
     }
   }
 }

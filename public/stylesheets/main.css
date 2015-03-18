@@ -402,6 +402,11 @@ span#viewTerms:hover
     color:#fff;
 }
 
+.left_apps_list ul li.active.removable
+{
+    white-space: pre;
+}
+
 .left_apps_list ul li.active.removable:before
 {
     background:url(../images/icons.png);
@@ -504,7 +509,7 @@ span#viewTerms:hover
     font-weight: normal;
     line-height: normal;
     color: #222;
-    white-space: nowrap;
+    white-space: pre;
 }
 
 .left_apps_list .dropdown-menu li:hover:before, .left_apps_list .dropdown-menu li.active:before

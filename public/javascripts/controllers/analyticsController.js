@@ -187,7 +187,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
          * @returns {boolean}
          */
         $scope.isValidDate = function(date) {
-            if(isNaN( date.getTime())) {
+            if(isNaN(date.getTime())) {
                 return false;
             }
             return true;
@@ -314,8 +314,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 country: _.pluck($scope.filters.countries.selected, 'id'),
                 adProvider: _.pluck($scope.filters.ad_providers.selected, 'id'),
                 apps: _.pluck($scope.filters.apps.selected, 'id'),
-                start_date: $scope.elements.startDate.datepicker( 'getUTCDate'),
-                end_date: $scope.elements.endDate.datepicker( 'getUTCDate' ),
+                start_date: $scope.elements.startDate.datepicker('getUTCDate'),
+                end_date: $scope.elements.endDate.datepicker('getUTCDate'),
                 currentTimeStamp: $scope.updateTimeStamp = Date.now()
             };
 
@@ -344,8 +344,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
             // Set timeframe for queries.  Also converts the times to EST
             config.timeframe = {
-                start: moment(moment(config.start_date).utc().format("YYYY-MM-DD")).tz("America/New_York").format(),
-                end: moment(moment(config.end_date).utc().format("YYYY-MM-DD")).add(1, 'days').tz("America/New_York").format()
+                start: moment(config.start_date).utc().format(),
+                end: moment(config.end_date).utc().add(1, 'days').format()
             };
 
             // Get Fill Rate
@@ -444,9 +444,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                         },
                         chartArea: {
                             height: "85%",
-                            left: "5%",
+                            left: "7%",
                             top: "5%",
-                            width: "93%"
+                            width: "90%"
                         },
                         legend: {
                             position: "none"
@@ -456,7 +456,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                             viewWindow:{
                                 min: 0
                             },
-                            format: "$#,##0.00",
+                            minValue: 0,
+                            maxValue: 20,
+                            format: "$#,##0.##",
                             gridlines: {
                                 color: "#f2f2f2",
                                 count: 5
