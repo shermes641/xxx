@@ -196,7 +196,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
       browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
-      browser.pageSource must contain("0 failures")
+      browser.pageSource must contain("bar passed")
     }
   }
 }
