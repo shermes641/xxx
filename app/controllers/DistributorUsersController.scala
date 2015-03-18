@@ -6,6 +6,7 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Json, JsError, JsPath, Reads}
 import play.api.mvc._
+import play.api.Play
 import play.api.Play.current
 
 /** Controller for models.DistributorUser instances. */
@@ -129,7 +130,8 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * @return a 400 response and render a form with errors.
    */
   def delayedResponse(errorMessage: String, fieldName: String): Result = {
-    Thread.sleep(1000)
+    val delayValue: Long = Play.current.configuration.getLong("authentication_failure_delay").getOrElse(1000)
+    Thread.sleep(delayValue)
     BadRequest(Json.obj("status" -> "error", "message" -> errorMessage, "fieldName" -> fieldName))
   }
 }
