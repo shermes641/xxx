@@ -37,15 +37,16 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
         };
 
         // Taken from http://detectmobilebrowsers.com/
-        $scope.checkMobile = function() {
+        $scope.checkMobile = function(useragent) {
+            useragent = typeof useragent !== 'undefined' ? useragent : navigator.userAgent||navigator.vendor||window.opera;
             var check = false;
-            (function(a,b){if(/Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile|Kindle|NetFront|Silk-Accelerated|(hpw|web)OS|Fennec|Minimo|Opera M(obi|ini)|Blazer|Dolfin|Dolphin|Skyfire|Zune/.test(a))check = true})(navigator.userAgent||navigator.vendor||window.opera);
+            (function(a,b){if(/Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile|Kindle|NetFront|Silk-Accelerated|(hpw|web)OS|Fennec|Minimo|Opera M(obi|ini)|Blazer|Dolfin|Dolphin|Skyfire|Zune/.test(a))check = true})(useragent);
             return check;
         };
 
         // Used for development to clear cookie
         $scope.clearCookie = function() {
-            document.cookie = "browser_support=";
+            document.cookie = "browser_support=; expires=' + expirationDate.toUTCString() + '; path=/";
         }
 
         // Opens popup
