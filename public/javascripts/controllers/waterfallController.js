@@ -220,6 +220,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.submitEditApp = function(form) {
                 if(form.$valid) {
                     setNumberValues("data");
+                    $scope.data.generationNumber = $scope.generationNumber;
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
                         success(function(data, status, headers, config) {
                             if($scope.appName !== $scope.data.appName) {
@@ -239,6 +240,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                $scope.flashMessage(data);
                             }
                         });
                 }

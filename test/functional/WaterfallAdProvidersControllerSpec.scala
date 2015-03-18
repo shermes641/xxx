@@ -54,13 +54,13 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
     "create a new WaterfallAdProvider instance" in new WithAppBrowser(distributorUser.distributorID.get) {
       Waterfall.update(currentWaterfall.id, true, false)
-      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
-        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(currentAppConfig.generationNumber.toString), "waterfallOrder" -> JsString("0"))
+      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsNumber(adProvider1ID), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
+        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsNumber(currentAppConfig.generationNumber), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
       val Some(result) = route(wapCreateRequest(body).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must beEqualTo(200)
       val jsonResult = Json.parse(contentAsString(result))
-      val wapID = (jsonResult \ "wapID").as[String].toLong
+      val wapID = (jsonResult \ "wapID").as[Long]
       WaterfallAdProvider.find(wapID).get must haveClass[WaterfallAdProvider]
     }
 
@@ -69,14 +69,14 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       Waterfall.update(currentWaterfall.id, true, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalGeneration = generationNumber(currentApp.id)
-      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsString(adProvider1ID.toString), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
-        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
+      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsNumber(adProvider1ID), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
+        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsNumber(originalGeneration), "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
       val Some(result) = route(wapCreateRequest(body).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must beEqualTo(200)
       val jsonResult = Json.parse(contentAsString(result))
-      val wapID = (jsonResult \ "wapID").as[String].toLong
-      val newGeneration = (jsonResult \ "newGenerationNumber").as[String].toLong
+      val wapID = (jsonResult \ "wapID").as[Long]
+      val newGeneration = (jsonResult \ "newGenerationNumber").as[Long]
       newGeneration must beEqualTo(originalGeneration)
       WaterfallAdProvider.find(wapID).get must haveClass[WaterfallAdProvider]
     }
@@ -86,8 +86,8 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       Waterfall.update(currentWaterfall.id, true, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalGeneration = generationNumber(currentApp.id)
-      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsString(adProvider2ID.toString), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
-        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsString(originalGeneration.toString), "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
+      val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsNumber(adProvider2ID), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
+        "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsNumber(originalGeneration), "active" -> JsBoolean(true), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
       val Some(result) = route(wapCreateRequest(body).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must beEqualTo(400)
@@ -145,7 +145,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val requiredParamsData = JsObject(Seq("requiredParams" -> requiredParamArray))
       val configurationData = JsObject(Seq("callbackParams" -> JsArray(Seq()), "reportingParams" -> JsArray(Seq()),
         "reportingActive" -> JsBoolean(false), "appToken" -> JsString(currentApp.token), "waterfallID" -> JsString(currentWaterfall.id.toString),
-        "generationNumber" -> JsString(originalGeneration.toString), "cpm" -> JsString("5.0"))).deepMerge(requiredParamsData)
+        "generationNumber" -> JsNumber(originalGeneration), "cpm" -> JsString("5.0"))).deepMerge(requiredParamsData)
       val postRequest = FakeRequest(
         POST,
         controllers.routes.WaterfallAdProvidersController.update(distributorUser.distributorID.get, waterfallAdProviderID).url,

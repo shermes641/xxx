@@ -148,7 +148,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     "set the appropriate JSON configuration for the HyprMarketplace WaterfallAdProvider" in new WithDB {
       DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       val updatedWap = WaterfallAdProvider.find(waterfallAdProvider1.id).get
-      val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[String].toLong
+      val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[Long]
       val hyprPropertyID = (updatedWap.configurationData \ "requiredParams" \ "propertyID").as[String]
       hyprDistributionChannelID must beEqualTo(distributionChannelID)
       hyprPropertyID must beEqualTo(currentApp.name)
@@ -160,7 +160,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
       val reportingParams = (updatedWap.configurationData \ "reportingParams")
       val apiKey = (reportingParams \ "APIKey").as[String]
       val placementID = (reportingParams \ "placementID").as[String]
-      val appID = (reportingParams \ "appID").as[String].toLong
+      val appID = (reportingParams \ "appID").as[Long]
       apiKey must beEqualTo(currentApp.token)
       placementID must beEqualTo(currentApp.token)
       appID must beEqualTo(distributionChannelID)

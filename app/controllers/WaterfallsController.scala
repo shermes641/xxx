@@ -63,8 +63,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
           new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
-        Ok(Json.obj("distributorID" -> JsString(distributorID.toString), "waterfall" -> waterfall, "waterfallAdProviderList" -> adProviderListJs(waterfallAdProviderList),
-          "appsWithWaterfalls" -> appsWithWaterfallListJs(appsWithWaterfalls), "generationNumber" -> JsString(waterfall.generationNumber.getOrElse(0).toString)))
+        val generationNumber: Long = waterfall.generationNumber.getOrElse(0)
+        Ok(Json.obj("distributorID" -> JsNumber(distributorID), "waterfall" -> waterfall, "waterfallAdProviderList" -> adProviderListJs(waterfallAdProviderList),
+          "appsWithWaterfalls" -> appsWithWaterfallListJs(appsWithWaterfalls), "generationNumber" -> JsNumber(generationNumber)))
       }
       case None => {
         BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall could not be found."))
@@ -93,7 +94,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     JsObject(
       Seq(
         "name" -> JsString(wap.name),
-        "waterfallAdProviderID" -> JsString(wap.waterfallAdProviderID.toString),
+        "waterfallAdProviderID" -> JsNumber(wap.waterfallAdProviderID),
         "cpm" -> wap.cpm,
         "active" -> JsBoolean(wap.active),
         "waterfallOrder" -> wap.waterfallOrder,
@@ -144,9 +145,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
       Seq(
         "id" -> JsString(app.id.toString),
         "active" -> JsBoolean(app.active),
-        "distributorID" -> JsString(app.distributorID.toString),
+        "distributorID" -> JsNumber(app.distributorID),
         "name" -> JsString(app.name),
-        "waterfallID" -> JsString(app.waterfallID.toString)
+        "waterfallID" -> JsNumber(app.waterfallID)
       )
     )
   }
@@ -198,18 +199,18 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         try {
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[String].toLong, (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], (jsArray \ "cpm"), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
+            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[Long], (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], (jsArray \ "cpm"), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
           }
           val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
           val testMode: Boolean = (json \ "testMode").as[Boolean]
-          val generationNumber: Long = (json \ "generationNumber").as[String].toLong
+          val generationNumber: Long = (json \ "generationNumber").as[Long]
           Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode) match {
             case 1 => {
               Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
                 case true => {
                   val appToken = (json \ "appToken").as[String]
-                  val newGenerationNumber: Option[Long] = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
-                  Ok(Json.obj("status" -> "success", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber.getOrElse(0).toString))
+                  val newGenerationNumber: Long = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).getOrElse(0)
+                  Ok(Json.obj("status" -> "success", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber))
                 }
                 case _ => {
                   BadRequest(Json.obj("status" -> "error", "message" -> "Waterfall was not updated. Please refresh page."))
