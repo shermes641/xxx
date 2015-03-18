@@ -2,6 +2,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
         function($scope, $http, $routeParams, $window, fieldsFilled) {
             $scope.showTerms = false;
             $scope.invalidForm = true;
+            $scope.waitForAuth = false;
             $scope.inactiveClass = "inactive";
             $scope.errors = {};
             $scope.termsTemplate = 'assets/templates/distributor_users/terms.html';
@@ -47,11 +48,15 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
             $scope.submit = function() {
                 $scope.errors = {};
                 if(!$scope.invalidForm && validFields([checkPassword()])) {
+                    $scope.waitForAuth = true;
+                    $scope.inactiveClass = "inactive";
                     $http.post('/distributor_users', $scope.data).
                         success(function(data, status, headers, config) {
                             $window.location.href = "/distributors/"+data.distributorID+"/apps/new";
                         }).
                         error(function(data, status, headers, config) {
+                            $scope.waitForAuth = false;
+                            $scope.inactiveClass = "";
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
