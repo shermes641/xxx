@@ -125,10 +125,10 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
           "angular.element(document.querySelector('" + ngAppElement + "'))" +
           "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
           "    function() {" +
-          "      angular.element(document.querySelector('body')).addClass('test" + markerClass + "');" +
+          "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
           "    })" +
           "});")
-      browser.await().atMost(40, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
     }
 
     /**
