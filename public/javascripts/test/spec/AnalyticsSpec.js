@@ -28,7 +28,7 @@ describe('AnalyticsController', function() {
             expect(scope.isValidDate(new Date)).toEqual(true);
         });
 
-        it('should hav moment.js available', function(){
+        it('should have moment.js available', function(){
             expect(moment).toBeDefined();
         });
 
@@ -38,8 +38,8 @@ describe('AnalyticsController', function() {
             var end = "Sun Mar 15 2015 20:00:00 GMT-0400 (EDT)";
             expect(moment(start).utc().format("YYYY-MM-DD")).toEqual("2015-02-16");
             expect(moment(end).utc().format("YYYY-MM-DD")).toEqual("2015-03-16");
-            expect(moment.tz(moment(start).utc().format("YYYY-MM-DD"), "America/New_York").format()).toEqual("2015-02-16T00:00:00-05:00");
-            expect(moment.tz(moment(end).utc().format("YYYY-MM-DD"), "America/New_York").add(1, 'days').format()).toEqual("2015-03-17T00:00:00-04:00");
+            expect(moment(start).utc().format()).toEqual("2015-02-16T00:00:00+00:00");
+            expect(moment(end).utc().add(1, 'days').format()).toEqual("2015-03-17T00:00:00+00:00");
         });
 
         it('should parse the datepicker dates and return the same result regardless of the users timezone', function(){
@@ -48,24 +48,24 @@ describe('AnalyticsController', function() {
             end = "Tue Mar 10 2015 20:00:00 GMT-0400 (EDT)";
             expect(moment(start).utc().format("YYYY-MM-DD")).toEqual("2015-02-26");
             expect(moment(end).utc().format("YYYY-MM-DD")).toEqual("2015-03-11");
-            expect(moment.tz(moment(start).utc().format("YYYY-MM-DD"), "America/New_York").format()).toEqual("2015-02-26T00:00:00-05:00");
-            expect(moment.tz(moment(end).utc().format("YYYY-MM-DD"), "America/New_York").add(1, 'days').format()).toEqual("2015-03-12T00:00:00-04:00");
+            expect(moment(start).utc().format()).toEqual("2015-02-26T00:00:00+00:00");
+            expect(moment(end).utc().add(1, 'days').format()).toEqual("2015-03-12T00:00:00+00:00");
 
             // Should return Feb 26 to March 11
             start = "Wed Feb 25 2015 16:00:00 GMT-0800 (PST)";
             end = "Tue Mar 10 2015 17:00:00 GMT-0700 (PDT)";
             expect(moment(start).utc().format("YYYY-MM-DD")).toEqual("2015-02-26");
             expect(moment(end).utc().format("YYYY-MM-DD")).toEqual("2015-03-11");
-            expect(moment.tz(moment(start).utc().format("YYYY-MM-DD"), "America/New_York").format()).toEqual("2015-02-26T00:00:00-05:00");
-            expect(moment.tz(moment(end).utc().format("YYYY-MM-DD"), "America/New_York").add(1, 'days').format()).toEqual("2015-03-12T00:00:00-04:00");
+            expect(moment(start).utc().format()).toEqual("2015-02-26T00:00:00+00:00");
+            expect(moment(end).utc().add(1, 'days').format()).toEqual("2015-03-12T00:00:00+00:00");
 
             // Should return Feb 26 to March 11
             start = "Thu Feb 26 2015 05:00:00 GMT+0500 (UZT)";
             end = "Wed Mar 11 2015 05:00:00 GMT+0500 (UZT)";
             expect(moment(start).utc().format("YYYY-MM-DD")).toEqual("2015-02-26");
             expect(moment(end).utc().format("YYYY-MM-DD")).toEqual("2015-03-11");
-            expect(moment.tz(moment(start).utc().format("YYYY-MM-DD"), "America/New_York").format()).toEqual("2015-02-26T00:00:00-05:00");
-            expect(moment.tz(moment(end).utc().format("YYYY-MM-DD"), "America/New_York").add(1, 'days').format()).toEqual("2015-03-12T00:00:00-04:00");
+            expect(moment(start).utc().format()).toEqual("2015-02-26T00:00:00+00:00");
+            expect(moment(end).utc().add(1, 'days').format()).toEqual("2015-03-12T00:00:00+00:00");
         });
     });
 });

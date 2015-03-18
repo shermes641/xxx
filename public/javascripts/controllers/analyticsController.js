@@ -344,8 +344,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
             // Set timeframe for queries.  Also converts the times to EST
             config.timeframe = {
-                start: moment.tz(moment(config.start_date).utc().format("YYYY-MM-DD"), "America/New_York").format(),
-                end: moment.tz(moment(config.end_date).utc().format("YYYY-MM-DD"), "America/New_York").add(1, 'days').format()
+                start: moment(config.start_date).utc().format(),
+                end: moment(config.end_date).utc().add(1, 'days').format()
             };
 
             // Get Fill Rate
