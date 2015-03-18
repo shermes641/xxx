@@ -444,9 +444,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                         },
                         chartArea: {
                             height: "85%",
-                            left: "5%",
+                            left: "7%",
                             top: "5%",
-                            width: "93%"
+                            width: "90%"
                         },
                         legend: {
                             position: "none"
@@ -456,7 +456,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                             viewWindow:{
                                 min: 0
                             },
-                            format: "$#,##0.00",
+                            minValue: 0,
+                            maxValue: 20,
+                            format: "$#,##0.##",
                             gridlines: {
                                 color: "#f2f2f2",
                                 count: 5
