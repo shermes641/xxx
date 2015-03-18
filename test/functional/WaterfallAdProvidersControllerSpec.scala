@@ -200,7 +200,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       invalidEcpms.map { eCPM =>
         browser.fill("input").`with`(eCPM, "Some key")
         browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-        browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than $0.00")
+        browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than or equal to $0.00")
       }
     }
 
@@ -318,7 +318,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.fill("input[name=eCPM]").`with`("")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than $0.00")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ecpm-input").containsText("eCPM must be a valid number greater than or equal to $0.00")
       WaterfallAdProvider.find(wap1ID).get.reportingActive must beFalse
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.fill("input").`with`("5.0", "12345")
