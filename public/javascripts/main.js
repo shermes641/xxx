@@ -1,5 +1,5 @@
 // Initialize the mediation module
-var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'requiredFieldFilters', 'ui.sortable', 'ui.bootstrap']);
+var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'requiredFieldFilters', 'ui.sortable', 'ui.bootstrap', 'escapeHtmlFilters']);
 
 // Initialize controllers
 var distributorUsersControllers = angular.module('distributorUsersControllers', ['ngRoute']);
@@ -219,4 +219,10 @@ angular.module('requiredFieldFilters', []).filter('conditionalRequiredField', fu
     return function(fieldName, condition) {
         return condition ? "*" + fieldName : fieldName;
     };
+});
+
+angular.module('escapeHtmlFilters', []).filter('escapeHtml', function($sce) {
+    return function(value) {
+        return $sce.trustAsHtml(value);
+    }
 });
