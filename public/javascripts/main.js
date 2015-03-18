@@ -86,7 +86,7 @@ mediationModule.directive('typeaheadFocus', function () {
             link: function (scope, element, attr, ngModel) {
                 //trigger the popup on 'click' because 'focus'
                 //is also triggered after the item selection
-                element.bind('click', function () {
+                element.bind('focus', function () {
                     var viewValue = ngModel.$viewValue;
 
                     //restore to null value so that the typeahead can detect a change

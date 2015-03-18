@@ -92,7 +92,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.$("#end_date").getValue() must beEqualTo(date.toString("MMM dd, yyyy"))
 
       // Start date must be todays date minus 1 month
-      browser.$("#start_date").getValue() must beEqualTo(date.minusMonths(1).toString("MMM dd, yyyy"))
+      browser.$("#start_date").getValue() must beEqualTo(date.minusDays(14).toString("MMM dd, yyyy"))
     }
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
