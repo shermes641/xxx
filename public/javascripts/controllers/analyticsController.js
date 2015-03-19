@@ -415,7 +415,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                     } );
                     chart_data.push( {
                         "Date": chart_date_string,
-                        "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
+                        "Estimated Revenue ($)": Number($filter("monetaryFormat")(days_revenue))
                     } );
                     cumulative_revenue = cumulative_revenue + days_revenue;
                 } );
