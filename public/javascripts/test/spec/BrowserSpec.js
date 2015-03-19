@@ -45,7 +45,7 @@ describe('BrowserSupportController', function() {
             ];
 
             _.each(sampleMobileBrowsers, function(useragent) {
-                expect(scope.checkMobile(sampleMobileBrowsers)).toEqual(true);
+                expect(scope.checkMobile(useragent)).toEqual(true);
             });
 
             var sampleNonMobileBrowsers = [
@@ -55,7 +55,7 @@ describe('BrowserSupportController', function() {
             ];
 
             _.each(sampleNonMobileBrowsers, function(useragent) {
-                expect(scope.checkMobile(sampleNonMobileBrowsers)).toEqual(false);
+                expect(scope.checkMobile(useragent)).toEqual(false);
             });
         });
 
@@ -67,7 +67,6 @@ describe('BrowserSupportController', function() {
             expect(document.cookie.indexOf(scope.cookieString)).toEqual(-1);
 
             scope.openPopup();
-            //expect(scope.popupElement.css('display')).toEqual("block");
 
             scope.dismissPopup();
             expect(document.cookie.indexOf(scope.cookieString)).not.toEqual(-1);
