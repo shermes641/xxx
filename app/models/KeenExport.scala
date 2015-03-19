@@ -187,10 +187,15 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
           val earnings = parseResponse(earningsResponse.body)
 
           // The completion rate based on the completions divided by impressions
-          val completionRate = completions.toFloat/impressions
+          var completionRate = completions.toFloat/impressions
+          if(completionRate.isNaN) {
+            completionRate = 0
+          }
           // The fill rate based on the number of responses divided by requests
-          val fillRate = responses.toFloat/requests
-
+          var fillRate = responses.toFloat/requests
+          if(fillRate.isNaN) {
+            fillRate = 0
+          }
           // The row to append to the CSV
           val appRow = List(
             name,
