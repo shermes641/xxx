@@ -252,6 +252,29 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       WaterfallAdProvider.find(wap1.id).get.active.get must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration)
     }
+
+    "persist the waterfall ordering when the eCPM is changed for a waterfall ad provider in optimized mode" in new WithAppBrowser(distributor.id.get) {
+      createWaterfallAdProvider(currentWaterfall.id, adProviderID1.get, None, Some(5.0), true, true)
+      createWaterfallAdProvider(currentWaterfall.id, adProviderID2.get, None, Some(5.0), true, true)
+      currentWaterfall.optimizedOrder must beTrue
+
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+
+      val topAdProviderText = browser.$(".waterfall-app-info").first().getText
+      topAdProviderText must contain(adProviders(0))
+      topAdProviderText must contain("$5.00")
+      browser.$("button[name=configure-wap]").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input").`with`("1.0", "some key")
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
+      browser.$(".waterfall-app-info").first().getText must contain(adProviders(1))
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
+      newTopAdProviderText must contain(adProviders(1))
+      newTopAdProviderText must contain("$5.00")
+    }
   }
 
   "WaterfallsController.edit" should {
