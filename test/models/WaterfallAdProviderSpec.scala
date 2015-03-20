@@ -148,9 +148,9 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     "set the appropriate JSON configuration for the HyprMarketplace WaterfallAdProvider" in new WithDB {
       DB.withTransaction { implicit connection => WaterfallAdProvider.updateHyprMarketplaceConfig(waterfallAdProvider1, distributionChannelID, currentApp.token, currentApp.name) }
       val updatedWap = WaterfallAdProvider.find(waterfallAdProvider1.id).get
-      val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[Long]
+      val hyprDistributionChannelID = (updatedWap.configurationData \ "requiredParams" \ "distributorID").as[String]
       val hyprPropertyID = (updatedWap.configurationData \ "requiredParams" \ "propertyID").as[String]
-      hyprDistributionChannelID must beEqualTo(distributionChannelID)
+      hyprDistributionChannelID must beEqualTo(distributionChannelID.toString)
       hyprPropertyID must beEqualTo(currentApp.name)
     }
 
@@ -160,10 +160,10 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
       val reportingParams = (updatedWap.configurationData \ "reportingParams")
       val apiKey = (reportingParams \ "APIKey").as[String]
       val placementID = (reportingParams \ "placementID").as[String]
-      val appID = (reportingParams \ "appID").as[Long]
+      val appID = (reportingParams \ "appID").as[String]
       apiKey must beEqualTo(currentApp.token)
       placementID must beEqualTo(currentApp.token)
-      appID must beEqualTo(distributionChannelID)
+      appID must beEqualTo(distributionChannelID.toString)
     }
 
     "set the pending attribute to false" in new WithDB {
