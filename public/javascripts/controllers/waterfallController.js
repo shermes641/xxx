@@ -16,6 +16,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.showTestModeConfirmationModal = false;
             $scope.showCodeBlock = false;
             $scope.disableTestModeToggle = false;
+            $scope.waterfallInfoCallComplete = false;
             $scope.systemMessage = "";
             $scope.messages = [];
             $scope.errors = {};
@@ -23,6 +24,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Retrieve Waterfall data
             $scope.getWaterfallData = function() {
+                $scope.waterfallInfoCallComplete = false;
                 $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
                     $scope.waterfallData = data;
                     $scope.appName = data.waterfall.appName;
@@ -33,7 +35,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.disableTestModeToggle = checkTestModeToggle();
                     $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                     $scope.sortableOptions.containment = "#waterfall-edit";
+                    $scope.waterfallInfoCallComplete = true;
                 }).error(function(data) {
+                    $scope.waterfallInfoCallComplete = true;
                     $scope.flashMessage(data);
                 });
             };
