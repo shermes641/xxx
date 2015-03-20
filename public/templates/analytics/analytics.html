@@ -1,3 +1,6 @@
+<div ng-hide="flashMessage.text() === ''" id="analytics-message" class="full-{{flashMessage.displayClass()}}-message">
+    {{flashMessage.text()}}
+</div>
 <div id="analytics-controller">
     <div ng-include="subHeader"></div>
     <div id="email_modal" ng-show="showExportModal">

@@ -4,10 +4,10 @@
         <div ng-include="subHeader"></div>
         <div ng-include="appList"></div>
         <div id="waterfall-edit" class="split_content waterfall_list">
-            <div ng-repeat="message in messages" ng-click="acknowledgeMessage($index)" id="waterfall-edit-message" class="full-{{message.status}}-message">
-                {{message.text}}
+            <div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
+                {{flashMessage.text()}}
             </div>
-            <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-error-message">
+            <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-static-message">
                 You are currently working in Test Mode.
             </div>
             <div id="edit-top">

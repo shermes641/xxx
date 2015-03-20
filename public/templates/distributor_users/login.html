@@ -1,5 +1,6 @@
-<div id="error-message" class="flash-message error"></div>
-<div id="success-message" class="flash-message success"></div>
+<div ng-hide="flashMessage.text() === ''" id="login-message" class="full-{{flashMessage.displayClass()}}-message">
+    {{flashMessage.text()}}
+</div>
 <div class="content registration">
     <h1>Welcome Back!</h1>
     <hr />

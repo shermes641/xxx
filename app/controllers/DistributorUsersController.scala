@@ -58,7 +58,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def signup = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.signup())
     }
@@ -68,10 +68,10 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * Renders form for DistributorUser log in.
    * @return Log in form
    */
-  def login = Action { implicit request =>
+  def login(recentlyLoggedOut: Option[Boolean]) = Action { implicit request =>
     request.session.get("username").map { user =>
       val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None))
+      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.login())
     }
@@ -93,7 +93,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           case Some(currentUser) => {
             DistributorUser.checkPassword(user.email, user.password) match {
               case true => {
-                Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
+                Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
               }
               case false => {
                 delayedResponse("Invalid Password.", "password")
@@ -117,9 +117,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * @return Redirects to Application index.
    */
   def logout = Action {
-    Redirect(routes.DistributorUsersController.login).withNewSession.flashing(
-      "success" -> "You are now logged out."
-    )
+    Redirect(routes.DistributorUsersController.login(Some(true))).withNewSession
   }
 
   /**
@@ -167,7 +165,7 @@ trait Secured {
    * @param request Current request.
    * @return Renders log in view.
    */
-  def onUnauthorized(request: RequestHeader): Result = Results.Redirect(routes.DistributorUsersController.login)
+  def onUnauthorized(request: RequestHeader): Result = Results.Redirect(routes.DistributorUsersController.login(None))
 
   /**
    * Authenticates DistributorUser for controller actions.
@@ -185,10 +183,10 @@ trait Secured {
               case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
                 controllerAction(user)(request)
               }
-              case _ => Results.Redirect(routes.DistributorUsersController.login)
+              case _ => Results.Redirect(routes.DistributorUsersController.login(None))
             }
           }
-          case _ => Results.Redirect(routes.DistributorUsersController.login)
+          case _ => Results.Redirect(routes.DistributorUsersController.login(None))
         }
       })
     }

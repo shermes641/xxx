@@ -24,17 +24,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "return waterfall edit page with one waterfall" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id).url)
       browser.pageSource must contain("Edit Waterfall")
       browser.pageSource must contain(currentWaterfall.name)
-    }
-
-    "return to app list if multiple waterfalls are found" in new WithAppBrowser(distributor.id.get) {
-      logInUser()
-
-      DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New Waterfall") }
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id, None).url)
-      browser.pageSource must contain("Waterfall could not be found.")
     }
   }
 
@@ -295,8 +287,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser(maliciousUser.email, password)
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(maliciousDistributor.id.get, currentWaterfall.id).url)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#flash").hasText("Waterfall could not be found.")
-      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None, Some(false)).url)
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit a Waterfall using another distributor ID" in new WithAppBrowser(distributor.id.get) {
@@ -306,7 +297,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser(maliciousUser.email, password)
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None, None).url)
     }
 
     "render the updated pending status, on browser refresh, for HyprMarketplace ad provider" in new WithAppBrowser(distributor.id.get, "Some new test app") {
