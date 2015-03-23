@@ -152,6 +152,42 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
     }
   }
 
+  def buildAppRow(name: String, platform: String, requestsResponse: WSResponse, responsesResponse: WSResponse, impressionsResponse: WSResponse, completionsResponse: WSResponse, earningsResponse: WSResponse): List[Any] = {
+    // Count of all requests to from each ad provider
+    val requests = parseResponse(requestsResponse.body)
+    // The count of all available responses from all ad providers
+    val responses = parseResponse(responsesResponse.body)
+    // The count of impressions
+    val impressions = parseResponse(impressionsResponse.body)
+    // The number of completions based on the SDK events
+    val completions = parseResponse(completionsResponse.body)
+    // The sum of all the eCPMs reported on each completion
+    val earnings = parseResponse(earningsResponse.body)
+
+    // The completion rate based on the completions divided by impressions
+    val completionRate = impressions match {
+      case 0 => 0
+      case _ => completions.toFloat/impressions
+    }
+
+    // The fill rate based on the number of responses divided by requests
+    val fillRate = requests match {
+      case 0 => 0
+      case _ => responses.toFloat/requests
+    }
+    // The row to append to the CSV
+    List(
+      name,
+      platform,
+      earnings,
+      fillRate,
+      requests,
+      impressions,
+      completions,
+      completionRate
+    )
+  }
+
   def GetData(appList: List[AppWithWaterfallID], writer: CSVWriter) = {
     for (app <- appList) {
       val appID = app.id
@@ -175,39 +211,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
 
       futureResponse.onSuccess {
         case (requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse) => {
-          // Count of all requests to from each ad provider
-          val requests = parseResponse(requestsResponse.body)
-          // The count of all available responses from all ad providers
-          val responses = parseResponse(responsesResponse.body)
-          // The count of impressions
-          val impressions = parseResponse(impressionsResponse.body)
-          // The number of completions based on the SDK events
-          val completions = parseResponse(completionsResponse.body)
-          // The sum of all the eCPMs reported on each completion
-          val earnings = parseResponse(earningsResponse.body)
-
-          // The completion rate based on the completions divided by impressions
-          val completionRate = impressions match {
-            case 0 => 0
-            case _ => completions.toFloat/impressions
-          }
-
-          // The fill rate based on the number of responses divided by requests
-          val fillRate = requests match {
-            case 0 => 0
-            case _ => responses.toFloat/requests
-          }
-          // The row to append to the CSV
-          val appRow = List(
-            name,
-            platform,
-            earnings,
-            fillRate,
-            requests,
-            impressions,
-            completions,
-            completionRate
-          )
+          val appRow = buildAppRow(name, platform, requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
           println(appRow)
           createCSVRow(writer, appRow)
 
