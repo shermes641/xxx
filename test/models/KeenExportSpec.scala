@@ -8,6 +8,8 @@ import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
 import com.github.tototoshi.csv._
+import scala.io._
+import java.io.File
 import akka.testkit.TestActorRef
 import resources.{DistributorUserSetup}
 import akka.actor.ActorSystem
@@ -18,6 +20,10 @@ import play.api.Play
 @RunWith(classOf[JUnitRunner])
 class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
+
+  def readFileAsString(file: String) = {
+    Source.fromFile(file).getLines.mkString("", "", "")
+  }
 
   "GetDataFromKeen" should {
 
@@ -44,7 +50,9 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val appList = App.findAllAppsWithWaterfalls(newDistributor.id.get)
 
       val writer = keenExportActor.createCSVFile()
-      keenExportActor.GetData(appList, writer)
+      keenExportActor.createCSVHeader(writer)
+      keenExportActor.getData(appList, writer)
+      readFileAsString(keenExportActor.fileName) must beEqualTo("App,Platform,Earnings,Fill,Requests,Impressions,Completions,Completion Rate")
     }
 
     "Builds App Row correctly" in new WithDB {

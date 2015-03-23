@@ -83,7 +83,7 @@ case class KeenExport() {
  */
 class KeenExportActor(distributorID: Long, email: String) extends Actor with Mailer {
   private var counter = 0
-  private val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
+  val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
   /**
    * Parses the Keen response
    * @param body The keen response body
@@ -148,7 +148,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
       val writer = createCSVFile();
       val appList = App.findAllAppsWithWaterfalls(distributorID)
       createCSVHeader(writer)
-      GetData(appList, writer)
+      getData(appList, writer)
     }
   }
 
@@ -188,7 +188,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
     )
   }
 
-  def GetData(appList: List[AppWithWaterfallID], writer: CSVWriter) = {
+  def getData(appList: List[AppWithWaterfallID], writer: CSVWriter) = {
     for (app <- appList) {
       val appID = app.id
       val name = App.find(appID).get.name
