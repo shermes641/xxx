@@ -55,7 +55,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       readFileAsString(keenExportActor.fileName) must beEqualTo("App,Platform,Earnings,Fill,Requests,Impressions,Completions,Completion Rate")
     }
 
-    "Builds App Row correctly" in new WithDB {
+    "Parse Keen response and build App Row correctly" in new WithDB {
       val email = "test2@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
@@ -65,7 +65,9 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email)).underlyingActor
       setUpApp(newDistributor.id.get)
-      val appList = App.findAllAppsWithWaterfalls(newDistributor.id.get)
+
+      keenExportActor.parseResponse("{\"result\": 123456}") must beEqualTo(123456)
+      keenExportActor.parseResponse("{\"result\": 3333333}") must beEqualTo(3333333)
 
       val requestsResponse = mock[WSResponse]
       val responsesResponse = mock[WSResponse]
@@ -89,22 +91,6 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       var appRowByZero = keenExportActor.buildAppRow("App Name", "iOS", requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
       appRowByZero must beEqualTo(List("App Name", "iOS", 20, 0.0, 0, 0, 15, 0.0))
-    }
-
-    "Can parse Keen responses correctly" in new WithDB {
-      val email = "test3@jungroup.com"
-      val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
-      val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
-      client.setDefaultProject(project)
-      KeenClient.initialize(client)
-
-      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email)).underlyingActor
-      setUpApp(newDistributor.id.get)
-      val appList = App.findAllAppsWithWaterfalls(newDistributor.id.get)
-
-      keenExportActor.parseResponse("{\"result\": 123456}") must beEqualTo(123456)
-      keenExportActor.parseResponse("{\"result\": 3333333}") must beEqualTo(3333333)
     }
   }
 }
