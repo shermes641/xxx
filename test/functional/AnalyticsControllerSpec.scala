@@ -92,7 +92,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.$("#end_date").getValue() must beEqualTo(date.toString("MMM dd, yyyy"))
 
       // Start date must be todays date minus 1 month
-      browser.$("#start_date").getValue() must beEqualTo(date.minusDays(14).toString("MMM dd, yyyy"))
+      browser.$("#start_date").getValue() must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
     }
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
@@ -102,9 +102,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       // eCPM metric
       waitUntilContainsText("#ecpm_metric_container", "Average eCPM")
       // Fill Rate metric
-      waitUntilContainsText("#fill_rate_container", "Current App Fill Rate")
+      waitUntilContainsText("#fill_rate_container", "Fill Rate")
       // Average Revenue metric
-      waitUntilContainsText("#unique_users_container", "Average Revenue By Day")
+      waitUntilContainsText("#unique_users_container", "Average Revenue Per Day")
       // Revenue Table
       waitUntilContainsText("#estimated_revenue_chart_container", "Above results use Ad Network eCPMs to estimate revenue.")
     }

@@ -85,7 +85,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
             } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', '-14d');
+            $scope.elements.startDate.datepicker('setDate', '-13d');
             $scope.elements.endDate.datepicker('setDate', '0');
         };
 
@@ -415,7 +415,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                     } );
                     chart_data.push( {
                         "Date": chart_date_string,
-                        "Estimated Revenue": Number($filter("monetaryFormat")(days_revenue))
+                        "Estimated Revenue ($)": Number($filter("monetaryFormat")(days_revenue))
                     } );
                     cumulative_revenue = cumulative_revenue + days_revenue;
                 } );

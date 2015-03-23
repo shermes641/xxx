@@ -198,7 +198,8 @@ object WaterfallAdProvider extends JsonConversion {
       Seq(
         "requiredParams" -> JsObject(
           Seq(
-            "distributorID" -> JsNumber(distributionChannelID),
+            // SDK expects a String for distributorID
+            "distributorID" -> JsString(distributionChannelID.toString),
             "propertyID" -> JsString(appName)
           )
         ),
@@ -206,7 +207,7 @@ object WaterfallAdProvider extends JsonConversion {
           Seq(
             "APIKey" -> JsString(appToken),
             "placementID" -> JsString(appToken),
-            "appID" -> JsNumber(distributionChannelID)
+            "appID" -> JsString(distributionChannelID.toString)
           )
         ),
         "callbackParams" -> JsObject(

@@ -120,12 +120,14 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       val markerClass = "angularReady"
 
       browser.executeScript(
+      "angular.element(document).ready(function () {" +
         "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
           "angular.element(document.querySelector('" + ngAppElement + "'))" +
           "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
           "    function() {" +
           "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
-          "    })")
+          "    })" +
+          "});")
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
     }
 
