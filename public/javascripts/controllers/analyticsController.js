@@ -385,9 +385,18 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
          */
         $scope.getEstimatedRevenue = function(config) {
             // Estimated Revenue query
-            var estimated_revenue = new Keen.Query("count", {
+            var estimated_revenue = new Keen.Query("multi_analysis", {
                 eventCollection: "ad_completed",
                 interval: "daily",
+                analyses: {
+                    "completedCount": {
+                        "analysis_type": "count"
+                    },
+                    "averageeCPM" : {
+                        "analysis_type": "average",
+                        "target_property": "ad_provider_eCPM"
+                    }
+                },
                 filters: config.filters,
                 timeframe: config.timeframe
             });
@@ -406,7 +415,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
                 var chart_data = [];
                 var cumulative_revenue = 0;
                 _.each(this.data.result, function (day) {
-                    var days_revenue = (day.value * config.eCPM);
+                    if(day.value.averageeCPM === null){
+                        day.value.averageeCPM = 0;
+                    }
+                    var days_revenue = (day.value.completedCount * day.value.averageeCPM);
                     var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
                     var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {
