@@ -597,6 +597,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Trigger analytics update on window resize
          */
         angular.element($window).bind('resize', function () {
+            $scope.setDefaultAnalyticsConfig();
             $scope.updateAnalytics();
         });
 
