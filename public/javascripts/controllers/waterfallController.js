@@ -352,6 +352,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.orderOptimizedWaterfallList();
+                        $scope.updateWaterfall();
                         $scope.showWaterfallAdProviderModal = false;
                         $scope.showModal(false);
                         var restartParams = Object.keys($scope.changedRestartParams);
