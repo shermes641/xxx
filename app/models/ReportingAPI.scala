@@ -1,7 +1,6 @@
 package models
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import com.github.nscala_time.time.Imports._
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws._
@@ -15,8 +14,8 @@ import scala.language.postfixOps
  * All reporting API classes extend this class.
  */
 abstract class ReportingAPI {
-  val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-  val calendar = Calendar.getInstance
+  val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
+  val currentTime = new DateTime(DateTimeZone.UTC)
   val BaseURL: String
   val waterfallAdProviderID: Long
   val queryString: List[(String, String)]
