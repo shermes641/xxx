@@ -12,6 +12,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         $scope.currentlyUpdating = false;
         $scope.updatingStatus = "Updating...";
         $scope.keenTimeout = 45000;
+        $scope.appID = $routeParams.app_id;
 
         // Retrieve Waterfall data
         $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {

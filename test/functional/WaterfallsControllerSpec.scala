@@ -380,6 +380,22 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.find("#edit-top").getText must contain(newAppName)
       browser.find("#edit-top").getText must not contain(oldAppName)
     }
+
+    "persist the last waterfall viewed by the user when switching between the analytics page and the waterfall edit page" in new WithAppBrowser(distributor.id.get) {
+      val (newApp, newWaterfall, _, _) = setUpApp(distributor.id.get, "New App 1")
+
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      clickAndWaitForAngular("a[name=analytics]")
+      clickAndWaitForAngular("a[name=waterfalls]")
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
+      clickAndWaitForAngular("a[name=analytics]")
+      clickAndWaitForAngular("a[name=waterfalls]")
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
+    }
   }
 
   "WaterfallsController.editAll" should {
