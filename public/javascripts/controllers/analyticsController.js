@@ -5,8 +5,8 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routeParams', '$filter', '$timeout', '$rootScope',
-    function($scope, $http, $routeParams, $filter, $timeout, $rootScope) {
+mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope',
+    function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
@@ -592,6 +592,13 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         $scope.$watch('showExportModal', function(current){
             $rootScope.bodyClass = current ? "modal-active" : "";
         }, true);
+
+        /**
+         * Trigger analytics update on window resize
+         */
+        angular.element($window).bind('resize', function () {
+            $scope.updateAnalytics();
+        });
 
         /**
          * set Export Modal defaults
