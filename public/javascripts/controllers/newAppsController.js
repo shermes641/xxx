@@ -1,33 +1,22 @@
-appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'appCheck', 'fieldsFilled',
-        function( $scope, $window, $http, $routeParams, appCheck, fieldsFilled ) {
+appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams',
+        function( $scope, $window, $http, $routeParams ) {
             $('body').addClass('new-app-page');
 
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
             $scope.newAppPage = true;
-            $scope.invalidForm = true;
-            $scope.inactiveClass = "inactive";
-
-            $scope.checkInputs = function() {
-                var requiredFields = ['appName', 'currencyName', 'rewardMin', 'exchangeRate'];
-                if(fieldsFilled($scope.newApp, requiredFields)) {
-                    $scope.invalidForm = false;
-                    $scope.inactiveClass = "";
-                } else {
-                    $scope.invalidForm = true;
-                    $scope.inactiveClass = "inactive";
-                }
-            };
-
+            $scope.systemMessage = "Your confirmation email will arrive shortly.";
             $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
 
             // Submit form if fields are valid.
-            $scope.submitNewApp = function() {
+            $scope.submitNewApp = function(form) {
                 $scope.errors = {};
-                var errorObjects = [appCheck.validRewardAmounts($scope.newApp), appCheck.validExchangeRate($scope.newApp.exchangeRate)];
-                if(checkAppFormErrors($scope.newApp, errorObjects)) {
+                if(form.$valid) {
+                    var parsedRewardMax = parseInt($scope.newApp.rewardMax);
+                    $scope.newApp.rewardMax = isNaN(parsedRewardMax) ? null : parsedRewardMax;
+                    $scope.newApp.rewardMin = parseInt($scope.newApp.rewardMin);
+                    $scope.newApp.exchangeRate = parseInt($scope.newApp.exchangeRate);
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
-                            $scope.systemMessage = "Your confirmation email will arrive shortly.";
                             window.location.href = "/distributors/"+$routeParams.distributorID+"/waterfalls/edit";
                         }).
                         error(function(data, status, headers, config) {
@@ -39,18 +28,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                             }
                         });
                 }
-            };
-
-            var checkAppFormErrors = function(data, errorObjects) {
-                for(var i = 0; i < errorObjects.length; i++) {
-                    var error = errorObjects[i];
-                    if(error.message) {
-                        $scope.errors[error.fieldName] = error.message;
-                        $scope.errors[error.fieldName + "Class"] = "error";
-                        return false;
-                    }
-                }
-                return true;
             };
         }]
 );

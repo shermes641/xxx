@@ -1,0 +1,170 @@
+<div id="analytics-controller">
+    <div ng-include="subHeader"></div>
+    <div id="email_modal" ng-show="showExportModal">
+        <div class="close_button" ng-click="hideModal()"></div>
+        <div id="csv_email_form" ng-show="showExportForm">
+            <h1>Export All Data</h1>
+            <hr />
+            <div class="modal_text">Enter the email address you would like to export all the data to.</div>
+            <form name="exportForm" ng-submit="submit()" novalidate>
+                <input type="email" ng-model="data.email" id="export_email" name="export_email" placeholder="Email Address" required />
+                <div ng-show="exportForm.$submitted || exportForm.export_email.$touched">
+                    <dd class="error" ng-show="exportForm.export_email.$error.required">Email address is required</dd>
+                    <dd class="error" ng-show="exportForm.export_email.$error.email">The email you entered is invalid.</dd>
+                </div>
+                <input type="submit" class="modal_submit" id="export_submit" value="Export Data">
+            </form>
+        </div>
+        <div id="csv_requested" ng-show="showExportComplete">
+            <h1>Export Requested</h1>
+            <hr />
+            <div class="modal_text">Export has been requested, email will be sent once complete.</div>
+            <button class="modal_submit" ng-click="hideModal()">Close</button>
+        </div>
+        <div id="csv_export_error" ng-show="showExportError">
+            <h1>Export Error</h1>
+            <hr />
+            <div class="modal_text">There was an error when requesting the export, please try again.</div>
+            <button class="modal_submit" ng-click="hideModal()">Close</button>
+        </div>
+    </div>
+    <div id="analytics_overlay" ng-click="hideModal()" ng-show="showExportModal"></div>
+    <div id="left_content">
+        <div class="left_apps_list">
+            <h2>Date Range</h2>
+            <ul>
+                <div class="input-daterange input-group" id="datepicker">
+                    <li class="arrowdown">
+                        <input type="text" class="input-sm form-control" name="start" id="start_date" />
+                    </li>
+                    <li class="arrowdown">
+                        <input type="text" class="input-sm form-control" name="end" id="end_date" />
+                    </li>
+                </div>
+            </ul>
+        </div>
+        <div class="left_apps_list">
+            <div class="reset_filters" ng-click="resetAllFilters()">Reset all Filters</div>
+            <h2>Filter By Ad Provider</h2>
+            <ul id="ad_providers_filter">
+                <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)">{{provider.name}}</li>
+                <li class="add" ng-click="openDropdown('ad_providers')" ng-class="{open: filters.ad_providers.open}">
+                    <span class="dropdown-label">Add Provider</span>
+                    <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"
+                           typeahead="name as ad_provider.name for ad_provider in filters.ad_providers.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead-on-select="addToSelected('ad_providers', $item)"
+                           ng-blur="closeDropdown('ad_providers')"/>
+                </li>
+            </ul>
+        </div>
+        <div class="left_apps_list">
+            <h2>Filter By App</h2>
+            <ul id="apps_filter">
+                <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
+                <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
+                    <span class="dropdown-label">Add App</span>
+                    <input type="text" ng-model="filters.apps.input" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter_apps"
+                           typeahead="name as app.name for app in filters.apps.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead-on-select="addToSelected('apps', $item)"
+                           ng-blur="closeDropdown('apps')"/>
+                </li>
+            </ul>
+        </div>
+        <div class="left_apps_list">
+            <h2>Filter By Country</h2>
+            <ul id="countries_filter">
+                <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)">{{country.name}}</li>
+                <li class="add" ng-click="openDropdown('countries')" ng-class="{open: filters.countries.open}">
+                    <span class="dropdown-label">Add Country</span>
+                    <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter_countries" id="filter_countries"
+                           typeahead="name as country.name for country in filters.countries.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead-on-select="addToSelected('countries', $item)"
+                           ng-blur="closeDropdown('countries')"/>
+                </li>
+            </ul>
+        </div>
+        <button id="export_as_csv" ng-click="showExportModal = true">
+            Export All Data
+        </button>
+    </div>
+    <div class="split_content dashboard" data-distributor-id="@distributorID">
+        <div ng-show="analyticsTimeout" id="analytics-messaging" class="full-error-message">
+            The analytics page is currently experiencing issues.  Please wait or try again later.
+        </div>
+        <div class="fluid-container">
+            <div class="analytics-row analytics-row-header row">
+                <div class="col-sm-12">
+                    <h1 id="analytics-header" ng-class="{loaded: currentlyUpdating === false}">Analytics <span class="updating-status" ng-show="currentlyUpdating" id="analytics_loading_status">{{updatingStatus}}</span></h1>
+                </div>
+            </div>
+            <div class="analytics-row row">
+                <div class="col-sm-4 analytics-circle-border" id="ecpm_metric_container">
+                    <div id="ecpm_metric" class="analytics-circle average-ecpm" ng-class="{loaded: analyticsData.ecpmMetric != null}">
+                        <div ng-show="analyticsData.ecpmMetric != null" ng-bind-html="analyticsData.ecpmMetric"></div>
+                        <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
+                    </div>
+                    <div class="analytics-description">
+                        <div class="analytics-bullet average-ecpm"></div>
+                        <b>Average eCPM</b>
+                    </div>
+                </div>
+
+                <div class="col-sm-4 analytics-circle-border" id="fill_rate_container">
+                    <div id="fill_rate" class="analytics-circle fill-rate" ng-class="{loaded: analyticsData.fillRateMetric != null}">
+                        <div ng-show="analyticsData.fillRateMetric != null" ng-bind-html="analyticsData.fillRateMetric"></div>
+                        <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
+                    </div>
+                    <div class="analytics-description">
+                        <div class="analytics-bullet fill-rate"></div>
+                        <b>Fill Rate</b>
+                    </div>
+                </div>
+
+                <div class="col-sm-4" id="unique_users_container">
+                    <div id="unique_users" class="analytics-circle revenue-by-day" ng-class="{loaded: analyticsData.revenueByDayMetric != null}">
+                        <div ng-show="analyticsData.revenueByDayMetric != null" ng-bind-html="analyticsData.revenueByDayMetric"></div>
+                        <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
+                    </div>
+                    <div class="analytics-description">
+                        <div class="analytics-bullet revenue-by-day"></div>
+                        <b>Average Revenue Per Day</b>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-row row">
+                <div class="col-sm-12" id="estimated_revenue_chart_container">
+                    <div ng-show="analyticsData.revenueChart" id="estimated_revenue_chart">
+                    </div>
+                    <div ng-show="!analyticsData.revenueChart" class="analytics-loading chart-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
+                    <div class="analytics-description">
+                        <div class="analytics-bullet revenue-by-day"></div>
+                        <b>Estimated Revenue</b><i>Above results use Ad Network eCPMs to estimate revenue.<br>All data is presented in UTC/GMT timezone.</i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-row row">
+                <div class="col-sm-12">
+                    <table class="analytics-revenue-table" cellspacing="0" id="analytics_revenue_table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Date<span class="align-right">Estimated Revenue</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="day in analyticsData.revenueTable">
+                                <td>{{day.Date}}</td>
+                                <td>{{day["Estimated Revenue"]}}</td>
+                            </tr>
+                            <tr ng-if="analyticsData.revenueTable.length == 0">
+                                <td><div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

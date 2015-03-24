@@ -14,7 +14,7 @@ class FlurryCallback(appToken: String, transactionID: String, rewardQuantity: In
   override val token = appToken
   override val receivedVerification = fhash
   override val currencyAmount = rewardQuantity
-  val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
+  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
 
   /**
    * Generates a security digest using the steps provided in Flurry's documentation.

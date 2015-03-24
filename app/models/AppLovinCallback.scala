@@ -13,5 +13,5 @@ class AppLovinCallback(transactionID: String, appToken: String, amount: Double) 
   override val receivedVerification = ""
   override def generatedVerification: String = ""
 
-  val verificationInfo = new CallbackVerificationInfo(true, adProviderName, transactionID, appToken, payout, currencyAmount)
+  override val verificationInfo = new CallbackVerificationInfo(true, adProviderName, transactionID, appToken, payout, currencyAmount)
 }

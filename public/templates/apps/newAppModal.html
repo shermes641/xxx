@@ -1,7 +1,7 @@
 <div id="error-message" class="flash-message error"></div>
 <div id="success-message" class="flash-message success"></div>
-<div ng-show="systemMessage != ''" id="full-success-message">{{systemMessage}}</div>
-<form name="new-app-form" ng-submit="submitNewApp()">
+<div ng-show="systemMessage != ''" id="full-system-message">{{systemMessage}}</div>
+<form name="form.newAppForm" ng-submit="submitNewApp(form.newAppForm)">
     <div data-distributor-id="{{distributorID}}" id="new-app" class="app-form">
         <h1>{{newAppModalTitle}}</h1>
         <div ng-show="newAppPage">
@@ -15,44 +15,59 @@
             <dl id="new_app_app_name">
                 <dt><label for="new_app_app_name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
-                    <input type="text" ng-model="newApp.appName" ng-change="checkInputs(newApp)" id="newAppName" name="newAppName" value="" placeholder="name" label="*App Name">
+                    <input required type="text" ng-model="newApp.appName" ng-model-options="{updateOn: 'blur'}" id="newAppName" name="appName" placeholder="name" label="*App Name">
                 </dd>
                 <dd class="error">{{errors.appName}}</dd>
+                <div ng-show="form.newAppForm.$submitted || form.newAppForm.appName.$touched">
+                    <dd class="error" ng-show="form.newAppForm.appName.$error.required">App Name is required.</dd>
+                </div>
             </dl>
 
             <dl id="new_app_currency_name">
-                <dt><label for="new_app_currency_name">*Virtual Currency Name</label></dt>
+                <dt><label for="new_app_currency_name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">
-                    <input type="text" ng-model="newApp.currencyName" ng-change="checkInputs(newApp)" id="newAppCurrencyName" name="newAppCurrencyName" value="" placeholder="e.g. Gold or Silver">
-                    <div class="tip">Currency Name is the name of your in-app virtual currency.</div>
-                <dd class="error">{{errors.currencyName}}</dd>
+                    <input required type="text" ng-model="newApp.currencyName" ng-model-options="{updateOn: 'blur'}" id="newAppCurrencyName" name="currencyName" placeholder="e.g. Gold or Silver">
+                    <div class="tip">Reward Name is the name of your in-app reward.</div>
                 </dd>
+                <div ng-show="form.newAppForm.$submitted || form.newAppForm.currencyName.$touched">
+                    <dd class="error" ng-show="form.newAppForm.currencyName.$error.required">Reward Name is required.</dd>
+                </div>
             </dl>
 
             <dl id="new_app_exchange_rate">
                 <dt><label for="new_app_exchange_rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input type="number" ng-model="newApp.exchangeRate" ng-change="checkInputs(newApp)" id="newAppExchangeRate" name="newAppExchangeRate" value="" placeholder="e.g. 100">
-                    <div class="tip">The number of virtual currency units per $1.</div>
-                <dd class="error">{{errors.exchangeRate}}</dd>
+                    <input required-integer type="text" ng-model="newApp.exchangeRate" ng-model-options="{updateOn: 'blur'}" id="newAppExchangeRate" name="exchangeRate" placeholder="e.g. 100">
+                    <div class="tip">The amount to reward per $1.</div>
                 </dd>
+                <div ng-show="form.newAppForm.$submitted || form.newAppForm.exchangeRate.$touched">
+                    <dd class="error">{{errors.exchangeRate}}</dd>
+                    <dd class="error" ng-show="form.newAppForm.exchangeRate.$error.requiredInteger">Exchange Rate must be a valid integer greater than or equal to 1.</dd>
+                </div>
             </dl>
         </div>
         <div class="right_column">
             <dl id="new_app_reward_min">
-                <dt><label for="new_app_reward_min">*Minimum Currency to Reward per Completed Offer</label></dt>
+                <dt><label for="new_app_reward_min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input type="number" ng-model="newApp.rewardMin" ng-change="checkInputs(newApp)" id="newAppRewardMin" name="newAppRewardMin" value="" placeholder="e.g. 1">
-                <dd class="error">{{errors.rewardMin}}</dd>
+                    <input required-integer type="text" ng-model="newApp.rewardMin" ng-model-options="{updateOn: 'blur'}" id="newAppRewardMin" name="rewardMin" placeholder="e.g. 1">
                 </dd>
+                <div ng-show="form.newAppForm.$submitted || form.newAppForm.rewardMin.$touched">
+                    <dd class="error">{{errors.rewardMin}}</dd>
+                    <dd class="error" ng-show="form.newAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
+                </div>
             </dl>
 
             <dl id="new_app_reward_max">
-                <dt><label for="new_app_reward_max">Maximum Currency to Reward per Completed Offer</label></dt>
+                <dt><label for="new_app_reward_max">Maximum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input type="number" ng-model="newApp.rewardMax" id="newAppRewardMax" name="newAppRewardMax" value="" placeholder="e.g. 1">
-                <dd class="error">{{errors.rewardMax}}</dd>
+                    <input reward-max-validator greater-than-or-equal-to="{{newApp.rewardMin}}" type="text" ng-model="newApp.rewardMax" ng-model-options="{updateOn: 'blur'}" id="newAppRewardMax" name="rewardMax" placeholder="e.g. 10">
                 </dd>
+                <div ng-show="form.newAppForm.$submitted || form.newAppForm.rewardMax.$touched">
+                    <dd class="error">{{errors.rewardMax}}</dd>
+                    <dd class="error" ng-show="form.newAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
+                    <dd class="error" ng-show="form.newAppForm.rewardMax.$error.greaterThanOrEqualTo">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
+                </div>
             </dl>
 
             <dl class="switch-field" id="roundUp_field">
@@ -61,7 +76,7 @@
                 </dt>
                 <dd>
                     <div class="onoffswitch switch-left">
-                        <input type="checkbox" id="newAppRoundUp" name="newAppRoundUp" value="true" class="onoffswitch-checkbox" ng-model="newApp.roundUp" ng-init="data.roundUp=true" checked="checked"/>
+                        <input type="checkbox" id="newAppRoundUp" name="roundUp" value="true" class="onoffswitch-checkbox" ng-model="newApp.roundUp" checked="checked"/>
                         <label class="onoffswitch-label" for="newAppRoundUp">
                             <span class="onoffswitch-inner"></span>
                             <span class="onoffswitch-switch"></span>
@@ -72,11 +87,11 @@
             </dl>
             <div>
                 <label class="switch-checkbox-label">
-                    Pay the user the minimum reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
+                    Pay the user the Minimum Reward even if the eCPM isn't high enough. If not selected, networks with eCPM below the minimum will not show ads.
                 </label>
             </div>
         </div>
 
-        <button ng-submit="submitNewApp()" ng-disabled="invalidForm" ng-class="inactiveClass" id="create-app" type="submit" name="new-app-form">Create App</button>
+        <button ng-disabled="form.newAppForm.$invalid" ng-class="{inactive: form.newAppForm.$invalid}" id="create-app" type="submit">Create App</button>
     </div>
 </form>

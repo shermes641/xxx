@@ -4,7 +4,7 @@ import models._
 import play.api.test._
 import play.api.test.Helpers._
 
-class DistributorUsersControllerSpec extends SpecificationWithFixtures {
+class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppCreationHelper {
   "DistributorUsersController.signup" should {
     "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
       goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
@@ -63,16 +63,24 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures {
   }
 
   "Authenticated actions" should {
-    "redirect to app index from login if user is authenticated" in new WithFakeBrowser {
+    "redirect to the Analytics page from login if user is authenticated" in new WithFakeBrowser {
+      val user = DistributorUser.findByEmail(email).get
+      setUpApp(user.distributorID.get)
+
       logInUser()
+
       browser.goTo(controllers.routes.DistributorUsersController.login.url)
-      browser.pageSource must contain("Analytics")
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
     }
 
-    "redirect to app index from signup if user is authenticated" in new WithFakeBrowser {
+    "redirect to the Analytics page from signup if user is authenticated" in new WithFakeBrowser {
+      val user = DistributorUser.findByEmail(email).get
+      setUpApp(user.distributorID.get)
+
       logInUser()
+
       browser.goTo(controllers.routes.DistributorUsersController.signup.url)
-      browser.pageSource must contain("Analytics")
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
     }
   }
 }

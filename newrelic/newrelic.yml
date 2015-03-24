@@ -10,8 +10,9 @@ common: &default_settings
 
   # ============================== LICENSE KEY ===============================
   # You must specify the license key associated with your New Relic
-  # account.  This key binds your Agent's data to your account in the
-  # New Relic service.
+  # account. For example, if your license key is 12345 use this:
+  # license_key: '12345'
+  # The key binds your Agent's data to your account in the New Relic service.
   license_key: '705e881c1b50737915a1aeab6a0fd869535b73bb'
 
   # Agent Enabled
@@ -197,11 +198,11 @@ common: &default_settings
     # this, you must provide any new value as an empty list is ignored.
     ignore_status_codes: 404
 
-  # Analytics Events are used for Histograms and Percentiles. Unaggregated data is collected
+  # Transaction Events are used for Histograms and Percentiles. Unaggregated data is collected
   # for each web transaction and sent to the server on harvest. 
-  analytics_events:
+  transaction_events:
 
-    # Set to false to disable analytics events.
+    # Set to false to disable transaction events.
     # Default is true.
     enabled: true
 
@@ -262,15 +263,15 @@ common: &default_settings
 
 development:
   <<: *default_settings
-  app_name: My Application (Development)
+  app_name: Mediation (Development)
 
 test:
   <<: *default_settings
-  app_name: My Application (Test)
+  app_name: Mediation (Test)
 
 production:
   <<: *default_settings
 
 staging:
   <<: *default_settings
-  app_name: My Application (Staging)
+  app_name: Mediation (Staging)

@@ -1,6 +1,6 @@
+import models.{RevenueDataActor, Environment}
 import play.api.Application
 import play.api.GlobalSettings
-import models.RevenueDataActor
 import scala.language.postfixOps
 
 object RevenueDataWorkerGlobal extends GlobalSettings {
@@ -9,7 +9,7 @@ object RevenueDataWorkerGlobal extends GlobalSettings {
    * @param app The play application
    */
   override def onStart(app: Application) {
-    if(play.api.Play.isProd(app)) {
+    if(Environment.isProdOrStaging) {
       RevenueDataActor.startRevenueDataCollection(app)
     }
   }

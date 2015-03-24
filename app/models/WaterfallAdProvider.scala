@@ -198,6 +198,7 @@ object WaterfallAdProvider extends JsonConversion {
       Seq(
         "requiredParams" -> JsObject(
           Seq(
+            // SDK expects a String for distributorID
             "distributorID" -> JsString(distributionChannelID.toString),
             "propertyID" -> JsString(appName)
           )
@@ -327,9 +328,12 @@ object WaterfallAdProvider extends JsonConversion {
   def findConfigurationData(waterfallAdProviderID: Long)(implicit connection: Connection): Option[WaterfallAdProviderConfig] = {
     val query = SQL(
       """
-        SELECT name, cpm, ad_providers.configuration_data as ad_provider_configuration, ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
+        SELECT ad_providers.name, reward_min, cpm, ad_providers.configuration_data as ad_provider_configuration,
+        ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
         FROM waterfall_ad_providers wap
-        JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
+        INNER JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
+        INNER JOIN waterfalls ON waterfalls.id = wap.waterfall_id
+        INNER JOIN virtual_currencies ON virtual_currencies.app_id = waterfalls.app_id
         WHERE wap.id = {id};
       """
     ).on("id" -> waterfallAdProviderID)
@@ -420,13 +424,14 @@ object WaterfallAdProvider extends JsonConversion {
 
   // Used to convert result of findConfigurationData SQL query.
   val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
-    get[String]("name") ~
+      get[String]("name") ~
+      get[Long]("reward_min") ~
       get[Option[Double]]("cpm") ~
       get[JsValue]("ad_provider_configuration") ~
       get[Option[String]]("callback_url_format") ~
       get[JsValue]("wap_configuration") ~
       get[Boolean]("reporting_active") map {
-      case name ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
+      case name ~ reward_min ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, reward_min, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
     }
   }
 
@@ -464,13 +469,14 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
 /**
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
  * @param name name field from ad_providers table.
+ * @param rewardMin The minimum reward from the virtual_currencies table.
  * @param cpm cpm field from waterfall_ad_providers table.
  * @param adProviderConfiguration Configuration data from AdProvider record.
  * @param callbackUrlFormat General format for an AdProvider's reward callback URL.
  * @param waterfallAdProviderConfiguration Configuration data form WaterfallAdProvider record.
  * @param reportingActive Boolean value indicating if we are collecting revenue data from third-parties.
  */
-case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) {
+case class WaterfallAdProviderConfig(name: String, rewardMin: Long, cpm: Option[Double], adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) extends RequiredParamJsReader {
   /**
    * Converts an optional String value to a Boolean.
    * @param param The original optional String value.
@@ -488,15 +494,13 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
    * @return List of tuples where the first element is the name of the required key and the second element is the value for that key if any exists.
    */
   def mappedFields(paramType: String): List[RequiredParam] = {
-    val reqParams = (this.adProviderConfiguration \ paramType).as[List[Map[String, String]]].map(el =>
-      new RequiredParam(el.get("displayKey"), el.get("key"), el.get("dataType"), el.get("description"), el.get("value"), el.get("refreshOnAppRestart"))
-    )
+    val reqParams = (this.adProviderConfiguration \ paramType).as[List[JsValue]].map(el => el.as[RequiredParam])
     val waterfallAdProviderParams = this.waterfallAdProviderConfiguration \ paramType
     // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
     // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     reqParams.map( param =>
       (waterfallAdProviderParams \ param.key.get) match {
-        case _: JsUndefined => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
+        case _: JsUndefined => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart, param.minLength)
         case value: JsValue => {
           var paramValue: Option[String] = None
           if(param.dataType.get == "Array") {
@@ -504,9 +508,9 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
           } else {
             paramValue = Some(value.as[String])
           }
-          new RequiredParam(param.displayKey, param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart)
+          new RequiredParam(param.displayKey, param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart, param.minLength)
         }
-        case _ => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart)
+        case _ => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart, param.minLength)
       }
     )
   }
@@ -520,5 +524,6 @@ case class WaterfallAdProviderConfig(name: String, cpm: Option[Double], adProvid
  * @param description Description of the required param.  This is used in the UI to direct the distributor user on how to configure an ad provider.
  * @param value The actual value of the param.
  * @param refreshOnAppRestart Boolean value to indicate if changing the param only takes effect on app restart.
+ * @param minLength The minimum required length for the param.
  */
-case class RequiredParam(displayKey: Option[String], key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean)
+case class RequiredParam(displayKey: Option[String], key: Option[String], dataType: Option[String], description: Option[String], value: Option[String], refreshOnAppRestart: Boolean, minLength: Long)

@@ -60,7 +60,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   val takenAppNameError = {
-    "You already have an active App with the same name.  To use this App name, you must first deactivate your existing App in its respective Settings Page"
+    "You already have an App with the same name.  Please choose a unique name for your new App."
   }
 
   /**
@@ -130,7 +130,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
         val editAppInfo = new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber)
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), None)
         Ok(Json.toJson(editAppInfo))
       }
       case None => {
@@ -165,8 +165,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                         Waterfall.findByAppID(appID) match {
                           case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
                             val waterfall = waterfalls(0)
-                            val newGeneration = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0))
-                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration.getOrElse(0).toString))
+                            val newGeneration: Long = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0)).getOrElse(0)
+                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
                           }
                         }
                       }
@@ -179,7 +179,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                 }
               } catch {
                 case error: org.postgresql.util.PSQLException => rollbackWithError(updateErrorMessage)
-                case error: IllegalArgumentException => rollbackWithError(updateErrorMessage + "Please refresh your browser.")
+                case error: IllegalArgumentException => rollbackWithError(updateErrorMessage + " Please refresh your browser.")
               }
             }
           }

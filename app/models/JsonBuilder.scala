@@ -8,8 +8,9 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import scala.language.implicitConversions
 
-object JsonBuilder extends ValueToJsonHelper {
-  val LOG_FULL_CONFIG = true
+object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
+  val LogFullConfig = true
+  val DefaultCanShowAdTimeout = 10 // This value represents seconds.
 
   /**
    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
@@ -50,7 +51,7 @@ object JsonBuilder extends ValueToJsonHelper {
       )
     }
     val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
-      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration)
+      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, canShowAdTimeoutConfiguration)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
@@ -65,7 +66,7 @@ object JsonBuilder extends ValueToJsonHelper {
     JsObject(
       Seq(
         "appConfigRefreshInterval" -> JsNumber(appConfigRefreshInterval),
-        "logFullConfig" -> JsBoolean(LOG_FULL_CONFIG)
+        "logFullConfig" -> JsBoolean(LogFullConfig)
       )
     )
   }
@@ -149,6 +150,18 @@ object JsonBuilder extends ValueToJsonHelper {
   }
 
   /**
+   * Creates JSON object containing the default time to wait for a "can show ad" response from each ad provider in the SDK.
+   * @return JSON object to be merged in to the JSON API response.
+   */
+  def canShowAdTimeoutConfiguration: JsObject = {
+    JsObject(
+      Seq(
+        "canShowAdTimeout" -> JsNumber(DefaultCanShowAdTimeout)
+      )
+    )
+  }
+
+  /**
    * The top level keys for WaterfallAdProvider configurationData JSON.
    */
   val waterfallAdProviderParamList = List("requiredParams", "callbackParams", "reportingParams")
@@ -218,18 +231,6 @@ object JsonBuilder extends ValueToJsonHelper {
   }
 
   /**
-   * Converts RequiredParam class instance to JSON
-   */
-  implicit val requiredParamReads: Reads[RequiredParam] = (
-    (JsPath \ "displayKey").readNullable[String] and
-    (JsPath \ "key").readNullable[String] and
-    (JsPath \ "dataType").readNullable[String] and
-    (JsPath \ "description").readNullable[String] and
-    (JsPath \ "value").readNullable[String] and
-    (JsPath \ "refreshOnAppRestart").read[Boolean]
-  )(RequiredParam.apply _)
-
-  /**
    * Converts RequiredParam class to JSON object.
    * @param param The an instance of the RequiredParam class to be converted.
    * @return JSON object to be used in the edit action.
@@ -242,10 +243,29 @@ object JsonBuilder extends ValueToJsonHelper {
         "dataType" -> JsString(param.dataType.getOrElse("")),
         "description" -> JsString(param.description.getOrElse("")),
         "value" -> JsString(param.value.getOrElse("")),
-        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart),
+        "minLength" -> JsNumber(param.minLength)
       )
     )
   }
+}
+
+/**
+ * Implicit value to convert JSON to an instance of RequiredParam.
+ */
+trait RequiredParamJsReader {
+  /**
+   * Converts RequiredParam class instance to JSON
+   */
+  implicit val requiredParamReads: Reads[RequiredParam] = (
+    (JsPath \ "displayKey").readNullable[String] and
+      (JsPath \ "key").readNullable[String] and
+      (JsPath \ "dataType").readNullable[String] and
+      (JsPath \ "description").readNullable[String] and
+      (JsPath \ "value").readNullable[String] and
+      (JsPath \ "refreshOnAppRestart").read[Boolean] and
+      (JsPath \ "minLength").read[Long].orElse(Reads.pure(0))
+    )(RequiredParam.apply _)
 }
 
 /**

@@ -50,13 +50,13 @@ class Completion extends JsonConversion {
   def createWithNotification(verificationInfo: CallbackVerificationInfo, adProviderRequest: JsValue): Future[Boolean] = {
     (create(verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID, verificationInfo.offerProfit, adProviderRequest), Waterfall.findCallbackInfo(verificationInfo.appToken)) match {
       case (Some(id: Long), Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, "Completion successful.", Json.stringify(adProviderRequest), verificationInfo)
+        postCallback(callbackInfo.callbackURL, "Completion successful.", adProviderRequest, verificationInfo)
       }
       case (Some(id: Long), _) => {
         Future { true }
       }
       case (None, Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, "Completion was not successful.", Json.stringify(adProviderRequest), verificationInfo)
+        postCallback(callbackInfo.callbackURL, "Completion was not successful.", adProviderRequest, verificationInfo)
       }
       case (_, _) => {
         Future { false }
@@ -72,18 +72,15 @@ class Completion extends JsonConversion {
    * @param verificationInfo Class containing information to verify the postback and create a new Completion.
    * @return A boolean future indicating the success of the call to the App's reward callback.
    */
-  def postCallback(callbackURL: Option[String], message: String, adProviderRequest: String, verificationInfo: CallbackVerificationInfo): Future[Boolean] = {
+  def postCallback(callbackURL: Option[String], message: String, adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo): Future[Boolean] = {
     callbackURL match {
       case Some(url: String) => {
-        val data = Map(
-          "status" -> Seq(message),
-          "original_postback" -> Seq(adProviderRequest),
-          "ad_provider" -> Seq(verificationInfo.adProviderName),
-          "reward_quantity" -> Seq(verificationInfo.rewardQuantity.toString),
-          "estimated_offer_profit" -> Seq(verificationInfo.offerProfit match {
-            case Some(profit: Double) => profit.toString
-            case None => ""
-          })
+        val data: JsValue = Json.obj(
+          "status" -> message,
+          "original_postback" -> adProviderRequest,
+          "ad_provider" -> verificationInfo.adProviderName,
+          "reward_quantity" -> verificationInfo.rewardQuantity,
+          "estimated_offer_profit" -> verificationInfo.offerProfit
         )
         WS.url(url).post(data).map(response =>
           response.status match {

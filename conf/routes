@@ -22,6 +22,7 @@ POST        /distributors/:distributor_id/apps/:app_id                          
 
 # Analytics
 GET         /distributors/:distributor_id/analytics                                                    controllers.AnalyticsController.show(distributor_id: Long, app_id: Option[Long])
+GET         /distributors/:distributor_id/analytics/info                                               controllers.AnalyticsController.info(distributor_id: Long)
 POST        /distributors/:distributor_id/analytics/export                                             controllers.AnalyticsController.export(distributor_id: Long)
 
 # Waterfalls

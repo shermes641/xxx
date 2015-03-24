@@ -5,6 +5,7 @@ distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$
             $scope.errors = {};
 
             $scope.checkInputs = function() {
+                $scope.errors = {};
                 var requiredFields = ["email", "password"];
                 if(fieldsFilled($scope.data, requiredFields)) {
                     $scope.invalidForm = false;

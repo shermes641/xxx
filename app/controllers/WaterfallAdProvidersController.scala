@@ -23,14 +23,14 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
             case cpmVal: JsNumber => Some(cpmVal.as[Double])
             case _ => None
           }
-          val wapID = WaterfallAdProvider.createWithTransaction((wapData \ "waterfallID").as[String].toLong, (wapData \ "adProviderID").as[String].toLong, None, cpm, (wapData \ "configurable").as[Boolean], active = false)
-          val appToken = (wapData \ "appToken").as[String]
           val waterfallID = (wapData \ "waterfallID").as[String].toLong
-          val generationNumber = (wapData \ "generationNumber").as[String].toLong
+          val wapID = WaterfallAdProvider.createWithTransaction(waterfallID, (wapData \ "adProviderID").as[Long], None, cpm, (wapData \ "configurable").as[Boolean], active = false)
+          val appToken = (wapData \ "appToken").as[String]
+          val generationNumber = (wapData \ "generationNumber").as[Long]
           val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber))
           (wapID, newGenerationNumber) match {
             case (Some(wapIDVal), Some(newGenerationNumberVal)) => {
-              val jsonParams = Some(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal.toString, "newGenerationNumber" -> newGenerationNumberVal.toString))
+              val jsonParams = Some(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "wapID" -> wapIDVal, "newGenerationNumber" -> newGenerationNumberVal))
               retrieveWaterfallAdProvider(wapIDVal, distributorID, Some((wapData \ "appToken").as[String]), jsonParams)
             }
             case (_, _) => {
@@ -78,11 +78,11 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               case Some(apiToken) => apiToken
               case None => None
             }
-            Some(callback.format(token))
+            Some(callback.format(token, configData.rewardMin))
           }
           case None => None
         }
-        val response = Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsString(waterfallAdProviderID.toString),
+        val response = Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsNumber(waterfallAdProviderID),
           "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive), "callbackUrl" -> JsString(callbackUrl.getOrElse("")),
           "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("app_domain").get)).deepMerge(JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForUI, configData))
         jsonParams match {
@@ -109,7 +109,8 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
         "dataType" -> JsString(param.dataType.getOrElse("")),
         "description" -> JsString(param.description.getOrElse("")),
         "value" -> JsString(param.value.getOrElse("")),
-        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart)
+        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart),
+        "minLength" -> JsNumber(param.minLength)
       )
     )
   }
@@ -140,12 +141,12 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
               val waterfallID = (jsonResponse \ "waterfallID").as[String].toLong
               val configData = JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForDB, jsonResponse)
               val reportingActive = (jsonResponse \ "reportingActive").as[Boolean]
-              val generationNumber = (jsonResponse \ "generationNumber").as[String].toLong
+              val generationNumber = (jsonResponse \ "generationNumber").as[Long]
               val eCPM = (jsonResponse \ "cpm").as[String].toDouble
               val newValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, record.waterfallOrder, Some(eCPM), record.active, record.fillRate, configData, reportingActive)
               WaterfallAdProvider.updateWithTransaction(newValues) match {
                 case 1 => {
-                  val newGenerationNumber = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).getOrElse(0).toString
+                  val newGenerationNumber: Long = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).getOrElse(0)
                   Ok(Json.obj("status" -> "success", "message" -> "Ad Provider configuration updated!", "newGenerationNumber" -> newGenerationNumber))
                 }
                 case _ => BadRequest(badResponse)

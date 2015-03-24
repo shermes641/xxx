@@ -5,9 +5,12 @@
     <div class="app-form edit-ad-providers">
         <div id="ecpm-input" ng-class="errors['staticParams-cpm']" class="waterfall-ad-provider-field">
             <dd>
-            <dt><label for="eCPM">* eCPM $</label></dt>
+            <dt><label for="eCPM">*eCPM $</label></dt>
                 <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
-                <h4 class="tooltip" data-title="Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.">?</h4>
+                <h4 ng-mouseenter="hoverEcpm=true" ng-mouseleave="hoverEcpm=false" class="tooltip">
+                    ?
+                    <div class="ngtooltip" ng-show="hoverEcpm">Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.</div>
+                </h4>
                 <dd class="modal-text error">{{errors.cpmMessage}}</dd>
             </dd>
         </div>
@@ -16,10 +19,13 @@
             <div id="requiredParams-{{param.key}}-input" ng-hide="param.displayKey === ''" ng-class="errors['requiredParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
                 <dd>
                     <dt>
-                         <label>* {{param.displayKey}}</label>
+                         <label>{{param.displayKey | conditionalRequiredField: true}}</label>
                     </dt>
                     <input type="text" ng-model="param.value"></input>
-                    <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                    <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
+                        ?
+                        <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
+                    </h4>
                     <dd class="modal-text error">{{errors['requiredParams-' + param.key + '-message']}}</dd>
                 </dd>
             </div>
@@ -43,10 +49,13 @@
             <div id="{{param.key}}-input" ng-class="errors['reportingParams-{{param.key}}']" class="reporting-waterfall-ad-provider-field">
                 <dd>
                     <dt>
-                        <label>{{param.displayKey}}</label>
+                        <label>{{param.displayKey | conditionalRequiredField: wapData.reportingActive}}</label>
                     </dt>
                     <input data-param-type="@param.dataType" type="text" ng-model="param.value"></input>
-                    <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                    <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
+                        ?
+                        <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
+                    </h4>
                     <dd class="modal-text error">{{errors['reportingParams-' + param.key + '-message']}}</dd>
                 </dd>
             </div>
@@ -55,7 +64,10 @@
         <h3>Callback</h3>
         <dd ng-show="wapData.callbackUrl != ''">
             <label id="callback-url-label">Callback URL</label>
-            <h4 class="tooltip" data-title="Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.">?</h4>
+            <h4 ng-mouseenter="hoverCallbackURL=true" ng-mouseleave="hoverCallbackURL=false" class="tooltip">
+                ?
+                <div class="ngtooltip" ng-show="hoverCallbackURL">Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.</div>
+            </h4>
             <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
         </dd>
 
@@ -66,7 +78,10 @@
                         <label for="{{param.key}}">{{param.displayKey}}</label>
                     </dt>
                     <input type="text" id="{{param.key}}" ng-model="param.value"></input>
-                    <h4 class="tooltip" data-title="{{param.description}}">?</h4>
+                    <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
+                        ?
+                        <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
+                    </h4>
                     <dd class="modal-text error">{{errors['callbackParams-' + param.key + '-message']}}</dd>
                 </dd>
             </div>

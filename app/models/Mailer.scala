@@ -16,9 +16,9 @@ trait Mailer {
    * @param body Email body
    * @param attachmentFileName Email attachment file name
    */
-  def sendEmail(recipient: String, subject: String, body: String, attachmentFileName: String = ""): Unit = {
+  def sendEmail(recipient: String, subject: String, body: String, plainText: String = "", attachmentFileName: String = ""): Unit = {
     val host = Play.current.configuration.getString("app_domain").get
-    if(play.api.Play.isProd(play.api.Play.current)) {
+    if(Environment.isProdOrStaging) {
       val mail = use[MailerPlugin].email
       mail.setRecipient(recipient)
       mail.setFrom("HyprMediate <publishing@hyprmx.com>")
@@ -27,8 +27,11 @@ trait Mailer {
         val format = new SimpleDateFormat("d-M-y")
         mail.addAttachment(format.format(Calendar.getInstance().getTime()) + "-export.csv", new File(attachmentFileName))
       }
+      // Logging to help email debugging
+      println("Email Sent - Subject: " + subject, "Body: " + body, "Recipient: " + recipient)
       val template = views.html.Mails.emailTemplate(subject, body, host).toString()
-      mail.sendHtml(template)
+      val text = if(plainText == "") body else plainText
+      mail.send(text, template)
     }
   }
 }

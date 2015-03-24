@@ -21,10 +21,10 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val completionCount = tableCount("completions")
       App.update(new UpdatableApp(app1.id, true, app1.distributorID, app1.name, None, true))
       val completion = spy(new Completion)
-      completion.postCallback(Some(any[String]), any[String], any[String], any[CallbackVerificationInfo]) returns Future { true }
+      completion.postCallback(Some(any[String]), any[String], any[JsValue], any[CallbackVerificationInfo]) returns Future { true }
       val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, Some(1.0), 1)
       Await.result(completion.createWithNotification(callbackInfo, JsObject(Seq())), Duration(5000, "millis")) must beEqualTo(true)
-      there was one(completion).postCallback(any[Option[String]], any[String], any[String], any[CallbackVerificationInfo])
+      there was one(completion).postCallback(any[Option[String]], any[String], any[JsValue], any[CallbackVerificationInfo])
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
 
@@ -34,7 +34,7 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val completion = spy(new Completion)
       val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, Some(1.0), 1)
       Await.result(completion.createWithNotification(callbackInfo, JsObject(Seq())), Duration(5000, "millis")) must beEqualTo(true)
-      there was no(completion).postCallback(any[Option[String]], any[String], any[String], any[CallbackVerificationInfo])
+      there was no(completion).postCallback(any[Option[String]], any[String], any[JsValue], any[CallbackVerificationInfo])
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
   }
@@ -43,7 +43,7 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
     "not POST to a callback URL if one does not exist" in new WithDB {
       val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", None, 1))
       val callbackURL = None
-      Await.result(Completion.postCallback(callbackURL, "success", "body", verification), Duration(5000, "millis")) must beEqualTo(false)
+      Await.result(Completion.postCallback(callbackURL, "success", JsObject(Seq()), verification), Duration(5000, "millis")) must beEqualTo(false)
     }
   }
 }

@@ -162,7 +162,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
     "return None if the App name matches the current App ID for the current Distributor" in new WithDB {
       val appName = "Some existing app name"
       val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
-      App.nameExists(appName, distributor.id.get, appID = None).get must beEqualTo(currentApp.id)
+      App.nameExists(appName, distributor.id.get, Some(currentApp.id)) must beNone
     }
 
     "return None if the App name matches an existing deactivated App for the current Distributor" in new WithDB {
@@ -172,10 +172,12 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
       App.nameExists(appName, distributor.id.get, appID = None) must beNone
     }
 
-    "return the ID of the existing App if the App name is not unique for the current Distributor" in new WithDB {
-      val appName = "Another existing app name"
+    "return the ID of the existing App if the App name is not unique for the current Distributor, regardless of case" in new WithDB {
+      val appName = "Another Existing App Name"
       val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
-      App.nameExists(appName, distributor.id.get, Some(currentApp.id)) must beNone
+      List(appName, appName.toLowerCase, appName.toUpperCase).map {name =>
+        App.nameExists(name, distributor.id.get, None).get must beEqualTo(currentApp.id)
+      }
     }
   }
 }

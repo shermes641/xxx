@@ -46,7 +46,7 @@ case class KeenExport() {
    */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
     val config = Play.current.configuration
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
+    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(60000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
   }
 
   /**
@@ -83,7 +83,7 @@ case class KeenExport() {
  */
 class KeenExportActor(distributorID: Long, email: String) extends Actor with Mailer {
   private var counter = 0
-  private val fileName = "public/exports/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
+  val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
   /**
    * Parses the Keen response
    * @param body The keen response body
@@ -102,6 +102,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
    */
   def createCSVFile(): CSVWriter = {
     val f = new File(fileName)
+    f.getParentFile.mkdirs()
     CSVWriter.open(f)
   }
 
@@ -147,67 +148,80 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
       val writer = createCSVFile();
       val appList = App.findAllAppsWithWaterfalls(distributorID)
       createCSVHeader(writer)
-      GetData(appList, writer)
+      getData(appList, writer)
     }
   }
 
-  def GetData(appList: List[AppWithWaterfallID], writer: CSVWriter) = {
+  def buildAppRow(name: String, platform: String, requestsResponse: WSResponse, responsesResponse: WSResponse, impressionsResponse: WSResponse, completionsResponse: WSResponse, earningsResponse: WSResponse): List[Any] = {
+    // Count of all requests to from each ad provider
+    val requests = parseResponse(requestsResponse.body)
+    // The count of all available responses from all ad providers
+    val responses = parseResponse(responsesResponse.body)
+    // The count of impressions
+    val impressions = parseResponse(impressionsResponse.body)
+    // The number of completions based on the SDK events
+    val completions = parseResponse(completionsResponse.body)
+    // The sum of all the eCPMs reported on each completion
+    val earnings = parseResponse(earningsResponse.body)
+
+    // The completion rate based on the completions divided by impressions
+    val completionRate = impressions match {
+      case 0 => 0
+      case _ => completions.toFloat/impressions
+    }
+
+    // The fill rate based on the number of responses divided by requests
+    val fillRate = requests match {
+      case 0 => 0
+      case _ => responses.toFloat/requests
+    }
+    // The row to append to the CSV
+    List(
+      name,
+      platform,
+      earnings,
+      fillRate,
+      requests,
+      impressions,
+      completions,
+      completionRate
+    )
+  }
+
+  def getData(appList: List[AppWithWaterfallID], writer: CSVWriter) = {
     for (app <- appList) {
       val appID = app.id
       val name = App.find(appID).get.name
       // We currently do not store the app platform so this is hardcoded.
       val platform = "iOS"
-      // Count of all requests to from each ad provider
-      KeenExport().createRequest("count", KeenExport().createFilter("availability_requested", appID)) map {
-        response => {
-          val requests = parseResponse(response.body)
-          // The count of all available responses from all ad providers
-          KeenExport().createRequest("count", KeenExport().createFilter("availability_response_true", appID)) map {
-            response => {
-              val responses = parseResponse(response.body)
-              // The count of impressions
-              KeenExport().createRequest("count", KeenExport().createFilter("ad_displayed", appID)) map {
-                response => {
-                  val impressions = parseResponse(response.body)
-                  // The number of completions based on the SDK events
-                  KeenExport().createRequest("count", KeenExport().createFilter("ad_completed", appID)) map {
-                    response => {
-                      val completions = parseResponse(response.body)
-                      // The sum of all the eCPMs reported on each completion
-                      KeenExport().createRequest("sum", KeenExport().createFilter("ad_completed", appID, "ad_provider_eCPM")) map {
-                        response => {
-                          val earnings = parseResponse(response.body)
-                          // The completion rate based on the completions divided by impressions
-                          val completionRate = completions.toFloat/impressions
-                          // The fill rate based on the number of responses divided by requests
-                          val fillRate = responses.toFloat/requests
 
-                          // The row to append to the CSV
-                          val appRow = List(
-                            name,
-                            platform,
-                            earnings,
-                            fillRate,
-                            requests,
-                            impressions,
-                            completions,
-                            completionRate
-                          )
-                          createCSVRow(writer, appRow)
+      // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
+      val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
+        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("availability_requested", appID))
+        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter("availability_response_true", appID))
+        impressionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("ad_displayed", appID))
+        completionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("ad_completed", appID))
+        earningsResponse <- KeenExport().createRequest("sum", KeenExport().createFilter("ad_completed", appID, "ad_provider_eCPM"))
+      } yield (requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
 
-                          counter += 1
-                          if(appList.length <= counter) {
-                            // Sends email after all apps have received their stats
-                            sendEmail(email, "Exported CSV from HyprMediate", "Attached is your requested CSV file.", fileName)
-                            writer.close()
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+      futureResponse.recover {
+        case _ =>
+          sendEmail(email, "Error Exporting CSV", "There was a problem exporting your data.  Please try again.")
+      }
+
+      futureResponse.onSuccess {
+        case (requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse) => {
+          val appRow = buildAppRow(name, platform, requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
+          println(appRow)
+          createCSVRow(writer, appRow)
+
+          counter += 1
+          if(appList.length <= counter) {
+            println("Exported CSV: " + fileName)
+            // Sends email after all apps have received their stats
+            val content = "Attached is your requested CSV file."
+            sendEmail(email, "Exported CSV from HyprMediate", content, "", fileName)
+            writer.close()
           }
         }
       }
