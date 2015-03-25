@@ -1,7 +1,6 @@
 package models
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import com.github.nscala_time.time.Imports._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.FakeApplication
@@ -22,9 +21,9 @@ class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallS
   }
 
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString("some API Key"), "appName" -> JsString("some App Name")))))
-  val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-  val calendar = Calendar.getInstance
-  val date = dateFormat.format(calendar.getTime)
+  val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
+  val currentTime = new DateTime(DateTimeZone.UTC)
+  val date = currentTime.toString(dateFormat)
   val queryString = List("api_key" -> (configurationData \ "reportingParams" \ "APIKey").as[String], "start" -> date, "end" -> date,
     "format" -> "json", "columns" -> "application,impressions,clicks,ctr,revenue,ecpm", "filter_application" -> (configurationData \ "reportingParams" \ "appName").as[String])
   val response = mock[WSResponse]

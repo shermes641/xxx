@@ -1,10 +1,9 @@
 package models
 
+import com.github.nscala_time.time.Imports._
 import com.typesafe.plugin._
 import play.api.Play.current
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import play.api.Play
 
 /** Encapsulates methods which send email. */
@@ -24,8 +23,10 @@ trait Mailer {
       mail.setFrom("HyprMediate <publishing@hyprmx.com>")
       mail.setSubject(subject)
       if(attachmentFileName != "") {
-        val format = new SimpleDateFormat("d-M-y")
-        mail.addAttachment(format.format(Calendar.getInstance().getTime()) + "-export.csv", new File(attachmentFileName))
+        val dateFormat = DateTimeFormat.forPattern("d-M-y")
+        val currentTime = new DateTime(DateTimeZone.UTC)
+        val date = currentTime.toString(dateFormat)
+        mail.addAttachment(date + "-export.csv", new File(attachmentFileName))
       }
       // Logging to help email debugging
       println("Email Sent - Subject: " + subject, "Body: " + body, "Recipient: " + recipient)

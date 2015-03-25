@@ -1,6 +1,5 @@
 package models
 
-import java.util.Calendar
 import play.api.libs.Codecs
 import play.api.libs.json._
 import play.api.Play
@@ -21,14 +20,12 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
     val appID = (reportingParams \ "appID").as[String]
     val placementID = (reportingParams \ "placementID").as[String]
     val apiKey = (reportingParams \ "APIKey").as[String]
-    val endDate = dateFormat.format(calendar.getTime)
-    calendar.add(Calendar.DAY_OF_YEAR, -1)
-    val startDate = dateFormat.format(calendar.getTime)
+    val date = currentTime.toString(dateFormat)
     // Per Fyber's documentation, these key names must maintain alphabetical order before being encrypted
-    val queryParams = Map("app_id" -> appID, "end_date" -> endDate, "placement_id" -> placementID, "start_date" -> startDate)
+    val queryParams = Map("app_id" -> appID, "end_date" -> date, "placement_id" -> placementID, "start_date" -> date)
     val queryString = queryParams.flatMap((k) => List(k._1 + "=" +  k._2)).mkString("&") + "&" + apiKey
     val hashValue = Codecs.sha1(queryString)
-    List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> startDate, "end_date" -> endDate, "hash_value" -> hashValue)
+    List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> date, "end_date" -> date, "hash_value" -> hashValue)
   }
 
   /**
