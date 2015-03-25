@@ -101,7 +101,7 @@ trait UpdateHyprMarketplace extends JsonConversion {
                       }
                     }
                   } else {
-                    displayError(wap.id, "Ad network already exists in Player")
+                    displayError(wap.id, "The following error occurred in Player: " + results \ "error")
                   }
                 }
                 case _ => {
