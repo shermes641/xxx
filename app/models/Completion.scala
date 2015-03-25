@@ -50,13 +50,13 @@ class Completion extends JsonConversion {
   def createWithNotification(verificationInfo: CallbackVerificationInfo, adProviderRequest: JsValue): Future[Boolean] = {
     (create(verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID, verificationInfo.offerProfit, adProviderRequest), Waterfall.findCallbackInfo(verificationInfo.appToken)) match {
       case (Some(id: Long), Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, "Completion successful.", adProviderRequest, verificationInfo)
+        postCallback(callbackInfo.callbackURL, adProviderRequest, verificationInfo)
       }
       case (Some(id: Long), _) => {
         Future { true }
       }
       case (None, Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, "Completion was not successful.", adProviderRequest, verificationInfo)
+        postCallback(callbackInfo.callbackURL, adProviderRequest, verificationInfo)
       }
       case (_, _) => {
         Future { false }
@@ -67,16 +67,14 @@ class Completion extends JsonConversion {
   /**
    * Sends POST request to callback URL if one exists.
    * @param callbackURL The target URL for the POST request.
-   * @param message A message indicating the success or failure of the Completion.
    * @param adProviderRequest The original postback from the ad provider.
    * @param verificationInfo Class containing information to verify the postback and create a new Completion.
    * @return A boolean future indicating the success of the call to the App's reward callback.
    */
-  def postCallback(callbackURL: Option[String], message: String, adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo): Future[Boolean] = {
+  def postCallback(callbackURL: Option[String], adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo): Future[Boolean] = {
     callbackURL match {
       case Some(url: String) => {
         val data: JsValue = Json.obj(
-          "status" -> message,
           "original_postback" -> adProviderRequest,
           "ad_provider" -> verificationInfo.adProviderName,
           "reward_quantity" -> verificationInfo.rewardQuantity,
