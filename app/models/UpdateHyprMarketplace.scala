@@ -63,7 +63,7 @@ trait UpdateHyprMarketplace extends JsonConversion {
    */
   def displayError(waterfallAdProviderID: Long, errorMessage: String) = {
     unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ waterfallAdProviderID
-    println(errorMessage + "\nWaterfallAdProvider ID: " + waterfallAdProviderID)
+    println(errorMessage + "\nWaterfallAdProvider ID: " + waterfallAdProviderID + "\n")
   }
 
   /**
@@ -101,7 +101,7 @@ trait UpdateHyprMarketplace extends JsonConversion {
                       }
                     }
                   } else {
-                    displayError(wap.id, "Received an unsuccessful 200 response from Player")
+                    displayError(wap.id, "Ad network already exists in Player")
                   }
                 }
                 case _ => {

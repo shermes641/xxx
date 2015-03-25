@@ -72,6 +72,7 @@ object Script extends JsonConversion with UpdateHyprMarketplace {
 
       if(unsuccessfulWaterfallAdProviderIDs.size > 0) {
         println("Ad networks were not created for the following WaterfallAdProvider IDs: [ " + unsuccessfulWaterfallAdProviderIDs.mkString(", ") + " ]")
+        println("This may be due to the fact that Ad networks already exist for these WaterfallAdProviders.  Check the output above for the reason why each WaterfallAdProvider was not updated.")
       } else if(successfulWaterfallAdProviderIDs.size != adProviders.size) {
         println("Not all WaterfallAdProviders were successfully updated yet.  Player is taking a while to respond to requests but we will log any errors as we receive them.")
       } else {
