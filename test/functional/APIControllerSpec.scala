@@ -6,6 +6,7 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
+import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
 import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
@@ -21,7 +22,10 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   }
 
   val (completionApp, completionWaterfall, _, _) = running(FakeApplication(additionalConfiguration = testDB)) {
-    setUpApp(distributor.id.get)
+    val (completionApp, completionWaterfall, _, _) = setUpApp(distributor.id.get)
+    WaterfallAdProvider.create(completionWaterfall.id, adProviderID1.get, None, None, true, true).get
+    DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(completionWaterfall.id, None)}
+    (completionApp, completionWaterfall, None, None)
   }
 
   "APIController.appConfigV1" should {
