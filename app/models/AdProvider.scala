@@ -154,12 +154,17 @@ object AdProvider extends JsonConversion {
         "Your Report Key can be found on the AppLovin dashboard.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
       }
 
+      val appLovinAppNameDescription = {
+        "Your application name can be found in AppLovin's dashboard.  This is the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
+      }
+
       "{" +
         "\"requiredParams\":[" +
           "{\"description\": \"" + sdkKeyDescription + "\", \"displayKey\": \"SDK Key\", \"key\": \"sdkKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": true, \"minLength\": 4}" +
         "], " +
         "\"reportingParams\": [" +
-          "{\"description\": \"" + reportingDescription + "\", \"displayKey\": \"Report Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
+          "{\"description\": \"" + reportingDescription + "\", \"displayKey\": \"Report Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}," +
+          "{\"description\": \"" + appLovinAppNameDescription + "\", \"displayKey\": \"Application Name\", \"key\": \"appName\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
         "], " +
         "\"callbackParams\": [" +
         "]" +
