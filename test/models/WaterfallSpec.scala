@@ -64,10 +64,10 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       val wapID = WaterfallAdProvider.create(currentWaterfallID, adProviderID1.get, Some(0), None, true, true).get
       val wap = WaterfallAdProvider.find(wapID).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wapID, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
-      WaterfallAdProvider.findAllOrdered(currentWaterfallID, true)(0).waterfallAdProviderID must beEqualTo(wapID)
+      WaterfallAdProvider.findAllOrdered(currentWaterfallID).filter(_.active)(0).waterfallAdProviderID must beEqualTo(wapID)
       val configList: List[controllers.ConfigInfo] = List(new controllers.ConfigInfo(wapID, false, false, 0, None, true, false))
       DB.withTransaction { implicit connection => Waterfall.reconfigureAdProviders(currentWaterfallID, configList) }
-      WaterfallAdProvider.findAllOrdered(currentWaterfallID, true).size must beEqualTo(0)
+      WaterfallAdProvider.findAllOrdered(currentWaterfallID).count(_.active) must beEqualTo(0)
     }
 
     "should return false if the update is not successful" in new WithDB {
