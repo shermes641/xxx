@@ -57,7 +57,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       val user = DistributorUser.findByEmail(email).get
       logInUser()
       browser.goTo(controllers.routes.DistributorUsersController.logout.url)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
       browser.pageSource must contain("Welcome Back")
     }
   }
@@ -69,8 +69,8 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
 
       logInUser()
 
-      browser.goTo(controllers.routes.DistributorUsersController.login.url)
-      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
+      browser.goTo(controllers.routes.DistributorUsersController.login(None).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
     }
 
     "redirect to the Analytics page from signup if user is authenticated" in new WithFakeBrowser {
@@ -80,7 +80,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       logInUser()
 
       browser.goTo(controllers.routes.DistributorUsersController.signup.url)
-      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
     }
   }
 }

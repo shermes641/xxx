@@ -17,20 +17,13 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @param appID ID of the Waterfall being edited
    * @return Redirects to edit page if app with waterfall exists.
    */
-  def list(distributorID: Long, appID: Long, flashMessage: Option[String] = None) = withAuth(Some(distributorID)) { username => implicit request =>
+  def list(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     App.findAppWithWaterfalls(appID, distributorID) match {
       case Some(app) => {
-        flashMessage match {
-          case Some(message: String) => {
-            Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID)).flashing("success" -> message)
-          }
-          case None => {
-            Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID))
-          }
-        }
+          Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID))
       }
       case None => {
-        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None, Some(false)))
       }
     }
   }
@@ -51,7 +44,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
       }
       case None => {
-        Redirect(routes.AnalyticsController.show(distributorID, None)).flashing("error" -> "Waterfall could not be found.")
+        Redirect(routes.AnalyticsController.show(distributorID, None, Some(false)))
       }
     }
   }
@@ -174,14 +167,14 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         Redirect(routes.WaterfallsController.edit(distributorID, waterfallID))
       }
       case (_, Some(appID)) => {
-        Redirect(routes.WaterfallsController.list(distributorID, appID, None))
+        Redirect(routes.WaterfallsController.list(distributorID, appID))
       }
       case (None, None) => {
         val apps = App.findAllAppsWithWaterfalls(distributorID)
         if(apps.size == 0) {
             Redirect(routes.AppsController.newApp(distributorID))
         } else {
-            Redirect(routes.WaterfallsController.list(distributorID, apps.head.id, None))
+            Redirect(routes.WaterfallsController.list(distributorID, apps.head.id))
         }
       }
     }

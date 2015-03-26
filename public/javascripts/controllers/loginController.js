@@ -1,9 +1,13 @@
-distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'fieldsFilled',
-        function($scope, $http, $routeParams, $window, fieldsFilled) {
+distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'fieldsFilled', 'flashMessage',
+        function($scope, $http, $routeParams, $window, fieldsFilled, flashMessage) {
             $scope.invalidForm = true;
             $scope.waitForAuth = false;
             $scope.inactiveClass = "inactive";
             $scope.errors = {};
+            $scope.flashMessage = flashMessage;
+            if($routeParams.recently_logged_out === "true") {
+                flashMessage.add({message: "You are now logged out.", status: "success"});
+            }
 
             $scope.checkInputs = function() {
                 $scope.errors = {};

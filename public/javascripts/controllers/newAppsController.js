@@ -1,11 +1,12 @@
-appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams',
-        function( $scope, $window, $http, $routeParams ) {
+appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'flashMessage',
+        function( $scope, $window, $http, $routeParams, flashMessage ) {
             $('body').addClass('new-app-page');
 
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
             $scope.newAppPage = true;
-            $scope.systemMessage = "Your confirmation email will arrive shortly.";
             $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
+            $scope.flashMessage = flashMessage;
+            flashMessage.add({message: "Your confirmation email will arrive shortly.", status: "success"});
 
             // Submit form if fields are valid.
             $scope.submitNewApp = function(form) {
@@ -24,7 +25,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
                             } else {
-                                $scope.systemMessage = data.message;
+                                flashMessage.add(data);
                             }
                         });
                 }

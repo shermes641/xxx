@@ -1,5 +1,5 @@
-mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout',
-        function( $scope, $http, $routeParams, $filter, $timeout ) {
+mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', 'flashMessage',
+        function( $scope, $http, $routeParams, $filter, $timeout, flashMessage ) {
             // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
             $scope.subHeader = 'assets/templates/sub_header.html';
@@ -21,6 +21,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.messages = [];
             $scope.errors = {};
             $scope.form = {};
+            $scope.flashMessage = flashMessage;
 
             // Retrieve Waterfall data
             $scope.getWaterfallData = function() {
@@ -38,7 +39,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.waterfallInfoCallComplete = true;
                 }).error(function(data) {
                     $scope.waterfallInfoCallComplete = true;
-                    $scope.flashMessage(data);
+                    flashMessage.add(data);
                 });
             };
 
@@ -75,7 +76,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
                     $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
-                    $scope.flashMessage({message: "You must activate at least one Ad Provider", status: "error"})
+                    flashMessage.add({message: "You must activate at least one Ad Provider", status: "error"});
                 }
             };
 
@@ -143,9 +144,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, params).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
                     $scope.disableTestModeToggle = checkTestModeToggle();
-                    $scope.flashMessage(data);
+                    flashMessage.add(data);
                 }).error(function(data) {
-                    $scope.flashMessage(data);
+                    flashMessage.add(data);
                 });
             };
 
@@ -158,7 +159,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     adProviderConfig.active = !adProviderConfig.active;
                     $scope.updateWaterfall();
                 } else {
-                    $scope.flashMessage({message: "At least one Ad Provider must be active", status: "error"})
+                    flashMessage.add({message: "At least one Ad Provider must be active", status: "error"});
                 }
                 $scope.disableTestModeToggle = checkTestModeToggle();
                 $scope.orderOptimizedWaterfallList();
@@ -173,7 +174,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.form.editAppForm.$setPristine();
                     $scope.form.editAppForm.$setUntouched();
                 }).error(function(data) {
-                    $scope.flashMessage(data);
+                    flashMessage.add(data);
                 });
 
                 $scope.showEditAppModal = !$scope.showEditAppModal;
@@ -202,7 +203,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
                             $scope.toggleNewAppModal();
-                            $scope.flashMessage(data);
+                            flashMessage.add(data);
                             $scope.getWaterfallData();
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
@@ -239,13 +240,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             $scope.generationNumber = data.generationNumber;
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
-                            $scope.flashMessage(data);
+                            flashMessage.add(data);
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
                             } else {
-                                $scope.flashMessage(data);
+                                flashMessage.add(data);
                             }
                         });
                 }
@@ -291,14 +292,14 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.generationNumber = data.newGenerationNumber;
                         setWAPData(data)
                     }).error(function(data) {
-                        $scope.flashMessage(data);
+                        flashMessage.add(data);
                     });
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
                         setWAPData(wapData)
                     }).error(function(data) {
-                        $scope.flashMessage(data);
+                        flashMessage.add(data);
                     });
                 }
             };
@@ -357,9 +358,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.showModal(false);
                         var restartParams = Object.keys($scope.changedRestartParams);
                         var successMessage = adProviderName + " updated!";
-                        $scope.flashMessage({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                        flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
                     }).error(function(data) {
-                        $scope.flashMessage(data);
+                        flashMessage.add(data);
                     });
                 }
             };
@@ -372,37 +373,5 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 }
                 return message;
             };
-
-            /* Flash message logic */
-            // Flashes a success/error message
-            $scope.flashMessage = function(data) {
-                var messages = $scope.messages.concat([{text: data.message, status: data.status}]);
-                if(messages.length > 3) {
-                    messages.pop();
-                }
-                $scope.messages = messages;
-                $scope.setMessageTimeout(data.message);
-            };
-
-            // Removes a flash message from the UI
-            $scope.acknowledgeMessage = function(index) {
-                var messages = $scope.messages;
-                messages.splice(index, 1);
-                $scope.messages = messages;
-            };
-
-            // Sets message timeout and removes the last flash message
-            $scope.setMessageTimeout = function(messageText) {
-                $timeout(function() {
-                    for(var index in $scope.messages) {
-                        if($scope.messages[index].text === messageText) {
-                            var messages = $scope.messages;
-                            messages.splice(index, 1);
-                            return $scope.messages = messages;
-                        }
-                    }
-                }, 5000)
-            };
-
         } ]
 );

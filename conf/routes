@@ -6,7 +6,7 @@
 GET         /                                                                                          controllers.Application.index
 
 # Login
-GET         /login                                                                                     controllers.DistributorUsersController.login
+GET         /login                                                                                     controllers.DistributorUsersController.login(recently_logged_out: Option[Boolean])
 POST        /authenticate                                                                              controllers.DistributorUsersController.authenticate
 GET         /logout                                                                                    controllers.DistributorUsersController.logout
 
@@ -21,12 +21,12 @@ GET         /distributors/:distributor_id/apps/:app_id/edit                     
 POST        /distributors/:distributor_id/apps/:app_id                                                 controllers.AppsController.update(distributor_id: Long, app_id: Long)
 
 # Analytics
-GET         /distributors/:distributor_id/analytics                                                    controllers.AnalyticsController.show(distributor_id: Long, app_id: Option[Long])
+GET         /distributors/:distributor_id/analytics                                                    controllers.AnalyticsController.show(distributor_id: Long, app_id: Option[Long], waterfall_found: Option[Boolean])
 GET         /distributors/:distributor_id/analytics/info                                               controllers.AnalyticsController.info(distributor_id: Long)
 POST        /distributors/:distributor_id/analytics/export                                             controllers.AnalyticsController.export(distributor_id: Long)
 
 # Waterfalls
-GET         /distributors/:distributor_id/apps/:app_id/waterfalls                                      controllers.WaterfallsController.list(distributor_id: Long, app_id: Long, flashMessage: Option[String])
+GET         /distributors/:distributor_id/apps/:app_id/waterfalls                                      controllers.WaterfallsController.list(distributor_id: Long, app_id: Long)
 GET         /distributors/:distributor_id/waterfalls/:waterfall_id/edit                                controllers.WaterfallsController.edit(distributor_id: Long, waterfall_id: Long)
 GET         /distributors/:distributor_id/waterfalls/:waterfall_id/waterfall_info                      controllers.WaterfallsController.waterfallInfo(distributor_id: Long, waterfall_id: Long)
 GET         /distributors/:distributor_id/waterfalls/edit                                              controllers.WaterfallsController.editAll(distributor_id: Long, waterfall_id: Option[Long], app_id: Option[Long])
