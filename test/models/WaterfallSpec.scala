@@ -3,7 +3,7 @@ package models
 import play.api.db.DB
 import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
-import play.api.libs.json.{JsString, JsObject}
+import play.api.libs.json.{JsObject}
 import resources.WaterfallSpecSetup
 import org.specs2.runner._
 
@@ -26,6 +26,34 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
       val currentWaterfall = Waterfall.find(waterfall.id, distributor.id.get).get
       currentWaterfall.optimizedOrder must beEqualTo(optimizedOrder)
       currentWaterfall.testMode must beEqualTo(testMode)
+    }
+  }
+
+  "Waterfall.findByAppID" should {
+    "return a list of Waterfalls if the app ID is found" in new WithDB {
+      val appID = App.create(distributor.id.get, "App 1").get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
+      val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "Waterfall") }
+      Waterfall.findByAppID(appID)(0).id must beEqualTo(waterfallID)
+    }
+
+    "return an empty list if the app ID is not found" in new WithDB {
+      val unknownID = 0
+      Waterfall.findByAppID(unknownID) must beEqualTo(List())
+    }
+  }
+
+  "Waterfall.find" should {
+    "return an instance of the Waterfall class if the ID is found" in new WithDB {
+      val appID = App.create(distributor.id.get, "App 3").get
+      VirtualCurrency.create(appID, "Gold", 10, 1, None, Some(true)).get
+      val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(appID, "Waterfall") }
+      Waterfall.find(waterfallID, distributor.id.get).get must haveClass[Waterfall]
+    }
+
+    "return None if the Waterfall ID is not found" in new WithDB {
+      val unknownWaterfallID = 0
+      Waterfall.find(unknownWaterfallID, distributor.id.get) must beNone
     }
   }
 
