@@ -220,7 +220,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").withText().contains("Your App must be restarted")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
