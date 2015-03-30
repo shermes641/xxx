@@ -2,6 +2,7 @@ package functional
 
 import controllers.APIController
 import models._
+import org.specs2.mock.Mockito
 import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
@@ -10,9 +11,10 @@ import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
 import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
+import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
-class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup {
+class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup with Mockito {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
     WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
   }
@@ -368,6 +370,44 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       (adProviderRequest \ "query") must haveClass[JsObject]
       (adProviderRequest \ "query" \ "time").as[String] must beEqualTo(time)
       (adProviderRequest \ "query" \ "sig").as[String] must beEqualTo(sig)
+    }
+  }
+
+  "APIController.callbackResponse" should {
+    val verificationInfo = mock[CallbackVerificationInfo]
+    verificationInfo.appToken returns completionApp.token
+    verificationInfo.adProviderName returns ""
+    verificationInfo.transactionID returns ""
+    verificationInfo.offerProfit returns Some(5.0)
+    verificationInfo.isValid returns true
+
+    val callback = mock[CallbackVerificationHelper]
+    callback.returnFailure returns APIController.BadRequest
+    callback.returnSuccess returns APIController.Ok
+    callback.verificationInfo returns verificationInfo
+
+    val completion = mock[Completion]
+    val adProviderRequest = JsObject(Seq())
+
+    "return the ad provider's default successful response if the server to server callback receives a 200 response" in new WithFakeBrowser {
+      completion.createWithNotification(verificationInfo, adProviderRequest) returns Future { true }
+      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnSuccess.header.status)
+    }
+
+    "return the ad provider's default failure response if the server to server callback does not respond with a 200" in new WithFakeBrowser {
+      completion.createWithNotification(verificationInfo, adProviderRequest) returns Future { false }
+      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
+    }
+
+    "return the ad provider's default failure response if the server to server callback times out" in new WithFakeBrowser {
+      completion.createWithNotification(verificationInfo, adProviderRequest) returns Future { Thread.sleep(APIController.DefaultTimeout + 1000); true }
+      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
+    }
+
+    "return the ad provider's default failure response if the incoming request was not valid" in new WithFakeBrowser {
+      verificationInfo.isValid returns false
+      completion.createWithNotification(verificationInfo, adProviderRequest) returns Future { true }
+      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
   }
 }

@@ -11,8 +11,9 @@ import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.language.postfixOps
 
-object Completion extends Completion
-
+/**
+ * Encapsulates information pertaining to a successful server to server callback.
+ */
 class Completion extends JsonConversion {
   /**
    * Creates a new record in the completions table.

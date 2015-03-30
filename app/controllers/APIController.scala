@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.concurrent.TimeoutException
 import models._
 import play.api.mvc._
 import play.api.libs.json._
@@ -9,6 +10,8 @@ import scala.language.implicitConversions
 import scala.language.postfixOps
 
 object APIController extends Controller {
+  val DefaultTimeout = 5000 // The default timeout for all server to server calls (in milliseconds).
+
   /**
    * Responds with configuration JSON from the app_configs table.
    * @param appToken Random string which both authenticates the request and identifies the app.
@@ -143,14 +146,19 @@ object APIController extends Controller {
    * Creates a Completion if the reward callback is valid and notifies the Distributor if server to server callbacks are enabled.
    * @param callback Any class instance which extends CallbackVerificationHelper.  This encapsulates callback information to determine the validity of the incoming request.
    * @param adProviderRequest The original postback from the ad provider.
+   * @param completion A new instance of the Completion class.
    * @return Creates a Completion if the callback if valid and notifies the Distributor if server to server callbacks are enabled; otherwise, returns None.
    */
-  def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue) = {
+  def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue, completion: Completion = new Completion) = {
     callback.verificationInfo.isValid match {
       case true => {
-        Await.result(Completion.createWithNotification(callback.verificationInfo, adProviderRequest), Duration(5000, "millis")) match {
-          case true => callback.returnSuccess
-          case false => callback.returnFailure
+        try {
+          Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest), Duration(DefaultTimeout, "millis")) match {
+            case true => callback.returnSuccess
+            case false => callback.returnFailure
+          }
+        } catch {
+          case _: TimeoutException => callback.returnFailure
         }
       }
       case false => callback.returnFailure
