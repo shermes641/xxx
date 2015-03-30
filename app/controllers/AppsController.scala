@@ -86,10 +86,11 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                     val persistedApp = App.findWithTransaction(appID)
                     (waterfallID, virtualCurrencyID, persistedApp) match {
                       case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
-                        AppConfig.create(appID, app.token, 0)
                         // Set up HyprMarketplace ad provider
-                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), Option(20), configurable = false, active = false, pending = true)
+                        val hyprMarketplace = AdProvider.HyprMarketplace
+                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), hyprMarketplace.defaultEcpm, hyprMarketplace.configurable, active = false, pending = true)
                         val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
+                        AppConfig.create(appID, app.token, 0)
                         (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                           case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
                             val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))

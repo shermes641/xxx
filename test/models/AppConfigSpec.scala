@@ -120,6 +120,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
     "return the test mode response when the Waterfall is in test mode" in new WithAppDB(distributor.id.get) {
       DB.withTransaction { implicit connection =>
+        WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
         AppConfig.responseV1(currentApp.token) must beEqualTo(AppConfig.testResponseV1)
       }
     }
@@ -136,7 +137,9 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     }
 
     "return a response with testMode equal to true when a Waterfall is in test mode" in new WithAppDB(distributor.id.get) {
-      currentAppConfig.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
+      AppConfig.findLatest(currentApp.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
     }
   }
 }

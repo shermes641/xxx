@@ -113,29 +113,6 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
-   * Updates the waterfallOrder of all WaterfallAdProviders passed in.
-   * @param adProviderList A list of WaterfallAdProvider IDs to be updated.
-   * @return True if all updates were successful.  Otherwise, returns false.
-   */
-  def updateWaterfallOrder(adProviderList: List[String]): Boolean = {
-    var successful = true
-    for((adProviderID, index) <- adProviderList.view.zipWithIndex) {
-      val updatableClass = WaterfallAdProvider.find(adProviderID.toLong) match {
-        case Some(record) => {
-          // The new waterfallOrder number is updated according to the position of each WaterfallAdProvider in the list.
-          val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, Some(index + 1), record.cpm, record.active, record.fillRate, record.configurationData, record.reportingActive, record.pending)
-          update(updatedValues) match {
-            case 1 => {}
-            case _ => successful = false
-          }
-        }
-        case _ => successful = false
-      }
-    }
-    successful
-  }
-
-  /**
    * SQL for inserting a new record in the waterfall_ad_providers table.
    * @param waterfallID ID of the Waterfall to which the new WaterfallAdProvider belongs
    * @param adProviderID ID of the Ad Provider to which the new WaterfallAdProvider belongs
@@ -285,18 +262,15 @@ object WaterfallAdProvider extends JsonConversion {
    * @param waterfallID ID of the Waterfall to which the WaterfallAdProvider records belong.
    * @return A list of OrderedWaterfallAdProvider instances if any exist.  Otherwise returns an empty list.
    */
-  def findAllOrdered(waterfallID: Long, active: Boolean = false): List[OrderedWaterfallAdProvider] = {
+  def findAllOrdered(waterfallID: Long): List[OrderedWaterfallAdProvider] = {
     DB.withConnection { implicit connection =>
-      val activeClause = if(active) " AND active = true " else ""
       val sqlStatement =
         """
           SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable, pending FROM ad_providers
           JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
           WHERE waterfall_id = {waterfall_id}
-        """ + activeClause +
-          """
           ORDER BY waterfall_order ASC;
-          """
+        """
       val query = SQL(sqlStatement).on("waterfall_id" -> waterfallID)
       query.as(waterfallAdProviderOrderParser*).toList
     }

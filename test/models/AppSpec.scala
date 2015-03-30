@@ -143,8 +143,10 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
       App.updateAppConfigRefreshInterval(currentApp.id, 500) must beEqualTo(false)
       val latestConfig = AppConfig.findLatest(currentApp.token).get
       latestConfig.generationNumber must beEqualTo(originalConfig.generationNumber)
-      latestConfig.configuration.as[JsObject] must beEqualTo(currentAppConfig.configuration)
-      (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long] must beEqualTo(currentAppConfig.generationNumber)
+      latestConfig.configuration.as[JsObject] must beEqualTo(originalConfig.configuration)
+      val originalRefreshInterval = (originalConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long]
+      val latestRefreshInterval = (latestConfig.configuration.as[JsObject] \ "appConfigRefreshInterval").as[JsNumber].as[Long]
+      originalRefreshInterval must beEqualTo(latestRefreshInterval)
     }
 
     "return false if the App ID is not found" in new WithDB {

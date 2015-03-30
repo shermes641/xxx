@@ -51,7 +51,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     val updatedWaterfallAdProvider1 = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, Some(1), None, Some(true), None, configurationJson, false)
     WaterfallAdProvider.update(updatedWaterfallAdProvider1)
 
-    val updatedWaterfallAdProvider2 = new WaterfallAdProvider(waterfallAdProvider2.id, waterfall.id, adProviderID2.get, Some(1), None, Some(true), None, configurationJson, false)
+    val updatedWaterfallAdProvider2 = new WaterfallAdProvider(waterfallAdProvider2.id, waterfall.id, adProviderID2.get, Some(2), None, Some(true), None, configurationJson, false)
     WaterfallAdProvider.update(updatedWaterfallAdProvider2)
   }
 
@@ -69,16 +69,48 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     "update the WaterfallAdProvider record in the database" in new WithDB {
       val newWaterfallOrder = Some(1.toLong)
       val updatedWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, newWaterfallOrder, None, Some(true), None, configurationJson, false)
-      WaterfallAdProvider.update(updatedWaterfallAdProvider)
+      WaterfallAdProvider.update(updatedWaterfallAdProvider) must beEqualTo(1)
       val retrievedWaterfallAdProvider = WaterfallAdProvider.find(waterfallAdProvider1.id).get
       retrievedWaterfallAdProvider.waterfallOrder.get must beEqualTo(newWaterfallOrder.get)
+    }
+
+    "return 0 if the WaterfallAdProvider is not update successfully" in new WithDB {
+      val unknownID = 0
+      val updatedWaterfallAdProvider = new WaterfallAdProvider(unknownID, waterfall.id, adProviderID1.get, Some(1), None, Some(true), None, configurationJson, false)
+      WaterfallAdProvider.update(updatedWaterfallAdProvider) must beEqualTo(0)
+    }
+  }
+
+  "WaterfallAdProvider.find" should {
+    "return an instance of the WaterfallAdProvider class if a record is found" in new WithDB {
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get must haveClass[WaterfallAdProvider]
+    }
+
+    "return None if a WaterfallAdProvider could not be found" in new WithDB {
+      val unknownID = 0
+      WaterfallAdProvider.find(unknownID) must beNone
+    }
+  }
+
+  "WaterfallAdProvider.findAllByWaterfallID" should {
+    "return a list of WaterfallAdProvider instances if the Waterfall ID is found" in new WithDB {
+      val waterfallAdProviders = WaterfallAdProvider.findAllByWaterfallID(waterfall.id)
+      waterfallAdProviders.size must beEqualTo(2)
+      waterfallAdProviders.map { wap => wap must haveClass[WaterfallAdProvider] }
+    }
+
+    "return an empty list if the Waterfall ID is not found" in new WithDB {
+      val unknownID = 0
+      WaterfallAdProvider.findAllByWaterfallID(unknownID).size must beEqualTo(0)
     }
   }
 
   "WaterfallAdProvider.findAllOrdered" should {
-    "return a list of ad provider names ordered by an ascending waterfall_order number" in new WithDB {
-      val currentOrder = WaterfallAdProvider.findAllOrdered(waterfall.id, true)
+    "return a list of WaterfallAdProvider instances ordered by waterfallOrder ascending" in new WithDB {
+      val currentOrder = WaterfallAdProvider.findAllOrdered(waterfall.id)
+      currentOrder.size must beEqualTo(2)
       currentOrder(0).waterfallOrder.get must beEqualTo(1)
+      currentOrder(1).waterfallOrder.get must beEqualTo(2)
     }
   }
 
@@ -93,29 +125,11 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
   }
 
-  "WaterfallAdProvider.udpateWaterfallOrder" should {
-    "update the waterfallOrder number for each ID in the list" in new WithDB {
-      running(FakeApplication(additionalConfiguration = testDB)) {
-        val updatableList = List(waterfallAdProvider2.id.toString(), waterfallAdProvider1.id.toString())
-        WaterfallAdProvider.updateWaterfallOrder(updatableList)
-        WaterfallAdProvider.find(waterfallAdProvider2.id).get.waterfallOrder.get must beEqualTo(1)
-        WaterfallAdProvider.find(waterfallAdProvider1.id).get.waterfallOrder.get must beEqualTo(2)
-      }
-    }
-
-    "return false when the update is unsuccessful" in new WithDB {
-      val listWithFakeIDs = List("10", "11", "12")
-      WaterfallAdProvider.updateWaterfallOrder(listWithFakeIDs) must beEqualTo(false)
-    }
-  }
-
   "WaterfallAdProvider.findConfigurationData" should {
     "return an instance of WaterfallAdProviderConfig containing configuration data for both WaterfallAdProvider and AdProvider" in new WithDB {
       val configData = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get }
       val params = (configData.adProviderConfiguration \ "requiredParams").as[List[JsValue]]
-      params.map { param =>
-        configurationParams must contain((param \ "key").as[String])
-      }
+      params.map { param => configurationParams must contain((param \ "key").as[String]) }
       val waterfallAdProviderParams = configData.waterfallAdProviderConfiguration \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configurationValues(0))
     }
@@ -202,6 +216,33 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     "return true if any field in the JSON argument has an empty JsArray value" in new WithDB {
       val jsonConfig = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsArray(Seq())))))
       WaterfallAdProvider.unconfigured(jsonConfig, "requiredParams") must beTrue
+    }
+  }
+
+  "WaterfallAdProvider.updateEcpm" should {
+    "update the eCPM for the WaterfallAdProvider" in new WithDB {
+      val newEcpm = 15.0
+      val newGeneration = DB.withTransaction { implicit connection =>
+        WaterfallAdProvider.updateEcpm(waterfallAdProvider1.id, newEcpm).get
+      }
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
+    }
+
+    "return the latest generation number if the WaterfallAdProvider is updated successfully" in new WithDB {
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false)
+      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      val originalGeneration = AppConfig.findLatest(currentApp.token).get.generationNumber
+      val newGeneration = DB.withTransaction { implicit connection =>
+        WaterfallAdProvider.updateEcpm(waterfallAdProvider1.id, 5.0).get
+      }
+      newGeneration must beEqualTo(originalGeneration + 1)
+    }
+
+    "return None if the eCPM is not updated successfully" in new WithDB {
+      val unknownWaterfallAdProviderID = 0
+      DB.withTransaction { implicit connection =>
+        WaterfallAdProvider.updateEcpm(unknownWaterfallAdProviderID, 5.0) must beNone
+      }
     }
   }
 }
