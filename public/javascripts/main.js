@@ -254,6 +254,32 @@ mediationModule.directive(callbackValidator, function() {
     };
 });
 
+var passwordConfirmation = 'passwordConfirmation';
+
+mediationModule.directive(passwordConfirmation, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function(confirmation) {
+                var password = attrs.passwordConfirmation;
+                if(password !== undefined && password.length > 7) {
+                    ctrl.$setValidity(passwordConfirmation, confirmation === password);
+                } else {
+                    ctrl.$setValidity(passwordConfirmation, true);
+                }
+                return confirmation;
+            };
+
+            ctrl.$parsers.unshift(validate);
+            ctrl.$formatters.push(validate);
+
+            attrs.$observe(passwordConfirmation, function(password){
+                return validate(ctrl.$viewValue);
+            });
+        }
+    };
+});
+
 // Filters
 angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
     return function(value) {

@@ -31,6 +31,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.fill("#confirmation").`with`("password2")
       browser.$("#terms").click()
       browser.find("#confirmation-errors").first().isDisplayed
+      browser.find("#confirmation-errors").first().getText must beEqualTo("Password confirmation doesn't match Password.")
     }
   }
 
