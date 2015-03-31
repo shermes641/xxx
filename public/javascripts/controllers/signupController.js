@@ -27,7 +27,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
                     return({message: "Password must be a minimum of 8 characters.", fieldName: "password"});
                 }
                 if($scope.data.password != $scope.data.confirmation) {
-                    return({message: "Password does not match confirmation.", fieldName: "password"});
+                    return({message: "Password confirmation doesn't match Password.", fieldName: "confirmation"});
                 }
                 return {};
             };

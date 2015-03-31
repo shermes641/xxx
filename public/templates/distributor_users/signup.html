@@ -40,10 +40,10 @@
 
             <dl id="confirmation_field">
                 <dt><label for="confirmation"></label></dt>
-                <dd ng-class="errors.confirmation">
+                <dd ng-class="errors.confirmationClass">
                     <input ng-model="data.confirmation" ng-change="checkInputs()" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)" required/>
                 </dd>
-                <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
+                <div id="confirmation-errors" ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
                     <dd class="error">{{errors.confirmation}}</dd>
                     <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.required">Password confirmation is required</dd>
                 </div>
