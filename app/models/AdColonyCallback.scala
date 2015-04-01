@@ -7,7 +7,7 @@ import play.api.mvc.Controller
  * Companion object to define DefaultFailure used in the APIController.
  */
 object AdColonyCallback extends Controller {
-  val DefaultFailure = BadRequest("vc_decline")
+  val DefaultFailure = Ok("vc_decline")
 }
 
 /**
