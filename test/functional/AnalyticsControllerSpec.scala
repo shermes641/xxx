@@ -32,7 +32,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
   "Analytics show action" should {
     "show analytics for an app" in new WithAppBrowser(distributorID) {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
       browser.pageSource must contain("Analytics")
     }
 
@@ -51,7 +51,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       logInUser()
 
       val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Ad Providers should be selected
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad_providers_filter").containsText("All Ad Providers")
@@ -66,7 +66,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Countries should be selected
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter").containsText("All Countries")
@@ -85,7 +85,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "date picker should be setup correctly" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       var date = DateTime.now
       // End date must be todays date
@@ -97,7 +97,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // eCPM metric
       waitUntilContainsText("#ecpm_metric_container", "Average eCPM")
@@ -111,7 +111,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
     "Check Analytics configuration info JSON" in new WithAppBrowser(distributorID) {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       val request = FakeRequest(
         GET,
@@ -138,14 +138,14 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       logInUser(maliciousUser.email, password)
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id)).url)
-      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id), None).url)
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None, None).url)
     }
 
     "export analytics data as csv" in new WithAppBrowser(distributorUser.distributorID.get) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
       clickAndWaitForAngular("#export_as_csv")
       browser.fill("#export_email").`with`("test@test.com")
       clickAndWaitForAngular("#export_submit")
@@ -156,7 +156,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "export analytics data as csv must fail with invalid email" in new WithAppBrowser(distributorUser.distributorID.get) {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
       clickAndWaitForAngular("#export_as_csv")
       browser.fill("#export_email").`with`("test@test.com")
       clickAndWaitForAngular("#export_submit")

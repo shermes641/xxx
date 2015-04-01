@@ -4,10 +4,11 @@ describe('AnalyticsController', function() {
 
 
     describe('AnalyticsController', function(){
-        var scope, testCont;
+        var scope, testCont, $window;
 
-        beforeEach(inject(function($rootScope, $controller) {
+        beforeEach(inject(function($rootScope, $controller, _$window_) {
             scope = $rootScope.$new();
+            $window = _$window_;
             testCont = $controller('AnalyticsController', {$scope: scope});
         }));
 
@@ -67,5 +68,12 @@ describe('AnalyticsController', function() {
             expect(moment(start).utc().format()).toEqual("2015-02-26T00:00:00+00:00");
             expect(moment(end).utc().add(1, 'days').format()).toEqual("2015-03-12T00:00:00+00:00");
         });
+
+        it('should trigger analytics update on resize', function(){
+            expect(scope.currentlyUpdating).toEqual(false);
+            $window.dispatchEvent(new Event('resize'));
+            expect(scope.currentlyUpdating).toEqual(true);
+        });
+
     });
 });

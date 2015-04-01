@@ -27,7 +27,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Verify Keen analytics are loading" in new WithAppBrowser(distributorID) {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // Verify analytics data has been loaded
       waitUntilContainsText("#analytics_loading_status", "Waiting...")
@@ -39,7 +39,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Update Apps drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
 
@@ -59,7 +59,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     "Update Ad Provider drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
       AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
 
@@ -80,7 +80,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       logInUser()
       AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
 
@@ -105,7 +105,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       logInUser()
       AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id)).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
 

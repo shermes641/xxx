@@ -1,7 +1,8 @@
-<div id="error-message" class="flash-message error"></div>
-<div id="success-message" class="flash-message success"></div>
-<div ng-show="systemMessage != ''" id="full-system-message">{{systemMessage}}</div>
-<form name="form.newAppForm" ng-submit="submitNewApp(form.newAppForm)">
+<div ng-hide="flashMessage.text() === ''" id="new-app-message" class="full-{{flashMessage.displayClass()}}-message">
+    {{flashMessage.text()}}
+</div>
+<div ng-show="systemMessage !== ''" class="system-message"></div>
+<form id="new-app-form" name="form.newAppForm" ng-submit="submitNewApp(form.newAppForm)">
     <div data-distributor-id="{{distributorID}}" id="new-app" class="app-form">
         <h1>{{newAppModalTitle}}</h1>
         <div ng-show="newAppPage">

@@ -192,11 +192,11 @@ object Waterfall extends JsonConversion {
         SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, apps.app_config_refresh_interval, distributors.id as distributor_id, distributors.name as distributor_name,
         wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
         FROM waterfalls w
-        FULL OUTER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
-        FULL OUTER JOIN ad_providers ap on ap.id = wap.ad_provider_id
-        FULL OUTER JOIN virtual_currencies vc on vc.app_id = w.app_id
-        FULL OUTER JOIN apps on apps.id = vc.app_id
-        FULL OUTER JOIN distributors on apps.distributor_id = distributors.id
+        INNER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
+        INNER JOIN ad_providers ap on ap.id = wap.ad_provider_id
+        INNER JOIN virtual_currencies vc on vc.app_id = w.app_id
+        INNER JOIN apps on apps.id = vc.app_id
+        INNER JOIN distributors on apps.distributor_id = distributors.id
         WHERE apps.token={app_token}
         ORDER BY wap.waterfall_order ASC
       """

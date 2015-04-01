@@ -12,7 +12,7 @@ import collection.JavaConversions._
 import scala.language.implicitConversions
 
 object AnalyticsController extends Controller with Secured {
-  def show(distributorID: Long, currentAppID: Option[Long]) = withAuth(Some(distributorID)) { username => implicit request =>
+  def show(distributorID: Long, currentAppID: Option[Long], waterfallFound: Option[Boolean]) = withAuth(Some(distributorID)) { username => implicit request =>
     val apps = App.findAllAppsWithWaterfalls(distributorID)
     if(apps.size == 0) {
       Redirect(routes.AppsController.newApp(distributorID))

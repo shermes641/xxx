@@ -42,6 +42,43 @@ mediationModule.factory('fieldsFilled', [function(data, requiredFields) {
     };
 }]);
 
+// All controllers use this factory to display flash messages in the UI.
+mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
+    var currentMessage = '';
+    var messageClass = '';
+    var messageQueue = [];
+
+    // Iterate through the message queue, showing each message for 5 seconds.
+    var displayMessages = function() {
+        var lastMessage = messageQueue.shift();
+        currentMessage = lastMessage.message;
+        messageClass = lastMessage.status;
+
+        $timeout(function() {
+            currentMessage = '';
+            messageClass = '';
+            if(messageQueue.length > 0) {
+                displayMessages();
+            }
+        }, 5000);
+    };
+
+    return {
+        add: function(data) {
+            messageQueue.push(data);
+            if(currentMessage === '') {
+                displayMessages();
+            }
+        },
+        displayClass: function() {
+            return messageClass;
+        },
+        text: function() {
+            return currentMessage;
+        }
+    }
+}]);
+
 // Directives
 mediationModule.directive('modalDialog', function($rootScope) {
     return {

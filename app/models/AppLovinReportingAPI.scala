@@ -17,7 +17,7 @@ case class AppLovinReportingAPI(wapID: Long, configurationData: JsValue) extends
     val reportingParams = configurationData \ "reportingParams"
     val appName = (reportingParams \ "appName").as[String]
     val apiKey = (reportingParams \ "APIKey").as[String]
-    val date = dateFormat.format(calendar.getTime)
+    val date = currentTime.toString(dateFormat)
     List("api_key" -> apiKey, "start" -> date, "end" -> date, "format" -> "json", "columns" -> "application,impressions,clicks,ctr,revenue,ecpm", "filter_application" -> appName)
   }
 }

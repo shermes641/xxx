@@ -5,14 +5,19 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routeParams', '$filter', '$timeout', '$rootScope',
-    function($scope, $http, $routeParams, $filter, $timeout, $rootScope) {
+mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage',
+    function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
         $scope.updatingStatus = "Updating...";
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
+        $scope.flashMessage = flashMessage;
+
+        if($routeParams.waterfall_found === "false") {
+            flashMessage.add({message: "Waterfall could not be found.", status: "error"});
+        }
 
         // Retrieve Waterfall data
         $http.get('/distributors/' + $routeParams.distributorID + '/analytics/info').success(function(data) {
@@ -592,6 +597,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$http', '$routePar
         $scope.$watch('showExportModal', function(current){
             $rootScope.bodyClass = current ? "modal-active" : "";
         }, true);
+
+        /**
+         * Trigger analytics update on window resize
+         */
+        angular.element($window).bind('resize', function () {
+            $scope.setDefaultAnalyticsConfig();
+            $scope.updateAnalytics();
+        });
 
         /**
          * set Export Modal defaults

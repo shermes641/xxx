@@ -1,7 +1,6 @@
 package models
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import com.github.nscala_time.time.Imports._
 import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
@@ -25,16 +24,14 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
   val appID = "Some App ID"
   val placementID = "Some Placement ID"
   val apiKey = "Some API Key"
-  val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-  val calendar = Calendar.getInstance
-  val endDate = dateFormat.format(calendar.getTime)
-  calendar.add(Calendar.DAY_OF_YEAR, -1)
-  val startDate = dateFormat.format(calendar.getTime)
-  val hashParams = Map("app_id" -> appID, "end_date" -> endDate, "placement_id" -> placementID, "start_date" -> startDate)
+  val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
+  val currentTime = new DateTime(DateTimeZone.UTC)
+  val date = currentTime.toString(dateFormat)
+  val hashParams = Map("app_id" -> appID, "end_date" -> date, "placement_id" -> placementID, "start_date" -> date)
   val hashableString = hashParams.flatMap((k) => List(k._1 + "=" +  k._2)).mkString("&") + "&" + apiKey
   val hashValue = Codecs.sha1(hashableString)
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString(apiKey), "placementID" -> JsString(placementID), "appID" -> JsString(appID)))))
-  val queryString = List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> startDate, "end_date" -> endDate, "hash_value" -> hashValue)
+  val queryString = List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> date, "end_date" -> date, "hash_value" -> hashValue)
   val response = mock[WSResponse]
   val hyprMarketplace = running(FakeApplication(additionalConfiguration = testDB)) { spy(new HyprMarketplaceReportingAPI(waterfallAdProvider1.id, configurationData)) }
 

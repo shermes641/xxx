@@ -31,7 +31,7 @@
         <div ng-view></div>
         <div class="content-wrapper">
             <header>
-                <a id="logo" href="@routes.AnalyticsController.show(distributorID, appID)" target="_self" class=@{if(title == "") "inactive-link" else ""}>
+                <a id="logo" href="@routes.AnalyticsController.show(distributorID, appID, None)" target="_self" class=@{if(title == "") "inactive-link" else ""}>
                     <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
                 </a>
                 <div class="actions">
@@ -46,7 +46,7 @@
                         </div>
                     }
                     <div class="header-actions">
-                        <a href="http://documentation.hyprmx.com">Documentation</a>
+                        <a target="_blank" href="http://documentation.hyprmx.com">Documentation</a>
                     </div>
                 </div>
             </header>
@@ -62,7 +62,7 @@
             <div class="push"></div>
         </div>
         <footer>
-            <span>&copy; 2014 HyprMX. All Rights Reserved</span>
+            <span>&copy; 2015 HyprMX. All Rights Reserved</span>
             <span><a target="_blank" href="http://jungroup.com/pp.html">Privacy Policy</a></span>
             <span class="last"><a target="_blank" href="http://jungroup.com/tou.html">Terms of Use</a></span>
             <br>

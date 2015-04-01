@@ -1,7 +1,6 @@
 package models
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import com.github.nscala_time.time.Imports._
 import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
@@ -21,9 +20,9 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }
 
-  val dateFormat = new SimpleDateFormat("MMddyyyy")
-  val calendar = Calendar.getInstance
-  val date = dateFormat.format(calendar.getTime)
+  val dateFormat = DateTimeFormat.forPattern("MMddyyyy")
+  val currentTime = new DateTime(DateTimeZone.UTC)
+  val date = currentTime.toString(dateFormat)
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq("appID" -> JsString("Some App ID"))), "reportingParams" -> JsObject(Seq("APIKey" -> JsString("some API Key")))))
   val queryString = List("user_credentials" -> (configurationData \ "reportingParams" \ "APIKey").as[String], "date" -> date, "app_id" -> (configurationData \ "requiredParams" \ "appID").as[String])
   val response = mock[WSResponse]

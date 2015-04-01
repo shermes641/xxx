@@ -4,10 +4,10 @@
         <div ng-include="subHeader"></div>
         <div ng-include="appList"></div>
         <div id="waterfall-edit" class="split_content waterfall_list">
-            <div ng-repeat="message in messages" ng-click="acknowledgeMessage($index)" id="waterfall-edit-message" class="full-{{message.status}}-message">
-                {{message.text}}
+            <div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
+                {{flashMessage.text()}}
             </div>
-            <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-error-message">
+            <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-static-message">
                 You are currently working in Test Mode.
             </div>
             <div id="edit-top">
@@ -71,7 +71,7 @@
                 Click here for HyprMediate initialization code snippet
                 <div class="code-block">
                     <div class="waterfall-edit-description">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
+                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code">
                         // Be sure to define myUsersUniqueId() using whatever strategy you choose to generate a user ID.
