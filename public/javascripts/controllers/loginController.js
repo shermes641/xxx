@@ -1,6 +1,5 @@
 distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage',
         function($scope, $http, $routeParams, $window, flashMessage) {
-            $scope.invalidForm = true;
             $scope.waitForAuth = false;
             $scope.errors = {};
             $scope.flashMessage = flashMessage;
