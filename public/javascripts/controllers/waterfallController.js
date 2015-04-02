@@ -1,5 +1,5 @@
-mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', 'flashMessage',
-        function( $scope, $http, $routeParams, $filter, $timeout, flashMessage ) {
+mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs',
+        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs ) {
             // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
             $scope.subHeader = 'assets/templates/sub_header.html';
@@ -30,7 +30,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.waterfallData = data;
                     $scope.appName = data.waterfall.appName;
                     $scope.appID = data.waterfall.appID;
+                    sharedIDs.setAppID($scope.appID);
                     $scope.distributorID = $routeParams.distributorID;
+                    sharedIDs.setDistributorID($scope.distributorID);
                     $scope.generationNumber = data.generationNumber;
                     $scope.appToken = data.waterfall.appToken;
                     $scope.disableTestModeToggle = checkTestModeToggle();
@@ -199,12 +201,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Submit form if fields are valid.
             $scope.submitNewApp = function(form) {
                 if(form.$valid) {
+                    var distributorID = $routeParams.distributorID;
                     setNumberValues("newApp");
-                    $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
+                    $http.post('/distributors/' + distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
                             $scope.toggleNewAppModal();
+                            $location.path('/distributors/' + distributorID + '/waterfalls/' + data.waterfallID + '/edit').replace();
                             flashMessage.add(data);
-                            $scope.getWaterfallData();
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;

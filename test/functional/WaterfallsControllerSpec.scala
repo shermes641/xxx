@@ -387,6 +387,20 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       clickAndWaitForAngular("a[name=waterfalls]")
       browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
     }
+
+    "redirect to the new waterfall page when an app is created" in new WithAppBrowser(distributor.id.get) {
+      val newAppName = "New Unique App Name"
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      clickAndWaitForAngular("#create_new_app")
+      browser.fill("input").`with`(newAppName, "Coins", "1")
+      clickAndWaitForAngular("#create-app")
+      val newestApp = App.findAll(distributor.id.get).filter(_.name == newAppName)(0)
+      val newestWaterfall = Waterfall.findByAppID(newestApp.id)(0)
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newestWaterfall.id).url)
+      browser.pageSource must contain(newAppName + " Waterfall")
+    }
   }
 
   "WaterfallsController.editAll" should {

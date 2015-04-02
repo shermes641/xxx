@@ -26,27 +26,30 @@
         <script src="@routes.Assets.at("javascripts/controllers/signupController.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/controllers/loginController.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/controllers/browserSupportController.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("javascripts/controllers/headerController.js")" type="text/javascript"></script>
     </head>
     <body ng-class="bodyClass" ng-app="MediationModule">
         <div ng-view></div>
         <div class="content-wrapper">
             <header>
-                <a id="logo" href="@routes.AnalyticsController.show(distributorID, appID, None)" target="_self" class=@{if(title == "") "inactive-link" else ""}>
-                    <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
-                </a>
-                <div class="actions">
-                    @session.get("username").map { user =>
-                        <div id="username_header" class="header-actions">
-                                @session.get("username")
-                            <div id="username_dropdown">
-                                <a href="@routes.DistributorUsersController.logout()" target="_self">
-                                    Logout
-                                </a>
+                <div ng-controller="HeaderController">
+                    <a id="logo" href="{{'/distributors/' + sharedIDs.distributorID() + '/analytics?app_id=' + sharedIDs.appID()}}" target="_self" class=@{if(title == "") "inactive-link" else ""}>
+                        <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
+                    </a>
+                    <div class="actions">
+                        @session.get("username").map { user =>
+                            <div id="username_header" class="header-actions">
+                                    @session.get("username")
+                                <div id="username_dropdown">
+                                    <a href="@routes.DistributorUsersController.logout()" target="_self">
+                                        Logout
+                                    </a>
+                                </div>
                             </div>
+                        }
+                        <div class="header-actions">
+                            <a target="_blank" href="http://documentation.hyprmx.com">Documentation</a>
                         </div>
-                    }
-                    <div class="header-actions">
-                        <a target="_blank" href="http://documentation.hyprmx.com">Documentation</a>
                     </div>
                 </div>
             </header>
