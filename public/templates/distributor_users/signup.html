@@ -7,7 +7,7 @@
             <dl id="company_field">
                 <dt><label for="company"></label></dt>
                 <dd ng-class="errors.company">
-                    <input ng-model="data.company" ng-model-options="{updateOn: 'blur'}" type="text" id="company" name="company" value="" placeholder="Company Name" required/>
+                    <input ng-model="data.company" ng-model-options="{updateOn: 'default'}" type="text" id="company" name="company" value="" placeholder="Company Name" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.company.$touched">
                     <dd class="error">{{errors.company}}</dd>
@@ -18,7 +18,7 @@
             <dl id="email_field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
-                    <input ng-model="data.email" ng-model-options="{updateOn: 'blur'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
+                    <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.email.$touched">
                     <dd class="error">{{errors.email}}</dd>
@@ -42,7 +42,7 @@
             <dl id="confirmation_field">
                 <dt><label for="confirmation"></label></dt>
                 <dd ng-class="errors.confirmationClass">
-                    <input password-confirmation="{{data.password}}" ng-model="data.confirmation" ng-model-options="{updateOn: 'blur'}" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)" required/>
+                    <input password-confirmation="{{data.password}}" ng-model="data.confirmation" ng-model-options="{updateOn: 'default'}" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)" required/>
                 </dd>
                 <div id="confirmation-errors" ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
                     <dd class="error">{{errors.confirmation}}</dd>
