@@ -2112,3 +2112,11 @@ header #username_header:hover #username_dropdown,#apps_list:hover #apps_list_men
 {
     white-space:pre;
 }
+
+.unselectable
+{
+    display:inline;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+}
