@@ -1056,6 +1056,7 @@ div [class^="col-"]
     top:29px;
     width:220px;
     z-index:1200;
+    text-align:left;
 }
 
 .ngtooltip.ng-hide {
