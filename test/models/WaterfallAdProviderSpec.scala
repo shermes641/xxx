@@ -146,13 +146,13 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
   }
 
-  "WaterfallAdProvider.findByAdProvider" should {
+  "WaterfallAdProvider.findRewardInfo" should {
     "return the configuration data JSON if a record is found" in new WithDB {
-      WaterfallAdProvider.findByAdProvider(currentApp.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.WaterfallAdProviderCallbackInfo]
+      WaterfallAdProvider.findRewardInfo(currentApp.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.AdProviderRewardInfo]
     }
 
     "return None if the configuration data does not exist" in new WithDB {
-      WaterfallAdProvider.findByAdProvider(currentApp.token, "Some fake ad provider name") must beNone
+      WaterfallAdProvider.findRewardInfo(currentApp.token, "Some fake ad provider name") must beNone
     }
   }
 

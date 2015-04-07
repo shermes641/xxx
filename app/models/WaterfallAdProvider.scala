@@ -318,25 +318,28 @@ object WaterfallAdProvider extends JsonConversion {
   }
 
   /**
-   * Find a WaterfallAdProvider record by AdProvider name and App token.
+   * Find a WaterfallAdProvider's configuration data and cpm, VirtualCurrency information, and callback information using AdProvider name and App token.
    * @param appToken The token for the App to which the WaterfallAdProvider belongs.
    * @param adProviderName The name of the AdProvider stored in the ad_providers table.
-   * @return a WaterfallAdProvider instance if one exists; otherwise, returns None.
+   * @return an AdProviderRewardInfo instance if one exists; otherwise, returns None.
    */
-  def findByAdProvider(appToken: String, adProviderName: String): Option[WaterfallAdProviderCallbackInfo] = {
+  def findRewardInfo(appToken: String, adProviderName: String): Option[AdProviderRewardInfo] = {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-           SELECT wap.configuration_data, wap.cpm, vc.exchange_rate FROM waterfalls
+           SELECT wap.configuration_data, wap.cpm, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up,
+           apps.callback_url, apps.server_to_server_enabled, ac.generation_number FROM waterfalls
            JOIN apps ON apps.id = waterfalls.app_id
            JOIN waterfall_ad_providers wap ON wap.waterfall_id = waterfalls.id
            JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
            JOIN virtual_currencies vc ON vc.app_id = waterfalls.app_id
-           WHERE apps.token={app_token} AND ad_providers.name={ad_provider_name};
+           JOIN app_configs ac ON ac.app_id = apps.id
+           WHERE apps.token={app_token} AND ad_providers.name={ad_provider_name}
+           ORDER BY ac.generation_number DESC LIMIT 1;
         """
       ).on("app_token" -> appToken, "ad_provider_name" -> adProviderName)
-      query.as(waterfallAdProviderCallbackInfoParser*) match {
-        case List(waterfallAdProviderCallbackInfo) => Some(waterfallAdProviderCallbackInfo)
+      query.as(adProviderRewardInfoParser*) match {
+        case List(adProviderRewardInfo) => Some(adProviderRewardInfo)
         case _ => None
       }
     }
@@ -369,15 +372,29 @@ object WaterfallAdProvider extends JsonConversion {
    * @param configurationData maps to the configuration_data field in the waterfall_ad_providers table.
    * @param cpm maps to the cpm field in the waterfall_ad_providers table.
    * @param exchangeRate maps to the exchange_rate field in the virtual_currencies table.
+   * @param rewardMin The minimum reward a user can receive.
+   * @param rewardMax The maximum reward a user can receive.  This is optional.
+   * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
+   * @param callbackURL If server to server is enabled, we will send a POST request to this URL after a completion.
+   * @param serverToServerEnabled Boolean value to determine if we should send a POST request to the Distributor's servers.
+   * @param generationNumber The generation number of the last created AppConfig.
    */
-  case class WaterfallAdProviderCallbackInfo(configurationData: JsValue, cpm: Option[Double], exchangeRate: Double)
+  case class AdProviderRewardInfo(configurationData: JsValue, cpm: Option[Double], exchangeRate: Double, rewardMin: Long, rewardMax: Option[Long],
+                                  roundUp: Boolean, callbackURL: Option[String], serverToServerEnabled: Boolean, generationNumber: Long)
 
-  // Used to convert result of orderedByCPM SQL query.
-  val waterfallAdProviderCallbackInfoParser: RowParser[WaterfallAdProviderCallbackInfo] = {
+  val adProviderRewardInfoParser: RowParser[AdProviderRewardInfo] = {
     get[JsValue]("configuration_data") ~
-      get[Option[Double]]("cpm") ~
-      get[Long]("exchange_rate") map {
-      case configuration_data ~ cpm ~ exchange_rate => WaterfallAdProviderCallbackInfo(configuration_data, cpm, exchange_rate)
+    get[Option[Double]]("cpm") ~
+    get[Long]("exchange_rate") ~
+    get[Long]("reward_min") ~
+    get[Option[Long]]("reward_max") ~
+    get[Boolean]("round_up") ~
+    get[Option[String]]("callback_url") ~
+    get[Boolean]("server_to_server_enabled") ~
+    get[Long]("generation_number") map {
+      case configuration_data ~ cpm ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ callback_url ~ server_to_server_enabled ~ generation_number => {
+        AdProviderRewardInfo(configuration_data, cpm, exchange_rate, reward_min, reward_max, round_up, callback_url, server_to_server_enabled, generation_number)
+      }
     }
   }
 

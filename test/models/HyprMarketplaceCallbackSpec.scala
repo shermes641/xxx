@@ -40,8 +40,43 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
   }
 
   "currencyAmount" should {
-    "be set when creating a new instance of the HyprMarketplaceCallback class" in new WithDB {
-      callback.currencyAmount must beEqualTo(quantity)
+    "ignore the reward amount passed in the server to server callback" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
+      }
+      callback.currencyAmount must beEqualTo(50)
+      callback.currencyAmount must not(beEqualTo(quantity))
+    }
+
+    "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
+      }
+      callback.currencyAmount must beEqualTo(5)
+    }
+
+    "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=false))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
+      }
+      callback.currencyAmount must beEqualTo(0)
+    }
+
+    "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
+      val callbackWithoutRewardMax = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
+      }
+      callbackWithoutRewardMax.currencyAmount must beEqualTo(250)
+
+      val callbackWithRewardMax = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
+      }
+      callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }
   }
 
