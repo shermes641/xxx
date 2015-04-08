@@ -36,7 +36,7 @@ object AdProvider extends JsonConversion {
 
     val configurable = true
 
-    val defaultEcpm = None
+    val defaultEcpm: Option[Double] = Some(10)
 
     val configuration = {
       val zoneIDDetails = {
@@ -106,7 +106,7 @@ object AdProvider extends JsonConversion {
 
     val configurable = true
 
-    val defaultEcpm = None
+    val defaultEcpm: Option[Double] = Some(10)
 
     val configuration = {
       val appIDDescription = {
@@ -143,7 +143,7 @@ object AdProvider extends JsonConversion {
 
     val configurable = true
 
-    val defaultEcpm = None
+    val defaultEcpm: Option[Double] = Some(10)
 
     val configuration = {
       val sdkKeyDescription = {
