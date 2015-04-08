@@ -1,6 +1,7 @@
 package functional
 
 import models._
+import play.api.mvc.Session
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -81,6 +82,25 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
 
       browser.goTo(controllers.routes.DistributorUsersController.signup.url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
+    }
+  }
+
+  "DistributorUsersController.login" should {
+    "clear the session if the email stored in the session is not found in the database" in new WithFakeBrowser {
+      val fakeDistributorID = "100"
+      val fakeEmail = "somefakeemail"
+      val request = FakeRequest(
+        GET,
+        controllers.routes.DistributorUsersController.login(None).url,
+        FakeHeaders(Seq()),
+        ""
+      )
+      val Some(result) = route(request.withSession("distributorID" -> fakeDistributorID, "username" -> fakeEmail))
+      val sessionCookie = cookies(result).get("PLAY_SESSION")
+      val currentSession = Session.decodeFromCookie(sessionCookie)
+      status(result) must beEqualTo(200)
+      currentSession.get("username") must beNone
+      currentSession.get("distributorID") must beNone
     }
   }
 }
