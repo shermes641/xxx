@@ -713,7 +713,7 @@ span#viewTerms:hover
 .registration input[type="checkbox"]
 {
     float:left;
-    margin:10px;
+    margin:10px 5px 10px 0;
 }
 
 .registration h2
@@ -1384,11 +1384,6 @@ dd.error
     margin-top:20px;
     max-width:400px;
     text-align:left;
-}
-
-#terms_field
-{
-    margin-left:-10px;
 }
 
 .inactive-link
