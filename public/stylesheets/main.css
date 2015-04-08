@@ -18,6 +18,7 @@ body
     font-family:"Helvetica Neue Light", Helvetica, sans-serif;
     font-size:14px;
     height:100%;
+    min-width: 1115px;
 }
 
 body.modal-active {
