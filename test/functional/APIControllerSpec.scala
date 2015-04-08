@@ -261,7 +261,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       tableCount("completions") must beEqualTo(completionCount + 1)
     }
 
-    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+    "respond with a 200 if the request signature is not valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
@@ -271,12 +271,12 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
         ""
       )
       val Some(result) = route(request)
-      status(result) must equalTo(400)
+      status(result) must equalTo(200)
       contentAsString(result) must contain("vc_decline")
       tableCount("completions") must beEqualTo(completionCount)
     }
 
-    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+    "respond with a 200 if a necessary param is missing" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       val request = FakeRequest(
         GET,
@@ -285,7 +285,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
         ""
       )
       val Some(result) = route(request)
-      status(result) must equalTo(400)
+      status(result) must equalTo(200)
       contentAsString(result) must contain("vc_decline")
       tableCount("completions") must beEqualTo(completionCount)
     }
