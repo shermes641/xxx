@@ -73,7 +73,7 @@
                     <div class="waterfall-edit-description">
                         Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
                     </div>
-                    <code class="waterfall-edit-description copy-paste-code">
+                    <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
                         // Be sure to define myUsersUniqueId() using whatever strategy you choose to generate a user ID.
                         <br/>
                         NSString *userId = myUsersUniqueId();
