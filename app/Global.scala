@@ -1,6 +1,6 @@
 import models.Environment
 import play.api.mvc._
-import play.api.mvc.Results.Unauthorized
+import play.api.mvc.Results._
 import play.api.Play
 import scala.concurrent.Future
 
@@ -30,4 +30,15 @@ object HTTPAuthFilter extends Filter {
   }
 }
 
-object Global extends WithFilters(HTTPAuthFilter)
+// Redirect to HTTPS in production
+object HTTPSFilter extends Filter {
+  def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
+    if(Environment.isProd && !request.headers.get("x-forwarded-proto").getOrElse("").contains("https")) {
+      Future.successful(MovedPermanently("https://" + request.host + request.uri))
+    } else {
+      next(request)
+    }
+  }
+}
+
+object Global extends WithFilters(HTTPSFilter, HTTPAuthFilter)
