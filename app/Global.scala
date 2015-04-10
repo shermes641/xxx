@@ -33,7 +33,7 @@ object HTTPAuthFilter extends Filter {
 // Redirect to HTTPS in production
 object HTTPSFilter extends Filter {
   def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
-    if(!Environment.isStaging && !request.headers.get("x-forwarded-proto").getOrElse("").contains("https")) {
+    if(Environment.isProd && !request.headers.get("x-forwarded-proto").getOrElse("").contains("https")) {
       Future.successful(MovedPermanently("https://" + request.host + request.uri))
     } else {
       next(request)
