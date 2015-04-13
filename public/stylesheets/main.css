@@ -380,7 +380,7 @@ span#viewTerms:hover
 
 .left_apps_list ul li
 {
-    -webkit-transition: 150ms ease all;
+    -webkit-transition: 150ms ease background;
     background:#fff;
     border-bottom:#c8c7cc 1px solid;
     border-radius:2px;

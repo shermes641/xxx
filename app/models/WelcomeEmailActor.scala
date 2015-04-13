@@ -43,8 +43,8 @@ class WelcomeEmailActor extends Actor with Mailer {
    */
   def sendTeamNotification(userEmail: String, userCompany: String): Unit = {
     val email = Play.current.configuration.getString("hyprmarketplace.team_email").get
-    val subject = "Mediation user has signed up - " + userEmail
-    val body = userEmail + " has signed up for mediation. For company " + userCompany
+    val subject = "hyprMediate user has signed up - " + userEmail
+    val body = userEmail + " has signed up for hyprMediate. For company " + userCompany
     sendEmail(email, subject, body)
   }
 }
