@@ -17,16 +17,17 @@ import scala.language.postfixOps
 case class AppConfig(generationNumber: Long, configuration: JsValue)
 
 object AppConfig extends JsonConversion {
-  val TEST_MODE_DISTRIBUTOR_ID = "111"
-  val TEST_MODE_PROVIDER_NAME = "HyprMarketplace"
-  val TEST_MODE_PROVIDER_ID = 0.toLong
-  val TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME = "Test Distributor"
-  val TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID = 0.toLong
-  val TEST_MODE_HYPRMEDIATE_APP_ID = 0.toLong
-  val TEST_MODE_APP_NAME = "Test App"
-  val TEST_MODE_PROPERTY_ID = " "
-  val TEST_MODE_VIRTUAL_CURRENCY = new VirtualCurrency(0, 0, "Coins", 100, 1, Some(100), true)
-  val TEST_MODE_APP_CONFIG_REFRESH_INTERVAL = 0
+  val TestModeDistributorID = "111"
+  val TestModeProviderName = "HyprMarketplace"
+  val TestModeProviderID = 0.toLong
+  val TestModeSdkBlacklistRegex = ".^"
+  val TestModeHyprMediateDistributorName = "Test Distributor"
+  val TestModeHyprMediateDistributorID = 0.toLong
+  val TestModeHyprMediateAppID = 0.toLong
+  val TestModeAppName = "Test App"
+  val TestModePropertyID = " "
+  val TestModeVirtualCurrency = new VirtualCurrency(id=0, appID=0, name="Coins", exchangeRate=100, rewardMin=1, rewardMax=Some(100), roundUp=true)
+  val TestModeAppConfigRefreshInterval = 0
 
   /**
    * Determines if the latest configuration in the database differs from the new configuration about to be saved.
@@ -203,10 +204,10 @@ object AppConfig extends JsonConversion {
    * @return A JSON object containing the test mode AppConfig info.
    */
   def testResponseV1: JsValue = {
-    val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "propertyID" -> JsString(TEST_MODE_PROPERTY_ID)))))
-    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_PROVIDER_ID), Some(TEST_MODE_APP_NAME), Some(TEST_MODE_HYPRMEDIATE_APP_ID),
-      TEST_MODE_APP_CONFIG_REFRESH_INTERVAL, Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
-      Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, false, Some(false))
+    val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TestModeDistributorID), "propertyID" -> JsString(TestModePropertyID)))))
+    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TestModeProviderName), Some(TestModeProviderID), Some(TestModeSdkBlacklistRegex), Some(TestModeAppName), Some(TestModeHyprMediateAppID),
+      TestModeAppConfigRefreshInterval, Some(TestModeHyprMediateDistributorName), Some(TestModeHyprMediateDistributorID), Some(testConfigData), Some(5.0), Some(TestModeVirtualCurrency.name),
+      Some(TestModeVirtualCurrency.exchangeRate), TestModeVirtualCurrency.rewardMin, TestModeVirtualCurrency.rewardMax, Some(TestModeVirtualCurrency.roundUp), true, false, false, Some(false))
     JsonBuilder.appConfigResponseV1(List(testAdProviderConfig), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
   }
 }

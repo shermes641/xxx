@@ -14,8 +14,9 @@ import scala.language.postfixOps
  * @param configurationData contains default required params, reporting params, and callback params for an ad provider.
  * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
  * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
+ * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations.
  */
-case class AdProvider(id: Long, name: String, configurationData: JsValue, configurable: Boolean = true, defaultEcpm: Option[Double] = None)
+case class AdProvider(id: Long, name: String, configurationData: JsValue, configurable: Boolean = true, defaultEcpm: Option[Double] = None, sdkBlacklistRegex: String = ".^")
 
 /**
  * Encapsulates updatable information for Ad Providers.
@@ -24,8 +25,9 @@ case class AdProvider(id: Long, name: String, configurationData: JsValue, config
  * @param callbackURLFormat The format of the callback URL for all WaterfallAdProvider instances.
  * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
  * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
+ * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations.
  */
-case class UpdatableAdProvider(name: String, configurationData: String, callbackURLFormat: Option[String], configurable: Boolean = true, defaultEcpm: Option[Double] = None)
+case class UpdatableAdProvider(name: String, configurationData: String, callbackURLFormat: Option[String], configurable: Boolean = true, defaultEcpm: Option[Double] = None, sdkBlacklistRegex: String = ".^")
 
 object AdProvider extends JsonConversion {
   val AdColony = {
@@ -69,7 +71,10 @@ object AdProvider extends JsonConversion {
         "]" +
       "}"
     }
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
+
+    val sdkBlacklistRegex = ".^"
+
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
   }
 
   val HyprMarketplace = {
@@ -96,7 +101,10 @@ object AdProvider extends JsonConversion {
         "]" +
       "}"
     }
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
+
+    val sdkBlacklistRegex = ".^"
+
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
   }
 
   val Vungle = {
@@ -133,7 +141,10 @@ object AdProvider extends JsonConversion {
         "]" +
       "}"
     }
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
+
+    val sdkBlacklistRegex = ".^"
+
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
   }
 
   val AppLovin = {
@@ -170,7 +181,10 @@ object AdProvider extends JsonConversion {
         "]" +
       "}"
     }
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
+
+    val sdkBlacklistRegex = ".^"
+
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
   }
 
   // Used to convert SQL query result into instances of the AdProvider class.
