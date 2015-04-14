@@ -77,10 +77,11 @@
             <dl id="reward_min">
                 <dt><label for="reward_min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input required-integer type="text" ng-model="data.rewardMin" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                    <input required-integer less-than-or-equal-to="{{data.rewardMax}}" type="text" ng-model="data.rewardMin" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMin.$touched">
                     <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
+                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.lessThanOrEqualTo">Minimum Reward must be less than or equal to Maximum Reward.</dd>
                 </div>
             </dl>
 

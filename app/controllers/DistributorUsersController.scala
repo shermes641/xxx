@@ -70,8 +70,14 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    */
   def login(recentlyLoggedOut: Option[Boolean]) = Action { implicit request =>
     request.session.get("username").map { user =>
-      val currentUser = DistributorUser.findByEmail(user).get
-      Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None))
+      DistributorUser.findByEmail(user) match {
+        case Some(currentUser) => {
+          Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None))
+        }
+        case None => {
+          Ok(views.html.DistributorUsers.login()).withNewSession
+        }
+      }
     }.getOrElse {
       Ok(views.html.DistributorUsers.login())
     }

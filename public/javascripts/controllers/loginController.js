@@ -1,39 +1,23 @@
-distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'fieldsFilled', 'flashMessage',
-        function($scope, $http, $routeParams, $window, fieldsFilled, flashMessage) {
-            $scope.invalidForm = true;
+distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage',
+        function($scope, $http, $routeParams, $window, flashMessage) {
             $scope.waitForAuth = false;
-            $scope.inactiveClass = "inactive";
             $scope.errors = {};
             $scope.flashMessage = flashMessage;
             if($routeParams.recently_logged_out === "true") {
                 flashMessage.add({message: "You are now logged out.", status: "success"});
             }
 
-            $scope.checkInputs = function() {
-                $scope.errors = {};
-                var requiredFields = ["email", "password"];
-                if(fieldsFilled($scope.data, requiredFields)) {
-                    $scope.invalidForm = false;
-                    $scope.inactiveClass = "";
-                } else {
-                    $scope.invalidForm = true;
-                    $scope.inactiveClass = "inactive";
-                }
-            };
-
             // Submit form if fields are valid.
-            $scope.submit = function() {
+            $scope.submit = function(form) {
                 $scope.errors = {};
-                if(!$scope.invalidForm) {
+                if(form.$valid) {
                     $scope.waitForAuth = true;
-                    $scope.inactiveClass = "inactive";
                     $http.post('/authenticate', $scope.data).
                         success(function(data, status, headers, config) {
                             $window.location.href = "/";
                         }).
                         error(function(data, status, headers, config) {
                             $scope.waitForAuth = false;
-                            $scope.inactiveClass = "";
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";

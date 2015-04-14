@@ -7,13 +7,13 @@
     <div class="modal_text">
         Enter your username and password below to gain access.
     </div>
-    <form name="loginForm" ng-controller="LoginController" ng-submit="submit()" novalidate>
+    <form name="loginForm" ng-controller="LoginController" ng-submit="submit(loginForm)" novalidate>
 
         <fieldset ng-disabled="waitForAuth">
             <dl id="email_field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
-                    <input ng-model="data.email" ng-change="checkInputs()" type="email" id="email" name="email" value="" placeholder="Email" required/>
+                    <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
                 </dd>
                 <div ng-show="loginForm.$submitted || loginForm.email.$touched">
                     <dd class="error">{{errors.email}}</dd>
@@ -25,7 +25,7 @@
             <dl id="password_field">
                 <dt><label for="password"></label></dt>
                 <dd ng-class="errors.passwordClass">
-                    <input ng-model="data.password" ng-change="checkInputs()" type="password" id="password" name="password" placeholder="Password" required/>
+                    <input ng-model="data.password" ng-model-options="{updateOn: 'default'}" type="password" id="password" name="password" placeholder="Password" required/>
                 </dd>
                 <div ng-show="loginForm.$submitted || loginForm.password.$touched">
                     <dd class="error">{{errors.password}}</dd>
@@ -34,7 +34,7 @@
             </dl>
         </fieldset>
 
-        <button ng-disabled="invalidForm || waitForAuth" ng-class="inactiveClass" type="submit" name="submit">Sign In</button>
+        <button ng-disabled="loginForm.$invalid || waitForAuth" ng-class="{inactive: loginForm.$invalid}" type="submit" name="submit">Sign In</button>
     </form>
 </div>
 <div id="registration-link">

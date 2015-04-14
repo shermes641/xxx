@@ -195,22 +195,35 @@ mediationModule.directive(greaterThanDirectiveName, function() {
         link: function(scope, elm, attrs, ctrl) {
             var validate = function(viewValue) {
                 var comparisonModel = attrs.greaterThanOrEqualTo;
-                if(ctrl.$isEmpty(viewValue)) {
-                    ctrl.$setValidity(greaterThanDirectiveName, true);
-                } else {
-                    if(parseInt(viewValue) >= parseInt(comparisonModel)) {
-                        ctrl.$setValidity(greaterThanDirectiveName, true);
-                    } else {
-                        ctrl.$setValidity(greaterThanDirectiveName, false);
-                    }
-                }
+                ctrl.$setValidity(greaterThanDirectiveName, ctrl.$isEmpty(viewValue) ? true : parseInt(viewValue) >= parseInt(comparisonModel));
                 return viewValue;
             };
 
             ctrl.$parsers.unshift(validate);
             ctrl.$formatters.push(validate);
 
-            attrs.$observe(greaterThanDirectiveName, function(comparisonModel){
+            attrs.$observe(greaterThanDirectiveName, function() {
+                return validate(ctrl.$viewValue);
+            });
+        }
+    };
+});
+
+var lessThanDirectiveName = 'lessThanOrEqualTo';
+mediationModule.directive(lessThanDirectiveName, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function(viewValue) {
+                var comparisonModel = attrs.lessThanOrEqualTo;
+                ctrl.$setValidity(lessThanDirectiveName,  ctrl.$isEmpty(comparisonModel) ? true : parseInt(viewValue) <= parseInt(comparisonModel));
+                return viewValue;
+            };
+
+            ctrl.$parsers.unshift(validate);
+            ctrl.$formatters.push(validate);
+
+            attrs.$observe(lessThanDirectiveName, function() {
                 return validate(ctrl.$viewValue);
             });
         }
@@ -249,6 +262,32 @@ mediationModule.directive(callbackValidator, function() {
 
             attrs.$observe(callbackValidator, function(){
                 return validate();
+            });
+        }
+    };
+});
+
+var passwordConfirmation = 'passwordConfirmation';
+
+mediationModule.directive(passwordConfirmation, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function(confirmation) {
+                var password = attrs.passwordConfirmation;
+                if(password !== undefined && password.length > 7) {
+                    ctrl.$setValidity(passwordConfirmation, confirmation === password);
+                } else {
+                    ctrl.$setValidity(passwordConfirmation, true);
+                }
+                return confirmation;
+            };
+
+            ctrl.$parsers.unshift(validate);
+            ctrl.$formatters.push(validate);
+
+            attrs.$observe(passwordConfirmation, function(password){
+                return validate(ctrl.$viewValue);
             });
         }
     };

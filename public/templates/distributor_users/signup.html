@@ -2,12 +2,12 @@
     <h1>Create An Account</h1>
     <hr />
     <div class="modal_text">To begin, sign up below.  You will receive an email upon approval.</div>
-    <form name="newDistributorUserForm" ng-controller="SignupController" ng-submit="submit()" novalidate>
+    <form name="newDistributorUserForm" ng-controller="SignupController" ng-submit="submit(newDistributorUserForm)" novalidate>
         <fieldset ng-disabled="waitForAuth">
             <dl id="company_field">
                 <dt><label for="company"></label></dt>
                 <dd ng-class="errors.company">
-                    <input ng-model="data.company" ng-change="checkInputs()" type="text" id="company" name="company" value="" placeholder="Company Name" required/>
+                    <input ng-model="data.company" ng-model-options="{updateOn: 'default'}" type="text" id="company" name="company" value="" placeholder="Company Name" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.company.$touched">
                     <dd class="error">{{errors.company}}</dd>
@@ -18,7 +18,7 @@
             <dl id="email_field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
-                    <input ng-model="data.email" ng-change="checkInputs()" type="email" id="email" name="email" value="" placeholder="Email" required/>
+                    <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.email.$touched">
                     <dd class="error">{{errors.email}}</dd>
@@ -30,21 +30,23 @@
             <dl id="password_field">
                 <dt><label for="password"></label></dt>
                 <dd ng-class="errors.passwordClass">
-                    <input ng-model="data.password" ng-change="checkInputs()" type="password" id="password" name="password" placeholder="Password" required/>
+                    <input ng-minlength="8" ng-model="data.password" ng-model-options="{updateOn: 'blur'}" type="password" id="password" name="password" placeholder="Password" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.password.$touched">
                     <dd class="error">{{errors.password}}</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.password.$error.minlength">Password must be a minimum of 8 characters.</dd>
                     <dd class="error" ng-show="newDistributorUserForm.password.$error.required">Password is required</dd>
                 </div>
             </dl>
 
             <dl id="confirmation_field">
                 <dt><label for="confirmation"></label></dt>
-                <dd ng-class="errors.confirmation">
-                    <input ng-model="data.confirmation" ng-change="checkInputs()" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)" required/>
+                <dd ng-class="errors.confirmationClass">
+                    <input password-confirmation="{{data.password}}" ng-model="data.confirmation" ng-model-options="{updateOn: 'default'}" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)" required/>
                 </dd>
-                <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
+                <div id="confirmation-errors" ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
                     <dd class="error">{{errors.confirmation}}</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.passwordConfirmation">Password confirmation doesn't match Password.</dd>
                     <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.required">Password confirmation is required</dd>
                 </div>
             </dl>
@@ -52,7 +54,7 @@
             <dl id="terms_field">
                 <dt><label for="terms"></label></dt>
                 <dd>
-                    <input ng-model="data.terms" ng-change="checkInputs()" type="checkbox" id="terms" name="terms" value="true"/>
+                    <input ng-model="data.terms" ng-model-options="{updateOn: 'default'}" type="checkbox" id="terms" name="terms" value="true" required/>
                     <span></span>
                 </dd>
                 <dd class="info"></dd>
@@ -68,7 +70,7 @@
             </div>
         </fieldset>
 
-        <button ng-disabled="invalidForm || waitForAuth" ng-class="inactiveClass" id="create-distributor-user" type="submit" name="new-distributor-user-form">Sign up</button>
+        <button id="create-distributor-user" ng-disabled="newDistributorUserForm.$invalid || waitForAuth" ng-class="{inactive: newDistributorUserForm.$invalid}" type="submit" name="new-distributor-user-form">Sign up</button>
     </form>
 </div>
 
