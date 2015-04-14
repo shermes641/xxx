@@ -50,7 +50,7 @@
             <div class="reset_filters" ng-click="resetAllFilters()">Reset all Filters</div>
             <h2>Filter By Ad Provider</h2>
             <ul id="ad_providers_filter">
-                <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)">{{provider.name}}</li>
+                <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)" title="{{provider.name}}">{{provider.name}}</li>
                 <li class="add" ng-click="openDropdown('ad_providers')" ng-class="{open: filters.ad_providers.open}">
                     <span class="dropdown-label">Add Provider</span>
                     <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"
@@ -63,7 +63,7 @@
         <div class="left_apps_list">
             <h2>Filter By App</h2>
             <ul id="apps_filter">
-                <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)">{{appInfo.name}}</li>
+                <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)" title="{{appInfo.name}}">{{appInfo.name}}</li>
                 <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
                     <span class="dropdown-label">Add App</span>
                     <input type="text" ng-model="filters.apps.input" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter_apps"
@@ -76,7 +76,7 @@
         <div class="left_apps_list">
             <h2>Filter By Country</h2>
             <ul id="countries_filter">
-                <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)">{{country.name}}</li>
+                <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)" title="{{country.name}}">{{country.name}}</li>
                 <li class="add" ng-click="openDropdown('countries')" ng-class="{open: filters.countries.open}">
                     <span class="dropdown-label">Add Country</span>
                     <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter_countries" id="filter_countries"

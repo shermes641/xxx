@@ -391,7 +391,6 @@ span#viewTerms:hover
     padding: 8px 10px;
     position:relative;
 }
-
 .left_apps_list ul li:hover
 {
     background:#ccc;
@@ -406,6 +405,9 @@ span#viewTerms:hover
 .left_apps_list ul li.active.removable
 {
     white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 12px;
 }
 
 .left_apps_list ul li.active.removable:before
@@ -472,6 +474,12 @@ span#viewTerms:hover
     text-align: left;
 }
 
+#waterfall-controller .left_apps_list ul li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 .left_apps_list .dropdown-menu {
     position: absolute;
     top: 35px;
@@ -511,6 +519,9 @@ span#viewTerms:hover
     line-height: normal;
     color: #222;
     white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 12px;
 }
 
 .left_apps_list .dropdown-menu li:hover:before, .left_apps_list .dropdown-menu li.active:before
@@ -824,6 +835,9 @@ span#viewTerms:hover
     font-size:36px;
     margin-top:10px;
     text-align:center;
+    padding-right: 170px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .waterfall-sort
