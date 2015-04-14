@@ -414,8 +414,33 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 timeframe: config.timeframe
             });
 
+            var request_collection = "availability_requested";
+            var response_collection = "availability_response_true";
+
+            // If all or no ad providers are selected show waterfall fill rate
+            if (config.adProvider.indexOf("all") !== -1) {
+                request_collection = "mediate_availability_requested";
+                response_collection = "mediate_availability_response_true";
+            }
+
+            // Inventory Request count, metric
+            var inventory_request = new Keen.Query("count", {
+                eventCollection: request_collection,
+                interval: "daily",
+                filters: config.filters,
+                timeframe: config.timeframe
+            });
+
+            // Calculate fill rate using inventory requests divided by inventory_available
+            var available_count = new Keen.Query("count", {
+                eventCollection: response_collection,
+                interval: "daily",
+                filters: config.filters,
+                timeframe: config.timeframe
+            });
+
             // Calculate expected eCPM
-            $scope.keenClient.run(estimated_revenue, function() {
+            $scope.keenClient.run([estimated_revenue, inventory_request, available_count], function() {
                 // If this update is not longer the latest then reset and do nothing.
                 if($scope.updateTimeStamp !== config.currentTimeStamp) {
                     $scope.resetUpdate(config);
@@ -424,32 +449,51 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 // Update request status to complete
                 $scope.analyticsRequestStatus.estimatedRevenueRequestComplete = true;
 
+                var inventoryRequests = this.data[1].result;
+                var availableCount = this.data[2].result;
+
                 var table_data = [];
                 var chart_data = [];
-                var cumulative_revenue = 0;
-                _.each(this.data.result, function (day) {
+                var cumulativeRevenue = 0;
+                var cumulativeRequests = 0;
+                var cumulativeAvailable = 0;
+                _.each(this.data[0].result, function (day, i) {
                     if(day.value.averageeCPM === null){
                         day.value.averageeCPM = 0;
                     }
+
+                    var fillRate = 0;
+                    if (inventoryRequests[i].value !== 0) {
+                        fillRate = Math.round((availableCount[i].value / inventoryRequests[i].value)*100);
+                    }
+
                     var days_revenue = $scope.calculateDayRevenue(day.value.completedCount, day.value.averageeCPM);
                     var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
                     var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {
-                        "Date": table_date_string,
-                        "Estimated Revenue": '$' + $filter("monetaryFormat")(days_revenue)
+                        "date": table_date_string,
+                        "requests": inventoryRequests[i].value,
+                        "fillRate": fillRate + '%',
+                        "impressions": availableCount[i].value,
+                        "completedCount": day.value.completedCount,
+                        "averageeCPM": '$' + $filter("monetaryFormat")(day.value.averageeCPM),
+                        "estimatedRevenue": '$' + $filter("monetaryFormat")(days_revenue)
+
                     } );
                     chart_data.push( {
                         "Date": chart_date_string,
                         "Estimated Revenue ($)": Number($filter("monetaryFormat")(days_revenue))
                     } );
-                    cumulative_revenue = cumulative_revenue + days_revenue;
+                    cumulativeRevenue = cumulativeRevenue + days_revenue;
+                    cumulativeRequests = cumulativeRequests + inventoryRequests[i].value;
+                    cumulativeAvailable = cumulativeAvailable + availableCount[i].value;
                 } );
 
-                var average_revenue = {
-                    result: cumulative_revenue / this.data.result.length
+                var averageRevenue = {
+                    result: cumulativeRevenue / this.data[0].result.length
                 };
 
-                var revenueSplit = $filter("monetaryFormat")(average_revenue.result).split(".")
+                var revenueSplit = $filter("monetaryFormat")(averageRevenue.result).split(".")
                 $scope.analyticsData.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
                 $scope.analyticsData.revenueTable = table_data.reverse();
                 $scope.analyticsData.revenueChart = true;
@@ -504,63 +548,32 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
                 }
 
+                if (config.adProvider.length > 1) {
+                    $scope.analyticsData.fillRateMetric = "N/A";
+                    // Update request status to complete
+                    $scope.analyticsRequestStatus.fillRateRequestComplete = true;
+                } else {
+                    // If this update is not longer the latest then reset and do nothing.
+                    if($scope.updateTimeStamp !== config.currentTimeStamp) {
+                        $scope.resetUpdate(config);
+                        return;
+                    }
+                    console.log(cumulativeAvailable, cumulativeRequests);
+                    var averageFillRate = 0;
+                    if (this.data[0].result !== 0) {
+                        averageFillRate = Math.round((cumulativeAvailable / cumulativeRequests)*100);
+                    }
+                    $scope.analyticsData.fillRateMetric = averageFillRate + '%';
+                    // Update request status to complete
+                    $scope.analyticsRequestStatus.fillRateRequestComplete = true;
+                }
+
                 _.defer(function(){
                     $scope.$apply();
                     // Estimated Revenue Chart
                     new Keen.Visualization({ result: chart_data }, document.getElementById("estimated_revenue_chart"), chartConfiguration);
                 });
             } );
-        };
-
-        /**
-         * Get Fill Rate data from Keen.  Update Request Complete object once Keen has responded.
-         */
-        $scope.getFillRate = function(config) {
-            if (config.adProvider.length > 1) {
-                $scope.analyticsData.fillRateMetric = "N/A";
-                // Update request status to complete
-                $scope.analyticsRequestStatus.fillRateRequestComplete = true;
-                _.defer(function(){$scope.$apply();});
-            } else {
-                var request_collection = "availability_requested";
-                var response_collection = "availability_response_true";
-
-                // If all or no ad providers are selected show waterfall fill rate
-                if (config.adProvider.indexOf("all") !== -1) {
-                    request_collection = "mediate_availability_requested";
-                    response_collection = "mediate_availability_response_true";
-                }
-
-                // Inventory Request count, metric
-                var inventory_request = new Keen.Query("count", {
-                    eventCollection: request_collection,
-                    filters: config.filters,
-                    timeframe: config.timeframe
-                });
-
-                // Calculate fill rate using inventory requests divided by inventory_available
-                var available_count = new Keen.Query("count", {
-                    eventCollection: response_collection,
-                    filters: config.filters,
-                    timeframe: config.timeframe
-                });
-
-                $scope.keenClient.run([inventory_request, available_count], function() {
-                    // If this update is not longer the latest then reset and do nothing.
-                    if($scope.updateTimeStamp !== config.currentTimeStamp) {
-                        $scope.resetUpdate(config);
-                        return;
-                    }
-                    var conversion_rate = 0;
-                    if (this.data[0].result !== 0) {
-                        conversion_rate = Math.round((this.data[1].result / this.data[0].result)*100);
-                    }
-                    $scope.analyticsData.fillRateMetric = conversion_rate + '%';
-                    // Update request status to complete
-                    $scope.analyticsRequestStatus.fillRateRequestComplete = true;
-                    _.defer(function(){$scope.$apply();});
-                });
-            }
         };
 
         /**
