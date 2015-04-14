@@ -129,6 +129,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
           "    })" +
           "});")
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      browser.await().atMost(1, java.util.concurrent.TimeUnit.SECONDS).until("body.javascript_error").isNotPresent
     }
 
     /**
