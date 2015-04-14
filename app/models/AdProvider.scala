@@ -41,15 +41,15 @@ object AdProvider extends JsonConversion {
     val configuration = {
       val zoneIDDetails = {
         "Add a single zone or multiple zones separated by commas. Please note, we currently only support Value Exchange Zones. " +
-          "For more information on configuration, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AdColony' target='_blank'>documentation</a>"
+          "For more information on configuration, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>"
       }
 
       val appIDDescription = {
-        "Your AdColony App ID can be found on the AdColony dashboard.  For more information on configuring AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AdColony' target='_blank'>documentation</a>."
+        "Your AdColony App ID can be found on the AdColony dashboard.  For more information on configuring AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        "Your Read-Only API Key can be found on the AdColony dashboard.  For more information on configuring reporting for AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AdColony' target='_blank'>documentation</a>."
+        "Your Read-Only API Key can be found on the AdColony dashboard.  For more information on configuring reporting for AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>."
       }
 
       val callbackDescription = {
@@ -110,11 +110,11 @@ object AdProvider extends JsonConversion {
 
     val configuration = {
       val appIDDescription = {
-        "Your App ID can be found on the Vungle dashboard.  For more information on configuring Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+Vungle' target='_blank'>documentation</a>."
+        "Your App ID can be found on the Vungle dashboard.  For more information on configuring Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        "Your Reporting API Key can be found on the Vungle dashboard.  For more information on configuring reporting for Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+Vungle' target='_blank'>documentation</a>."
+        "Your Reporting API Key can be found on the Vungle dashboard.  For more information on configuring reporting for Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
       }
 
       val callbackDescription = {
@@ -126,7 +126,7 @@ object AdProvider extends JsonConversion {
           "{\"description\": \"" + appIDDescription + "\", \"displayKey\": \"App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": true, \"minLength\": 1}" +
         "], " +
         "\"reportingParams\": [" +
-          "{\"description\": \"" + reportingDescription + "\", \"displayKey\": \"Reporting API ID\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
+          "{\"description\": \"" + reportingDescription + "\", \"displayKey\": \"Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
         "], " +
         "\"callbackParams\": [" +
           "{\"description\": \"" + callbackDescription + "\", \"displayKey\": \"Secret Key for Secure Callback\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
@@ -147,15 +147,15 @@ object AdProvider extends JsonConversion {
 
     val configuration = {
       val sdkKeyDescription = {
-        "Your SDK Key can be found on the AppLovin dashboard.  For more information on configuring AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
+        "Your SDK Key can be found on the AppLovin dashboard.  For more information on configuring AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        "Your Report Key can be found on the AppLovin dashboard.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
+        "Your Report Key can be found on the AppLovin dashboard.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       val appLovinAppNameDescription = {
-        "Your application name can be found in AppLovin's dashboard.  This is the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Configuring+AppLovin' target='_blank'>documentation</a>."
+        "Your application name can be found in AppLovin's dashboard.  This is the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       "{" +

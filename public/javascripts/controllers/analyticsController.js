@@ -376,7 +376,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 if ( this.data.result === null ) {
                     $scope.analyticsData.ecpmMetric = "N/A";
                 } else {
-                    var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".")
+                    var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".");
                     $scope.analyticsData.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
 
                     config.eCPM = this.data.result;
@@ -384,6 +384,13 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 _.defer(function(){$scope.$apply();});
                 $scope.getEstimatedRevenue(config);
             });
+        };
+
+        /**
+         * Calculate day revenue from completed count and the average eCPM
+         */
+        $scope.calculateDayRevenue = function(completedCount, averageeCPM) {
+            return (completedCount * averageeCPM/1000)
         };
 
         /**
@@ -424,7 +431,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     if(day.value.averageeCPM === null){
                         day.value.averageeCPM = 0;
                     }
-                    var days_revenue = (day.value.completedCount * day.value.averageeCPM);
+                    var days_revenue = $scope.calculateDayRevenue(day.value.completedCount, day.value.averageeCPM);
                     var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
                     var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {

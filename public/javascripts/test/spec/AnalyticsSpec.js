@@ -75,5 +75,14 @@ describe('AnalyticsController', function() {
             expect(scope.currentlyUpdating).toEqual(true);
         });
 
+        it('should calculate revenue per day correctly', function(){
+            expect(scope.calculateDayRevenue(1000, 1)).toEqual(1);
+            expect(scope.calculateDayRevenue(500, 1)).toEqual(0.5);
+            expect(scope.calculateDayRevenue(2000, 1)).toEqual(2);
+            expect(scope.calculateDayRevenue(1000, 0.5)).toEqual(0.5);
+            expect(scope.calculateDayRevenue(10000, 0.1)).toEqual(1);
+            expect(scope.calculateDayRevenue(100, 50)).toEqual(5);
+            expect(scope.calculateDayRevenue(10, 50)).toEqual(0.5);
+        });
     });
 });
