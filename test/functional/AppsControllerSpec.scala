@@ -3,6 +3,7 @@ package functional
 import models._
 import anorm._
 import play.api.db.DB
+import play.api.libs.json._
 import play.api.test._
 import play.api.test.Helpers._
 import resources.DistributorUserSetup
@@ -181,6 +182,32 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       clickAndWaitForAngular("button[id=create-app]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".left_apps_list").containsText("My left list test app")
+    }
+
+    "return the new waterfall ID in the JSON if the app is created successfully" in new WithFakeBrowser {
+      val body = JsObject(
+        Seq(
+          "appName" -> JsString("New Unique App"),
+          "currencyName" -> JsString("Coins"),
+          "exchangeRate" -> JsNumber(100),
+          "rewardMin" -> JsNumber(1),
+          "rewardMax" -> JsNumber(1),
+          "roundUp" -> JsBoolean(true)
+        )
+      )
+      val request = FakeRequest(
+        POST,
+        controllers.routes.AppsController.create(user.distributorID.get).url,
+        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        body
+      )
+      val Some(result) = route(request.withSession("distributorID" -> user.distributorID.get.toString, "username" -> email))
+      status(result) must equalTo(200)
+      val jsonResponse = Json.parse(contentAsString(result))
+      (jsonResponse \ "message").as[String] must beEqualTo("App Created!")
+      val waterfallID = jsonResponse \ "waterfallID"
+      waterfallID must haveClass[JsNumber]
+      Waterfall.find(waterfallID.as[Long], user.distributorID.get).get must haveClass[Waterfall]
     }
   }
 

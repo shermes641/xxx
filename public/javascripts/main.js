@@ -42,6 +42,26 @@ mediationModule.factory('fieldsFilled', [function(data, requiredFields) {
     };
 }]);
 
+// Service to share and update IDs between Angular controllers
+mediationModule.service('sharedIDs', [function() {
+    var appID = 0;
+    var distributorID = 0;
+    return {
+        appID: function() {
+            return appID;
+        },
+        setAppID: function(id) {
+            appID = id;
+        },
+        distributorID: function() {
+            return distributorID;
+        },
+        setDistributorID: function(id) {
+            distributorID = id;
+        }
+    }
+}]);
+
 // All controllers use this factory to display flash messages in the UI.
 mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
     var currentMessage = '';
