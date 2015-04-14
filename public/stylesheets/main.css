@@ -391,6 +391,7 @@ span#viewTerms:hover
     padding: 8px 10px;
     position:relative;
 }
+
 .left_apps_list ul li:hover
 {
     background:#ccc;
@@ -478,7 +479,6 @@ span#viewTerms:hover
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 
 .left_apps_list .dropdown-menu {
     position: absolute;
