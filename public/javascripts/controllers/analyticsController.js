@@ -354,9 +354,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 end: moment(config.end_date).utc().add(1, 'days').format()
             };
 
-            // Get Fill Rate
-            $scope.getFillRate(config);
-
             // Ad Provider eCPM
             var ecpm_metric = new Keen.Query("average", {
                 eventCollection: "ad_completed",
@@ -558,7 +555,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         $scope.resetUpdate(config);
                         return;
                     }
-                    console.log(cumulativeAvailable, cumulativeRequests);
+
                     var averageFillRate = 0;
                     if (this.data[0].result !== 0) {
                         averageFillRate = Math.round((cumulativeAvailable / cumulativeRequests)*100);
