@@ -27,36 +27,40 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       }
     }
 
-    "should contain appName" in new WithDB {
+    "contain appName" in new WithDB {
       (appConfig \ "appName").as[String] must beEqualTo(app1.name)
     }
 
-    "should contain appID" in new WithDB {
+    "contain appID" in new WithDB {
       (appConfig \ "appID") must haveClass[JsNumber]
     }
 
-    "should contain distributorName" in new WithDB {
+    "contain distributorName" in new WithDB {
       (appConfig \ "distributorName").as[String] must beEqualTo(distributor.name)
     }
 
-    "should contain distributorID" in new WithDB {
+    "contain distributorID" in new WithDB {
       (appConfig \ "distributorID").as[Long] must beEqualTo(distributor.id.get)
     }
 
-    "should contain appConfigRefreshInterval" in new WithDB {
+    "contain appConfigRefreshInterval" in new WithDB {
       (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(0)
     }
 
-    "should contain logFullConfig" in new WithDB {
+    "contain logFullConfig" in new WithDB {
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
     }
 
-    "should contain testMode" in new WithDB {
+    "contain testMode" in new WithDB {
       (appConfig \ "testMode").as[Boolean] must beEqualTo(false)
     }
 
-    "should contain canShowAdTimeout" in new WithDB {
+    "contain canShowAdTimeout" in new WithDB {
       (appConfig \ "canShowAdTimeout").as[Long] must beEqualTo(JsonBuilder.DefaultCanShowAdTimeout)
+    }
+
+    "contain rewardTimeout" in new WithDB {
+      (appConfig \ "rewardTimeout").as[Long] must beEqualTo(JsonBuilder.DefaultRewardTimeout)
     }
   }
 
@@ -104,15 +108,17 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     }
   }
 
-  "JsonBuilder.canShowAdTimeout" should {
-    "create a JSON object containing the appropriate timeout in seconds" in new WithDB {
+  "JsonBuilder.timeoutConfigurations" should {
+    "create a JSON object containing the canShowAdTimeout and rewardTimeout" in new WithDB {
       val expectedCanShowAdTimeout = 10
-      val expectedCanShowAdTimeoutConfigurationJson = JsObject(
+      val expectedRewardTimeout = 10
+      val expectedTimeoutConfigurationJson = JsObject(
         Seq(
-          "canShowAdTimeout" -> JsNumber(expectedCanShowAdTimeout)
+          "canShowAdTimeout" -> JsNumber(expectedCanShowAdTimeout),
+          "rewardTimeout" -> JsNumber(expectedRewardTimeout)
         )
       )
-      JsonBuilder.canShowAdTimeoutConfiguration must beEqualTo(expectedCanShowAdTimeoutConfigurationJson)
+      JsonBuilder.timeoutConfigurations must beEqualTo(expectedTimeoutConfigurationJson)
     }
   }
 

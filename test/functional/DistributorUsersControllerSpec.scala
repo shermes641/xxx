@@ -22,6 +22,17 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.$("#viewTerms").click()
       browser.find("#termsContainer").first().isDisplayed must beEqualTo(true)
     }
+
+    "render an error when the password does not match the confirmation" in new WithFakeBrowser {
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      browser.fill("#company").`with`("New Test Company")
+      browser.fill("#email").`with`("UniqueEmail@gmail.com")
+      browser.fill("#password").`with`("password1")
+      browser.fill("#confirmation").`with`("password2")
+      browser.$("#terms").click()
+      browser.find("#confirmation-errors").first().isDisplayed
+      browser.find("#confirmation-errors").first().getText must beEqualTo("Password confirmation doesn't match Password.")
+    }
   }
 
   "DistributorUsersController.create" should {

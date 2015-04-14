@@ -18,6 +18,7 @@ body
     font-family:"Helvetica Neue Light", Helvetica, sans-serif;
     font-size:14px;
     height:100%;
+    min-width: 1115px;
 }
 
 body.modal-active {
@@ -752,7 +753,7 @@ span#viewTerms:hover
 .registration input[type="checkbox"]
 {
     float:left;
-    margin:10px;
+    margin:10px 5px 10px 0;
 }
 
 .registration h2
@@ -1095,6 +1096,7 @@ div [class^="col-"]
     top:29px;
     width:220px;
     z-index:1200;
+    text-align:left;
 }
 
 .ngtooltip.ng-hide {
@@ -1422,6 +1424,7 @@ dd.error
     font-size:11px;
     margin-top:20px;
     max-width:400px;
+    text-align:left;
 }
 
 .inactive-link
@@ -2150,4 +2153,12 @@ header #username_header:hover #username_dropdown,#apps_list:hover #apps_list_men
 .preserve-whitespace
 {
     white-space:pre;
+}
+
+.unselectable
+{
+    display:inline;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
 }

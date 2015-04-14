@@ -95,7 +95,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                           case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
                             val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))
                             actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
-                            Ok(Json.obj("status" -> "success", "message" -> "App Created!"))
+                            Ok(Json.obj("status" -> "success", "message" -> "App Created!", "waterfallID" -> waterfallIDVal))
                           }
                           case (_, _) => rollbackWithError(createErrorMessage)
                         }
