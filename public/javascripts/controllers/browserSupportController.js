@@ -47,17 +47,19 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
         // Used for development to clear cookie
         $scope.clearCookie = function() {
             document.cookie = "browser_support=; expires=' + expirationDate.toUTCString() + '; path=/";
-        }
+        };
 
         // Opens popup
         $scope.openPopup = function() {
             if( document.cookie.indexOf( $scope.cookieString ) === -1 ){
+                $('body').addClass('browser_not_supported');
                 $( '#browser_support' ).css('display','block');
             }
-        }
+        };
 
         // Closes popup and sets cookie
         $scope.dismissPopup = function() {
+            $('body').removeClass('browser_not_supported');
             $scope.popupElement.hide();
             var expirationDate = new Date();
             var time = expirationDate.getTime();
@@ -68,10 +70,6 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
         };
 
         $scope.checkBrowser();
-
-        $scope.popupElement.bind( 'click', function() {
-            $scope.dismissPopup();
-        } );
     } ]
 );
 
