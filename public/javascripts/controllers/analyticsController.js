@@ -14,6 +14,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
+        if($scope.debounceWait !== 0){
+            $scope.debounceWait = 2000;
+        }
 
         if($routeParams.waterfall_found === "false") {
             flashMessage.add({message: "Waterfall could not be found.", status: "error"});
@@ -65,7 +68,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             // Initializes the keen library
             $scope.keenClient = new Keen( {
                     projectId: $scope.keenProject,
-                    readKey: $scope.scopedKey
+                    readKey: $scope.scopedKey,
+                    protocol: "http",
+                    requestType: "xhr"
             } );
 
             $scope.startDatepicker();
@@ -283,7 +288,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $scope.updatingStatus = "Waiting...";
             $scope.currentlyUpdating = true;
             _.defer(function(){$scope.$apply();});
-
             $scope.debouncedUpdate();
         };
 
@@ -301,7 +305,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.debouncedUpdate = _.debounce(function() {
             _.defer(function(){$scope.$apply();});
             $scope.updateCharts();
-        }, 2000);
+        }, $scope.debounceWait);
 
         /**
          * Show timeout messaging if Keen has not responded in time.
@@ -490,7 +494,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     result: cumulativeRevenue / this.data[0].result.length
                 };
 
-                var revenueSplit = $filter("monetaryFormat")(averageRevenue.result).split(".")
+                var revenueSplit = $filter("monetaryFormat")(averageRevenue.result).split(".");
                 $scope.analyticsData.revenueByDayMetric = '<sup>$</sup>' + revenueSplit[0] + '<sup>.' + revenueSplit[1] + '</sup>';
                 $scope.analyticsData.revenueTable = table_data.reverse();
                 $scope.analyticsData.revenueChart = true;
