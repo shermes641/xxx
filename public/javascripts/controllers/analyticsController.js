@@ -564,7 +564,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
 
                     var averageFillRate = 0;
-                    if (this.data[0].result !== 0) {
+                    if (cumulativeRequests !== 0) {
                         averageFillRate = Math.round((cumulativeAvailable / cumulativeRequests)*100);
                     }
                     $scope.analyticsData.fillRateMetric = averageFillRate + '%';
