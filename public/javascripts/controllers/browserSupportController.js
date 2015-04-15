@@ -52,14 +52,14 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
         // Opens popup
         $scope.openPopup = function() {
             if( document.cookie.indexOf( $scope.cookieString ) === -1 ){
-                angluar.element(document.body).addClass('browser_not_supported');
+                angular.element(document.body).addClass('browser_not_supported');
                 $( '#browser_support' ).css('display','block');
             }
         };
 
         // Closes popup and sets cookie
         $scope.dismissPopup = function() {
-            angluar.element(document.body).removeClass('browser_not_supported');
+            angular.element(document.body).removeClass('browser_not_supported');
             $scope.popupElement.hide();
             var expirationDate = new Date();
             var time = expirationDate.getTime();
