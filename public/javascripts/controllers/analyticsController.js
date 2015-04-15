@@ -14,6 +14,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
+        $scope.defaultStartDate = '-13d';
+        $scope.defaultEndDate = '0';
+
         if($scope.debounceWait !== 0){
             $scope.debounceWait = 2000;
         }
@@ -96,8 +99,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             } ).on( "changeDate", $scope.updateAnalytics );
 
             // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', '-13d');
-            $scope.elements.endDate.datepicker('setDate', '0');
+            $scope.elements.startDate.datepicker('setDate', $scope.defaultStartDate);
+            $scope.elements.endDate.datepicker('setDate', $scope.defaultEndDate);
         };
 
         /**
