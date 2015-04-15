@@ -242,7 +242,7 @@ object Waterfall extends JsonConversion {
    * Encapsulates necessary information returned from SQL query in Waterfall.order.
    * @param providerName Maps to the name field in the ad_providers table.
    * @param providerID Maps to the id field in the ad_providers table.
-   * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider.
+   * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider. This value will be used to create an NSRegularExpression in the SDK.
    * @param appName Maps to the name field in the apps table.
    * @param appID Maps to the id field in the apps table.
    * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
