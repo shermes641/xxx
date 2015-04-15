@@ -7,6 +7,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
             $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
             $scope.testModeConfirmationModal = 'assets/templates/waterfalls/test_mode_confirmation.html';
+            $scope.pauseConfirmationModal = 'assets/templates/waterfalls/pause_confirmation.html';
 
             $scope.page = 'waterfall';
             $scope.newAppModalTitle = "Create New App";
@@ -63,6 +64,33 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var checkTestModeToggle = function() {
                 var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
                 return (activeAdProviders.length < 1 && $scope.waterfallData.waterfall.testMode);
+            };
+
+            // Toggles paused on/off
+            $scope.togglePaused = function() {
+                if($scope.waterfallData.waterfall.paused) {
+                    $scope.waterfallData.waterfall.paused = false;
+                    $scope.updateWaterfall();
+                } else {
+                    $scope.showPauseConfirmationModal = true;
+                    $scope.showModal(!$scope.modalShown);
+                }
+            };
+
+            $scope.confirmPause = function() {
+                $scope.waterfallData.waterfall.paused = true;
+                $scope.updateWaterfall();
+                closePauseModal();
+            };
+
+            $scope.cancelPause = function() {
+                $scope.waterfallData.waterfall.paused = false;
+                closePauseModal();
+            };
+
+            var closePauseModal = function() {
+                $scope.showModal(false);
+                $scope.showPauseConfirmationModal = false;
             };
 
             // Toggles test mode on/off
@@ -140,6 +168,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     adProviderOrder: $scope.waterfallData.waterfallAdProviderList.filter(function(el) { return(!el.newRecord); }),
                     optimizedOrder: $scope.waterfallData.waterfall.optimizedOrder,
                     testMode: $scope.waterfallData.waterfall.testMode,
+                    paused: $scope.waterfallData.waterfall.paused,
                     appToken: $scope.appToken,
                     generationNumber: $scope.generationNumber
                 };

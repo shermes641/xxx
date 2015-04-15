@@ -21,7 +21,7 @@ import scala.language.postfixOps
  * @param appToken A unique identifier used to identify an App in API calls.
  * @param generationNumber A number which indicates how many times the Waterfall and associated elements have been edited.  This number is retrieved from the app_configs table.
  */
-case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, appName: String, generationNumber: Option[Long], appToken: String)
+case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean, appName: String, generationNumber: Option[Long], appToken: String)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
@@ -32,10 +32,11 @@ object Waterfall extends JsonConversion {
     get[String]("token") ~
     get[Boolean]("optimized_order") ~
     get[Boolean]("test_mode") ~
+    get[Boolean]("paused") ~
     get[String]("app_name") ~
     get[Option[Long]]("generation_number") ~
     get[String]("app_token") map {
-      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ app_name ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, app_name, generation_number, app_token)
+      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ paused ~ app_name ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, paused, app_name, generation_number, app_token)
     }
   }
 
@@ -59,29 +60,31 @@ object Waterfall extends JsonConversion {
    * SQL for updating the fields for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
-   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @param testMode Boolean value which determines if the waterfall is live or in test mode.
+   * @param paused Boolean value which determines if the waterfall is paused or not.
    * @return SQL to be executed by update and updateWithTransaction methods.
    */
-  def updateSQL(id: Long, optimizedOrder: Boolean, testMode: Boolean): SimpleSql[Row] = {
+  def updateSQL(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean): SimpleSql[Row] = {
     SQL(
       """
           UPDATE waterfalls
-          SET optimized_order={optimized_order}, test_mode={test_mode}
+          SET optimized_order={optimized_order}, test_mode={test_mode}, paused={paused}
           WHERE id={id};
       """
-    ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "id" -> id)
+    ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "paused" -> paused, "id" -> id)
   }
 
   /**
    * Updates the fields for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
-   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @param testMode Boolean value which determines if the waterfall is live or in test Mode.
+   * @param paused Boolean value which determines if the waterfall is paused or not.
    * @return Number of rows updated
    */
-  def update(id: Long, optimizedOrder: Boolean, testMode: Boolean): Int = {
+  def update(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean): Int = {
     DB.withConnection { implicit connection =>
-      updateSQL(id, optimizedOrder, testMode).executeUpdate()
+      updateSQL(id, optimizedOrder, testMode, paused).executeUpdate()
     }
   }
 
@@ -89,11 +92,12 @@ object Waterfall extends JsonConversion {
    * Updates the fields, within a transaction, for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
-   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @param testMode Boolean value which determines if the waterfall is live or in test Mode.
+   * @param paused Boolean value which determines if the waterfall is paused or not.
    * @return Number of rows updated
    */
-  def updateWithTransaction(id: Long, optimizedOrder: Boolean, testMode: Boolean)(implicit connection: Connection): Int = {
-    updateSQL(id, optimizedOrder, testMode).executeUpdate()
+  def updateWithTransaction(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean)(implicit connection: Connection): Int = {
+    updateSQL(id, optimizedOrder, testMode, paused).executeUpdate()
   }
 
   /**

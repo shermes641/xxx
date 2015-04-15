@@ -786,7 +786,9 @@ span#viewTerms:hover
 {
     float:right;
     height:30px;
-    padding-right:19px;
+    padding-right:10px;
+    border-left: 1px solid #dddde0;
+    padding-left: 10px;
 }
 
 .waterfall-buttons .text-label
@@ -798,20 +800,32 @@ span#viewTerms:hover
 
 .waterfall-buttons .onoffswitch
 {
-    margin-left:20px;
+    margin-left:9px;
 }
 
-.waterfall-buttons.last
+.waterfall-buttons.first
 {
-    border-left:1px solid #dddde0;
-    padding-left:19px;
-    padding-right:0;
+    border-left: 0px;
+}
+
+.pause {
+    background:url(../images/icons.png);
+    background-position: -50px -81px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    float: right;
+    margin-left: 10px;
+}
+
+.pause.play {
+    background-position:-50px -122px;
 }
 
 .app-token
 {
     float:left;
-    width:455px;
+    width:361px;
 }
 
 .content.waterfall_list
@@ -1503,7 +1517,7 @@ dd.error
     font-weight:400;
     padding:6px;
     text-align:center;
-    width:386px;
+    width:295px;
 }
 
 .modal-centered
