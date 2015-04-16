@@ -105,8 +105,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     }
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
-                    $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
-                    flashMessage.add({message: "You must activate at least one Ad Provider", status: "error"});
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.updateWaterfall();
                 }
             };
 
@@ -185,13 +186,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleWAPStatus = function(adProviderConfig) {
                 var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
                 var originalVal = adProviderConfig.active;
+                console.log(activeAdProviders.length);
                 // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
-                if(!originalVal || $scope.waterfallData.waterfall.testMode || (originalVal && (activeAdProviders.length > 1))) {
-                    adProviderConfig.active = !adProviderConfig.active;
-                    $scope.updateWaterfall();
-                } else {
-                    flashMessage.add({message: "At least one Ad Provider must be active", status: "error"});
+                if(!$scope.waterfallData.waterfall.testMode && (originalVal && (activeAdProviders.length <= 1))) {
+                    if(!$scope.waterfallData.waterfall.paused) {
+                        $scope.showPauseConfirmationModal = true;
+                        $scope.showModal(!$scope.modalShown);
+                    }
                 }
+                adProviderConfig.active = !adProviderConfig.active;
+                $scope.updateWaterfall();
                 $scope.disableTestModeToggle = checkTestModeToggle();
                 $scope.orderOptimizedWaterfallList();
             };
