@@ -194,7 +194,7 @@ object Waterfall extends JsonConversion {
     val query = SQL(
       """
         SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, apps.app_config_refresh_interval, distributors.id as distributor_id, distributors.name as distributor_name,
-        wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
+        wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.paused, w.optimized_order, wap.active
         FROM waterfalls w
         INNER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
         INNER JOIN ad_providers ap on ap.id = wap.ad_provider_id
@@ -202,6 +202,7 @@ object Waterfall extends JsonConversion {
         INNER JOIN apps on apps.id = vc.app_id
         INNER JOIN distributors on apps.distributor_id = distributors.id
         WHERE apps.token={app_token}
+        AND (w.paused=false OR w.test_mode=true)
         ORDER BY wap.waterfall_order ASC
       """
     ).on("app_token" -> appToken)

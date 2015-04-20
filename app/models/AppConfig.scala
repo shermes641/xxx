@@ -175,7 +175,7 @@ object AppConfig extends JsonConversion {
     Waterfall.order(appToken) match {
       // App token was not found in app_configs table.
       case adProviders: List[AdProviderInfo] if(adProviders.size == 0) => {
-        Json.obj("status" -> "error", "message" -> "App Configuration not found.")
+        Json.obj("status" -> "error", "message" -> "App Configuration not found or waterfall has been paused.")
       }
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
