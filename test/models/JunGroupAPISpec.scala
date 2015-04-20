@@ -34,6 +34,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       config \ "ad_network" \ "mobile" must beEqualTo(JsBoolean(true))
       config \ "ad_network" \ "created_in_context" must beEqualTo(JsString(createdInContext))
       config \ "ad_network" \ "is_test" must beEqualTo(JsBoolean(true))
+      config \ "ad_network" \ "demographic_targeting_enabled" must beEqualTo(JsBoolean(true))
 
       config \ "payout_url" \ "url" must beEqualTo(JsString(payoutUrl))
       config \ "payout_url" \ "environment" must beEqualTo(JsString(Environment.mode))

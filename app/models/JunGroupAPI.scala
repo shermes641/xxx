@@ -68,7 +68,8 @@ class JunGroupAPI {
             "fyber_api_key" -> JsString(appToken),
             "fyber_placement_id" -> JsString(appToken),
             "created_in_context" -> JsString(createdInContext),
-            "is_test" -> JsBoolean(!Environment.isProd)
+            "is_test" -> JsBoolean(!Environment.isProd),
+            "demographic_targeting_enabled" -> JsBoolean(true)
           )
         ),
         "payout_url" -> JsObject(
