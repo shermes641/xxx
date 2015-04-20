@@ -40,7 +40,8 @@
                     </div>
                 </modal-dialog>
 
-                <div class="waterfall-buttons">
+                <div class="waterfall-buttons" ng-class="{disabled: waterfallData.waterfall.testMode}">
+                    <div class="button-overlay"></div>
                     <h4 ng-mouseenter="hoverPause=true" ng-mouseleave="hoverPause=false" class="tooltip">
                         ?
                         <div class="ngtooltip" ng-show="hoverPause">Pause and resume this waterfall</div>

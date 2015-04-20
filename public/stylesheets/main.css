@@ -795,8 +795,9 @@ span#viewTerms:hover
 
 .waterfall-buttons
 {
+    position: relative;
     float:right;
-    height:30px;
+    height:31px;
     padding-right:10px;
     border-left: 1px solid #dddde0;
     padding-left: 10px;
@@ -817,6 +818,17 @@ span#viewTerms:hover
 .waterfall-buttons.first
 {
     border-left: 0px;
+}
+
+.waterfall-buttons.disabled .button-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: #efeff4;
+    opacity: 0.8;
+    z-index: 1000;
 }
 
 .pause {
