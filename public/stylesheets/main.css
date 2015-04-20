@@ -862,9 +862,12 @@ span#viewTerms:hover
     font-size:36px;
     margin-top:10px;
     text-align:center;
-    padding-right: 170px;
     text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.waterfall_list #edit-top h1 {
+    padding-right: 170px;
 }
 
 .waterfall-sort
