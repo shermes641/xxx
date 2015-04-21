@@ -13,7 +13,7 @@ import org.specs2.runner._
 class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
     val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
-    Waterfall.update(waterfall.id, true, false)
+    Waterfall.update(waterfall.id, true, false, false)
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }
 

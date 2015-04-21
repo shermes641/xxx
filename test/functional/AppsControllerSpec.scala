@@ -288,7 +288,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     }
 
     "update the app record in the database" in new WithAppBrowser(user.distributorID.get) {
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
       VirtualCurrency.create(currentApp.id, "Gold", 100, 1, None, Some(true))
       val newAppName = "New App Name"
@@ -306,7 +306,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     }
 
     "update the virtual currency record in the database" in new WithAppBrowser(user.distributorID.get) {
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       val originalGeneration = generationNumber(currentApp.id)

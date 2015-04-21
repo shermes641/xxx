@@ -44,7 +44,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with the HyprMarketplace test distributor configuration when waterfall is in test mode" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, true)
+      Waterfall.update(waterfall.id, false, true, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val request = FakeRequest(
         GET,
@@ -73,7 +73,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with ad providers ordered by eCPM when the waterfall is in optimized mode" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, true, false, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
@@ -91,7 +91,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with the current waterfall order when waterfall is live and not optimized" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false)
+      Waterfall.update(waterfall.id, false, false, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, Some(0), Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, Some(1), Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
@@ -111,7 +111,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
       val roundUp = false
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 1, None, roundUp))
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, true, false, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(50.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
@@ -132,7 +132,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "respond with an empty adProviderConfigurations array when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
       val roundUp = false
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 100, None, roundUp))
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, true, false, false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(

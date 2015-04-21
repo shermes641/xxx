@@ -16,7 +16,7 @@ import scala.concurrent.duration.Duration
 class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
     val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
-    Waterfall.update(waterfall.id, true, false)
+    Waterfall.update(waterfall.id, true, false, false)
     WaterfallAdProvider.find(id).get
   }
 
@@ -33,7 +33,7 @@ class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     "updates the cpm field of the WaterfallAdProvider if the AppLovin API call is successful" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm must beNone
-      Waterfall.update(waterfallAdProvider1.waterfallID, true, false)
+      Waterfall.update(waterfallAdProvider1.waterfallID, true, false, false)
       waterfallAdProvider1.cpm must beNone
       val stats = JsObject(Seq("ecpm" -> JsString("10.00")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(stats))))

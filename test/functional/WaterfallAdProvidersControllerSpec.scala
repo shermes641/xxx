@@ -53,7 +53,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     }
 
     "create a new WaterfallAdProvider instance" in new WithAppBrowser(distributorUser.distributorID.get) {
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsNumber(adProvider1ID), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
         "waterfallID" -> JsString(currentWaterfall.id.toString), "generationNumber" -> JsNumber(currentAppConfig.generationNumber), "waterfallOrder" -> JsString("0"))
       val body = JsObject(configurationData)
@@ -66,7 +66,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
     "not increment the AppConfig generation number when the AppConfig changes as a result of creating a new, inactive WaterfallAdProvider" in new WithAppBrowser(distributorUser.distributorID.get) {
       WaterfallAdProvider.create(currentWaterfall.id, adProvider2ID, None, Some(5.0), true, true)
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalGeneration = generationNumber(currentApp.id)
       val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsNumber(adProvider1ID), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
@@ -83,7 +83,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
     "respond with a 400 if a WaterfallAdProvider cannot be created" in new WithAppBrowser(distributorUser.distributorID.get) {
       WaterfallAdProvider.create(currentWaterfall.id, adProvider2ID, None, Some(5.0), true, true)
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalGeneration = generationNumber(currentApp.id)
       val configurationData = Seq("configurable" -> JsBoolean(true), "adProviderID" -> JsNumber(adProvider2ID), "appToken" -> JsString(currentApp.token), "cpm" -> JsString("5.00"),
@@ -135,7 +135,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
   "WaterfallAdProvidersController.update" should {
     "update the configuration_data field of the waterfall_ad_providers record" in new WithAppBrowser(distributorUser.distributorID.get) {
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true).get
       clearGeneration(currentApp.id)
       val originalGeneration = generationNumber(currentApp.id)
@@ -208,7 +208,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val wapID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
       val wap = WaterfallAdProvider.find(wapID).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wapID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       clearGeneration(currentApp.id)
       val originalGeneration = generationNumber(currentApp.id)
       val configKey = "some key"
@@ -228,7 +228,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
       val wap = WaterfallAdProvider.find(wap1ID).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       clearGeneration(currentApp.id)
 
       logInUser()
@@ -265,7 +265,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     }
 
     "create a WaterfallAdProvider with an eCPM value if an AdProvider with a default eCPM is activated" in new WithAppBrowser(distributorUser.distributorID.get) {
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       val originalGeneration = generationNumber(currentApp.id)
       val defaultEcpm = Some(20.0)
       val adProviderName = "Test Ad Provider With Default eCPM"
@@ -285,7 +285,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     }
 
     "flash an error message and not update the WaterfallAdProvider if all required fields are not filled" in new WithAppBrowser(distributorUser.distributorID.get) {
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
 
       logInUser()
 
@@ -305,7 +305,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val wap = WaterfallAdProvider.find(wap1ID).get
       val wapConfig = JsObject(Seq("requiredParams" -> JsObject(Seq()), "callbackParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, wapConfig, false))
-      Waterfall.update(currentWaterfall.id, true, false)
+      Waterfall.update(currentWaterfall.id, true, false, false)
       clearGeneration(currentApp.id)
 
       logInUser()

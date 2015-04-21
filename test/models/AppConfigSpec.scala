@@ -33,7 +33,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
     "increment the generation number for an existing waterfall ID each time the configuration has changed" in new WithDB {
       val originalGeneration = generationNumber(app1.id)
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, true, false, false)
       WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -104,7 +104,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     "return the ad provider configuration info" in new WithAppDB(distributor.id.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
-      Waterfall.update(currentWaterfall.id, false, false)
+      Waterfall.update(currentWaterfall.id, false, false, false)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         val configs = (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray]
@@ -112,9 +112,17 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
 
+    "return an error when waterfall is paused"in new WithAppDB(distributor.id.get) {
+      DB.withTransaction { implicit connection =>
+        WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
+        Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = true)
+        (AppConfig.responseV1(currentApp.token) \ "message").as[String] must beEqualTo("App Configuration not found or waterfall has been paused.")
+      }
+    }
+
     "return an error message when no ad providers are found" in new WithDB {
       DB.withTransaction { implicit connection =>
-        (AppConfig.responseV1("some-fake-app-token") \ "message").as[String] must beEqualTo("App Configuration not found.")
+        (AppConfig.responseV1("some-fake-app-token") \ "message").as[String] must beEqualTo("App Configuration not found or waterfall has been paused.")
       }
     }
 
@@ -129,7 +137,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, "New App", "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
-      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false)
+      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)

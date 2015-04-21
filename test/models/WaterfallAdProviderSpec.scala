@@ -229,7 +229,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
 
     "return the latest generation number if the WaterfallAdProvider is updated successfully" in new WithDB {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = AppConfig.findLatest(currentApp.token).get.generationNumber
       val newGeneration = DB.withTransaction { implicit connection =>

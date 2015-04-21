@@ -18,7 +18,7 @@ body
     font-family:"Helvetica Neue Light", Helvetica, sans-serif;
     font-size:14px;
     height:100%;
-    min-width: 1115px;
+    min-width: 1160px;
 }
 
 body.modal-active {
@@ -605,7 +605,7 @@ span#viewTerms:hover
     color:#ff6666;
 }
 
-#cancel-button
+.cancel-button
 {
     -webkit-appearance:none;
     background:#666;
@@ -618,7 +618,7 @@ span#viewTerms:hover
     text-align:center;
 }
 
-#confirm-button
+.confirm-button
 {
     -webkit-appearance:none;
     background:#ff6666;

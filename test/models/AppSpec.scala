@@ -124,7 +124,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
   "App.updateAppConfigRefreshInterval" should {
     "update the appConfigRefreshInterval attribute for an App" in new WithAppDB(distributor.id.get) {
       val newAppConfigRefreshInterval = 500
-      Waterfall.update(currentWaterfall.id, false, false)
+      Waterfall.update(currentWaterfall.id, false, false, false)
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, Some(5.0), true, true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }
       val originalConfig = AppConfig.findLatest(currentApp.token).get
