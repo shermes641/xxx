@@ -162,7 +162,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
     // The number of completions based on the SDK events
     val completions = parseResponse(completionsResponse.body)
     // The sum of all the eCPMs reported on each completion
-    val earnings = parseResponse(earningsResponse.body)
+    val earnings = parseResponse(earningsResponse.body)/1000
 
     // The completion rate based on the completions divided by impressions
     val completionRate = impressions match {
@@ -197,8 +197,8 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
 
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
-        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("availability_requested", appID))
-        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter("availability_response_true", appID))
+        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("mediate_availability_requested", appID))
+        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter("mediate_availability_response_true", appID))
         impressionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("ad_displayed", appID))
         completionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter("ad_completed", appID))
         earningsResponse <- KeenExport().createRequest("sum", KeenExport().createFilter("ad_completed", appID, "ad_provider_eCPM"))

@@ -78,7 +78,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       responsesResponse.body returns "{\"result\": 50}"
       impressionsResponse.body returns "{\"result\": 30}"
       completionsResponse.body returns "{\"result\": 15}"
-      earningsResponse.body returns "{\"result\": 20}"
+      earningsResponse.body returns "{\"result\": 20000}"
 
       var appRow = keenExportActor.buildAppRow("App Name", "iOS", requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
       appRow must beEqualTo(List("App Name", "iOS", 20, 0.5, 100, 30, 15, 0.5))
@@ -87,7 +87,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       responsesResponse.body returns "{\"result\": 50}"
       impressionsResponse.body returns "{\"result\": 0}"
       completionsResponse.body returns "{\"result\": 15}"
-      earningsResponse.body returns "{\"result\": 20}"
+      earningsResponse.body returns "{\"result\": 20000}"
 
       var appRowByZero = keenExportActor.buildAppRow("App Name", "iOS", requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
       appRowByZero must beEqualTo(List("App Name", "iOS", 20, 0.0, 0, 0, 15, 0.0))

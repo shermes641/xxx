@@ -171,26 +171,65 @@ header .actions a
 
 #browser_support
 {
-    background:#fff;
-    box-shadow:0 0 4px rgba(0,0,0,.2);
     display:none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
     font-size:14px;
-    left:50%;
-    margin-left:-235px;
-    padding:5px;
-    position:fixed;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    color: #fff;
+    padding: 18px;
+    border-bottom: 1px solid #fff;
+    background: #fb504b;
     text-align:center;
-    top:50px;
-    width:460px;
-    z-index:2002;
+    z-index: 2000;
+}
+
+
+#browser_support a {
+    text-decoration: underline;
+    color: #fff;
+}
+
+#browser_support .warning_icon {
+    display: inline-block;
+    width: 35px;
+    height: 26px;
+    margin-bottom: -8px;
+    margin-right: 5px;
+    background:url(../images/icons.png);
+    background-position:-48px -45px;
 }
 
 #dismiss_browser
 {
     color:#4285f4;
     cursor:pointer;
-    float:right;
-    padding-right:10px;
+    position: absolute;
+    top:10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+
+    background:url(../images/icons.png);
+    background-position:-48px -0px;
+}
+
+.browser_not_supported header, .browser_not_supported .sub_header
+{
+    top: 60px;
+}
+
+.browser_not_supported #left_content
+{
+    top: 120px;
+}
+
+.browser_not_supported .split_content
+{
+    margin: 120px 0 0 215px;
 }
 
 #registration-link
