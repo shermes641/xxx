@@ -29,8 +29,12 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       val payoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
       val config = junGroup.adNetworkConfiguration(distributorName, appName, appToken)
       val adNetworkName = distributorName + " - " + appName
+      val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
       config \ "ad_network" \ "name" must beEqualTo(JsString(adNetworkName))
       config \ "ad_network" \ "mobile" must beEqualTo(JsBoolean(true))
+      config \ "ad_network" \ "created_in_context" must beEqualTo(JsString(createdInContext))
+      config \ "ad_network" \ "is_test" must beEqualTo(JsBoolean(true))
+      config \ "ad_network" \ "demographic_targeting_enabled" must beEqualTo(JsBoolean(true))
 
       config \ "payout_url" \ "url" must beEqualTo(JsString(payoutUrl))
       config \ "payout_url" \ "environment" must beEqualTo(JsString(Environment.mode))
