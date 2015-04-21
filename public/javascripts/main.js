@@ -1,3 +1,9 @@
+// Add error class to body on any error.  This is used for functional testing.
+window.onerror = function() {
+    document.getElementsByTagName('body')[0].className += ' javascript_error';
+    return false;
+}
+
 // Initialize the mediation module
 var mediationModule = angular.module( 'MediationModule', ['ngRoute', 'ngSanitize', 'appsControllers', 'distributorUsersControllers', 'eCPMFilter', 'waterfallFilters', 'requiredFieldFilters', 'ui.sortable', 'ui.bootstrap', 'escapeHtmlFilters']);
 
