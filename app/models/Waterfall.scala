@@ -202,7 +202,6 @@ object Waterfall extends JsonConversion {
         INNER JOIN apps on apps.id = vc.app_id
         INNER JOIN distributors on apps.distributor_id = distributors.id
         WHERE apps.token={app_token}
-        AND (w.paused=false OR w.test_mode=true)
         ORDER BY wap.waterfall_order ASC
       """
     ).on("app_token" -> appToken)
@@ -226,12 +225,13 @@ object Waterfall extends JsonConversion {
     get[Option[Long]]("reward_max") ~
     get[Option[Boolean]]("round_up") ~
     get[Boolean]("test_mode") ~
+    get[Boolean]("paused") ~
     get[Boolean]("optimized_order") ~
     get[Option[Boolean]]("active") map {
       case provider_name ~ provider_id ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
-           configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ optimized_order ~ active => {
+           configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ paused ~ optimized_order ~ active => {
         AdProviderInfo(provider_name, provider_id, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
-                       configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, optimized_order, active)
+                       configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, paused, optimized_order, active)
       }
     }
   }
@@ -252,13 +252,14 @@ object Waterfall extends JsonConversion {
    * @param rewardMin Maps to the reward_min field of the virtual_currencies table.
    * @param rewardMax Maps to the reward_max field of the virtual_currencies table.
    * @param roundUp Maps to the round_up field of the virtual_currencies table.
-   * @param testMode Determines if a waterfall is live or not.
+   * @param testMode Determines if a waterfall is in test mode or not.
+   * @param paused Determines if a waterfall is paused or not.
    * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
    * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
   case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
                             distributorName: Option[String], distributorID: Option[Long], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String],
-                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
+                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, paused: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
     lazy val meetsRewardThreshold: Boolean = {
       (roundUp, cpm) match {
         case (Some(roundUpValue: Boolean), _) if(roundUpValue) => true

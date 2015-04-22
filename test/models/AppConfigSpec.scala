@@ -116,13 +116,15 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       DB.withTransaction { implicit connection =>
         WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
         Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = true)
-        (AppConfig.responseV1(currentApp.token) \ "message").as[String] must beEqualTo("App Configuration not found or waterfall has been paused.")
+        (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray].value.size must beEqualTo(0)
+        Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+        (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray].value.size must beEqualTo(1)
       }
     }
 
     "return an error message when no ad providers are found" in new WithDB {
       DB.withTransaction { implicit connection =>
-        (AppConfig.responseV1("some-fake-app-token") \ "message").as[String] must beEqualTo("App Configuration not found or waterfall has been paused.")
+        (AppConfig.responseV1("some-fake-app-token") \ "message").as[String] must beEqualTo("App Configuration not found.")
       }
     }
 

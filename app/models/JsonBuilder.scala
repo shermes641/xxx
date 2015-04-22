@@ -52,7 +52,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
       )
     }
     val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
-      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, timeoutConfigurations)
+      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, pausedConfiguration(configInfo), timeoutConfigurations)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
     )
@@ -146,6 +146,19 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
     JsObject(
       Seq(
         "testMode" -> JsBoolean(false)
+      )
+    )
+  }
+
+  /**
+   * Creates a JSON object for paused information.
+   * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
+   * @return A JsObject containing paused status.
+   */
+  def pausedConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "paused" -> JsBoolean(adProviderInfo.paused)
       )
     )
   }
