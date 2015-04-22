@@ -466,9 +466,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         day.value.averageeCPM = 0;
                     }
 
-                    var fillRate = 0;
+                    var fillRate = "0%";
                     if (inventoryRequests[i].value !== 0) {
-                        fillRate = Math.round((availableCount[i].value / inventoryRequests[i].value)*100);
+                        fillRate = Math.round((availableCount[i].value / inventoryRequests[i].value)*100) + '%';
+                    }
+
+                    // If multiple ad providers are selected show N/A
+                    if (config.adProvider.length > 1) {
+                        fillRate = "N/A";
                     }
 
                     var days_revenue = $scope.calculateDayRevenue(day.value.completedCount, day.value.averageeCPM);
@@ -477,7 +482,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     table_data.push( {
                         "date": table_date_string,
                         "requests": inventoryRequests[i].value,
-                        "fillRate": fillRate + '%',
+                        "fillRate": fillRate,
                         "impressions": availableCount[i].value,
                         "completedCount": day.value.completedCount,
                         "averageeCPM": '$' + $filter("monetaryFormat")(day.value.averageeCPM),
