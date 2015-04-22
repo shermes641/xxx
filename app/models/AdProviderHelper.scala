@@ -47,9 +47,7 @@ trait AdProviderHelper {
         "}"
     }
 
-    val sdkBlacklistRegex = ".^"
-
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val HyprMarketplace = {
@@ -77,9 +75,7 @@ trait AdProviderHelper {
         "}"
     }
 
-    val sdkBlacklistRegex = ".^"
-
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val Vungle = {
@@ -117,9 +113,7 @@ trait AdProviderHelper {
         "}"
     }
 
-    val sdkBlacklistRegex = ".^"
-
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val AppLovin = {
@@ -157,9 +151,7 @@ trait AdProviderHelper {
         "}"
     }
 
-    val sdkBlacklistRegex = ".^"
-
-    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm, sdkBlacklistRegex)
+    new UpdatableAdProvider(name, configuration, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val allProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin)
@@ -175,11 +167,11 @@ trait AdProviderHelper {
         """
         UPDATE ad_providers
         SET configuration_data=CAST({configuration_data} AS json), callback_url_format={callback_url_format},
-        configurable={configurable}, default_ecpm={default_ecpm}, sdk_blacklist_regex={sdk_blacklist_regex}
+        configurable={configurable}, default_ecpm={default_ecpm}
         WHERE name={name};
         """
       ).on("name" -> adProvider.name, "configuration_data" -> adProvider.configurationData, "callback_url_format" -> adProvider.callbackURLFormat,
-          "configurable" -> adProvider.configurable, "default_ecpm" -> adProvider.defaultEcpm, "sdk_blacklist_regex" -> adProvider.sdkBlacklistRegex).executeUpdate()
+          "configurable" -> adProvider.configurable, "default_ecpm" -> adProvider.defaultEcpm).executeUpdate()
     }
   }
 
@@ -200,5 +192,4 @@ trait AdProviderHelper {
     }
     successfullyUpdatedProvidersCount
   }
-
 }

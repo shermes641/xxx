@@ -25,9 +25,8 @@ case class AdProvider(id: Long, name: String, configurationData: JsValue, config
  * @param callbackURLFormat The format of the callback URL for all WaterfallAdProvider instances.
  * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
  * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
- * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations. This value will be used to create an NSRegularExpression in the SDK.
  */
-case class UpdatableAdProvider(name: String, configurationData: String, callbackURLFormat: Option[String], configurable: Boolean = true, defaultEcpm: Option[Double] = None, sdkBlacklistRegex: String = ".^")
+case class UpdatableAdProvider(name: String, configurationData: String, callbackURLFormat: Option[String], configurable: Boolean = true, defaultEcpm: Option[Double] = None)
 
 object AdProvider extends JsonConversion with AdProviderHelper {
   // Used to convert SQL query result into instances of the AdProvider class.

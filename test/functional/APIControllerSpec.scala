@@ -71,6 +71,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateDistributorID)
       (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TestModeAppConfigRefreshInterval)
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
+      (appConfig \ "paused").as[Boolean] must beEqualTo(false)
       (appConfig \ "generationNumber") must haveClass[JsNumber]
     }
 

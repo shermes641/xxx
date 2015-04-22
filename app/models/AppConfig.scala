@@ -205,9 +205,10 @@ object AppConfig extends JsonConversion {
    */
   def testResponseV1: JsValue = {
     val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TestModeDistributorID), "propertyID" -> JsString(TestModePropertyID)))))
-    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TestModeProviderName), Some(TestModeProviderID), Some(TestModeSdkBlacklistRegex), Some(TestModeAppName), Some(TestModeHyprMediateAppID),
-      TestModeAppConfigRefreshInterval, Some(TestModeHyprMediateDistributorName), Some(TestModeHyprMediateDistributorID), Some(testConfigData), Some(5.0), Some(TestModeVirtualCurrency.name),
-      Some(TestModeVirtualCurrency.exchangeRate), TestModeVirtualCurrency.rewardMin, TestModeVirtualCurrency.rewardMax, Some(TestModeVirtualCurrency.roundUp), true, false, false, Some(false))
+    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TestModeProviderName), Some(TestModeProviderID), Some(TestModeSdkBlacklistRegex),
+      Some(TestModeAppName), Some(TestModeHyprMediateAppID), TestModeAppConfigRefreshInterval, Some(TestModeHyprMediateDistributorName),
+      Some(TestModeHyprMediateDistributorID), Some(testConfigData), Some(5.0), Some(TestModeVirtualCurrency.name), Some(TestModeVirtualCurrency.exchangeRate),
+      TestModeVirtualCurrency.rewardMin, TestModeVirtualCurrency.rewardMax, Some(TestModeVirtualCurrency.roundUp), testMode = true, paused = false, optimizedOrder = false, active = Some(false))
     JsonBuilder.appConfigResponseV1(List(testAdProviderConfig), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
   }
 }

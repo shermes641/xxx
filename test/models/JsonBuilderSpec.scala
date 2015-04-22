@@ -26,7 +26,7 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
         adProviders must contain((config \ "providerName").as[String])
         (config \ "providerID") must haveClass[JsNumber]
         (config \ "eCPM") must haveClass[JsNumber]
-        (config \ "sdkBlacklistRegex") must haveClass[JsString]
+        (config \ "sdkBlacklistRegex").as[String] must beEqualTo(".^")
       }
     }
 
@@ -64,6 +64,10 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
 
     "contain rewardTimeout" in new WithDB {
       (appConfig \ "rewardTimeout").as[Long] must beEqualTo(JsonBuilder.DefaultRewardTimeout)
+    }
+
+    "contain paused" in new WithDB {
+      (appConfig \ "paused").as[Boolean] must beEqualTo(false)
     }
   }
 
