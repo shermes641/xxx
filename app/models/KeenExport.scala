@@ -162,7 +162,7 @@ class KeenExportActor(distributorID: Long, email: String) extends Actor with Mai
     // The number of completions based on the SDK events
     val completions = parseResponse(completionsResponse.body)
     // The sum of all the eCPMs reported on each completion
-    val earnings = parseResponse(earningsResponse.body)/1000
+    val earnings = parseResponse(earningsResponse.body).toFloat/1000
 
     // The completion rate based on the completions divided by impressions
     val completionRate = impressions match {
