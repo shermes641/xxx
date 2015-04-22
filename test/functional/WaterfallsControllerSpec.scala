@@ -204,7 +204,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found or waterfall has been paused."))
+      AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found."))
 
       logInUser()
 
@@ -240,7 +240,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found or waterfall has been paused."))
+      AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found."))
 
       logInUser()
 
