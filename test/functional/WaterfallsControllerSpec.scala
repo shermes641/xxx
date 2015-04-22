@@ -204,7 +204,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found."))
+      (AppConfig.findLatest(app1.token).get.configuration \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
 
       logInUser()
 
@@ -240,7 +240,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found."))
+      (AppConfig.findLatest(app1.token).get.configuration \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
 
       logInUser()
 
