@@ -57,6 +57,7 @@ class JunGroupAPI {
   def adNetworkConfiguration(companyName: String, appName: String, appToken: String): JsObject = {
     val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
     val adNetworkName = companyName + " - " + appName
+    val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
     JsObject(
       Seq(
         "ad_network" -> JsObject(
@@ -65,7 +66,10 @@ class JunGroupAPI {
             // Always set to true due to mediation being SDK only
             "mobile" -> JsBoolean(true),
             "fyber_api_key" -> JsString(appToken),
-            "fyber_placement_id" -> JsString(appToken)
+            "fyber_placement_id" -> JsString(appToken),
+            "created_in_context" -> JsString(createdInContext),
+            "is_test" -> JsBoolean(!Environment.isProd),
+            "demographic_targeting_enabled" -> JsBoolean(true)
           )
         ),
         "payout_url" -> JsObject(

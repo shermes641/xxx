@@ -51,7 +51,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
         )
       )
     }
-    val configurationsList = List(analyticsConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
+    val configurationsList = List(analyticsConfiguration, errorReportingConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
       distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, pausedConfiguration(configInfo), timeoutConfigurations)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
@@ -132,6 +132,23 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
           Seq(
             "analyticsPostUrl" -> JsString("https://api.keen.io/3.0/projects/" + Play.current.configuration.getString("keen.project").get),
             "analyticsWriteKey" -> JsString(Play.current.configuration.getString("keen.writeKey").get)
+          )
+        )
+      )
+    )
+  }
+
+  /**
+   * Creates JSON object containing configuration data for our error report to our analytics service (keen.io)
+   * @return JSON object to be merged into JSON API response.
+   */
+  def errorReportingConfiguration: JsObject = {
+    JsObject(
+      Seq(
+        "errorReportingConfiguration" -> JsObject(
+          Seq(
+            "errorReportingPostUrl" -> JsString("https://api.keen.io/3.0/projects/" + Play.current.configuration.getString("keen.errorReportingProject").get),
+            "errorReportingWriteKey" -> JsString(Play.current.configuration.getString("keen.errorReportingWriteKey").get)
           )
         )
       )
