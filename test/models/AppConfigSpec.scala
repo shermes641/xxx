@@ -33,7 +33,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
     "increment the generation number for an existing waterfall ID each time the configuration has changed" in new WithDB {
       val originalGeneration = generationNumber(app1.id)
-      Waterfall.update(waterfall.id, true, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
       WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -104,7 +104,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     "return the ad provider configuration info" in new WithAppDB(distributor.id.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
-      Waterfall.update(currentWaterfall.id, false, false, false)
+      Waterfall.update(currentWaterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         val configs = (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray]

@@ -129,7 +129,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "configure an ad provider from the waterfall edit page" in new WithFakeBrowser with JsonTesting {
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(true), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
-      Waterfall.update(waterfall.id, false, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
       DB.withConnection { implicit connection =>
@@ -165,7 +165,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle test mode to off when there is at least one ad provider" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, true, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = true, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
@@ -182,7 +182,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle test mode to on only when the user confirms the action if waterfall is not paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
@@ -201,7 +201,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle test mode should not show confirmation if waterfall is paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false, true)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
       AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found or waterfall has been paused."))
@@ -219,7 +219,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "not toggle test mode to on when the user cancels the action" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
@@ -236,8 +236,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
     }
 
-    "waterfall should be paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false, true)
+    "waterfall UI should start paused if waterfall is paused" in new WithFakeBrowser {
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
       AppConfig.findLatest(app1.token).get.configuration \ "message" must beEqualTo(JsString("App Configuration not found or waterfall has been paused."))
@@ -249,8 +249,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isPresent
     }
 
-    "waterfall not should be paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false, false)
+    "waterfall UI not should not start paused if waterfall is not paused" in new WithFakeBrowser {
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
 
@@ -262,7 +262,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "toggle paused mode should show confirmation modal" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
 
@@ -298,7 +298,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val originalGeneration = generationNumber(waterfall.app_id)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(false), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
-      Waterfall.update(waterfall.id, false, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
 
       logInUser()
 
@@ -314,7 +314,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val originalGeneration = generationNumber(waterfall.app_id)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(false), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
-      Waterfall.update(waterfall.id, false, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
 
       logInUser()
 
