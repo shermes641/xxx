@@ -13,21 +13,22 @@ describe('AnalyticsController', function() {
             console.log(message);
         };
         var urlRoot = "http://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
-        var apiKey = "api_key=D8DD8FDF000323000448F"
+        var apiKey = "api_key=D8DD8FDF000323000448F";
+        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
         var listenForKeen = function(filter) {
-            server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400",
+            server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": 5.01123595505618}) ]);
-            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=mediate_availability_response_true&interval=daily&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400",
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=mediate_availability_response_true&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 173, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
-            server.respondWith("GET", urlRoot + "multi_analysis?"+apiKey+"&event_collection=ad_completed&interval=daily&analyses=%7B%22completedCount%22%3A%7B%22analysis_type%22%3A%22count%22%7D%2C%22averageeCPM%22%3A%7B%22analysis_type%22%3A%22average%22%2C%22target_property%22%3A%22ad_provider_eCPM%22%7D%7D&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400",
+            server.respondWith("GET", urlRoot + "multi_analysis?"+apiKey+"&event_collection=ad_completed&interval=daily&analyses=%7B%22completedCount%22%3A%7B%22analysis_type%22%3A%22count%22%7D%2C%22averageeCPM%22%3A%7B%22analysis_type%22%3A%22average%22%2C%22target_property%22%3A%22ad_provider_eCPM%22%7D%7D&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": {"averageeCPM": 4.63265306122449, "completedCount": 49}, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": {"averageeCPM": 5.475, "completedCount": 40}, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
-            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=mediate_availability_requested&interval=daily&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400",
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=mediate_availability_requested&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 400, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 597, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
-            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_requested&interval=daily&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400",
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_requested&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 400, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 597, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
-            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_response_true&interval=daily&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400",
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_response_true&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 173, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
-            console.log(urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400");
+            console.log(urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe);
 
         };
         listenForKeen("");
