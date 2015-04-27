@@ -21,7 +21,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
     val placementID = (reportingParams \ "placementID").as[String]
     val apiKey = (reportingParams \ "APIKey").as[String]
     val date = currentTime.toString(dateFormat)
-    // Per Fyber's documentation, these key names must maintain alphabetical order before being encrypted
+    // Per Fyber's documentation (and our own implementation in Player), these key names must maintain alphabetical order before being encrypted
     val queryParams = Map("app_id" -> appID, "end_date" -> date, "placement_id" -> placementID, "start_date" -> date)
     val queryString = queryParams.flatMap((k) => List(k._1 + "=" +  k._2)).mkString("&") + "&" + apiKey
     val hashValue = Codecs.sha1(queryString)

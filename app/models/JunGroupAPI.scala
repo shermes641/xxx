@@ -65,8 +65,8 @@ class JunGroupAPI {
             "name" -> JsString(adNetworkName),
             // Always set to true due to mediation being SDK only
             "mobile" -> JsBoolean(true),
-            "fyber_api_key" -> JsString(appToken),
-            "fyber_placement_id" -> JsString(appToken),
+            "mediation_reporting_api_key" -> JsString(appToken),
+            "mediation_reporting_placement_id" -> JsString(appToken),
             "created_in_context" -> JsString(createdInContext),
             "is_test" -> JsBoolean(!Environment.isProd),
             "demographic_targeting_enabled" -> JsBoolean(true)
