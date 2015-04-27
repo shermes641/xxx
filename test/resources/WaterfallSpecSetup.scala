@@ -21,8 +21,8 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
         "{\"description\": \"Your App Id\", \"displayKey\": \"App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": true}" +
       "], " +
       "\"reportingParams\": [" +
-        "{\"description\": \"Your Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}, " +
-        "{\"description\": \"Your Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}, " +
+        "{\"description\": \"Your Mediation Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}, " +
+        "{\"description\": \"Your Mediation Reporting Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}, " +
         "{\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
       "], " +
       "\"callbackParams\": [" +

@@ -40,6 +40,7 @@ if(Environment.isProd) {
         VirtualCurrency.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
         val adProviderID = Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get
         val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallID, adProviderID, Option(0), Option(20), configurable = false, active = false, pending = true).get
+        AppConfig.create(appID, app.token, 0)
         val hyprWAP = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID).get
         WaterfallAdProviderWithAppData(hyprWAP.id, waterfallID, adProviderID, hyprWAP.waterfallOrder, hyprWAP.cpm, hyprWAP.active, hyprWAP.fillRate, hyprWAP.configurationData, hyprWAP.reportingActive, hyprWAP.pending, app.token, app.name, companyName)
       }

@@ -152,13 +152,26 @@
                     <table class="analytics-revenue-table" cellspacing="0" id="analytics_revenue_table">
                         <thead>
                             <tr>
-                                <th colspan="2">Date<span class="align-right">Estimated Revenue</span></th>
+                                <th>Date
+                                    <div class="metric">Estimated Revenue</div>
+                                    <div class="metric">eCPM</div>
+                                    <div class="metric">Completions</div>
+                                    <div class="metric">Impressions</div>
+                                    <div class="metric">Fill Rate</div>
+                                    <div class="metric">Requests</div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr ng-repeat="day in analyticsData.revenueTable">
-                                <td>{{day.Date}}</td>
-                                <td>{{day["Estimated Revenue"]}}</td>
+                                <td>{{day.date}}
+                                    <div class="metric">{{day.estimatedRevenue}}</div>
+                                    <div class="metric">{{day.averageeCPM}}</div>
+                                    <div class="metric">{{day.completedCount}}</div>
+                                    <div class="metric">{{day.impressions}}</div>
+                                    <div class="metric">{{day.fillRate}}</div>
+                                    <div class="metric">{{day.requests}}</div>
+                                </td>
                             </tr>
                             <tr ng-if="analyticsData.revenueTable.length == 0">
                                 <td><div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div></td>

@@ -7,14 +7,15 @@ import play.api.Play
 /**
  * @param emailAddress The Email Address of the signed up user.
  * @param company The company of the signed up user.
+ * @param userIPAddress The IP Address of the new user.
  */
-case class sendUserCreationEmail(emailAddress: String, company: String)
+case class sendUserCreationEmail(emailAddress: String, company: String, userIPAddress: String)
 
 class WelcomeEmailActor extends Actor with Mailer {
   def receive = {
-    case sendUserCreationEmail(emailAddress: String, company: String) => {
+    case sendUserCreationEmail(emailAddress: String, company: String, userIPAddress: String) => {
       sendWelcomeEmail(emailAddress)
-      sendTeamNotification(emailAddress, company)
+      sendTeamNotification(emailAddress, company, userIPAddress)
     }
   }
 
@@ -40,11 +41,12 @@ class WelcomeEmailActor extends Actor with Mailer {
    * Sends email to Hyprmx team on successful user signup
    * @param userEmail Email of the new DistributorUser.
    * @param userCompany Company of the new DistributorUser.
+   * @param userIPAddress The IP Address of the new user.
    */
-  def sendTeamNotification(userEmail: String, userCompany: String): Unit = {
+  def sendTeamNotification(userEmail: String, userCompany: String, userIPAddress: String): Unit = {
     val email = Play.current.configuration.getString("hyprmarketplace.team_email").get
     val subject = "hyprMediate user has signed up - " + userEmail
-    val body = userEmail + " has signed up for hyprMediate. For company " + userCompany
+    val body = userEmail + " has signed up for hyprMediate.\r\n\r\nCompany: " + userCompany + "\r\n\r\nIP Address: " + userIPAddress
     sendEmail(email, subject, body)
   }
 }

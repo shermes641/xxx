@@ -28,16 +28,21 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
     "Build the correct configuration using the created distributor user" in new WithDB {
       val payoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
       val config = junGroup.adNetworkConfiguration(distributorName, appName, appToken)
+      val networkJson = config \ "ad_network"
+      val payoutUrlJson = config \ "payout_url"
       val adNetworkName = distributorName + " - " + appName
       val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
-      config \ "ad_network" \ "name" must beEqualTo(JsString(adNetworkName))
-      config \ "ad_network" \ "mobile" must beEqualTo(JsBoolean(true))
-      config \ "ad_network" \ "created_in_context" must beEqualTo(JsString(createdInContext))
-      config \ "ad_network" \ "is_test" must beEqualTo(JsBoolean(true))
-      config \ "ad_network" \ "demographic_targeting_enabled" must beEqualTo(JsBoolean(true))
 
-      config \ "payout_url" \ "url" must beEqualTo(JsString(payoutUrl))
-      config \ "payout_url" \ "environment" must beEqualTo(JsString(Environment.mode))
+      networkJson \ "name" must beEqualTo(JsString(adNetworkName))
+      networkJson \ "mobile" must beEqualTo(JsBoolean(true))
+      networkJson \ "created_in_context" must beEqualTo(JsString(createdInContext))
+      networkJson \ "is_test" must beEqualTo(JsBoolean(true))
+      networkJson \ "demographic_targeting_enabled" must beEqualTo(JsBoolean(true))
+      networkJson \ "mediation_reporting_api_key" must beEqualTo(JsString(appToken))
+      networkJson \ "mediation_reporting_placement_id" must beEqualTo(JsString(appToken))
+
+      payoutUrlJson \ "url" must beEqualTo(JsString(payoutUrl))
+      payoutUrlJson \ "environment" must beEqualTo(JsString(Environment.mode))
     }
   }
 
