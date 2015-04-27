@@ -644,7 +644,7 @@ span#viewTerms:hover
     color:#ff6666;
 }
 
-.cancel-button
+button.cancel-button
 {
     -webkit-appearance:none;
     background:#666;
@@ -657,7 +657,7 @@ span#viewTerms:hover
     text-align:center;
 }
 
-.confirm-button
+button.confirm-button
 {
     -webkit-appearance:none;
     background:#ff6666;
