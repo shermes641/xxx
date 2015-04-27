@@ -128,6 +128,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
                 scope.showTestModeConfirmationModal = false;
+                scope.showPauseConfirmationModal = false;
                 $rootScope.bodyClass = "";
             };
 

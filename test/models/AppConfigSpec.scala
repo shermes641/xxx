@@ -112,7 +112,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
 
-    "return an error when waterfall is paused"in new WithAppDB(distributor.id.get) {
+    "return an empty adProviderConfigurations array when waterfall is paused."in new WithAppDB(distributor.id.get) {
       DB.withTransaction { implicit connection =>
         WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
         Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = true)
