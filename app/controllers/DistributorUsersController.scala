@@ -29,7 +29,11 @@ object DistributorUsersController extends Controller with Secured with CustomFor
         DistributorUser.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
             val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
-            emailActor ! sendUserCreationEmail(signup.email, signup.company)
+            val userIPAddress: String = request.headers.get("X-Forwarded-For") match {
+              case Some(ip: String) => ip
+              case None => request.remoteAddress
+            }
+            emailActor ! sendUserCreationEmail(signup.email, signup.company, userIPAddress)
             DistributorUser.find(id) match {
               case Some(user: DistributorUser) => {
                 Ok(Json.obj("status" -> "success", "distributorID" -> user.distributorID.get.toString)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString)
