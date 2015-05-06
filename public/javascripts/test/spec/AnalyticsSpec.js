@@ -26,6 +26,8 @@ describe('AnalyticsController', function() {
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 400, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 597, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
             server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_requested&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 400, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 597, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=ad_displayed&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 203, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
             server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_response_true&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 173, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
             console.log(urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe);
@@ -90,7 +92,7 @@ describe('AnalyticsController', function() {
             expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(40);
             expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$0.21");
             expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("29%");
-            expect(scope.analyticsData.revenueTable[0].impressions).toEqual(173);
+            expect(scope.analyticsData.revenueTable[0].impressions).toEqual(203);
             expect(scope.analyticsData.revenueTable[0].requests).toEqual(597);
         });
 

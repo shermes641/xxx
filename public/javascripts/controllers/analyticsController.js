@@ -443,8 +443,16 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 timeframe: config.timeframe
             });
 
+            // Impression count, metric
+            var impression_count = new Keen.Query("count", {
+                eventCollection: "ad_displayed",
+                interval: "daily",
+                filters: config.filters,
+                timeframe: config.timeframe
+            });
+
             // Calculate expected eCPM
-            $scope.keenClient.run([estimated_revenue, inventory_request, available_count], function() {
+            $scope.keenClient.run([estimated_revenue, inventory_request, available_count, impression_count], function() {
                 // If this update is not longer the latest then reset and do nothing.
                 if($scope.updateTimeStamp !== config.currentTimeStamp) {
                     $scope.resetUpdate(config);
@@ -455,6 +463,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
                 var inventoryRequests = this.data[1].result;
                 var availableCount = this.data[2].result;
+                var impressionCount = this.data[3].result;
 
                 var table_data = [];
                 var chart_data = [];
@@ -483,7 +492,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         "date": table_date_string,
                         "requests": inventoryRequests[i].value,
                         "fillRate": fillRate,
-                        "impressions": availableCount[i].value,
+                        "impressions": impressionCount[i].value,
                         "completedCount": day.value.completedCount,
                         "averageeCPM": '$' + $filter("monetaryFormat")(day.value.averageeCPM),
                         "estimatedRevenue": '$' + $filter("monetaryFormat")(days_revenue)
