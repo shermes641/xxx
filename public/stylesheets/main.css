@@ -2150,6 +2150,19 @@ header #username_header:hover #username_dropdown,#apps_list:hover #apps_list_men
     display:none;
 }
 
+.waterfall ul li.below-reward-threshold {
+    border: 2px solid #ff6666;
+}
+
+.waterfall ul li .below-reward-threshold-message {
+    display: inline-block;
+    width: 380px;
+    color: #ff0000;
+    text-align: right;
+    font-size: 13px;
+}
+ }
+
 .flash-message.error,dd.modal-error
 {
     color:#E80000;

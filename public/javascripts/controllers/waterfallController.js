@@ -244,6 +244,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
                             flashMessage.add(data);
+                            $scope.getWaterfallData();
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
@@ -293,7 +294,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.generationNumber = data.newGenerationNumber;
-                        setWAPData(data)
+                        setWAPData(data);
+                        $scope.getWaterfallData();
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
@@ -362,6 +364,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         var restartParams = Object.keys($scope.changedRestartParams);
                         var successMessage = adProviderName + " updated!";
                         flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                        $scope.getWaterfallData();
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
