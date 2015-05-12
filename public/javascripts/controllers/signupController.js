@@ -11,6 +11,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
 
             // Submit form if fields are valid.
             $scope.submit = function(form) {
+                ga('send', 'event', 'signup_submit', 'click', 'signup');
                 $scope.errors = {};
                 if(form.$valid) {
                     $scope.waitForAuth = true;

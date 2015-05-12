@@ -67,6 +67,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Toggles test mode on/off
             $scope.toggleTestMode = function(testMode) {
+                ga('send', 'event', 'testmode_toggle', 'click', 'waterfalls');
                 if(!$scope.disableTestModeToggle) {
                     if(testMode) {
                         $scope.waterfallData.waterfall.testMode = false;
@@ -83,23 +84,27 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             $scope.confirmTestMode = function() {
+                ga('send', 'event', 'testmode_toggle_confirm', 'click', 'waterfalls');
                 $scope.waterfallData.waterfall.testMode = true;
                 $scope.updateWaterfall();
                 closeTestModeModal();
             };
 
             $scope.cancelTestMode = function() {
+                ga('send', 'event', 'testmode_toggle_cancel', 'click', 'waterfalls');
                 $scope.waterfallData.waterfall.testMode = false;
                 closeTestModeModal();
             };
 
             var closeTestModeModal = function() {
+                ga('send', 'event', 'testmode_toggle_close', 'click', 'waterfalls');
                 $scope.showModal(false);
                 $scope.showTestModeConfirmationModal = false;
             };
 
             // Toggles optimized mode on/off
             $scope.toggleOptimizedMode = function() {
+                ga('send', 'event', 'optimized_toggle', 'click', 'waterfalls');
                 $scope.sortableOptions.disabled = !$scope.sortableOptions.disabled;
                 if($scope.waterfallData.waterfall.optimizedOrder) {
                     $scope.orderOptimizedWaterfallList();
@@ -135,6 +140,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Submit updates to Waterfall
             $scope.updateWaterfall = function() {
+                ga('send', 'event', 'waterfall_update', 'click');
                 $scope.setWaterfallOrder();
                 var params = {
                     adProviderOrder: $scope.waterfallData.waterfallAdProviderList.filter(function(el) { return(!el.newRecord); }),
@@ -154,6 +160,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Toggles active/inactive status for an AdProvider
             $scope.toggleWAPStatus = function(adProviderConfig) {
+                ga('send', 'event', 'toggle_wap_status', 'click', 'waterfalls');
                 var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
                 var originalVal = adProviderConfig.active;
                 // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
@@ -170,6 +177,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             /* App logic */
             // Open the App settings page
             $scope.toggleEditAppModal = function() {
+                ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
                 $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
                     $scope.data = data;
@@ -184,12 +192,14 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             $scope.closeWAPModal = function() {
+                ga('send', 'event', 'close_wap_modal', 'click', 'waterfalls');
                 $scope.showModal(false);
                 $scope.showWaterfallAdProviderModal = false;
             };
 
             // Open the App creation page
             $scope.toggleNewAppModal = function() {
+                ga('send', 'event', 'toggle_new_app_modal', 'click', 'waterfalls');
                 $scope.errors = {};
                 $scope.newApp = {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true};
                 $scope.showNewAppModal = !$scope.showNewAppModal;
@@ -201,6 +211,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Submit form if fields are valid.
             $scope.submitNewApp = function(form) {
                 if(form.$valid) {
+                    ga('send', 'event', 'submit_new_app', 'click', 'waterfalls');
                     var distributorID = $routeParams.distributorID;
                     setNumberValues("newApp");
                     $http.post('/distributors/' + distributorID + '/apps', $scope.newApp).
@@ -227,6 +238,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Submit updates to App
             $scope.submitEditApp = function(form) {
                 if(form.$valid) {
+                    ga('send', 'event', 'submit_edit_app', 'click', 'waterfalls');
                     setNumberValues("data");
                     $scope.data.generationNumber = $scope.generationNumber;
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
@@ -270,6 +282,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Retrieves WaterfallAdProvider data from the server if an instance exists.  Otherwise, create a new WaterfallAdProvider.
             $scope.editWaterfallAdProvider = function(adProviderConfig) {
+                ga('send', 'event', 'edit_waterfall_ad_provider', 'click', 'waterfalls');
                 $scope.restartableParams = {};
                 $scope.changedRestartParams = {};
                 $scope.errors = {};
@@ -339,6 +352,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.errors["staticParams-cpm"] = "error";
                 }
                 if(!$scope.invalidForm) {
+                    ga('send', 'event', 'update_waterfall_ad_provider', 'click', 'waterfalls');
                     $scope.wapData.generationNumber = $scope.generationNumber;
                     $scope.wapData.appToken = $scope.appToken;
                     $scope.wapData.waterfallID = $routeParams.waterfallID;
