@@ -245,7 +245,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       generationNumber(app1.id) must beEqualTo(originalGeneration)
     }
 
-    "persist the waterfall ordering when the eCPM is changed for a waterfall ad provider in optimized mode" in new WithAppBrowser(distributor.id.get) {
+    "update the waterfall ordering when the eCPM is changed for a waterfall ad provider in optimized mode" in new WithAppBrowser(distributor.id.get) {
       createWaterfallAdProvider(currentWaterfall.id, adProviderID1.get, None, Some(5.0), true, true)
       createWaterfallAdProvider(currentWaterfall.id, adProviderID2.get, None, Some(5.0), true, true)
       currentWaterfall.optimizedOrder must beTrue
@@ -259,7 +259,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.$("button[name=configure-wap]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
-      browser.click("button[name=update-ad-provider]")
+      clickAndWaitForAngular("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
       browser.$(".waterfall-app-info").first().getText must contain(adProviders(1))
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)

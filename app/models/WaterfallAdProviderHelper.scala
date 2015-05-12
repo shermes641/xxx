@@ -19,6 +19,7 @@ trait WaterfallAdProviderHelper {
       case (Some(roundUpValue: Boolean), _) if(roundUpValue) => true
       case (Some(roundUpValue: Boolean), Some(cpmVal: Double)) if(!roundUpValue) => {
         cpmVal * exchangeRateVal.get >= rewardMinVal * 1000.0
+
       }
       // If there is no cpm value for an ad provider and the virtual currency does not roundUp, this will ensure it is excluded from the waterfall.
       case (Some(roundUpValue: Boolean), None) if(!roundUpValue) => false

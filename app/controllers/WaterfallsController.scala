@@ -38,7 +38,8 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
-            new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, Option(false), Option(0), 0, adProvider.configurable, true)
+            new OrderedWaterfallAdProvider(name = adProvider.name, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
+                                          configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
@@ -53,7 +54,8 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
-          new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, Option(false), Option(0), 0, adProvider.configurable, true)
+          new OrderedWaterfallAdProvider(name = adProvider.name, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
+                                          configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
         val generationNumber: Long = waterfall.generationNumber.getOrElse(0)
