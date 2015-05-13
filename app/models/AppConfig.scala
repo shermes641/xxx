@@ -170,7 +170,7 @@ object AppConfig extends JsonConversion {
   def responseV1(appToken: String)(implicit connection: Connection): JsValue = {
     // Removes ad providers that are inactive or do not have a high enough eCPM value from the response.
     def filteredAdProviders(unfilteredAdProviders: List[AdProviderInfo]): List[AdProviderInfo] = {
-      unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold)
+      unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold && !adProvider.paused)
     }
     Waterfall.order(appToken) match {
       // App token was not found in app_configs table.
@@ -206,7 +206,7 @@ object AppConfig extends JsonConversion {
     val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TEST_MODE_DISTRIBUTOR_ID), "propertyID" -> JsString(TEST_MODE_PROPERTY_ID)))))
     val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TEST_MODE_PROVIDER_NAME), Some(TEST_MODE_PROVIDER_ID), Some(TEST_MODE_APP_NAME), Some(TEST_MODE_HYPRMEDIATE_APP_ID),
       TEST_MODE_APP_CONFIG_REFRESH_INTERVAL, Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME), Some(TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID), Some(testConfigData), Some(5.0), Some(TEST_MODE_VIRTUAL_CURRENCY.name),
-      Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, Some(false))
+      Some(TEST_MODE_VIRTUAL_CURRENCY.exchangeRate), TEST_MODE_VIRTUAL_CURRENCY.rewardMin, TEST_MODE_VIRTUAL_CURRENCY.rewardMax, Some(TEST_MODE_VIRTUAL_CURRENCY.roundUp), true, false, false, Some(false))
     JsonBuilder.appConfigResponseV1(List(testAdProviderConfig), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
   }
 }

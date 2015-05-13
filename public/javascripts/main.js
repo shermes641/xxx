@@ -128,6 +128,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
                 scope.showEditAppModal = false;
                 scope.showNewAppModal = false;
                 scope.showTestModeConfirmationModal = false;
+                scope.showPauseConfirmationModal = false;
                 $rootScope.bodyClass = "";
             };
 
@@ -194,6 +195,18 @@ mediationModule.directive('requiredInteger', function() {
     };
 });
 
+mediationModule.directive('validateEcpm', function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            ctrl.$validators.validateEcpm = function(modelValue) {
+                var parsedCpm = parseFloat(modelValue);
+                return !(isNaN(parsedCpm) || parsedCpm < 0 || (modelValue.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null));
+            };
+        }
+    };
+});
+
 var greaterThanDirectiveName = 'greaterThanOrEqualTo';
 mediationModule.directive(greaterThanDirectiveName, function() {
     return {
@@ -230,6 +243,26 @@ mediationModule.directive(lessThanDirectiveName, function() {
             ctrl.$formatters.push(validate);
 
             attrs.$observe(lessThanDirectiveName, function() {
+                return validate(ctrl.$viewValue);
+            });
+        }
+    };
+});
+
+var reportingRequired = 'reportingRequired';
+mediationModule.directive(reportingRequired, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function(viewValue) {
+                ctrl.$setValidity(reportingRequired, attrs.reportingRequired === "true" ? !ctrl.$isEmpty(viewValue) : true);
+                return viewValue;
+            };
+
+            ctrl.$parsers.unshift(validate);
+            ctrl.$formatters.push(validate);
+
+            attrs.$observe(reportingRequired, function() {
                 return validate(ctrl.$viewValue);
             });
         }

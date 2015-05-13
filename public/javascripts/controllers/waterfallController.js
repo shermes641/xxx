@@ -7,6 +7,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
             $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
             $scope.testModeConfirmationModal = 'assets/templates/waterfalls/test_mode_confirmation.html';
+            $scope.pauseConfirmationModal = 'assets/templates/waterfalls/pause_confirmation.html';
 
             $scope.page = 'waterfall';
             $scope.newAppModalTitle = "Create New App";
@@ -22,6 +23,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.errors = {};
             $scope.form = {};
             $scope.flashMessage = flashMessage;
+            $scope.selectedAdProvider = {};
 
             // Retrieve Waterfall data
             $scope.getWaterfallData = function() {
@@ -61,8 +63,48 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Checks status of WaterfallAdProviders to determine if the test mode toggle should be disabled
             var checkTestModeToggle = function() {
-                var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
+                var activeAdProviders = $scope.providersByActive(true);
                 return (activeAdProviders.length < 1 && $scope.waterfallData.waterfall.testMode);
+            };
+
+            // Toggles paused on/off
+            $scope.togglePaused = function() {
+                var activeAdProviders = $scope.providersByActive(true);
+                if(activeAdProviders.length >= 1) {
+                    if($scope.waterfallData.waterfall.paused) {
+                        $scope.waterfallData.waterfall.paused = false;
+                        $scope.updateWaterfall();
+                    } else {
+                        $scope.showPauseConfirmationModal = true;
+                        $scope.showModal(!$scope.modalShown);
+                    }
+                } else if($scope.waterfallData.waterfall.paused === false) {
+                    // Should never get here unless waterfall was edited in DB
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.updateWaterfall();
+                } else {
+                    flashMessage.add({message: "You must activate at least one Ad Provider", status: "error"});
+                }
+            };
+
+            // When pause dialog is confirmed.
+            $scope.confirmPause = function() {
+                $scope.selectedAdProvider.active = false;
+                $scope.waterfallData.waterfall.paused = true;
+                $scope.updateWaterfall();
+                closePauseModal();
+                $scope.selectedAdProvider = {};
+            };
+
+            // When pause dialog is cancelled
+            $scope.cancelPause = function() {
+                $scope.waterfallData.waterfall.paused = false;
+                closePauseModal();
+            };
+
+            var closePauseModal = function() {
+                $scope.showModal(false);
+                $scope.showPauseConfirmationModal = false;
             };
 
             // Toggles test mode on/off
@@ -71,15 +113,21 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(!$scope.disableTestModeToggle) {
                     if(testMode) {
                         $scope.waterfallData.waterfall.testMode = false;
-                        $scope.showTestModeConfirmationModal = true;
-                        $scope.showModal(!$scope.modalShown);
+                        if($scope.waterfallData.waterfall.paused) {
+                            $scope.waterfallData.waterfall.testMode = true;
+                            $scope.updateWaterfall();
+                        } else {
+                            $scope.showTestModeConfirmationModal = true;
+                            $scope.showModal(!$scope.modalShown);
+                        }
                     } else {
                         $scope.updateWaterfall();
                     }
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
-                    $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
-                    flashMessage.add({message: "You must activate at least one Ad Provider", status: "error"});
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.updateWaterfall();
                 }
             };
 
@@ -146,6 +194,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     adProviderOrder: $scope.waterfallData.waterfallAdProviderList.filter(function(el) { return(!el.newRecord); }),
                     optimizedOrder: $scope.waterfallData.waterfall.optimizedOrder,
                     testMode: $scope.waterfallData.waterfall.testMode,
+                    paused: $scope.waterfallData.waterfall.paused,
                     appToken: $scope.appToken,
                     generationNumber: $scope.generationNumber
                 };
@@ -161,17 +210,18 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Toggles active/inactive status for an AdProvider
             $scope.toggleWAPStatus = function(adProviderConfig) {
                 ga('send', 'event', 'toggle_wap_status', 'click', 'waterfalls');
-                var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
-                var originalVal = adProviderConfig.active;
-                // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
-                if(!originalVal || $scope.waterfallData.waterfall.testMode || (originalVal && (activeAdProviders.length > 1))) {
+                var activeAdProviders = $scope.providersByActive(true);
+                // Pause waterfall if we are not in testMode and there are no activeAdProviders
+                if(adProviderConfig.active && activeAdProviders.length <= 1 && !$scope.waterfallData.waterfall.paused && !$scope.waterfallData.waterfall.testMode) {
+                    $scope.selectedAdProvider = adProviderConfig;
+                    $scope.showPauseConfirmationModal = true;
+                    $scope.showModal(!$scope.modalShown);
+                } else {
                     adProviderConfig.active = !adProviderConfig.active;
                     $scope.updateWaterfall();
-                } else {
-                    flashMessage.add({message: "At least one Ad Provider must be active", status: "error"});
+                    $scope.disableTestModeToggle = checkTestModeToggle();
+                    $scope.orderOptimizedWaterfallList();
                 }
-                $scope.disableTestModeToggle = checkTestModeToggle();
-                $scope.orderOptimizedWaterfallList();
             };
 
             /* App logic */
@@ -272,6 +322,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var setWAPData = function(wapData) {
                 $scope.wapData = wapData;
                 $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
+                $scope.form.editWAP.$setPristine();
+                $scope.form.editWAP.$setUntouched();
                 $scope.showWaterfallAdProviderModal = true;
                 $scope.showModal(true);
                 for(var i = 0; i < wapData.requiredParams.length; i++) {
@@ -313,31 +365,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
-                        setWAPData(wapData)
+                        setWAPData(wapData);
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
                 }
             };
 
-            // Checks dynamic WaterfallAdProvider fields for errors and sets the inline errors accordingly if found.
-            var checkFieldsForErrors = function(fieldType) {
-                return($scope.wapData[fieldType].map(function(el) {
-                    var value = el.dataType == "Array" ? el.value.split(",").map(function(arrayValue) { return(arrayValue.trim()); })[0] : el.value;
-                    if(value === undefined || value === null || value === "" || value.length < el.minLength) {
-                        $scope.errors[fieldType + "-" + el.key] = "error";
-                        $scope.errors[fieldType + "-" + el.key + "-message"] = el.minLength > 1 ? "This field requires at least " + el.minLength + " characters" : "Field is required";
-                        $scope.invalidForm = true;
-                    }
-                }))
-            };
-
             // Checks WaterfallAdProvider modal form and submits update if valid.
-            $scope.updateWAP = function(wapID, adProviderName) {
+            $scope.updateWAP = function(form) {
                 $scope.errors = {};
-                $scope.invalidForm = false;
-                checkFieldsForErrors("requiredParams", true);
-                if($scope.wapData.reportingActive) { checkFieldsForErrors("reportingParams") }
                 // Check for modified params that require an App restart
                 for (var i = 0; i < $scope.wapData.requiredParams.length; i++) {
                     var param = $scope.wapData.requiredParams[i];
@@ -346,22 +383,17 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     }
                 }
                 var parsedCpm = parseFloat($scope.wapData.cpm);
-                if(isNaN(parsedCpm) || parsedCpm < 0 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
-                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than or equal to $0.00";
-                    $scope.invalidForm = true;
-                    $scope.errors["staticParams-cpm"] = "error";
-                }
-                if(!$scope.invalidForm) {
+                if(form.$valid) {
                     ga('send', 'event', 'update_waterfall_ad_provider', 'click', 'waterfalls');
                     $scope.wapData.generationNumber = $scope.generationNumber;
                     $scope.wapData.appToken = $scope.appToken;
                     $scope.wapData.waterfallID = $routeParams.waterfallID;
                     // Submit update for WaterfallAdProvider
-                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, $scope.wapData).success(function(data) {
+                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + $scope.wapData.waterfallAdProviderID, $scope.wapData).success(function(data) {
                         $scope.generationNumber = data.newGenerationNumber;
                         var adProviders = $scope.waterfallData.waterfallAdProviderList;
                         for(var i = 0; i < adProviders.length; i++) {
-                            if(adProviders[i].name === adProviderName) {
+                            if(adProviders[i].name === $scope.wapData.adProviderName) {
                                 if(adProviders[i].unconfigured) {
                                     $scope.changedRestartParams = {};
                                 }
@@ -374,7 +406,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.showWaterfallAdProviderModal = false;
                         $scope.showModal(false);
                         var restartParams = Object.keys($scope.changedRestartParams);
-                        var successMessage = adProviderName + " updated!";
+                        var successMessage = $scope.wapData.adProviderName + " updated!";
                         flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
                     }).error(function(data) {
                         flashMessage.add(data);
