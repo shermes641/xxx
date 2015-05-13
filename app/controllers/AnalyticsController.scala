@@ -22,24 +22,17 @@ object AnalyticsController extends Controller with Secured {
   }
 
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+
     request.body.asJson.map { json =>
-      (json \ "email").asOpt[String].map { email =>
-        (json \ "filters").asOpt[JsArray].map { filters =>
-          (json \ "timeframe").asOpt[JsObject].map { timeframe =>
-            (json \ "apps").asOpt[List[String]].map { selectedApps =>
-              KeenExport().exportToCSV(distributorID, email, filters, timeframe, selectedApps)
-              Ok("success")
-            }.getOrElse {
-              BadRequest("Missing parameter [apps]")
-            }
-          }.getOrElse {
-            BadRequest("Missing parameter [timeframe]")
-          }
-        }.getOrElse {
-          BadRequest("Missing parameter [filters]")
+      ((json \ "email").asOpt[String], (json \ "filters").asOpt[JsArray],
+       (json \ "timeframe").asOpt[JsObject], (json \ "apps").asOpt[List[String]]) match {
+        case (email: Option[String], filters: JsArray, timeframe: JsObject, selectedApps: List[String]) => {
+          KeenExport().exportToCSV(distributorID, email.get, filters, timeframe, selectedApps)
+          Ok("success")
         }
-      }.getOrElse {
-        BadRequest("Missing parameter [email]")
+        case (email, filters, timeframe, selectedApps) => {
+          BadRequest("Missing parameter(s) - Email: " + email + " Filters: " + filters +  "Timeframe: " + timeframe + " Apps: " + selectedApps)
+        }
       }
     }.getOrElse {
       BadRequest("Expecting Json data")
