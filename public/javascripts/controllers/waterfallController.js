@@ -310,6 +310,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             var setWAPData = function(wapData) {
                 $scope.wapData = wapData;
                 $scope.wapData.cpm = $filter("monetaryFormat")(wapData.cpm);
+                $scope.form.editWAP.$setPristine();
+                $scope.form.editWAP.$setUntouched();
                 $scope.showWaterfallAdProviderModal = true;
                 $scope.showModal(true);
                 for(var i = 0; i < wapData.requiredParams.length; i++) {
@@ -350,31 +352,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
-                        setWAPData(wapData)
+                        setWAPData(wapData);
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
                 }
             };
 
-            // Checks dynamic WaterfallAdProvider fields for errors and sets the inline errors accordingly if found.
-            var checkFieldsForErrors = function(fieldType) {
-                return($scope.wapData[fieldType].map(function(el) {
-                    var value = el.dataType == "Array" ? el.value.split(",").map(function(arrayValue) { return(arrayValue.trim()); })[0] : el.value;
-                    if(value === undefined || value === null || value === "" || value.length < el.minLength) {
-                        $scope.errors[fieldType + "-" + el.key] = "error";
-                        $scope.errors[fieldType + "-" + el.key + "-message"] = el.minLength > 1 ? "This field requires at least " + el.minLength + " characters" : "Field is required";
-                        $scope.invalidForm = true;
-                    }
-                }))
-            };
-
             // Checks WaterfallAdProvider modal form and submits update if valid.
-            $scope.updateWAP = function(wapID, adProviderName) {
+            $scope.updateWAP = function(form) {
                 $scope.errors = {};
-                $scope.invalidForm = false;
-                checkFieldsForErrors("requiredParams", true);
-                if($scope.wapData.reportingActive) { checkFieldsForErrors("reportingParams") }
                 // Check for modified params that require an App restart
                 for (var i = 0; i < $scope.wapData.requiredParams.length; i++) {
                     var param = $scope.wapData.requiredParams[i];
@@ -383,21 +370,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     }
                 }
                 var parsedCpm = parseFloat($scope.wapData.cpm);
-                if(isNaN(parsedCpm) || parsedCpm < 0 || ($scope.wapData.cpm.match(/^[0-9]{0,}([\.][0-9]+)?$/) === null)) {
-                    $scope.errors.cpmMessage = "eCPM must be a valid number greater than or equal to $0.00";
-                    $scope.invalidForm = true;
-                    $scope.errors["staticParams-cpm"] = "error";
-                }
-                if(!$scope.invalidForm) {
+                if(form.$valid) {
                     $scope.wapData.generationNumber = $scope.generationNumber;
                     $scope.wapData.appToken = $scope.appToken;
                     $scope.wapData.waterfallID = $routeParams.waterfallID;
                     // Submit update for WaterfallAdProvider
-                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + wapID, $scope.wapData).success(function(data) {
+                    $http.post('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + $scope.wapData.waterfallAdProviderID, $scope.wapData).success(function(data) {
                         $scope.generationNumber = data.newGenerationNumber;
                         var adProviders = $scope.waterfallData.waterfallAdProviderList;
                         for(var i = 0; i < adProviders.length; i++) {
-                            if(adProviders[i].name === adProviderName) {
+                            if(adProviders[i].name === $scope.wapData.adProviderName) {
                                 if(adProviders[i].unconfigured) {
                                     $scope.changedRestartParams = {};
                                 }
@@ -410,7 +392,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.showWaterfallAdProviderModal = false;
                         $scope.showModal(false);
                         var restartParams = Object.keys($scope.changedRestartParams);
-                        var successMessage = adProviderName + " updated!";
+                        var successMessage = $scope.wapData.adProviderName + " updated!";
                         flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
                     }).error(function(data) {
                         flashMessage.add(data);

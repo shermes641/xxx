@@ -2,92 +2,101 @@
     <div class="flash-message success" id="wap-edit-success"></div>
     <div class="flash-message error" id="wap-edit-error"></div>
     <h1 class="modal-text">Configure {{wapData.adProviderName}}</h1>
-    <div class="app-form edit-ad-providers">
-        <div id="ecpm-input" ng-class="errors['staticParams-cpm']" class="waterfall-ad-provider-field">
-            <dd>
-            <dt><label for="eCPM">*eCPM $</label></dt>
-                <input ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
-                <h4 ng-mouseenter="hoverEcpm=true" ng-mouseleave="hoverEcpm=false" class="tooltip">
+    <form id="edit-wap" name="form.editWAP" ng-submit="updateWAP(form.editWAP)">
+        <div class="app-form edit-ad-providers">
+            <div id="ecpm-input" ng-class="errors['staticParams-cpm']" class="waterfall-ad-provider-field">
+                <dd>
+                <dt><label for="eCPM">*eCPM $</label></dt>
+                    <input validate-ecpm ng-class="{'inactive-input inactive-input': wapData.reportingActive}" ng-disabled="wapData.reportingActive" id="eCPM" name="eCPM" type="text" ng-model="wapData.cpm"></input>
+                    <h4 ng-mouseenter="hoverEcpm=true" ng-mouseleave="hoverEcpm=false" class="tooltip">
+                        ?
+                        <div class="ngtooltip" ng-show="hoverEcpm">Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.</div>
+                    </h4>
+                    <dd class="modal-text error" ng-show="form.editWAP.eCPM.$error.validateEcpm">eCPM must be a valid number greater than or equal to $0.00</dd>
+                </dd>
+            </div>
+
+            <div ng-repeat="param in wapData.requiredParams">
+                <div id="requiredParams-{{param.key}}-input" ng-hide="param.displayKey === ''" ng-class="errors['requiredParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
+                    <dd>
+                        <dt>
+                             <label>{{param.displayKey | conditionalRequiredField: true}}</label>
+                        </dt>
+                        <input required ng-minlength="{{param.minLength}}" name="{{param.key}}" type="text" ng-model="param.value"></input>
+                        <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
+                            ?
+                            <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
+                        </h4>
+                        <div class="required-params-errors" ng-show="form.editWAP.$submitted || form.editWAP.{{param.key}}.$touched">
+                            <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.required">{{param.displayKey}} required.</dd>
+                            <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.minlength">{{param.displayKey}} requires at least {{param.minLength}} characters.</dd>
+                            <dd class="modal-text error">{{errors['requiredParams-' + param.key + '-message']}}</dd>
+                        </div>
+                    </dd>
+                </div>
+            </div>
+
+            <h3>Reporting</h3>
+            <div class="switch-field">
+                <dt>
+                    <label>Reporting</label>
+                </dt>
+                <div class="onoffswitch switch-left">
+                    <input ng-model="wapData.reportingActive" type="checkbox" name="reporting-active" class="onoffswitch-checkbox" id="reporting-active-switch">
+                    <label class="onoffswitch-label" for="reporting-active-switch">
+                        <span class="onoffswitch-inner"></span>
+                        <span class="onoffswitch-switch"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div ng-repeat="param in wapData.reportingParams">
+                <div id="{{param.key}}-input" ng-class="errors['reportingParams-{{param.key}}']" class="reporting-waterfall-ad-provider-field">
+                    <dd>
+                        <dt>
+                            <label>{{param.displayKey | conditionalRequiredField: wapData.reportingActive}}</label>
+                        </dt>
+                        <input reporting-required="{{wapData.reportingActive}}" name="{{param.key}}" type="text" ng-model="param.value"></input>
+                        <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
+                            ?
+                            <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
+                        </h4>
+                        <div class="required-params-errors" ng-show="form.editWAP.$submitted || form.editWAP.{{param.key}}.$touched">
+                            <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.reportingRequired">{{param.displayKey}} required.</dd>
+                            <dd class="modal-text error">{{errors['reportingParams-' + param.key + '-message']}}</dd>
+                        </div>
+                    </dd>
+                </div>
+            </div>
+
+            <h3>Callback</h3>
+            <dd ng-show="wapData.callbackUrl != ''">
+                <label id="callback-url-label">Callback URL</label>
+                <h4 ng-mouseenter="hoverCallbackURL=true" ng-mouseleave="hoverCallbackURL=false" class="tooltip">
                     ?
-                    <div class="ngtooltip" ng-show="hoverEcpm">Effective cost per thousand impressions in USD.  The eCPM value is not configurable while Reporting is active.</div>
+                    <div class="ngtooltip" ng-show="hoverCallbackURL">Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.</div>
                 </h4>
-                <dd class="modal-text error">{{errors.cpmMessage}}</dd>
+                <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
             </dd>
-        </div>
 
-        <div ng-repeat="param in wapData.requiredParams">
-            <div id="requiredParams-{{param.key}}-input" ng-hide="param.displayKey === ''" ng-class="errors['requiredParams-{{param.key}}']" data-required-param="true" class="edit-waterfall-ad-provider-field">
-                <dd>
-                    <dt>
-                         <label>{{param.displayKey | conditionalRequiredField: true}}</label>
-                    </dt>
-                    <input type="text" ng-model="param.value"></input>
-                    <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
-                        ?
-                        <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
-                    </h4>
-                    <dd class="modal-text error">{{errors['requiredParams-' + param.key + '-message']}}</dd>
-                </dd>
+            <div ng-repeat="param in wapData.callbackParams">
+                <div id="{{param.key}}-input" ng-class="errors['callbackParams-{{param.key}}']" class="callback-waterfall-ad-provider-field">
+                    <dd>
+                        <dt>
+                            <label for="{{param.key}}">{{param.displayKey}}</label>
+                        </dt>
+                        <input type="text" id="{{param.key}}" ng-model="param.value"></input>
+                        <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
+                            ?
+                            <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
+                        </h4>
+                        <dd class="modal-text error">{{errors['callbackParams-' + param.key + '-message']}}</dd>
+                    </dd>
+                </div>
             </div>
         </div>
-
-        <h3>Reporting</h3>
-        <div class="switch-field">
-            <dt>
-                <label>Reporting</label>
-            </dt>
-            <div class="onoffswitch switch-left">
-                <input ng-model="wapData.reportingActive" type="checkbox" name="reporting-active" class="onoffswitch-checkbox" id="reporting-active-switch">
-                <label class="onoffswitch-label" for="reporting-active-switch">
-                    <span class="onoffswitch-inner"></span>
-                    <span class="onoffswitch-switch"></span>
-                </label>
-            </div>
+        <div class="modal-text">
+            <button ng-disabled="form.editWAP.$invalid" ng-class="{inactive: form.editWAP.$invalid}" ng-click="updateWAP(wapData.waterfallAdProviderID, wapData.adProviderName)" type="submit" name="update-ad-provider">Save Changes</button>
         </div>
-
-        <div ng-repeat="param in wapData.reportingParams">
-            <div id="{{param.key}}-input" ng-class="errors['reportingParams-{{param.key}}']" class="reporting-waterfall-ad-provider-field">
-                <dd>
-                    <dt>
-                        <label>{{param.displayKey | conditionalRequiredField: wapData.reportingActive}}</label>
-                    </dt>
-                    <input data-param-type="@param.dataType" type="text" ng-model="param.value"></input>
-                    <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
-                        ?
-                        <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
-                    </h4>
-                    <dd class="modal-text error">{{errors['reportingParams-' + param.key + '-message']}}</dd>
-                </dd>
-            </div>
-        </div>
-
-        <h3>Callback</h3>
-        <dd ng-show="wapData.callbackUrl != ''">
-            <label id="callback-url-label">Callback URL</label>
-            <h4 ng-mouseenter="hoverCallbackURL=true" ng-mouseleave="hoverCallbackURL=false" class="tooltip">
-                ?
-                <div class="ngtooltip" ng-show="hoverCallbackURL">Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.</div>
-            </h4>
-            <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
-        </dd>
-
-        <div ng-repeat="param in wapData.callbackParams">
-            <div id="{{param.key}}-input" ng-class="errors['callbackParams-{{param.key}}']" class="callback-waterfall-ad-provider-field">
-                <dd>
-                    <dt>
-                        <label for="{{param.key}}">{{param.displayKey}}</label>
-                    </dt>
-                    <input type="text" id="{{param.key}}" ng-model="param.value"></input>
-                    <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
-                        ?
-                        <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
-                    </h4>
-                    <dd class="modal-text error">{{errors['callbackParams-' + param.key + '-message']}}</dd>
-                </dd>
-            </div>
-        </div>
-    </div>
-    <div class="modal-text">
-        <button ng-click="updateWAP(wapData.waterfallAdProviderID, wapData.adProviderName)" type="submit" name="update-ad-provider">Save Changes</button>
-    </div>
+    </form>
 </div>
