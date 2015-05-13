@@ -120,6 +120,23 @@ describe('AnalyticsController', function() {
             expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("N/A");
         });
 
+        it('should build the export CSV filters correctly', function(){
+            var dates = {
+                start_date: "Wed Feb 25 2015 16:00:00 GMT-0800 (PST)",
+                end_date: "Tue Mar 10 2015 17:00:00 GMT-0700 (PDT)"
+            };
+            var filters = scope.getExportCSVFilters(dates);
+            console.log(filters);
+            scope.addToSelected("ad_providers", {"name":"AdColony","id":1});
+            scope.addToSelected("ad_providers", {"name":"HyprMarketplace","id":2});
+            scope.addToSelected("countries", {"name":"Ireland","id":"Ireland"});
+
+            expect(filters.apps[0]).toEqual("578021165");
+            expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
+            expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
+            expect(filters.filters).toEqual("2015-03-12T00:00:00+00:00");
+        });
+
         it('should reject invalid dates', function(){
             expect(scope.isValidDate(new Date("FAKE DATE"))).toEqual(false);
             expect(scope.isValidDate(new Date)).toEqual(true);
