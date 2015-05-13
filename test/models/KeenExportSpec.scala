@@ -10,6 +10,7 @@ import org.specs2.runner._
 import com.github.tototoshi.csv._
 import scala.io._
 import java.io.File
+import play.api.libs.json._
 import akka.testkit.TestActorRef
 import resources.{DistributorUserSetup}
 import akka.actor.ActorSystem
@@ -52,7 +53,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val writer = keenExportActor.createCSVFile()
       keenExportActor.createCSVHeader(writer)
       keenExportActor.getData(appList, writer)
-      readFileAsString(keenExportActor.fileName) must beEqualTo("App,Platform,Earnings,Fill,Requests,Impressions,Completions,Completion Rate")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("Date,App,DAU,Requests,Fill,Impressions,Completions,Completion Per DAU,eCPM,Estimated Revenue")
     }
 
     "Parse Keen response and build App Row correctly" in new WithDB {
@@ -63,34 +64,52 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email)).underlyingActor
+      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email)).underlyingActor
+      var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
-      keenExportActor.parseResponse("{\"result\": 123456}") must beEqualTo(123456)
-      keenExportActor.parseResponse("{\"result\": 3333333}") must beEqualTo(3333333)
+      val sampleResult = new KeenResult(Json.toJson(123456), JsObject(Seq(("start", Json.toJson("2015-04-02T00:00:00.000Z")))))
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}")(0) must beEqualTo(sampleResult)
+
+      val sampleResult2 = new KeenResult(Json.toJson(3333333), JsObject(Seq(("start", Json.toJson("2015-04-03T00:00:00.000Z")))))
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}")(0) must beEqualTo(sampleResult2)
+
+      // Test multiple days
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}, {\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}") must beEqualTo(List(sampleResult, sampleResult2))
 
       val requestsResponse = mock[WSResponse]
+      val dauResponse = mock[WSResponse]
       val responsesResponse = mock[WSResponse]
       val impressionsResponse = mock[WSResponse]
       val completionsResponse = mock[WSResponse]
+      val eCPMResponse = mock[WSResponse]
       val earningsResponse = mock[WSResponse]
-      requestsResponse.body returns "{\"result\": 100}"
-      responsesResponse.body returns "{\"result\": 50}"
-      impressionsResponse.body returns "{\"result\": 30}"
-      completionsResponse.body returns "{\"result\": 15}"
-      earningsResponse.body returns "{\"result\": 20000}"
+      requestsResponse.body returns "{\"result\": [{\"value\": 101, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      dauResponse.body returns "{\"result\": [{\"value\": 310, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      responsesResponse.body returns "{\"result\": [{\"value\": 53, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      impressionsResponse.body returns "{\"result\": [{\"value\": 30, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      completionsResponse.body returns "{\"result\": [{\"value\": 9, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      eCPMResponse.body returns "{\"result\": [{\"value\": 12, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      earningsResponse.body returns "{\"result\": [{\"value\": 20013, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
 
-      var appRow = keenExportActor.buildAppRow("App Name", "iOS", requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
-      appRow must beEqualTo(List("App Name", "iOS", 20, 0.5, 100, 30, 15, 0.5))
+      keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
 
-      requestsResponse.body returns "{\"result\": 0}"
-      responsesResponse.body returns "{\"result\": 50}"
-      impressionsResponse.body returns "{\"result\": 0}"
-      completionsResponse.body returns "{\"result\": 15}"
-      earningsResponse.body returns "{\"result\": 500}"
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,310,101,0.5247525,30,9,0.029032258,12,20.013")
 
-      var appRowByZero = keenExportActor.buildAppRow("App Name", "iOS", requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
-      appRowByZero must beEqualTo(List("App Name", "iOS", 0.5, 0.0, 0, 0, 15, 0.0))
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email)).underlyingActor
+      writer = keenExportActor.createCSVFile()
+
+      // Verify dividing by 0 does not cause error
+      requestsResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      dauResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      responsesResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      impressionsResponse.body returns "{\"result\": [{\"value\": 10, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      completionsResponse.body returns "{\"result\": [{\"value\": 4, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      eCPMResponse.body returns "{\"result\": [{\"value\": 9, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      earningsResponse.body returns "{\"result\": [{\"value\": 10002, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+
+      keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,9,10.002")
     }
   }
 }
