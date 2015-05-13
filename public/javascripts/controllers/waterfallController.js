@@ -7,6 +7,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.newAppModal = 'assets/templates/apps/newAppModal.html';
             $scope.editWaterfallAdProviderModal = 'assets/templates/waterfall_ad_providers/edit.html';
             $scope.testModeConfirmationModal = 'assets/templates/waterfalls/test_mode_confirmation.html';
+            $scope.pauseConfirmationModal = 'assets/templates/waterfalls/pause_confirmation.html';
 
             $scope.page = 'waterfall';
             $scope.newAppModalTitle = "Create New App";
@@ -22,6 +23,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.errors = {};
             $scope.form = {};
             $scope.flashMessage = flashMessage;
+            $scope.selectedAdProvider = {};
 
             // Retrieve Waterfall data
             $scope.getWaterfallData = function() {
@@ -61,8 +63,48 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Checks status of WaterfallAdProviders to determine if the test mode toggle should be disabled
             var checkTestModeToggle = function() {
-                var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
+                var activeAdProviders = $scope.providersByActive(true);
                 return (activeAdProviders.length < 1 && $scope.waterfallData.waterfall.testMode);
+            };
+
+            // Toggles paused on/off
+            $scope.togglePaused = function() {
+                var activeAdProviders = $scope.providersByActive(true);
+                if(activeAdProviders.length >= 1) {
+                    if($scope.waterfallData.waterfall.paused) {
+                        $scope.waterfallData.waterfall.paused = false;
+                        $scope.updateWaterfall();
+                    } else {
+                        $scope.showPauseConfirmationModal = true;
+                        $scope.showModal(!$scope.modalShown);
+                    }
+                } else if($scope.waterfallData.waterfall.paused === false) {
+                    // Should never get here unless waterfall was edited in DB
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.updateWaterfall();
+                } else {
+                    flashMessage.add({message: "You must activate at least one Ad Provider", status: "error"});
+                }
+            };
+
+            // When pause dialog is confirmed.
+            $scope.confirmPause = function() {
+                $scope.selectedAdProvider.active = false;
+                $scope.waterfallData.waterfall.paused = true;
+                $scope.updateWaterfall();
+                closePauseModal();
+                $scope.selectedAdProvider = {};
+            };
+
+            // When pause dialog is cancelled
+            $scope.cancelPause = function() {
+                $scope.waterfallData.waterfall.paused = false;
+                closePauseModal();
+            };
+
+            var closePauseModal = function() {
+                $scope.showModal(false);
+                $scope.showPauseConfirmationModal = false;
             };
 
             // Toggles test mode on/off
@@ -70,15 +112,21 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(!$scope.disableTestModeToggle) {
                     if(testMode) {
                         $scope.waterfallData.waterfall.testMode = false;
-                        $scope.showTestModeConfirmationModal = true;
-                        $scope.showModal(!$scope.modalShown);
+                        if($scope.waterfallData.waterfall.paused) {
+                            $scope.waterfallData.waterfall.testMode = true;
+                            $scope.updateWaterfall();
+                        } else {
+                            $scope.showTestModeConfirmationModal = true;
+                            $scope.showModal(!$scope.modalShown);
+                        }
                     } else {
                         $scope.updateWaterfall();
                     }
                     $scope.disableTestModeToggle = checkTestModeToggle();
                 } else {
-                    $scope.waterfallData.waterfall.testMode = !$scope.waterfallData.waterfall.testMode;
-                    flashMessage.add({message: "You must activate at least one Ad Provider", status: "error"});
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.updateWaterfall();
                 }
             };
 
@@ -140,6 +188,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     adProviderOrder: $scope.waterfallData.waterfallAdProviderList.filter(function(el) { return(!el.newRecord); }),
                     optimizedOrder: $scope.waterfallData.waterfall.optimizedOrder,
                     testMode: $scope.waterfallData.waterfall.testMode,
+                    paused: $scope.waterfallData.waterfall.paused,
                     appToken: $scope.appToken,
                     generationNumber: $scope.generationNumber
                 };
@@ -154,17 +203,18 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             // Toggles active/inactive status for an AdProvider
             $scope.toggleWAPStatus = function(adProviderConfig) {
-                var activeAdProviders = $scope.waterfallData.waterfallAdProviderList.filter(function(el, index) { return(el.active); });
-                var originalVal = adProviderConfig.active;
-                // Only allow deactivation of Ad Provider if we are in Test mode or there is at least one other active Ad Provider.
-                if(!originalVal || $scope.waterfallData.waterfall.testMode || (originalVal && (activeAdProviders.length > 1))) {
+                var activeAdProviders = $scope.providersByActive(true);
+                // Pause waterfall if we are not in testMode and there are no activeAdProviders
+                if(adProviderConfig.active && activeAdProviders.length <= 1 && !$scope.waterfallData.waterfall.paused && !$scope.waterfallData.waterfall.testMode) {
+                    $scope.selectedAdProvider = adProviderConfig;
+                    $scope.showPauseConfirmationModal = true;
+                    $scope.showModal(!$scope.modalShown);
+                } else {
                     adProviderConfig.active = !adProviderConfig.active;
                     $scope.updateWaterfall();
-                } else {
-                    flashMessage.add({message: "At least one Ad Provider must be active", status: "error"});
+                    $scope.disableTestModeToggle = checkTestModeToggle();
+                    $scope.orderOptimizedWaterfallList();
                 }
-                $scope.disableTestModeToggle = checkTestModeToggle();
-                $scope.orderOptimizedWaterfallList();
             };
 
             /* App logic */

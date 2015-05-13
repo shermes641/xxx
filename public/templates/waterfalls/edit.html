@@ -35,7 +35,21 @@
                     <div id="test-mode-confirmation" ng-show="showTestModeConfirmationModal">
                         <div ng-include="testModeConfirmationModal"></div>
                     </div>
+                    <div id="pause-confirmation" ng-show="showPauseConfirmationModal">
+                        <div ng-include="pauseConfirmationModal"></div>
+                    </div>
                 </modal-dialog>
+
+                <div class="waterfall-buttons" ng-class="{disabled: waterfallData.waterfall.testMode}">
+                    <div class="button-overlay"></div>
+                    <h4 ng-mouseenter="hoverPause=true" ng-mouseleave="hoverPause=false" class="tooltip">
+                        ?
+                        <div class="ngtooltip" ng-show="hoverPause">Pause and resume this waterfall</div>
+                    </h4>
+                    <label ng-if="waterfallData.waterfall.paused" class="text-label">Resume Ads</label>
+                    <label ng-if="!waterfallData.waterfall.paused" class="text-label">Pause Ads</label>
+                    <div class="pause" ng-class="{play: waterfallData.waterfall.paused}" ng-click="togglePaused()"></div>
+                </div>
 
                 <div class="waterfall-buttons">
                     <h4 ng-mouseenter="hoverOptimized=true" ng-mouseleave="hoverOptimized=false" class="tooltip">
@@ -52,7 +66,7 @@
                     </div>
                 </div>
 
-                <div class="waterfall-buttons">
+                <div class="waterfall-buttons first">
                     <h4 ng-mouseenter="hoverTestMode=true" ng-mouseleave="hoverTestMode=false" class="tooltip">
                         ?
                         <div class="ngtooltip" ng-show="hoverTestMode">Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.</div>
