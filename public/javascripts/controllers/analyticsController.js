@@ -601,14 +601,49 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             if($scope.exportForm.$valid) {
                 $scope.showExportForm = false;
                 var emailAddress = $scope.elements.emailInput.val();
-                $http.post( $scope.exportEndpoint, { email: emailAddress })
+                // Get current filter values
+                var config = {
+                    start_date: $scope.elements.startDate.datepicker('getUTCDate'),
+                    end_date: $scope.elements.endDate.datepicker('getUTCDate')
+                };
+
+                // Return if one or both of the dates are invalid
+                if (!$scope.isValidDate(config.start_date) || !$scope.isValidDate(config.end_date) ) {
+                    $scope.showExportError = true;
+                    return;
+                }
+
+                // Return if start date after end date
+                if (config.end_date.getTime() < config.start_date.getTime()) {
+                    $scope.showExportError = true;
+                    return;
+                }
+
+                // Send all apps if all is selected
+                var apps = [];
+                if (_.pluck($scope.filters.apps.selected, 'id').indexOf( "all" ) === -1) {
+                    apps = _.pluck($scope.filters.apps.selected, 'id');
+                } else {
+                    apps = _.pluck($scope.filters.apps.available, 'id');
+                }
+
+                // Build filters based on the dropdown selections
+                var filters = $scope.buildFilters([],_.pluck($scope.filters.countries.selected, 'id'),
+                                                     _.pluck($scope.filters.ad_providers.selected, 'id'));
+
+                // Set timeframe for queries.  Also converts the times to EST
+                var timeframe = {
+                    start: moment(config.start_date).utc().format(),
+                    end: moment(config.end_date).utc().add(1, 'days').format()
+                };
+
+                $http.post($scope.exportEndpoint, { email: emailAddress, apps: apps, filters: filters, timeframe: timeframe })
                     .success(_.bind( function() {
                         $scope.showExportComplete = true;
                     }, $scope ))
                     .error( _.bind( function() {
                         $scope.showExportError = true;
-                    }, $scope )
-                    );
+                    }, $scope ));
             }
         };
 

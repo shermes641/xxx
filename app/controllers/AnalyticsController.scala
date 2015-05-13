@@ -24,8 +24,20 @@ object AnalyticsController extends Controller with Secured {
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
       (json \ "email").asOpt[String].map { email =>
-        KeenExport().exportToCSV(distributorID, email)
-        Ok("success")
+        (json \ "filters").asOpt[JsArray].map { filters =>
+          (json \ "timeframe").asOpt[JsObject].map { timeframe =>
+            (json \ "apps").asOpt[List[String]].map { selectedApps =>
+              KeenExport().exportToCSV(distributorID, email, filters, timeframe, selectedApps)
+              Ok("success")
+            }.getOrElse {
+              BadRequest("Missing parameter [apps]")
+            }
+          }.getOrElse {
+            BadRequest("Missing parameter [timeframe]")
+          }
+        }.getOrElse {
+          BadRequest("Missing parameter [filters]")
+        }
       }.getOrElse {
         BadRequest("Missing parameter [email]")
       }
