@@ -21,6 +21,8 @@ import java.util.Date
  */
 case class GetDataFromKeen()
 
+case class KeenResult(value: JsValue, timeframe: JsObject)
+
 /**
  * Encapsulates interactions with Player.
  */
@@ -68,7 +70,8 @@ case class KeenExport() {
         "event_collection" -> JsString(collection),
         "target_property" -> JsString(targetProperty),
         "filters" -> allFilters,
-        "timeframe" -> timeframe
+        "timeframe" -> timeframe,
+        "interval" -> JsString("daily")
       )
     )
   }
@@ -87,10 +90,13 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
    * @param body The keen response body
    * @return The result
    */
-  def parseResponse(body: String): Long = {
+  def parseResponse(body: String): List[KeenResult] = {
+
+    implicit val keenReader = Json.reads[KeenResult]
+
     Json.parse(body) match {
       case results => {
-        (results \ "result").as[Long]
+        (results \ "result").as[List[KeenResult]]
       }
     }
   }
@@ -110,14 +116,16 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
    */
   def createCSVHeader(writer: CSVWriter) = {
     val headerRow = List(
+      "Date",
       "App",
-      "Platform",
-      "Earnings",
-      "Fill",
+      "DAU",
       "Requests",
+      "Fill",
       "Impressions",
       "Completions",
-      "Completion Rate"
+      "Completion Per DAU",
+      "eCPM",
+      "Estimated Revenue"
     )
 
     writer.writeRow(headerRow)
@@ -149,56 +157,89 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     }
   }
 
-  def buildAppRow(name: String, platform: String, requestsResponse: WSResponse, responsesResponse: WSResponse, impressionsResponse: WSResponse, completionsResponse: WSResponse, earningsResponse: WSResponse): List[Any] = {
+  /**
+   * Build csv rows for each date returned called per App
+   * @param name App Name
+   * @param requestsResponse requests per day
+   * @param dauResponse daily active users per day
+   * @param responsesResponse responses per day (for fill rate)
+   * @param impressionsResponse impressions per day
+   * @param completionsResponse completions per day
+   * @param eCPMResponse average eCPM per day
+   * @param earningsResponse sum of eCPMs per day
+   * @param writer the previously opened csv file
+   */
+  def buildAppRows(name: String, requestsResponse: WSResponse, dauResponse: WSResponse, responsesResponse: WSResponse, impressionsResponse: WSResponse, completionsResponse: WSResponse, eCPMResponse: WSResponse, earningsResponse: WSResponse, writer: CSVWriter) = {
     // Count of all requests to from each ad provider
-    val requests = parseResponse(requestsResponse.body)
+    val requestList = parseResponse(requestsResponse.body)
+    // Count of all active users
+    val dauList = parseResponse(dauResponse.body)
     // The count of all available responses from all ad providers
-    val responses = parseResponse(responsesResponse.body)
+    val responseList = parseResponse(responsesResponse.body)
     // The count of impressions
-    val impressions = parseResponse(impressionsResponse.body)
+    val impressionList = parseResponse(impressionsResponse.body)
     // The number of completions based on the SDK events
-    val completions = parseResponse(completionsResponse.body)
+    val completionList = parseResponse(completionsResponse.body)
     // The sum of all the eCPMs reported on each completion
-    val earnings = parseResponse(earningsResponse.body).toFloat/1000
+    val eCPMList = parseResponse(eCPMResponse.body)
+    // The sum of all the eCPMs reported on each completion
+    val earningList = parseResponse(earningsResponse.body)
 
-    // The completion rate based on the completions divided by impressions
-    val completionRate = impressions match {
-      case 0 => 0
-      case _ => completions.toFloat/impressions
-    }
+    for(i <- requestList.indices){
+      val date = (requestList(i).timeframe \ "start").as[String]
+      val requests = requestList(i).value.as[Long]
+      val dau = dauList(i).value.as[Long]
+      val impressions = impressionList(i).value.as[Long]
+      val responses = responseList(i).value.as[Long]
+      val completions = completionList(i).value.as[Long]
+      val eCPM = eCPMList(i).value.asOpt[Long].getOrElse("")
+      val earnings = earningList(i).value.as[Long]
 
-    // The fill rate based on the number of responses divided by requests
-    val fillRate = requests match {
-      case 0 => 0
-      case _ => responses.toFloat/requests
+      // The fill rate based on the number of responses divided by requests
+      val fillRate = requests match {
+        case 0 => 0
+        case _ => responses.toFloat/requests
+      }
+
+      // Completions per DAU
+      val completionsPerDau = requests match {
+        case 0 => 0
+        case _ => completions.toFloat/dau
+      }
+
+      // The row to append to the CSV
+      val appRow = List(
+        date,
+        name,
+        dau,
+        requests,
+        fillRate,
+        impressions,
+        completions,
+        completionsPerDau,
+        eCPM,
+        earnings.toFloat/1000
+      )
+
+      println(appRow)
+      createCSVRow(writer, appRow)
     }
-    // The row to append to the CSV
-    List(
-      name,
-      platform,
-      earnings,
-      fillRate,
-      requests,
-      impressions,
-      completions,
-      completionRate
-    )
   }
 
   def getData(writer: CSVWriter) = {
     for (appID <- selectedApps) {
       val name = App.find(appID.toLong).get.name
-      // We currently do not store the app platform so this is hardcoded.
-      val platform = "iOS"
 
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
-      val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
+      val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
         requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID))
+        dauResponse <- KeenExport().createRequest("count_unique", KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID, "device_unique_id"))
         responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "mediate_availability_response_true", appID))
         impressionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_displayed", appID))
         completionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_completed", appID))
+        eCPMResponse <- KeenExport().createRequest("average", KeenExport().createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
         earningsResponse <- KeenExport().createRequest("sum", KeenExport().createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
-      } yield (requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
+      } yield (requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse)
 
       futureResponse.recover {
         case _ =>
@@ -206,10 +247,8 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       }
 
       futureResponse.onSuccess {
-        case (requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse) => {
-          val appRow = buildAppRow(name, platform, requestsResponse, responsesResponse, impressionsResponse, completionsResponse, earningsResponse)
-          println(appRow)
-          createCSVRow(writer, appRow)
+        case (requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse) => {
+          buildAppRows(name, requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
 
           counter += 1
           if(selectedApps.length <= counter) {
