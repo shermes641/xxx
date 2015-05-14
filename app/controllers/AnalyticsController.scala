@@ -31,7 +31,7 @@ object AnalyticsController extends Controller with Secured {
           Ok("success")
         }
         case (email, filters, timeframe, selectedApps) => {
-          BadRequest("Missing parameter(s) - Email: " + email + " Filters: " + filters +  "Timeframe: " + timeframe + " Apps: " + selectedApps)
+          BadRequest("Missing parameter(s) - Email: " + email + " Filters: " + filters +  " Timeframe: " + timeframe + " Apps: " + selectedApps)
         }
       }
     }.getOrElse {
