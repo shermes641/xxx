@@ -55,21 +55,23 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig = Json.parse(contentAsString(result))
-      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TEST_MODE_DISTRIBUTOR_ID), "propertyID" -> JsString(AppConfig.TEST_MODE_PROPERTY_ID),
-        "providerName" -> JsString(AppConfig.TEST_MODE_PROVIDER_NAME),"providerID" -> JsNumber(AppConfig.TEST_MODE_PROVIDER_ID), "eCPM" -> JsNumber(5.0)))
-      val vcAttributes = AppConfig.TEST_MODE_VIRTUAL_CURRENCY
+      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TestModeDistributorID),
+        "propertyID" -> JsString(AppConfig.TestModePropertyID), "providerName" -> JsString(AppConfig.TestModeProviderName),
+        "providerID" -> JsNumber(AppConfig.TestModeProviderID), "eCPM" -> JsNumber(5.0), "sdkBlacklistRegex" -> JsString(AppConfig.TestModeSdkBlacklistRegex)))
+      val vcAttributes = AppConfig.TestModeVirtualCurrency
       val expectedVCJson = JsObject(Seq("name" -> JsString(vcAttributes.name), "exchangeRate" -> JsNumber(vcAttributes.exchangeRate),
         "rewardMin" -> JsNumber(vcAttributes.rewardMin), "rewardMax" -> JsNumber(vcAttributes.rewardMax.get), "roundUp" -> JsBoolean(vcAttributes.roundUp)))
       (appConfig \ "adProviderConfigurations") must beEqualTo(JsArray(testAdProviderConfig :: Nil))
       (appConfig \ "analyticsConfiguration") must beEqualTo(JsonBuilder.analyticsConfiguration \ "analyticsConfiguration")
       (appConfig \ "errorReportingConfiguration") must beEqualTo(JsonBuilder.errorReportingConfiguration \ "errorReportingConfiguration")
       (appConfig \ "virtualCurrency") must beEqualTo(expectedVCJson)
-      (appConfig \ "appName").as[String] must beEqualTo(AppConfig.TEST_MODE_APP_NAME)
-      (appConfig \ "appID").as[Long] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_APP_ID)
-      (appConfig \ "distributorName").as[String] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME)
-      (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID)
-      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TEST_MODE_APP_CONFIG_REFRESH_INTERVAL)
+      (appConfig \ "appName").as[String] must beEqualTo(AppConfig.TestModeAppName)
+      (appConfig \ "appID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateAppID)
+      (appConfig \ "distributorName").as[String] must beEqualTo(AppConfig.TestModeHyprMediateDistributorName)
+      (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateDistributorID)
+      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TestModeAppConfigRefreshInterval)
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
+      (appConfig \ "paused").as[Boolean] must beEqualTo(false)
       (appConfig \ "generationNumber") must haveClass[JsNumber]
     }
 

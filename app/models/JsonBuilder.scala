@@ -33,7 +33,8 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
                     "eCPM" -> (el.cpm match {
                       case Some(eCPM) => JsNumber(eCPM)
                       case None => JsNull
-                    })
+                    }),
+                    "sdkBlacklistRegex" -> el.sdkBlacklistRegex
                   )
                 ).deepMerge(
                     el.configurationData match {
