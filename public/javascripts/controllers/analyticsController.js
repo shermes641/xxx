@@ -121,6 +121,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Open drop down for a given filter type
          */
         $scope.openDropdown = function(filterType) {
+            ga('send', 'event', 'filter_by_'+filterType, 'click', 'analytics');
             var filter = $scope.filters[filterType];
             filter.input = "";
             if(filter.open === false){
@@ -135,6 +136,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Resets all filters.
          */
         $scope.resetAllFilters = function() {
+            ga('send', 'event', 'reset_all_filters', 'click', 'analytics');
             _.each($scope.filters, function(filter) {
                 var all = _.find(filter.available, function(item){ return item.id === 'all'; });
                 // If the view all option is not in the available array, then we do not have to do anything.
@@ -150,6 +152,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Update Dropdown for a given filter
          */
         $scope.addToSelected = function(filterType, object) {
+            ga('send', 'event', 'add_to_filter_'+filterType, 'click', 'analytics');
             var filter = $scope.filters[filterType];
             filter.input = "";
             if(object.id !== 'all'){
@@ -172,6 +175,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Remove selected item from the "selected" array
          */
         $scope.removeFromSelected = function(filterType, object, index) {
+            ga('send', 'event', 'remove_from_filter_'+filterType, 'click', 'analytics');
             var filter = $scope.filters[filterType];
             if(object.id !== 'all'){
                 filter.available.push(object);
@@ -290,6 +294,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $timeout.cancel($scope.updateTimeout);
             $scope.updatingStatus = "Waiting...";
             $scope.currentlyUpdating = true;
+            ga('send', 'event', 'update_analytics', 'trigger', 'analytics');
             _.defer(function(){$scope.$apply();});
             $scope.debouncedUpdate();
         };
@@ -443,8 +448,16 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 timeframe: config.timeframe
             });
 
+            // Impression count, metric
+            var impression_count = new Keen.Query("count", {
+                eventCollection: "ad_displayed",
+                interval: "daily",
+                filters: config.filters,
+                timeframe: config.timeframe
+            });
+
             // Calculate expected eCPM
-            $scope.keenClient.run([estimated_revenue, inventory_request, available_count], function() {
+            $scope.keenClient.run([estimated_revenue, inventory_request, available_count, impression_count], function() {
                 // If this update is not longer the latest then reset and do nothing.
                 if($scope.updateTimeStamp !== config.currentTimeStamp) {
                     $scope.resetUpdate(config);
@@ -455,6 +468,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
                 var inventoryRequests = this.data[1].result;
                 var availableCount = this.data[2].result;
+                var impressionCount = this.data[3].result;
 
                 var table_data = [];
                 var chart_data = [];
@@ -483,7 +497,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         "date": table_date_string,
                         "requests": inventoryRequests[i].value,
                         "fillRate": fillRate,
-                        "impressions": availableCount[i].value,
+                        "impressions": impressionCount[i].value,
                         "completedCount": day.value.completedCount,
                         "averageeCPM": '$' + $filter("monetaryFormat")(day.value.averageeCPM),
                         "estimatedRevenue": '$' + $filter("monetaryFormat")(days_revenue)
@@ -589,6 +603,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Begin CSV export and let the user know the export has been requested
          */
         $scope.submit = function() {
+            ga('send', 'event', 'begin_csv_export', 'click', 'analytics');
             if($scope.exportForm.$valid) {
                 $scope.showExportForm = false;
                 var emailAddress = $scope.elements.emailInput.val();
@@ -624,6 +639,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Complete update once all requests have completed
          */
         $scope.$watch('showExportModal', function(current){
+            ga('send', 'event', 'show_export_modal', 'click', 'analytics');
             $rootScope.bodyClass = current ? "modal-active" : "";
         }, true);
 

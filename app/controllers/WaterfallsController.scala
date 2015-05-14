@@ -125,6 +125,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "token" -> JsString(waterfall.token),
         "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
         "testMode" -> JsBoolean(waterfall.testMode),
+        "paused" -> JsBoolean(waterfall.paused),
         "appName" -> JsString(waterfall.appName),
         "appToken" -> JsString(waterfall.appToken)
       )
@@ -199,8 +200,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
           }
           val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
           val testMode: Boolean = (json \ "testMode").as[Boolean]
+          val paused: Boolean = (json \ "paused").as[Boolean]
           val generationNumber: Long = (json \ "generationNumber").as[Long]
-          Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode) match {
+          Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode, paused) match {
             case 1 => {
               Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
                 case true => {

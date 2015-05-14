@@ -21,7 +21,7 @@ import scala.language.postfixOps
  * @param appToken A unique identifier used to identify an App in API calls.
  * @param generationNumber A number which indicates how many times the Waterfall and associated elements have been edited.  This number is retrieved from the app_configs table.
  */
-case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, appName: String, generationNumber: Option[Long], appToken: String)
+case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean, appName: String, generationNumber: Option[Long], appToken: String)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
@@ -32,10 +32,11 @@ object Waterfall extends JsonConversion {
     get[String]("token") ~
     get[Boolean]("optimized_order") ~
     get[Boolean]("test_mode") ~
+    get[Boolean]("paused") ~
     get[String]("app_name") ~
     get[Option[Long]]("generation_number") ~
     get[String]("app_token") map {
-      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ app_name ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, app_name, generation_number, app_token)
+      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ paused ~ app_name ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, paused, app_name, generation_number, app_token)
     }
   }
 
@@ -59,29 +60,31 @@ object Waterfall extends JsonConversion {
    * SQL for updating the fields for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
-   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @param testMode Boolean value which determines if the waterfall is live or in test mode.
+   * @param paused Boolean value which determines if the waterfall is paused or not.
    * @return SQL to be executed by update and updateWithTransaction methods.
    */
-  def updateSQL(id: Long, optimizedOrder: Boolean, testMode: Boolean): SimpleSql[Row] = {
+  def updateSQL(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean): SimpleSql[Row] = {
     SQL(
       """
           UPDATE waterfalls
-          SET optimized_order={optimized_order}, test_mode={test_mode}
+          SET optimized_order={optimized_order}, test_mode={test_mode}, paused={paused}
           WHERE id={id};
       """
-    ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "id" -> id)
+    ).on("optimized_order" -> optimizedOrder, "test_mode" -> testMode, "paused" -> paused, "id" -> id)
   }
 
   /**
    * Updates the fields for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
-   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @param testMode Boolean value which determines if the waterfall is live or in test Mode.
+   * @param paused Boolean value which determines if the waterfall is paused or not.
    * @return Number of rows updated
    */
-  def update(id: Long, optimizedOrder: Boolean, testMode: Boolean): Int = {
+  def update(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean): Int = {
     DB.withConnection { implicit connection =>
-      updateSQL(id, optimizedOrder, testMode).executeUpdate()
+      updateSQL(id, optimizedOrder, testMode, paused).executeUpdate()
     }
   }
 
@@ -89,11 +92,12 @@ object Waterfall extends JsonConversion {
    * Updates the fields, within a transaction, for a particular record in waterfalls table.
    * @param id ID field of the waterfall to be updated.
    * @param optimizedOrder Boolean value which determines if the waterfall should always be ordered by eCPM or not.
-   * @param testMode Boolean value which determines if the waterfall is live or not.
+   * @param testMode Boolean value which determines if the waterfall is live or in test Mode.
+   * @param paused Boolean value which determines if the waterfall is paused or not.
    * @return Number of rows updated
    */
-  def updateWithTransaction(id: Long, optimizedOrder: Boolean, testMode: Boolean)(implicit connection: Connection): Int = {
-    updateSQL(id, optimizedOrder, testMode).executeUpdate()
+  def updateWithTransaction(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean)(implicit connection: Connection): Int = {
+    updateSQL(id, optimizedOrder, testMode, paused).executeUpdate()
   }
 
   /**
@@ -189,8 +193,9 @@ object Waterfall extends JsonConversion {
   def order(appToken: String)(implicit connection: Connection): List[AdProviderInfo] = {
     val query = SQL(
       """
-        SELECT ap.name provider_name, ap.id as provider_id, apps.id as app_id, apps.name as app_name, apps.app_config_refresh_interval, distributors.id as distributor_id, distributors.name as distributor_name,
-        wap.configuration_data, wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.optimized_order, wap.active
+        SELECT ap.name provider_name, ap.id as provider_id, ap.sdk_blacklist_regex, apps.id as app_id, apps.name as app_name,
+        apps.app_config_refresh_interval, distributors.id as distributor_id, distributors.name as distributor_name, wap.configuration_data,
+        wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.paused, w.optimized_order, wap.active
         FROM waterfalls w
         INNER JOIN waterfall_ad_providers wap on wap.waterfall_id = w.id
         INNER JOIN ad_providers ap on ap.id = wap.ad_provider_id
@@ -208,6 +213,7 @@ object Waterfall extends JsonConversion {
   val adProviderParser: RowParser[AdProviderInfo] = {
     get[Option[String]]("provider_name") ~
     get[Option[Long]]("provider_id") ~
+    get[Option[String]]("sdk_blacklist_regex") ~
     get[Option[String]]("app_name") ~
     get[Option[Long]]("app_id") ~
     get[Long]("app_config_refresh_interval") ~
@@ -221,12 +227,13 @@ object Waterfall extends JsonConversion {
     get[Option[Long]]("reward_max") ~
     get[Option[Boolean]]("round_up") ~
     get[Boolean]("test_mode") ~
+    get[Boolean]("paused") ~
     get[Boolean]("optimized_order") ~
     get[Option[Boolean]]("active") map {
-      case provider_name ~ provider_id ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
-           configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ optimized_order ~ active => {
-        AdProviderInfo(provider_name, provider_id, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
-                       configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, optimized_order, active)
+      case provider_name ~ provider_id ~ sdk_blacklist_regex ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
+           configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ paused ~ optimized_order ~ active => {
+        AdProviderInfo(provider_name, provider_id, sdk_blacklist_regex, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
+                       configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, paused, optimized_order, active)
       }
     }
   }
@@ -235,6 +242,7 @@ object Waterfall extends JsonConversion {
    * Encapsulates necessary information returned from SQL query in Waterfall.order.
    * @param providerName Maps to the name field in the ad_providers table.
    * @param providerID Maps to the id field in the ad_providers table.
+   * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider. This value will be used to create an NSRegularExpression in the SDK.
    * @param appName Maps to the name field in the apps table.
    * @param appID Maps to the id field in the apps table.
    * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
@@ -247,13 +255,14 @@ object Waterfall extends JsonConversion {
    * @param rewardMin Maps to the reward_min field of the virtual_currencies table.
    * @param rewardMax Maps to the reward_max field of the virtual_currencies table.
    * @param roundUp Maps to the round_up field of the virtual_currencies table.
-   * @param testMode Determines if a waterfall is live or not.
+   * @param testMode Determines if a waterfall is in test mode or not.
+   * @param paused Determines if a waterfall is paused or not.
    * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
    * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
-  case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
+  case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], sdkBlacklistRegex: Option[String], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
                             distributorName: Option[String], distributorID: Option[Long], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String],
-                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) extends WaterfallAdProviderHelper {
+                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, paused: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) extends WaterfallAdProviderHelper {
     override val roundUpVal = roundUp
     override val exchangeRateVal = exchangeRate
     override val rewardMinVal = rewardMin

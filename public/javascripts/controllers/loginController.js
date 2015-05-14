@@ -9,6 +9,7 @@ distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$
 
             // Submit form if fields are valid.
             $scope.submit = function(form) {
+                ga('send', 'event', 'login_submit', 'click', 'login');
                 $scope.errors = {};
                 if(form.$valid) {
                     $scope.waitForAuth = true;
