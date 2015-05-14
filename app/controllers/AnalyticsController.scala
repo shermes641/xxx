@@ -26,8 +26,8 @@ object AnalyticsController extends Controller with Secured {
     request.body.asJson.map { json =>
       ((json \ "email").asOpt[String], (json \ "filters").asOpt[JsArray],
        (json \ "timeframe").asOpt[JsObject], (json \ "apps").asOpt[List[String]]) match {
-        case (email: Option[String], filters: JsArray, timeframe: JsObject, selectedApps: List[String]) => {
-          KeenExport().exportToCSV(distributorID, email.get, filters, timeframe, selectedApps)
+        case (email: Option[String], filters: Option[JsArray], timeframe: Option[JsObject], selectedApps: Option[List[String]]) => {
+          KeenExport().exportToCSV(distributorID, email.get, filters.get, timeframe.get, selectedApps.get)
           Ok("success")
         }
         case (email, filters, timeframe, selectedApps) => {
