@@ -121,14 +121,17 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
 
       browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("body").isPresent
       browser.executeScript(
-      "angular.element(document).ready(function () {" +
-        "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
-          "angular.element(document.querySelector('" + ngAppElement + "'))" +
-          "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
-          "    function() {" +
-          "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
-          "    })" +
-          "});")
+      "window.onload = function (){" +
+        "angular.element(document).ready(function () {" +
+          "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
+            "angular.element(document.querySelector('" + ngAppElement + "'))" +
+            "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
+            "    function() {" +
+            "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
+            "    })" +
+        "});" +
+      "};" +
+      "window.onload();")
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
       browser.await().atMost(1, java.util.concurrent.TimeUnit.SECONDS).until("body.javascript_error").isNotPresent
     }
