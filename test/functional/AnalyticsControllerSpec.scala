@@ -178,7 +178,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
       status(result) must equalTo(400)
-      contentAsString(result) must equalTo("Missing parameter(s) - Email: None Filters: None Timeframe: None Apps: None")
+      contentAsString(result) must equalTo("{\"status\":\"error\",\"message\":\"Missing parameters\"}")
     }
 
     "Send bad JSON data and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {

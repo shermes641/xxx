@@ -7,11 +7,20 @@ import anorm._
 import play.api.db.DB
 import models._
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import io.keen.client.java.{ScopedKeys, KeenProject, JavaKeenClientBuilder, KeenClient}
 import collection.JavaConversions._
 import scala.language.implicitConversions
 
+
 object AnalyticsController extends Controller with Secured {
+  implicit val exportReads: Reads[exportMapping] = (
+      (JsPath \ "email").read[String] and
+      (JsPath \ "filters").read[JsArray] and
+      (JsPath \ "timeframe").read[JsObject] and
+      (JsPath \ "apps").read[List[String]]
+    )(exportMapping.apply _)
+
   def show(distributorID: Long, currentAppID: Option[Long], waterfallFound: Option[Boolean]) = withAuth(Some(distributorID)) { username => implicit request =>
     val apps = App.findAllAppsWithWaterfalls(distributorID)
     if(apps.size == 0) {
@@ -24,15 +33,12 @@ object AnalyticsController extends Controller with Secured {
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
 
     request.body.asJson.map { json =>
-      ((json \ "email").asOpt[String], (json \ "filters").asOpt[JsArray],
-       (json \ "timeframe").asOpt[JsObject], (json \ "apps").asOpt[List[String]]) match {
-        case (email: Option[String], filters: Option[JsArray], timeframe: Option[JsObject], selectedApps: Option[List[String]]) => {
-          KeenExport().exportToCSV(distributorID, email.get, filters.get, timeframe.get, selectedApps.get)
-          Ok("success")
-        }
-        case (email, filters, timeframe, selectedApps) => {
-          BadRequest("Missing parameter(s) - Email: " + email + " Filters: " + filters +  " Timeframe: " + timeframe + " Apps: " + selectedApps)
-        }
+      json.validate[exportMapping].map { exportParameters =>
+        KeenExport().exportToCSV(distributorID, exportParameters.email, exportParameters.filters,
+          exportParameters.timeframe, exportParameters.apps)
+        Ok("success")
+      }.recoverTotal {
+        error => BadRequest(Json.obj("status" -> "error", "message" -> "Missing parameters"))
       }
     }.getOrElse {
       BadRequest("Expecting Json data")
@@ -123,5 +129,13 @@ object AnalyticsController extends Controller with Secured {
   def appListJs(list: List[App]): JsArray = {
     list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
   }
-}
 
+  /**
+   * Used for mapping Export parameters
+   * @param email Maps to the name field in the apps table
+   * @param filters Maps to the name field in the virtual_currencies table.
+   * @param timeframe Maps the the exchange_rate field in the virtual_currencies table.
+   * @param apps Maps to the reward_min field in the virtual_currencies table.
+   */
+  case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String])
+}
