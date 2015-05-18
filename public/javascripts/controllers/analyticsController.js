@@ -622,6 +622,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Hide overlay and other modal elements
          */
         $scope.hideModal = function() {
+            ga('send', 'event', 'hide_export_modal', 'click', 'analytics');
             $scope.elements.emailInput.val("");
             $scope.modalDefaults();
             $scope.exportForm.$setPristine();
@@ -639,7 +640,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Complete update once all requests have completed
          */
         $scope.$watch('showExportModal', function(current){
-            ga('send', 'event', 'show_export_modal', 'click', 'analytics');
+            if(current){
+                ga('send', 'event', 'show_export_modal', 'click', 'analytics');
+            }
             $rootScope.bodyClass = current ? "modal-active" : "";
         }, true);
 
