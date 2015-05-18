@@ -241,12 +241,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.showModal(!$scope.modalShown);
             };
 
-            $scope.closeWAPModal = function() {
-                ga('send', 'event', 'close_wap_modal', 'click', 'waterfalls');
-                $scope.showModal(false);
-                $scope.showWaterfallAdProviderModal = false;
-            };
-
             // Open the App creation page
             $scope.toggleNewAppModal = function() {
                 ga('send', 'event', 'toggle_new_app_modal', 'click', 'waterfalls');
