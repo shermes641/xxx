@@ -470,13 +470,17 @@ case class WaterfallAdProviderConfig(name: String, rewardMin: Long, cpm: Option[
   def mappedFields(paramType: String): List[RequiredParam] = {
     val reqParams = (this.adProviderConfiguration \ paramType).as[List[JsValue]].map(el => el.as[RequiredParam])
     val waterfallAdProviderParams = this.waterfallAdProviderConfiguration \ paramType
+    var paramValue: Option[String] = None
     // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
     // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     reqParams.map( param =>
       (waterfallAdProviderParams \ param.key.get) match {
         case _: JsUndefined => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart, param.minLength)
+        case value: JsNumber => {
+          paramValue = Some(value.as[Long].toString) // All AdProvider params should be Strings by default
+          new RequiredParam(param.displayKey, param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart, param.minLength)
+        }
         case value: JsValue => {
-          var paramValue: Option[String] = None
           if(param.dataType.get == "Array") {
             paramValue = Some(value.as[List[String]].mkString(","))
           } else {
