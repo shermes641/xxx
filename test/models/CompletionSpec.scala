@@ -1,9 +1,10 @@
 package models
 
+import models.WaterfallAdProvider.AdProviderRewardInfo
 import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
-import play.api.libs.json.{Json, JsString, JsValue, JsObject}
+import play.api.libs.json.{JsValue, JsObject}
 import resources.WaterfallSpecSetup
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -13,7 +14,7 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
   "create" should {
     "create a new record in the database if the transaction ID is valid" in new WithDB {
       val completion = new Completion
-      completion.create("some app token", "some ad provider name", "some transaction ID", None, JsObject(Seq()).as[JsValue]).must(not).beNone
+      completion.create("some app token", "some ad provider name", "some transaction ID", offerProfit=Some(0.5), rewardQuantity=1, generationNumber=Some(1), JsObject(Seq()).as[JsValue]).must(not).beNone
     }
   }
 
@@ -23,7 +24,8 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       App.update(new UpdatableApp(app1.id, true, app1.distributorID, app1.name, None, true))
       val completion = spy(new Completion)
       completion.postCallback(Some(any[String]), any[JsValue], any[CallbackVerificationInfo]) returns Future { true }
-      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, Some(1.0), 1)
+      val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=Some("http://somecallbackurl.com"), serverToServerEnabled=true, generationNumber=1)
+      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, offerProfit=Some(1.0), rewardQuantity=1, Some(rewardInfo))
       Await.result(completion.createWithNotification(callbackInfo, JsObject(Seq())), Duration(5000, "millis")) must beEqualTo(true)
       there was one(completion).postCallback(any[Option[String]], any[JsValue], any[CallbackVerificationInfo])
       tableCount("completions") must beEqualTo(completionCount + 1)
@@ -33,7 +35,8 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val completionCount = tableCount("completions")
       App.update(new UpdatableApp(app1.id, true, app1.distributorID, app1.name, None, false))
       val completion = spy(new Completion)
-      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, Some(1.0), 1)
+      val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=None, serverToServerEnabled=false, generationNumber=1)
+      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, offerProfit=Some(1.0), rewardQuantity=1, Some(rewardInfo))
       Await.result(completion.createWithNotification(callbackInfo, JsObject(Seq())), Duration(5000, "millis")) must beEqualTo(true)
       there was no(completion).postCallback(any[Option[String]], any[JsValue], any[CallbackVerificationInfo])
       tableCount("completions") must beEqualTo(completionCount + 1)
@@ -42,7 +45,8 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
 
   "postCallback" should {
     "not POST to a callback URL if one does not exist" in new WithDB {
-      val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", None, 1))
+      val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=None, serverToServerEnabled=false, generationNumber=1)
+      val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", offerProfit=None, rewardQuantity=1, Some(rewardInfo)))
       val callbackURL = None
       val completion = new Completion
       Await.result(completion.postCallback(callbackURL, JsObject(Seq()), verification), Duration(5000, "millis")) must beEqualTo(false)
