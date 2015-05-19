@@ -18,7 +18,7 @@ body
     font-family:"Helvetica Neue Light", Helvetica, sans-serif;
     font-size:14px;
     height:100%;
-    min-width: 1160px;
+    min-width: 1185px;
 }
 
 body.modal-active {
@@ -887,7 +887,7 @@ button.confirm-button
 .app-token
 {
     float:left;
-    width:361px;
+    width:375px;
 }
 
 .content.waterfall_list
