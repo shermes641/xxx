@@ -4,6 +4,7 @@ import models._
 import play.api.mvc.Session
 import play.api.test._
 import play.api.test.Helpers._
+import java.security.MessageDigest
 
 class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppCreationHelper {
   "DistributorUsersController.signup" should {
@@ -16,12 +17,20 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.find("button").first().isEnabled must beEqualTo(false)
     }
 
-    "hide the license agreement unless the user clicks on the License Agreement link and verify license version" in new WithFakeBrowser {
+    "hide the license agreement unless the user clicks on the License Agreement link" in new WithFakeBrowser {
       goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
       browser.find("#termsContainer").first().isDisplayed must beEqualTo(false)
       browser.$("#viewTerms").click()
       browser.find("#termsContainer").first().isDisplayed must beEqualTo(true)
-      browser.find("#termsContainer").first().getText must contain("Updated: 05/19/2015 Revision: 1")
+    }
+
+    "license agreement must be correct" in new WithFakeBrowser {
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      browser.$("#viewTerms").click()
+      val terms = browser.find("#termsContainer").first().getText
+      // Gets MD5 of agreements and compares to last approved version
+      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("1a9003fe098a14d87ac9540c3b54518e")
+      terms must contain("Updated: 05/19/2015 Revision: 1")
     }
 
     "render an error when the password does not match the confirmation" in new WithFakeBrowser {
