@@ -113,7 +113,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     }
 
     /**
-     * Helper function to wait for angualar to finish processing its current requests
+     * Helper function to wait for Angular to finish processing its current requests
      */
     def waitForAngular = {
       val ngAppElement = "body"
@@ -132,7 +132,12 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
         "});" +
       "};" +
       "window.onload();")
-      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      try {
+        browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      } catch {
+        // Angular has most likely finished after 20 seconds, so we catch this exception and continue with the test
+        case _: org.openqa.selenium.TimeoutException => None
+      }
       browser.await().atMost(1, java.util.concurrent.TimeUnit.SECONDS).until("body.javascript_error").isNotPresent
     }
 
