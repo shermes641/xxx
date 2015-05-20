@@ -86,17 +86,17 @@
                 <div id="arrow_dropdown"></div>
                 Click here for HyprMediate initialization code snippet
                 <div class="code-block">
-                    <div class="waterfall-edit-description">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
+                    <div class="waterfall-edit-description" ng-click="$event.stopPropagation()">
+                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
-                        // This way of creating a userID is an example.
+                        // This way of creating a userId is an example.
                         <br/>
-                        // If you copy this, you'll need to define [self createUserIDForHYPRMediate].
+                        // If you copy this, you'll need to define [self createUserIdForHYPRMediate].
                         <br/>
-                        NSString *userID = [self createUserIDForHYPRMediate];
+                        NSString *hyprUserId = [self createUserIdForHYPRMediate];
                         <br/>
-                        [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:userID];
+                        [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:hyprUserId];
                     </code>
                 </div>
             </div>
