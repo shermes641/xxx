@@ -639,7 +639,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Complete update once all requests have completed
          */
         $scope.$watch('showExportModal', function(current){
-            ga('send', 'event', 'show_export_modal', 'click', 'analytics');
+            ga('send', 'event', current ? 'show_export_modal' : 'hide_export_modal', 'click', 'analytics');
             $rootScope.bodyClass = current ? "modal-active" : "";
         }, true);
 
