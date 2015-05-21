@@ -3,13 +3,23 @@ package models
 import anorm._
 import org.specs2.mutable._
 import org.specs2.specification._
+import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
 import play.api.test._
+import play.api.test.Helpers._
 import resources._
 import com.google.common.base.Predicate
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
+  val DocumentationUsername = running(FakeApplication(additionalConfiguration = testDB)) {
+    Play.current.configuration.getString("httpAuthUser").getOrElse("")
+  }
+
+  val DocumentationPassword = running(FakeApplication(additionalConfiguration = testDB)) {
+    Play.current.configuration.getString("httpAuthPassword").getOrElse("")
+  }
+
   /**
    * Drops and recreates database schema after tests are run.
    * @param tests The tests for a specific test class.

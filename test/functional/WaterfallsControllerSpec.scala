@@ -6,9 +6,12 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
+import play.api.libs.ws.{WSAuthScheme, WS}
 import play.api.test._
 import play.api.test.Helpers._
 import resources._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with DistributorUserSetup {
@@ -418,6 +421,20 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val newestWaterfall = Waterfall.findByAppID(newestApp.id)(0)
       browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newestWaterfall.id).url)
       browser.pageSource must contain(newAppName + " Waterfall")
+    }
+
+    "includes working code snippet SDK documentation link" in new WithAppBrowser(distributor.id.get) {
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      browser.click("#initialize_sdk")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#sdk_documentation_link").areDisplayed()
+      val documentationLink = browser.find("#sdk_documentation_link").getAttribute("href")
+      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      Await.result(request.get().map { response =>
+        response.status must beEqualTo(200)
+        response.body must contain("Welcome to HyprMediate iOS SDK documentation")
+      }, Duration(5000, "millis"))
     }
   }
 
