@@ -10,6 +10,9 @@
             <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-static-message">
                 You are currently working in Test Mode.
             </div>
+            <div ng-show="waterfallData.waterfall.paused && !waterfallData.waterfall.testMode" id="paused-mode-message" class="full-static-message">
+                Your waterfall is currently paused
+            </div>
             <div id="edit-top">
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
                 <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
@@ -34,9 +37,6 @@
                     </div>
                     <div id="test-mode-confirmation" ng-show="showTestModeConfirmationModal">
                         <div ng-include="testModeConfirmationModal"></div>
-                    </div>
-                    <div id="pause-confirmation" ng-show="showPauseConfirmationModal">
-                        <div ng-include="pauseConfirmationModal"></div>
                     </div>
                 </modal-dialog>
 

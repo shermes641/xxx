@@ -146,6 +146,17 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       }
     }
 
+    "return the list of ad providers below the minimum eCPM" in new WithDB {
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, "New App", "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
+      val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
+      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+      DB.withTransaction { implicit connection =>
+        AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
+        (AppConfig.responseV1(currentApp.token) \ "adProviderBelowRewardThreshold").as[JsArray].as[List[JsObject]].size must beEqualTo(1)
+      }
+    }
+
     "return a response with testMode equal to true when a Waterfall is in test mode" in new WithAppDB(distributor.id.get) {
       WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(currentWaterfall.id, None) }

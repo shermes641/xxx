@@ -173,6 +173,9 @@ object AppConfig extends JsonConversion {
     def filteredAdProviders(unfilteredAdProviders: List[AdProviderInfo]): List[AdProviderInfo] = {
       unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold && !adProvider.paused)
     }
+    def adProvidersBelowRewardThreshold(unfilteredAdProviders: List[AdProviderInfo]): List[AdProviderInfo] = {
+      unfilteredAdProviders.filter(adProvider => adProvider.active.get && !adProvider.meetsRewardThreshold)
+    }
     Waterfall.order(appToken) match {
       // App token was not found in app_configs table.
       case adProviders: List[AdProviderInfo] if(adProviders.size == 0) => {
@@ -190,11 +193,11 @@ object AppConfig extends JsonConversion {
             case (_, _) => false
           }
         }
-        JsonBuilder.appConfigResponseV1(providerList, adProviders(0))
+        JsonBuilder.appConfigResponseV1(providerList, adProvidersBelowRewardThreshold(adProviders), adProviders(0))
       }
       // All other cases.
       case adProviders: List[AdProviderInfo] => {
-        JsonBuilder.appConfigResponseV1(filteredAdProviders(adProviders), adProviders(0))
+        JsonBuilder.appConfigResponseV1(filteredAdProviders(adProviders), adProvidersBelowRewardThreshold(adProviders), adProviders(0))
       }
     }
   }
@@ -209,6 +212,6 @@ object AppConfig extends JsonConversion {
       Some(TestModeAppName), Some(TestModeHyprMediateAppID), TestModeAppConfigRefreshInterval, Some(TestModeHyprMediateDistributorName),
       Some(TestModeHyprMediateDistributorID), Some(testConfigData), Some(5.0), Some(TestModeVirtualCurrency.name), Some(TestModeVirtualCurrency.exchangeRate),
       TestModeVirtualCurrency.rewardMin, TestModeVirtualCurrency.rewardMax, Some(TestModeVirtualCurrency.roundUp), testMode = true, paused = false, optimizedOrder = false, active = Some(false))
-    JsonBuilder.appConfigResponseV1(List(testAdProviderConfig), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
+    JsonBuilder.appConfigResponseV1(List(testAdProviderConfig), List(), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
   }
 }

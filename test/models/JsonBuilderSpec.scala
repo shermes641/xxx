@@ -17,11 +17,23 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, Some(5.0), wap.active, wap.fillRate, configData, wap.reportingActive))
       val appToken = App.find(waterfall.app_id).get.token
       val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
-      JsonBuilder.appConfigResponseV1(waterfallOrder, waterfallOrder(0))
+      JsonBuilder.appConfigResponseV1(adProviderList = waterfallOrder, adProviderBelowRewardThresholdList = waterfallOrder, configInfo = waterfallOrder(0))
     }
 
     "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[List[JsValue]]
+      adProviderConfigs.length must beEqualTo(1)
+      adProviderConfigs.map { config =>
+        adProviders must contain((config \ "providerName").as[String])
+        (config \ "providerID") must haveClass[JsNumber]
+        (config \ "eCPM") must haveClass[JsNumber]
+        (config \ "sdkBlacklistRegex").as[String] must beEqualTo(".^")
+      }
+    }
+
+    "convert a list of ad providers below threshold to JSON response" in new WithDB {
+      val adProviderConfigs = (appConfig \ "adProviderBelowRewardThreshold").as[List[JsValue]]
+      adProviderConfigs.length must beEqualTo(1)
       adProviderConfigs.map { config =>
         adProviders must contain((config \ "providerName").as[String])
         (config \ "providerID") must haveClass[JsNumber]
