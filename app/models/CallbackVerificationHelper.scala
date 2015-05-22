@@ -5,12 +5,33 @@ import play.api.mvc.Controller
 
 // Helper functions included in Callback models.
 trait CallbackVerificationHelper extends Controller {
-  val currencyAmount: Int
   val receivedVerification: String
   val adProviderName: String
   val token: String
   val verificationInfo: CallbackVerificationInfo
-  lazy val waterfallAdProviderInfo = WaterfallAdProvider.findByAdProvider(token, adProviderName)
+
+  // Retrieve ad provider's eCPM and configuration data, virtual currency settings, and callback URL info.
+  lazy val adProviderRewardInfo = WaterfallAdProvider.findRewardInfo(token, adProviderName)
+
+  // Calculates the profit from a single completion without rounding down to a dollar amount.
+  lazy val rawPayoutAmount: Option[Double] = {
+    adProviderRewardInfo match {
+      case Some(rewardInfo) => {
+        rewardInfo.cpm match {
+          case Some(cpm: Double) => {
+            Some(cpm / 1000.0)
+          }
+          case _ => None
+        }
+      }
+      case _ => None
+    }
+  }
+
+  /**
+   * The verification string we generate on our servers and compare with the one sent in the callback from the ad provider.
+   * @return A hash of several params from the incoming postback.
+   */
   def generatedVerification: String
 
   /**
@@ -31,9 +52,9 @@ trait CallbackVerificationHelper extends Controller {
    * @return The value stored in the configuration data if one exists; otherwise, returns an empty string.
    */
   def secretKey(jsonKey: String): String = {
-    waterfallAdProviderInfo match {
-      case Some(wap) => {
-        wap.configurationData match {
+    adProviderRewardInfo match {
+      case Some(rewardInfo) => {
+        rewardInfo.configurationData match {
           case _:JsUndefined => ""
           case configData: JsValue => (configData \ "callbackParams" \ jsonKey).as[String]
           case _ => ""
@@ -44,20 +65,46 @@ trait CallbackVerificationHelper extends Controller {
   }
 
   /**
-   * Calculates the payout information for a completion
+   * Calculates the payout information for a completion based on the current cpm of the WaterfallAdProvider.
    * @return A Double value correlating to a dollar amount.
    */
   def payout: Option[Double] = {
-    waterfallAdProviderInfo match {
-      case Some(wap) => {
-        wap.cpm match {
-          case Some(cpm: Double) => {
-            Some(BigDecimal(cpm / 1000).setScale(2, BigDecimal.RoundingMode.FLOOR).toDouble)
+    rawPayoutAmount match {
+      case Some(amount) => {
+        Some(BigDecimal(amount).setScale(2, BigDecimal.RoundingMode.FLOOR).toDouble)
+      }
+      case None => None
+    }
+  }
+
+  /**
+   * Calculates the amount of virtual currency to award.
+   * This is calculated based on cpm of the WaterfallAdProvider and the VirtualCurrency
+   * information on the server at the time the callback is received.
+   * This can differ from the reward calculated by the SDK and the reward quantity
+   * passed to us from the ad provider in the server to server callback.
+   * @return The amount of virtual currency floored to the nearest integer.
+   */
+  def currencyAmount: Long = {
+    adProviderRewardInfo match {
+      case Some(rewardInfo) => {
+        rawPayoutAmount match {
+          case Some(profitPerCompletion: Double) => {
+            val rewardAmount = BigDecimal(rewardInfo.exchangeRate * profitPerCompletion).setScale(0, BigDecimal.RoundingMode.FLOOR).toInt
+            rewardInfo.rewardMax match {
+              case Some(max) if(rewardAmount > max) => {
+                max
+              }
+              case _ if(rewardAmount < rewardInfo.rewardMin) => {
+                if(rewardInfo.roundUp) rewardInfo.rewardMin else 0
+              }
+              case _ => rewardAmount
+            }
           }
-          case _ => None
+          case None => 0
         }
       }
-      case _ => None
+      case None => 0
     }
   }
 

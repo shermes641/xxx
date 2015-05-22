@@ -16,13 +16,14 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
   val transactionID = "0123456789"
   val appToken = app1.token
   val customID = "testuser"
+  val eCPM = 25.0
 
   running(FakeApplication(additionalConfiguration = testDB)) {
     val id = WaterfallAdProvider.create(waterfall.id, adColonyID, None, None, true, true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
-    WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, None, Some(true), None, configuration, false))
+    WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
   }
 
   "adProviderName" should {
@@ -40,9 +41,43 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
   }
 
   "currencyAmount" should {
-    "be set when creating a new instance of the AdColonyCallback class" in new WithDB {
-      val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
-      callback.currencyAmount must beEqualTo(amount)
+    "ignore the reward amount passed in the server to server callback" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
+        new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+      }
+      callback.currencyAmount must beEqualTo(2)
+      callback.currencyAmount must not(beEqualTo(amount))
+    }
+
+    "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
+        new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+      }
+      callback.currencyAmount must beEqualTo(5)
+    }
+
+    "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=5, rewardMax=None, roundUp=false))
+        new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+      }
+      callback.currencyAmount must beEqualTo(0)
+    }
+
+    "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
+      val callbackWithoutRewardMax = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
+        new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+      }
+      callbackWithoutRewardMax.currencyAmount must beEqualTo(12)
+
+      val callbackWithRewardMax = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
+        new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+      }
+      callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }
   }
 

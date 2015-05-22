@@ -44,7 +44,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with the HyprMarketplace test distributor configuration when waterfall is in test mode" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, true)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = true, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val request = FakeRequest(
         GET,
@@ -55,26 +55,28 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig = Json.parse(contentAsString(result))
-      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TEST_MODE_DISTRIBUTOR_ID), "propertyID" -> JsString(AppConfig.TEST_MODE_PROPERTY_ID),
-        "providerName" -> JsString(AppConfig.TEST_MODE_PROVIDER_NAME),"providerID" -> JsNumber(AppConfig.TEST_MODE_PROVIDER_ID), "eCPM" -> JsNumber(5.0)))
-      val vcAttributes = AppConfig.TEST_MODE_VIRTUAL_CURRENCY
+      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TestModeDistributorID),
+        "propertyID" -> JsString(AppConfig.TestModePropertyID), "providerName" -> JsString(AppConfig.TestModeProviderName),
+        "providerID" -> JsNumber(AppConfig.TestModeProviderID), "eCPM" -> JsNumber(5.0), "sdkBlacklistRegex" -> JsString(AppConfig.TestModeSdkBlacklistRegex)))
+      val vcAttributes = AppConfig.TestModeVirtualCurrency
       val expectedVCJson = JsObject(Seq("name" -> JsString(vcAttributes.name), "exchangeRate" -> JsNumber(vcAttributes.exchangeRate),
         "rewardMin" -> JsNumber(vcAttributes.rewardMin), "rewardMax" -> JsNumber(vcAttributes.rewardMax.get), "roundUp" -> JsBoolean(vcAttributes.roundUp)))
       (appConfig \ "adProviderConfigurations") must beEqualTo(JsArray(testAdProviderConfig :: Nil))
       (appConfig \ "analyticsConfiguration") must beEqualTo(JsonBuilder.analyticsConfiguration \ "analyticsConfiguration")
       (appConfig \ "errorReportingConfiguration") must beEqualTo(JsonBuilder.errorReportingConfiguration \ "errorReportingConfiguration")
       (appConfig \ "virtualCurrency") must beEqualTo(expectedVCJson)
-      (appConfig \ "appName").as[String] must beEqualTo(AppConfig.TEST_MODE_APP_NAME)
-      (appConfig \ "appID").as[Long] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_APP_ID)
-      (appConfig \ "distributorName").as[String] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_NAME)
-      (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TEST_MODE_HYPRMEDIATE_DISTRIBUTOR_ID)
-      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TEST_MODE_APP_CONFIG_REFRESH_INTERVAL)
+      (appConfig \ "appName").as[String] must beEqualTo(AppConfig.TestModeAppName)
+      (appConfig \ "appID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateAppID)
+      (appConfig \ "distributorName").as[String] must beEqualTo(AppConfig.TestModeHyprMediateDistributorName)
+      (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateDistributorID)
+      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TestModeAppConfigRefreshInterval)
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
+      (appConfig \ "paused").as[Boolean] must beEqualTo(false)
       (appConfig \ "generationNumber") must haveClass[JsNumber]
     }
 
     "respond with ad providers ordered by eCPM when the waterfall is in optimized mode" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
@@ -92,7 +94,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with the current waterfall order when waterfall is live and not optimized" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, false, false)
+      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, Some(0), Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, Some(1), Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
@@ -112,7 +114,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
       val roundUp = false
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 1, None, roundUp))
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(50.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
@@ -133,7 +135,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "respond with an empty adProviderConfigurations array when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
       val roundUp = false
       VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 100, None, roundUp))
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(

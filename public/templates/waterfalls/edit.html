@@ -10,6 +10,9 @@
             <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-static-message">
                 You are currently working in Test Mode.
             </div>
+            <div ng-show="waterfallData.waterfall.paused && !waterfallData.waterfall.testMode" id="paused-mode-message" class="full-static-message">
+                Your waterfall is currently paused
+            </div>
             <div id="edit-top">
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
                 <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
@@ -37,6 +40,17 @@
                     </div>
                 </modal-dialog>
 
+                <div class="waterfall-buttons" ng-class="{disabled: waterfallData.waterfall.testMode}">
+                    <div class="button-overlay"></div>
+                    <h4 ng-mouseenter="hoverPause=true" ng-mouseleave="hoverPause=false" class="tooltip">
+                        ?
+                        <div class="ngtooltip" ng-show="hoverPause">Pause and resume this waterfall</div>
+                    </h4>
+                    <label ng-if="waterfallData.waterfall.paused" class="text-label">Resume Ads</label>
+                    <label ng-if="!waterfallData.waterfall.paused" class="text-label">Pause Ads</label>
+                    <div class="pause" ng-class="{play: waterfallData.waterfall.paused}" ng-click="togglePaused()"></div>
+                </div>
+
                 <div class="waterfall-buttons">
                     <h4 ng-mouseenter="hoverOptimized=true" ng-mouseleave="hoverOptimized=false" class="tooltip">
                         ?
@@ -52,7 +66,7 @@
                     </div>
                 </div>
 
-                <div class="waterfall-buttons">
+                <div class="waterfall-buttons first">
                     <h4 ng-mouseenter="hoverTestMode=true" ng-mouseleave="hoverTestMode=false" class="tooltip">
                         ?
                         <div class="ngtooltip" ng-show="hoverTestMode">Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.</div>
@@ -72,17 +86,17 @@
                 <div id="arrow_dropdown"></div>
                 Click here for HyprMediate initialization code snippet
                 <div class="code-block">
-                    <div class="waterfall-edit-description">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
+                    <div class="waterfall-edit-description" ng-click="$event.stopPropagation()">
+                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
-                        // This way of creating a userID is an example.
+                        // This way of creating a userId is an example.
                         <br/>
-                        // If you copy this, you'll need to define [self createUserIDForHYPRMediate].
+                        // If you copy this, you'll need to define [self createUserIdForHYPRMediate].
                         <br/>
-                        NSString *userID = [self createUserIDForHYPRMediate];
+                        NSString *hyprUserId = [self createUserIdForHYPRMediate];
                         <br/>
-                        [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:userID];
+                        [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:hyprUserId];
                     </code>
                 </div>
             </div>

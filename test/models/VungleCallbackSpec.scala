@@ -9,12 +9,13 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
+  val eCPM = 25.0
   running(FakeApplication(additionalConfiguration = testDB)) {
     val id = WaterfallAdProvider.create(waterfall.id, vungleID, None, None, true, true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
-    WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, None, Some(true), None, configuration, false))
+    WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
   }
 
   val transactionID = "0123456789"
@@ -37,8 +38,43 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
   }
 
   "currencyAmount" should {
-    "be set when creating a new instance of the VungleCallback class" in new WithDB {
-      callback.currencyAmount must beEqualTo(amount)
+    "ignore the reward amount passed in the server to server callback" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
+        new VungleCallback(app1.token, transactionID, digest, amount)
+      }
+      callback.currencyAmount must beEqualTo(2)
+      callback.currencyAmount must not(beEqualTo(amount))
+    }
+
+    "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
+        new VungleCallback(app1.token, transactionID, digest, amount)
+      }
+      callback.currencyAmount must beEqualTo(5)
+    }
+
+    "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
+      val callback = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=5, rewardMax=None, roundUp=false))
+        new VungleCallback(app1.token, transactionID, digest, amount)
+      }
+      callback.currencyAmount must beEqualTo(0)
+    }
+
+    "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
+      val callbackWithoutRewardMax = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
+        new VungleCallback(app1.token, transactionID, digest, amount)
+      }
+      callbackWithoutRewardMax.currencyAmount must beEqualTo(12)
+
+      val callbackWithRewardMax = {
+        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
+        new VungleCallback(app1.token, transactionID, digest, amount)
+      }
+      callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }
   }
 

@@ -22,7 +22,7 @@ class WaterfallSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
     "update a Waterfall record in the database" in new WithDB {
       val optimizedOrder = false
       val testMode = true
-      Waterfall.update(waterfall.id, optimizedOrder, testMode)
+      Waterfall.update(waterfall.id, optimizedOrder = optimizedOrder, testMode = testMode, paused = false)
       val currentWaterfall = Waterfall.find(waterfall.id, distributor.id.get).get
       currentWaterfall.optimizedOrder must beEqualTo(optimizedOrder)
       currentWaterfall.testMode must beEqualTo(testMode)

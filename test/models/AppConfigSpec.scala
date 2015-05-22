@@ -33,7 +33,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
 
     "increment the generation number for an existing waterfall ID each time the configuration has changed" in new WithDB {
       val originalGeneration = generationNumber(app1.id)
-      Waterfall.update(waterfall.id, true, false)
+      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
       WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, Some(5.0), false, true)
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -104,11 +104,21 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     "return the ad provider configuration info" in new WithAppDB(distributor.id.get) {
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
       val wap1 = WaterfallAdProvider.find(wap1ID).get
-      Waterfall.update(currentWaterfall.id, false, false)
+      Waterfall.update(currentWaterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         val configs = (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray]
         (configs(0) \ "providerID").as[JsNumber].toString.toLong must beEqualTo(wap1.adProviderID)
+      }
+    }
+
+    "return an empty adProviderConfigurations array when waterfall is paused."in new WithAppDB(distributor.id.get) {
+      DB.withTransaction { implicit connection =>
+        WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
+        Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = true)
+        (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray].value.size must beEqualTo(0)
+        Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+        (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray].value.size must beEqualTo(1)
       }
     }
 
@@ -129,10 +139,21 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
       val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, "New App", "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
-      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false)
+      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         (AppConfig.responseV1(currentApp.token) \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
+      }
+    }
+
+    "return the list of ad providers below the minimum eCPM" in new WithDB {
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, "New App", "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
+      val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
+      Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+      DB.withTransaction { implicit connection =>
+        AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
+        (AppConfig.responseV1(currentApp.token) \ "adProviderBelowRewardThreshold").as[JsArray].as[List[JsObject]].size must beEqualTo(1)
       }
     }
 

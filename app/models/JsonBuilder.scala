@@ -19,42 +19,59 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
    * @param configInfo All other configuration info not related to specific AdProviders.
    * @return JSON object with an ordered array of ad providers and their respective configuration info.
    */
-  def appConfigResponseV1(adProviderList: List[AdProviderInfo], configInfo: AdProviderInfo): JsValue = {
+  def appConfigResponseV1(adProviderList: List[AdProviderInfo], adProviderBelowRewardThresholdList: List[AdProviderInfo], configInfo: AdProviderInfo): JsValue = {
     val adProviderConfigurations = {
       JsObject(
         Seq(
           "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
-            array ++
-              JsArray(
-                JsObject(
-                  Seq(
-                    "providerName" -> el.providerName,
-                    "providerID" -> el.providerID,
-                    "eCPM" -> (el.cpm match {
-                      case Some(eCPM) => JsNumber(eCPM)
-                      case None => JsNull
-                    })
-                  )
-                ).deepMerge(
-                    el.configurationData match {
-                      case Some(data) => {
-                        (data \ "requiredParams") match {
-                          case _: JsUndefined => JsObject(Seq())
-                          case json: JsValue => json.as[JsObject]
-                        }
-                      }
-                      case None => JsObject(Seq())
+              array ++ JsArray(adProviderJson(el).deepMerge(
+                el.configurationData match {
+                  case Some(data) => {
+                    (data \ "requiredParams") match {
+                      case _: JsUndefined => JsObject(Seq())
+                      case json: JsValue => json.as[JsObject]
                     }
-                  ) :: Nil
-              )
+                  }
+                  case None => JsObject(Seq())
+                }
+              ) :: Nil
+            )
+          )
+        )
+      )
+    }
+    val adProviderBelowRewardThreshold = {
+      JsObject(
+        Seq(
+          "adProviderBelowRewardThreshold" -> adProviderBelowRewardThresholdList.foldLeft(JsArray())((array, el) =>
+            array ++ JsArray(adProviderJson(el) :: Nil)
           )
         )
       )
     }
     val configurationsList = List(analyticsConfiguration, errorReportingConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
-      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, timeoutConfigurations)
+      distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, pausedConfiguration(configInfo), timeoutConfigurations, adProviderBelowRewardThreshold)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
+    )
+  }
+
+  /**
+   * Converts an AdProviderInfo instance into JSON
+   * @param adProvider An AdProviderInfo instance containing ad provider name and configuration info.
+   * @return JSON object containing ad provider information.
+   */
+  def adProviderJson(adProvider: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "providerName" -> adProvider.providerName,
+        "providerID" -> adProvider.providerID,
+        "eCPM" -> (adProvider.cpm match {
+          case Some(eCPM) => JsNumber(eCPM)
+          case None => JsNull
+        }),
+        "sdkBlacklistRegex" -> adProvider.sdkBlacklistRegex
+      )
     )
   }
 
@@ -163,6 +180,19 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
     JsObject(
       Seq(
         "testMode" -> JsBoolean(false)
+      )
+    )
+  }
+
+  /**
+   * Creates a JSON object for paused information.
+   * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
+   * @return A JsObject containing paused status.
+   */
+  def pausedConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+    JsObject(
+      Seq(
+        "paused" -> JsBoolean(adProviderInfo.paused)
       )
     )
   }

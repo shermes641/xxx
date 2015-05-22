@@ -113,22 +113,31 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     }
 
     /**
-     * Helper function to wait for angualar to finish processing its current requests
+     * Helper function to wait for Angular to finish processing its current requests
      */
     def waitForAngular = {
       val ngAppElement = "body"
       val markerClass = "angularReady"
 
+      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("body").isPresent
       browser.executeScript(
-      "angular.element(document).ready(function () {" +
-        "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
-          "angular.element(document.querySelector('" + ngAppElement + "'))" +
-          "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
-          "    function() {" +
-          "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
-          "    })" +
-          "});")
-      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      "window.onload = function (){" +
+        "angular.element(document).ready(function () {" +
+          "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
+            "angular.element(document.querySelector('" + ngAppElement + "'))" +
+            "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
+            "    function() {" +
+            "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
+            "    })" +
+        "});" +
+      "};" +
+      "window.onload();")
+      try {
+        browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      } catch {
+        // Angular has most likely finished after 20 seconds, so we catch this exception and continue with the test
+        case _: org.openqa.selenium.TimeoutException => None
+      }
       browser.await().atMost(1, java.util.concurrent.TimeUnit.SECONDS).until("body.javascript_error").isNotPresent
     }
 

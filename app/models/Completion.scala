@@ -21,19 +21,22 @@ class Completion extends JsonConversion {
    * @param adProviderName The name of the ad provider to which the completion belongs.
    * @param transactionID A unique ID that verifies a completion.
    * @param offerProfit The estimated revenue earned by a Distributor for a Completion.
+   * @param rewardQuantity The amount to reward the user.  This is calculated based on cpm of the WaterfallAdProvider and the VirtualCurrency information on the server at the time the callback is received.
+   *                       This can differ from the reward calculated by the SDK and the reward quantity passed to us from the ad provider in the server to server callback.
+   * @param generationNumber The generationNumber from the latest AppConfig at the time the server to server callback is received.
    * @param adProviderRequest The original server to server request from the Ad Provider.
    * @return The ID of the new completion record if the insertion succeeds; otherwise, returns None.
    */
-  def create(appToken: String, adProviderName: String, transactionID: String, offerProfit: Option[Double], adProviderRequest: JsValue): Option[Long] = {
+  def create(appToken: String, adProviderName: String, transactionID: String, offerProfit: Option[Double], rewardQuantity: Long, generationNumber: Option[Long], adProviderRequest: JsValue): Option[Long] = {
     DB.withConnection { implicit connection =>
       try {
         SQL(
           """
-            INSERT INTO completions (app_token, ad_provider_name, transaction_id, offer_profit, ad_provider_request)
-            VALUES ({app_token}, {ad_provider_name}, {transaction_id}, {offer_profit}, CAST({ad_provider_request} AS json));
+            INSERT INTO completions (app_token, ad_provider_name, transaction_id, offer_profit, reward_quantity, generation_number, ad_provider_request)
+            VALUES ({app_token}, {ad_provider_name}, {transaction_id}, {offer_profit}, {reward_quantity}, {generation_number}, CAST({ad_provider_request} AS json));
           """
-        ).on("app_token" -> appToken, "ad_provider_name" -> adProviderName, "transaction_id" -> transactionID,
-             "offer_profit" -> offerProfit, "ad_provider_request" -> Json.stringify(adProviderRequest)).executeInsert()
+        ).on("app_token" -> appToken, "ad_provider_name" -> adProviderName, "transaction_id" -> transactionID, "offer_profit" -> offerProfit,
+             "reward_quantity" -> rewardQuantity, "generation_number" -> generationNumber, "ad_provider_request" -> Json.stringify(adProviderRequest)).executeInsert()
       } catch {
         case exception: org.postgresql.util.PSQLException => {
           None
@@ -49,19 +52,18 @@ class Completion extends JsonConversion {
    * @return A boolean future indicating the success of the call to the App's reward callback.
    */
   def createWithNotification(verificationInfo: CallbackVerificationInfo, adProviderRequest: JsValue): Future[Boolean] = {
-    (create(verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID, verificationInfo.offerProfit, adProviderRequest), Waterfall.findCallbackInfo(verificationInfo.appToken)) match {
-      case (Some(id: Long), Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, adProviderRequest, verificationInfo)
+    create(
+      verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID,
+      verificationInfo.offerProfit, verificationInfo.rewardQuantity, verificationInfo.generationNumber, adProviderRequest
+    ) match {
+      case Some(id: Long) => {
+        if(verificationInfo.serverToServerEnabled) {
+          postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo)
+        } else {
+          Future { true }
+        }
       }
-      case (Some(id: Long), _) => {
-        Future { true }
-      }
-      case (None, Some(callbackInfo: WaterfallCallbackInfo)) if(callbackInfo.serverToServerEnabled) => {
-        postCallback(callbackInfo.callbackURL, adProviderRequest, verificationInfo)
-      }
-      case (_, _) => {
-        Future { false }
-      }
+      case None => Future { false }
     }
   }
 

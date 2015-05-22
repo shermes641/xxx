@@ -47,5 +47,8 @@ class RevenueDataActor(waterfallAdProviderID: Long, configurationData: JsValue) 
     case "AppLovin" => {
       new AppLovinReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
     }
+    case "Vungle" => {
+      new VungleReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
+    }
   }
 }

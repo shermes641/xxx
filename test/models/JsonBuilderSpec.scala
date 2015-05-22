@@ -14,16 +14,31 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
       val wapID1 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, Some(0), None, true, true)
       val wap = WaterfallAdProvider.find(wapID1.get).get
       val configData = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("value1")))))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, configData, wap.reportingActive))
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, Some(5.0), wap.active, wap.fillRate, configData, wap.reportingActive))
       val appToken = App.find(waterfall.app_id).get.token
       val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
-      JsonBuilder.appConfigResponseV1(waterfallOrder, waterfallOrder(0))
+      JsonBuilder.appConfigResponseV1(adProviderList = waterfallOrder, adProviderBelowRewardThresholdList = waterfallOrder, configInfo = waterfallOrder(0))
     }
 
     "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[List[JsValue]]
+      adProviderConfigs.length must beEqualTo(1)
       adProviderConfigs.map { config =>
         adProviders must contain((config \ "providerName").as[String])
+        (config \ "providerID") must haveClass[JsNumber]
+        (config \ "eCPM") must haveClass[JsNumber]
+        (config \ "sdkBlacklistRegex").as[String] must beEqualTo(".^")
+      }
+    }
+
+    "convert a list of ad providers below threshold to JSON response" in new WithDB {
+      val adProviderConfigs = (appConfig \ "adProviderBelowRewardThreshold").as[List[JsValue]]
+      adProviderConfigs.length must beEqualTo(1)
+      adProviderConfigs.map { config =>
+        adProviders must contain((config \ "providerName").as[String])
+        (config \ "providerID") must haveClass[JsNumber]
+        (config \ "eCPM") must haveClass[JsNumber]
+        (config \ "sdkBlacklistRegex").as[String] must beEqualTo(".^")
       }
     }
 
@@ -62,13 +77,18 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     "contain rewardTimeout" in new WithDB {
       (appConfig \ "rewardTimeout").as[Long] must beEqualTo(JsonBuilder.DefaultRewardTimeout)
     }
+
+    "contain paused" in new WithDB {
+      (appConfig \ "paused").as[Boolean] must beEqualTo(false)
+    }
   }
 
   "JsonBuilder.virtualCurrencyConfiguration" should {
     "convert an AdProviderInfo instance into a JSON object containing virtual currency information" in new WithDB {
       val virtualCurrency = new VirtualCurrency(0, 0, "Coins", 100, 1, Some(100), true)
-      val adProviderInfo = new AdProviderInfo(Some("ad provider name"), None, None, None, 0, None, None, None, None, Some(virtualCurrency.name), Some(virtualCurrency.exchangeRate),
-        virtualCurrency.rewardMin, virtualCurrency.rewardMax, Some(virtualCurrency.roundUp), false, false, None)
+      val adProviderInfo = new AdProviderInfo(providerName=Some("ad provider name"), providerID=None, sdkBlacklistRegex=None, appName=None, appID=None, appConfigRefreshInterval=0,
+        distributorName=None, distributorID=None, configurationData=None, cpm=None, Some(virtualCurrency.name), Some(virtualCurrency.exchangeRate),
+        virtualCurrency.rewardMin, virtualCurrency.rewardMax, Some(virtualCurrency.roundUp), testMode=false, paused=false, optimizedOrder=false, active=None)
       val expectedVCJson = JsObject(Seq("virtualCurrency" -> JsObject(Seq("name" -> JsString(virtualCurrency.name), "exchangeRate" -> JsNumber(virtualCurrency.exchangeRate),
         "rewardMin" -> JsNumber(virtualCurrency.rewardMin), "rewardMax" -> JsNumber(virtualCurrency.rewardMax.get), "roundUp" -> JsBoolean(virtualCurrency.roundUp)))))
       JsonBuilder.virtualCurrencyConfiguration(adProviderInfo) must beEqualTo(expectedVCJson)
@@ -79,7 +99,9 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     "convert an AdProviderInfo instance into a JSON object containing the name of an app" in new WithDB {
       val appName = "Test App"
       val appID = 0.toLong
-      val adProviderInfo = new AdProviderInfo(None, None, Some(appName), Some(appID), 0, None, None, None, None, None, None, 1, None, None, false, false, None)
+      val adProviderInfo = new AdProviderInfo(providerName=None, providerID=None, sdkBlacklistRegex=None, Some(appName), Some(appID), appConfigRefreshInterval=0,
+        distributorName=None, distributorID=None, configurationData=None, cpm=None, virtualCurrencyName=None, exchangeRate=None, rewardMin=1, rewardMax=None,
+        roundUp=None, testMode=false, paused=false, optimizedOrder=false, active=None)
       val expectedAppNameJson = JsObject(Seq("appName" -> JsString(appName), "appID" -> JsNumber(appID)))
       JsonBuilder.appNameConfiguration(adProviderInfo) must beEqualTo(expectedAppNameJson)
     }
@@ -89,7 +111,9 @@ class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with Wa
     "convert an AdProviderInfo instance into a JSON object containing the name and ID of a Distributor" in new WithDB {
       val distributorName = "Test Distributor"
       val distributorID = 10.toLong
-      val adProviderInfo = new AdProviderInfo(None, None, None, None, 0, Some(distributorName), Some(distributorID), None, None, None, None, 1, None, None, false, false, None)
+      val adProviderInfo = new AdProviderInfo(providerName=None, providerID=None, sdkBlacklistRegex=None, appName=None, appID=None, appConfigRefreshInterval=0,
+        Some(distributorName), Some(distributorID), configurationData=None, cpm=None, virtualCurrencyName=None, exchangeRate=None, rewardMin=1, rewardMax=None,
+        roundUp=None, testMode=false, paused=false, optimizedOrder=false, active=None)
       val expectedDistributorJson = JsObject(Seq("distributorName" -> JsString(distributorName), "distributorID" -> JsNumber(distributorID)))
       JsonBuilder.distributorConfiguration(adProviderInfo) must beEqualTo(expectedDistributorJson)
     }

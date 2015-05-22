@@ -10,6 +10,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
 
             // Submit form if fields are valid.
             $scope.submitNewApp = function(form) {
+                ga('send', 'event', 'submit_new_app', 'click', 'newapp');
                 $scope.errors = {};
                 if(form.$valid) {
                     var parsedRewardMax = parseInt($scope.newApp.rewardMax);
