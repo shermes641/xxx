@@ -170,34 +170,36 @@ object AppConfig extends JsonConversion {
    */
   def responseV1(appToken: String)(implicit connection: Connection): JsValue = {
     // Removes ad providers that are inactive or do not have a high enough eCPM value from the response.
-    def filteredAdProviders(unfilteredAdProviders: List[AdProviderInfo]): List[AdProviderInfo] = {
-      unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold && !adProvider.paused)
+    def filteredAdProviders(unfilteredAdProviders: List[AdProviderInfo]): (List[AdProviderInfo], List[AdProviderInfo]) = {
+      val qualifiedAdProviders = unfilteredAdProviders.filter(adProvider => adProvider.active.get && adProvider.meetsRewardThreshold && !adProvider.paused)
+      val belowThresholdAdProviders = unfilteredAdProviders.filter(adProvider => adProvider.active.get && !adProvider.meetsRewardThreshold)
+      (qualifiedAdProviders, belowThresholdAdProviders)
     }
-    def adProvidersBelowRewardThreshold(unfilteredAdProviders: List[AdProviderInfo]): List[AdProviderInfo] = {
-      unfilteredAdProviders.filter(adProvider => adProvider.active.get && !adProvider.meetsRewardThreshold)
-    }
+
     Waterfall.order(appToken) match {
       // App token was not found in app_configs table.
-      case adProviders: List[AdProviderInfo] if(adProviders.size == 0) => {
+      case adProviders: List[AdProviderInfo] if adProviders.size == 0 => {
         Json.obj("status" -> "error", "message" -> "App Configuration not found.")
       }
       // Waterfall is in test mode.
-      case adProviders: List[AdProviderInfo] if(adProviders(0).testMode) => {
+      case adProviders: List[AdProviderInfo] if adProviders(0).testMode => {
         testResponseV1
       }
       // Waterfall is in "Optimized" mode.
-      case adProviders: List[AdProviderInfo] if(adProviders(0).optimizedOrder) => {
-        val providerList = filteredAdProviders(adProviders).sortWith { (provider1, provider2) =>
+      case adProviders: List[AdProviderInfo] if adProviders(0).optimizedOrder => {
+        val (qualifiedAdProviders, belowThresholdAdProviders) = filteredAdProviders(adProviders)
+        val providerList = qualifiedAdProviders.sortWith { (provider1, provider2) =>
           (provider1.cpm, provider2.cpm) match {
             case (Some(cpm1: Double), Some(cpm2: Double)) => cpm1 > cpm2
             case (_, _) => false
           }
         }
-        JsonBuilder.appConfigResponseV1(providerList, adProvidersBelowRewardThreshold(adProviders), adProviders(0))
+        JsonBuilder.appConfigResponseV1(providerList, belowThresholdAdProviders, adProviders(0))
       }
       // All other cases.
       case adProviders: List[AdProviderInfo] => {
-        JsonBuilder.appConfigResponseV1(filteredAdProviders(adProviders), adProvidersBelowRewardThreshold(adProviders), adProviders(0))
+        val (qualifiedAdProviders, belowThresholdAdProviders) = filteredAdProviders(adProviders)
+        JsonBuilder.appConfigResponseV1(qualifiedAdProviders, belowThresholdAdProviders, adProviders(0))
       }
     }
   }
