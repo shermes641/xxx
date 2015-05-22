@@ -7,11 +7,20 @@ import anorm._
 import play.api.db.DB
 import models._
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import io.keen.client.java.{ScopedKeys, KeenProject, JavaKeenClientBuilder, KeenClient}
 import collection.JavaConversions._
 import scala.language.implicitConversions
 
+
 object AnalyticsController extends Controller with Secured {
+  implicit val exportReads: Reads[exportMapping] = (
+      (JsPath \ "email").read[String] and
+      (JsPath \ "filters").read[JsArray] and
+      (JsPath \ "timeframe").read[JsObject] and
+      (JsPath \ "apps").read[List[String]]
+    )(exportMapping.apply _)
+
   def show(distributorID: Long, currentAppID: Option[Long], waterfallFound: Option[Boolean]) = withAuth(Some(distributorID)) { username => implicit request =>
     val apps = App.findAllAppsWithWaterfalls(distributorID)
     if(apps.size == 0) {
@@ -22,12 +31,14 @@ object AnalyticsController extends Controller with Secured {
   }
 
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
+
     request.body.asJson.map { json =>
-      (json \ "email").asOpt[String].map { email =>
-        KeenExport().exportToCSV(distributorID, email)
+      json.validate[exportMapping].map { exportParameters =>
+        KeenExport().exportToCSV(distributorID, exportParameters.email, exportParameters.filters,
+          exportParameters.timeframe, exportParameters.apps)
         Ok("success")
-      }.getOrElse {
-        BadRequest("Missing parameter [email]")
+      }.recoverTotal {
+        error => BadRequest(Json.obj("status" -> "error", "message" -> "Missing parameters"))
       }
     }.getOrElse {
       BadRequest("Expecting Json data")
@@ -118,5 +129,13 @@ object AnalyticsController extends Controller with Secured {
   def appListJs(list: List[App]): JsArray = {
     list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
   }
-}
 
+  /**
+   * Used for mapping Export parameters
+   * @param email Maps to the email field
+   * @param filters Maps to the filters JsArray
+   * @param timeframe Maps to the timeframe as a JsObject
+   * @param apps Maps to the apps list in the Json Array
+   */
+  case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String])
+}

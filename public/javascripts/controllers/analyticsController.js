@@ -606,17 +606,61 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             ga('send', 'event', 'begin_csv_export', 'click', 'analytics');
             if($scope.exportForm.$valid) {
                 $scope.showExportForm = false;
+
+                // Get current date values
+                var dates = {
+                    start_date: $scope.elements.startDate.datepicker('getUTCDate'),
+                    end_date: $scope.elements.endDate.datepicker('getUTCDate')
+                };
+
+                // Return if one or both of the dates are invalid
+                if (!$scope.isValidDate(dates.start_date) || !$scope.isValidDate(dates.end_date) ) {
+                    $scope.showExportError = true;
+                    return;
+                }
+
+                // Return if start date after end date
+                if (dates.end_date.getTime() < dates.start_date.getTime()) {
+                    $scope.showExportError = true;
+                    return;
+                }
+
                 var emailAddress = $scope.elements.emailInput.val();
-                $http.post( $scope.exportEndpoint, { email: emailAddress })
+
+                var filters = $scope.getExportCSVFilters(dates);
+                filters.email = emailAddress;
+                $http.post($scope.exportEndpoint, filters)
                     .success(_.bind( function() {
                         $scope.showExportComplete = true;
                     }, $scope ))
                     .error( _.bind( function() {
                         $scope.showExportError = true;
-                    }, $scope )
-                    );
+                    }, $scope ));
             }
         };
+
+        $scope.getExportCSVFilters = function(dates) {
+            // Send all apps if all is selected
+            var apps = [];
+            if (_.pluck($scope.filters.apps.selected, 'id').indexOf( "all" ) === -1) {
+                apps = _.pluck($scope.filters.apps.selected, 'id');
+            } else {
+                apps = _.pluck($scope.filters.apps.available, 'id');
+            }
+
+            // Build filters based on the dropdown selections
+            var filters = $scope.buildFilters([],_.pluck($scope.filters.countries.selected, 'id'),
+                _.pluck($scope.filters.ad_providers.selected, 'id'));
+
+            // Set timeframe for queries.  Also converts the times to EST
+            var timeframe = {
+                start: moment(dates.start_date).utc().format(),
+                end: moment(dates.end_date).utc().add(1, 'days').format()
+            };
+
+            return { apps: apps, filters: filters, timeframe: timeframe };
+        };
+
 
         /**
          * Hide overlay and other modal elements
