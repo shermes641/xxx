@@ -132,10 +132,10 @@ object AnalyticsController extends Controller with Secured {
 
   /**
    * Used for mapping Export parameters
-   * @param email Maps to the name field in the apps table
-   * @param filters Maps to the name field in the virtual_currencies table.
-   * @param timeframe Maps the the exchange_rate field in the virtual_currencies table.
-   * @param apps Maps to the reward_min field in the virtual_currencies table.
+   * @param email Maps to the email field
+   * @param filters Maps to the filters JsArray
+   * @param timeframe Maps to the timeframe as a JsObject
+   * @param apps Maps to the apps list in the Json Array
    */
   case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String])
 }
