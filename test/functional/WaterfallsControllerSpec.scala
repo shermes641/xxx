@@ -200,24 +200,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
     }
 
-    "toggle test mode should not show confirmation if waterfall is paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
-      val originalGeneration = generationNumber(waterfall.app_id)
-      (AppConfig.findLatest(app1.token).get.configuration \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
-
-      logInUser()
-
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
-      Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      browser.executeScript("$('#test-mode-switch').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areNotDisplayed()
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
-      generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
-    }
-
     "not toggle test mode to on when the user cancels the action" in new WithFakeBrowser {
       Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
@@ -261,7 +243,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
     }
 
-    "toggle paused mode should show confirmation modal" in new WithFakeBrowser {
+    "toggle paused mode should show message above waterfall" in new WithFakeBrowser {
       Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
@@ -272,58 +254,13 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
       clickAndWaitForAngular(".pause")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#pause-confirmation-modal").areDisplayed()
-      browser.find("#pause_confirmation").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause").isPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
       clickAndWaitForAngular(".pause")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areNotDisplayed()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-    }
-
-
-    "leaving test mode, waterfall should be paused if no ad providers are active" in new WithAppBrowser(distributor.id.get) {
-      val originalGeneration = generationNumber(currentApp.id)
-
-      logInUser()
-
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
-      browser.executeScript("$('#test-mode-switch').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").areDisplayed()
-      Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
-    }
-
-    "deactivating the only ad provider should show dialog to user and pause the waterfall if confirmed" in new WithFakeBrowser {
-      val originalGeneration = generationNumber(waterfall.app_id)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(false), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-
-      logInUser()
-
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      browser.executeScript("$('button[name=status]').last().click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#pause-confirmation-modal").areDisplayed()
-      browser.find("#pause_confirmation").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isPresent
-      WaterfallAdProvider.find(wap1.id).get.active.get must beEqualTo(false)
-    }
-
-    "deactivating the only ad provider should show dialog to user and not pause the waterfall if cancelled" in new WithFakeBrowser {
-      val originalGeneration = generationNumber(waterfall.app_id)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(false), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-
-      logInUser()
-
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      browser.executeScript("$('button[name=status]').last().click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#pause-confirmation-modal").areDisplayed()
-      browser.find("#pause_cancel").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
-      WaterfallAdProvider.find(wap1.id).get.active.get must beEqualTo(true)
     }
 
     "persist the waterfall ordering when the eCPM is changed for a waterfall ad provider in optimized mode" in new WithAppBrowser(distributor.id.get) {
