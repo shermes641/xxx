@@ -113,12 +113,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       responsesResponse.body returns "{\"result\": [{\"value\": 53, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       impressionsResponse.body returns "{\"result\": [{\"value\": 30, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       completionsResponse.body returns "{\"result\": [{\"value\": 9, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
-      eCPMResponse.body returns "{\"result\": [{\"value\": 12, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      eCPMResponse.body returns "{\"result\": [{\"value\": 12.689, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       earningsResponse.body returns "{\"result\": [{\"value\": 20013, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
 
       keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
 
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,310,101,0.5247525,30,9,0.029032258,12,20.013")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
 
       keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get))).underlyingActor
       writer = keenExportActor.createCSVFile()
@@ -129,11 +129,19 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       responsesResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       impressionsResponse.body returns "{\"result\": [{\"value\": 10, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       completionsResponse.body returns "{\"result\": [{\"value\": 4, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
-      eCPMResponse.body returns "{\"result\": [{\"value\": 9, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      eCPMResponse.body returns "{\"result\": [{\"value\": 9.233, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       earningsResponse.body returns "{\"result\": [{\"value\": 10002, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
 
       keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,9,10.002")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
+
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get))).underlyingActor
+      writer = keenExportActor.createCSVFile()
+
+      // Verify eCPM defaults to 0
+      eCPMResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,0,10.002")
     }
   }
 }

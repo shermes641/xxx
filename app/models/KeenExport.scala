@@ -92,7 +92,6 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
   def parseResponse(body: String): List[KeenResult] = {
 
     implicit val keenReader = Json.reads[KeenResult]
-
     Json.parse(body) match {
       case results => {
         (results \ "result").as[List[KeenResult]]
@@ -191,7 +190,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       val impressions = impressionList(i).value.as[Long]
       val responses = responseList(i).value.as[Long]
       val completions = completionList(i).value.as[Long]
-      val eCPM = eCPMList(i).value.asOpt[Long].getOrElse("")
+      val eCPM = eCPMList(i).value.asOpt[Float].getOrElse(0)
       val earnings = earningList(i).value.as[Long]
 
       // The fill rate based on the number of responses divided by requests
@@ -228,7 +227,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
   def getData(writer: CSVWriter) = {
     for (appID <- selectedApps) {
       val name = App.find(appID.toLong).get.name
-
+      println(KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID))
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
         requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID))
