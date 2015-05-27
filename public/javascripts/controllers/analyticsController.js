@@ -5,8 +5,8 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage',
-    function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage) {
+mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage', 'sharedIDs',
+    function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs) {
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
@@ -30,6 +30,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $scope.distributorID = $routeParams.distributorID;
             $scope.adProviders = data.adProviders;
             $scope.apps = data.apps;
+
+            sharedIDs.setAppID($routeParams.app_id);
+            sharedIDs.setDistributorID($scope.distributorID);
 
             $scope.filters = {
                 ad_providers: {
