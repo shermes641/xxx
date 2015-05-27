@@ -135,7 +135,7 @@ if(Environment.isProd) {
     }
     date = startDate
 
-    val inventoryAvailableCount = Random.nextInt(30)
+    val inventoryAvailableCount = Random.nextInt(30) + 1
     val inventoryAvailable = Array.fill(inventoryAvailableCount) {
       date = date - 1.minute
       Json.obj(
@@ -175,7 +175,7 @@ if(Environment.isProd) {
     }
     date = startDate
 
-    val mediationAvailableCount = Random.nextInt(50)
+    val mediationAvailableCount = Random.nextInt(50) + 1
     val mediationInventoryAvailable = Array.fill(mediationAvailableCount) {
       date = date - 1.minute
       Json.obj(
@@ -216,7 +216,7 @@ if(Environment.isProd) {
     }
     date = startDate
 
-    val adCompletedCount = Random.nextInt(15)
+    val adCompletedCount = Random.nextInt(15) + 1
     var eCPMSum = 0
     val adCompleted = Array.fill(adCompletedCount) {
       val eCPMValue = Random.nextInt(10) + 1
