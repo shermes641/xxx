@@ -90,11 +90,7 @@
                         Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
-                        // This way of creating a userId is an example.
-                        <br/>
-                        // If you copy this, you'll need to define [self createUserIdForHYPRMediate].
-                        <br/>
-                        NSString *hyprUserId = [self createUserIdForHYPRMediate];
+                        // If you copy this, you'll need to define hyprUserId.
                         <br/>
                         [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:hyprUserId];
                     </code>
