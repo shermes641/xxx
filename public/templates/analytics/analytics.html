@@ -6,7 +6,7 @@
     <div id="email_modal" ng-show="showExportModal">
         <div class="close_button" ng-click="hideModal()"></div>
         <div id="csv_email_form" ng-show="showExportForm">
-            <h1>Export All Data</h1>
+            <h1>Export Data</h1>
             <hr />
             <div class="modal_text">Enter the email address you would like to export all the data to.</div>
             <form name="exportForm" ng-submit="submit()" novalidate>
@@ -87,7 +87,7 @@
             </ul>
         </div>
         <button id="export_as_csv" ng-click="showExportModal = true">
-            Export All Data
+            Export Data
         </button>
     </div>
     <div class="split_content dashboard" data-distributor-id="@distributorID">
