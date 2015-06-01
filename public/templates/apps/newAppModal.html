@@ -93,6 +93,6 @@
             </div>
         </div>
 
-        <button ng-disabled="form.newAppForm.$invalid" ng-class="{inactive: form.newAppForm.$invalid}" id="create-app" type="submit">Create App</button>
+        <button ng-disabled="form.newAppForm.$invalid || form.newAppForm.submitting" ng-class="{inactive: form.newAppForm.$invalid}" id="create-app" type="submit">Create App</button>
     </div>
 </form>

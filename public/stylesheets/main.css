@@ -1019,7 +1019,7 @@ button.confirm-button
     width:100px;
 }
 
-button.inactive
+button.inactive, button:disabled
 {
     background-color:#d3dcf9;
 }
