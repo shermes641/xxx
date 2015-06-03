@@ -24,13 +24,14 @@ describe('NewAppSpec', function() {
 
             element = angular.element(
                 '<form name="form.newAppForm">' +
-                    '<input required-integer type="text" ng-model="newApp.exchangeRate" ng-model-options="{updateOn: \'blur\'}" id="newAppExchangeRate" name="exchangeRate" placeholder="e.g. 100">' +
-                    '<input type="text" ng-model="newApp.rewardMin" ng-model-options="{updateOn: \'blur\'}" id="newAppRewardMin" name="rewardMin">' +
-                    '<input greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="newApp.rewardMax" ng-model-options="{updateOn: \'blur\'}" id="newAppRewardMax" name="rewardMax">' +
-                    '</form>'
+                '<input required type="text" ng-model="newApp.appName" ng-model-options="{updateOn: \'blur\'}" id="newAppName" name="appName" placeholder="name" label="*App Name">' +
+                '<input required-integer type="text" ng-model="newApp.exchangeRate" ng-model-options="{updateOn: \'blur\'}" id="newAppExchangeRate" name="exchangeRate" placeholder="e.g. 100">' +
+                '<input type="text" ng-model="newApp.rewardMin" ng-model-options="{updateOn: \'blur\'}" id="newAppRewardMin" name="rewardMin">' +
+                '<input greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="newApp.rewardMax" ng-model-options="{updateOn: \'blur\'}" id="newAppRewardMax" name="rewardMax">' +
+                '</form>'
             );
 
-            scope.newApp = {rewardMax: undefined, rewardMin: undefined, exchangeRate: undefined};
+            scope.newApp = {rewardMax: undefined, rewardMin: undefined, exchangeRate: undefined, appName: undefined};
             testCont = $controller('WaterfallController', {$scope: scope, $routeParams: { distributorID: 456 }});
 
             scope.showModal = function(){};
@@ -71,13 +72,14 @@ describe('NewAppSpec', function() {
             expect(form.submitting).toEqual(false);
         });
 
-        it('should be able to submit again after response is 500', function() {
+        it('should be able to submit again after response is 400', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
+            scope.newApp.appName = "test";
             scope.$digest();
 
-            newAppResponseMock.respond(500, { data: "" })
+            newAppResponseMock.respond(400, { data: "" });
             httpBackend.flush();
 
             form.$valid = true;
@@ -87,6 +89,41 @@ describe('NewAppSpec', function() {
             httpBackend.flush();
             // Only after request has completed should you be able to submit again
             expect(form.submitting).toEqual(false);
+        });
+
+        it('should be able to submit again after response is 500', function() {
+            scope.newApp.rewardMax = "123";
+            scope.newApp.rewardMin = "13";
+            scope.newApp.exchangeRate = "1";
+            scope.$digest();
+
+            newAppResponseMock.respond(500, { data: "" });
+            httpBackend.flush();
+
+            form.$valid = true;
+            scope.submitNewApp(form);
+            // Before new app response, form should be in submitting state
+            expect(form.submitting).toEqual(true);
+            httpBackend.flush();
+            // Only after request has completed should you be able to submit again
+            expect(form.submitting).toEqual(false);
+        });
+
+        it('should handle error if server returns 400', function(){
+            scope.newApp.rewardMax = "123";
+            scope.newApp.rewardMin = "13";
+            scope.newApp.exchangeRate = "1";
+            scope.newApp.appName = "test";
+            scope.$digest();
+
+            newAppResponseMock.respond(400, { status:"error", fieldName:"appName", message:"You already have an App with the same name.  Please choose a unique name for your new App." });
+            httpBackend.flush();
+
+            form.$valid = true;
+            scope.submitNewApp(form);
+            httpBackend.flush();
+            expect(scope.errors.appName).toEqual("You already have an App with the same name.  Please choose a unique name for your new App.");
+            expect(scope.errors.appNameClass).toEqual("error");
         });
     });
 });
