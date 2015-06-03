@@ -2,6 +2,7 @@ package models
 
 import com.github.nscala_time.time.Imports._
 import com.typesafe.plugin._
+import play.api.Logger
 import play.api.Play.current
 import java.io.File
 import play.api.Play
@@ -29,7 +30,7 @@ trait Mailer {
         mail.addAttachment(date + "-export.csv", new File(attachmentFileName))
       }
       // Logging to help email debugging
-      println("Email Sent - Subject: " + subject, "Body: " + body, "Recipient: " + recipient)
+      Logger.debug("Email Sent - Subject: " + subject + "\nBody: " + body + "\nRecipient: " + recipient)
       val template = views.html.Mails.emailTemplate(subject, body, host).toString()
       val text = if(plainText == "") body else plainText
       mail.send(text, template)

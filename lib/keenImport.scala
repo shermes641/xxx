@@ -12,7 +12,7 @@ import scala.util.Random
 new play.core.StaticApplication(new java.io.File("."))
 
 if(Environment.isProd) {
-  println("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
+  Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
 } else {
   val client = new Client(
     projectId = Play.current.configuration.getString("keen.project").get,

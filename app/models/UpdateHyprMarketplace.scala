@@ -3,10 +3,10 @@ package models
 import anorm._
 import anorm.SqlParser._
 import java.util.concurrent.TimeoutException
-import play.api.Play
 import play.api.db.DB
-import play.api.Play.current
 import play.api.libs.json._
+import play.api.Logger
+import play.api.Play.current
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -57,13 +57,13 @@ trait UpdateHyprMarketplace extends JsonConversion {
   }
 
   /**
-   * Prints error message in console and adds the WaterfallAdProvider ID to the list of unsuccessfully updated IDs.
+   * Logs error message in console and adds the WaterfallAdProvider ID to the list of unsuccessfully updated IDs.
    * @param waterfallAdProviderID The ID of the WaterfallAdProvider for which the request failed.
    * @param errorMessage The error message to be logged to the console.
    */
   def displayError(waterfallAdProviderID: Long, errorMessage: String) = {
     unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ waterfallAdProviderID
-    println(errorMessage + "\nWaterfallAdProvider ID: " + waterfallAdProviderID + "\n")
+    Logger.error(errorMessage + "\nWaterfallAdProvider ID: " + waterfallAdProviderID + "\n")
   }
 
   /**
@@ -93,7 +93,7 @@ trait UpdateHyprMarketplace extends JsonConversion {
                         WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, wap.appToken, wap.appName)
                         AppConfig.createWithWaterfallIDInTransaction(wap.waterfallID, None)
                         successfulWaterfallAdProviderIDs = successfulWaterfallAdProviderIDs :+ wap.id
-                        println("WaterfallAdProvider successfully updated with new distributor ID: " + adNetworkID + "\nWaterfallAdProvider ID: " + wap.id)
+                        Logger.debug("WaterfallAdProvider successfully updated with new distributor ID: " + adNetworkID + "\nWaterfallAdProvider ID: " + wap.id)
                       } catch {
                         case error: org.postgresql.util.PSQLException => {
                           connection.rollback()
