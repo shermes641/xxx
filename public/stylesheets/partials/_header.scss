@@ -1,5 +1,4 @@
-header
-{
+header {
   background:$header-background-color;
   box-shadow:1px 1px 1px rgba(0,0,0,.1);
   font-family:Helvetica, sans-serif;
@@ -14,8 +13,7 @@ header
   z-index:2000;
 }
 
-header #logo
-{
+header #logo {
   border-right:1px solid #000;
   display:block;
   height:100%;
@@ -25,8 +23,7 @@ header #logo
   width:216px;
 }
 
-header .actions
-{
+header .actions {
   bottom:0;
   font-family:"Helvetica Neue", Helvetica, sans-serif;
   font-size:13px;
@@ -36,16 +33,14 @@ header .actions
   top:0;
 }
 
-header .actions .header-actions
-{
+header .actions .header-actions {
   border-left:1px solid #000;
   float:right;
   padding:21px 22px;
   position:relative;
 }
 
-header .actions .header-actions:before
-{
+header .actions .header-actions:before {
   border-left:1px solid #333;
   bottom:1px;
   content:" ";
@@ -56,14 +51,12 @@ header .actions .header-actions:before
   z-index:-1;
 }
 
-header #username_header
-{
+header #username_header {
   color:#666;
   cursor:pointer;
 }
 
-header .header-actions #username_dropdown
-{
+header .header-actions #username_dropdown {
   background:#efeff4;
   border:1px solid #dddde0;
   bottom:-60px;
@@ -76,19 +69,16 @@ header .header-actions #username_dropdown
   width:100%;
 }
 
-header .header-actions #username_dropdown a:hover
-{
+header .header-actions #username_dropdown a:hover {
   color:#666;
 }
 
-header .actions a
-{
+header .actions a {
   color:#666;
   text-decoration:none;
 }
 
-header #logo:before, .sub_header .menu li:before
-{
+header #logo:before, .sub_header .menu li:before {
   border-right: 1px solid #333;
   bottom: 1px;
   content: " ";
@@ -99,23 +89,19 @@ header #logo:before, .sub_header .menu li:before
   z-index: -1;
 }
 
-header #username_header:hover, header .actions a:hover
-{
+header #username_header:hover, header .actions a:hover {
   color: #fff;
 }
 
-.sub_header .menu li.active,.sub_header .menu li.active:hover
-{
+.sub_header .menu li.active,.sub_header .menu li.active:hover {
   border-bottom: $mediate-light-blue 5px solid;
 }
 
-header #username_header:hover #username_dropdown
-{
+header #username_header:hover #username_dropdown {
   display: block;
 }
 
-.sub_header
-{
+.sub_header {
   background: #222;
   height: 60px;
   left: 217px;
@@ -125,8 +111,7 @@ header #username_header:hover #username_dropdown
   z-index: 2001;
 }
 
-.sub_header .menu
-{
+.sub_header .menu {
   bottom: 0;
   display: block;
   left: 0;
@@ -135,8 +120,7 @@ header #username_header:hover #username_dropdown
   top: 0;
 }
 
-.sub_header .menu li
-{
+.sub_header .menu li {
   -webkit-transition: 400ms ease all;
   border-right: 1px solid #000;
   color: #fff;
@@ -151,7 +135,11 @@ header #username_header:hover #username_dropdown
   width: 138px;
 }
 
-.sub_header .menu li:hover
-{
+.sub_header .menu li:hover {
   background: #444;
+}
+
+.header-dropdown {
+  float: left;
+  padding-right: 5px;
 }

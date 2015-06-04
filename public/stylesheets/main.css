@@ -342,19 +342,58 @@
   margin-bottom: 20px;
 }
 
+#export_email {
+  margin: 10px 0 5px;
+  width: 100%;
+}
+
+#csv_email_form h1 {
+  color: #4f73e7;
+  font-size: 36px;
+}
+
+.chart-wrapper {
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  margin-bottom: 10px;
+}
+
+.chart-wrapper .chart-title {
+  border-bottom: 1px solid #d7d7d7;
+  color: #555;
+  font-family: Helvetica, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 8px 10px 5px;
+}
+
+.chart-wrapper .chart-stage {
+  min-height: 150px;
+  padding: 5px 10px;
+}
+
+.chart-wrapper .chart-notes {
+  background: #fbfbfb;
+  border-top: 1px solid #e2e2e2;
+  color: gray;
+  font-size: 12px;
+  padding: 8px 10px 5px;
+}
+
+#ad_providers, #countries {
+  margin: 10px 0 20px;
+}
+
+.keen-loading {
+  display: none;
+  margin-bottom: -120px;
+  margin-top: -140px;
+}
+
 .app-form {
   text-align: left;
   width: 678px;
 }
-
-.app-form.edit-ad-providers {
-  width: 400px;
-}
-
-.app-form.edit-ad-providers input[type="text"], .app-form.edit-ad-providers input[type="password"], .app-form.edit-ad-providers input[type="number"], .app-form.edit-ad-providers input[type="email"], .app-form.edit-ad-providers button[type="submit"], .app-form.edit-ad-providers button[type="button"] {
-  width: 376px;
-}
-
 .app-form h3 {
   color: #6d6d72;
   font-family: helvetica;
@@ -362,14 +401,34 @@
   margin: 10px 0;
   text-align: center;
 }
-
 .app-form dl {
   margin-bottom: 20px;
 }
-
 .app-form dt {
   font-size: 12px;
   text-align: left;
+}
+.app-form h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+  margin-top: 0;
+  text-align: center;
+}
+.app-form .switch-field {
+  height: 30px;
+  margin-bottom: 10px;
+}
+.app-form .switch-field dt {
+  float: left;
+  margin-right: 5px;
+  margin-top: 7px;
+}
+.app-form .switch-field dl {
+  margin-bottom: 0;
+}
+
+#roundUp_field {
+  height: 40px;
 }
 
 .left_column {
@@ -385,32 +444,6 @@
   width: 330px;
 }
 
-.app-form h1 {
-  font-size: 36px;
-  margin-bottom: 10px;
-  margin-top: 0;
-  text-align: center;
-}
-
-#roundUp_field {
-  height: 40px;
-}
-
-.app-form .switch-field {
-  height: 30px;
-  margin-bottom: 10px;
-}
-
-.app-form .switch-field dt {
-  float: left;
-  margin-right: 5px;
-  margin-top: 7px;
-}
-
-.app-form .switch-field dl {
-  margin-bottom: 0;
-}
-
 .new-app-page #new-app {
   background: #fff;
   border: 1px solid #dddde0;
@@ -423,9 +456,24 @@
   margin-bottom: 30px;
 }
 
+.app-form.edit-ad-providers {
+  width: 400px;
+}
+
+.app-form.edit-ad-providers input[type="text"], .app-form.edit-ad-providers input[type="password"], .app-form.edit-ad-providers input[type="number"], .app-form.edit-ad-providers input[type="email"], .app-form.edit-ad-providers button[type="submit"], .app-form.edit-ad-providers button[type="button"] {
+  width: 376px;
+}
+
 .app-form.edit-app-form input[type="text"], .app-form.edit-app-form input[type="password"], .app-form.edit-app-form input[type="number"], .app-form.edit-app-form input[type="email"], .app-form.edit-app-form button[type="submit"], .app-form.edit-app-form button[type="button"] {
   margin-bottom: 20px;
   width: 410px;
+}
+
+.app-form .tip, .switch-checkbox-label {
+  color: #333;
+  font-size: 11px;
+  font-style: italic;
+  text-align: left;
 }
 
 * {
@@ -509,10 +557,6 @@ button[type="submit"], button[type="button"] {
   pointer-events: none;
 }
 
-span#viewTerms:hover {
-  text-decoration: underline;
-}
-
 .tip {
   color: #555;
 }
@@ -551,52 +595,15 @@ span#viewTerms:hover {
   padding: 10px;
 }
 
-.system-message {
-  margin-top: 100px;
-}
-
-#new-app-message {
-  margin-left: -200px;
-  margin-top: -67px;
-}
-
 .divider {
   height: 2px;
   background: #dddde0;
   width: 25%;
 }
 
-#test-mode-confirmation-modal {
-  width: 400px;
-}
-
 #warning-header {
   font-size: 36px;
   color: #ff6666;
-}
-
-button.cancel-button {
-  -webkit-appearance: none;
-  background: #666;
-  border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 14px;
-  height: 58px;
-  text-align: center;
-}
-
-button.confirm-button {
-  -webkit-appearance: none;
-  background: #ff6666;
-  border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 14px;
-  height: 58px;
-  text-align: center;
 }
 
 #create_new_app:hover, #export_as_csv:hover {
@@ -608,223 +615,14 @@ button.confirm-button {
   margin-top: 20px;
 }
 
-.navbar-inverse {
-  background-color: #3d4a57;
-  border-color: #333;
-}
-
-.navbar-inverse .navbar-nav > li > a, .navbar a.navbar-brand {
-  color: #fbfbfb;
-}
-
 div [class^="col-"] {
   padding-left: 5px;
   padding-right: 5px;
 }
 
-.chart-wrapper {
-  background: #fff;
-  border: 1px solid #e2e2e2;
-  margin-bottom: 10px;
-}
-
-.chart-wrapper .chart-title {
-  border-bottom: 1px solid #d7d7d7;
-  color: #555;
-  font-family: Helvetica, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 8px 10px 5px;
-}
-
-.chart-wrapper .chart-stage {
-  min-height: 150px;
-  padding: 5px 10px;
-}
-
-.chart-wrapper .chart-notes {
-  background: #fbfbfb;
-  border-top: 1px solid #e2e2e2;
-  color: gray;
-  font-size: 12px;
-  padding: 8px 10px 5px;
-}
-
-.tooltip {
-  background: #6d6d72;
-  border-radius: 10px;
-  color: #fff;
-  cursor: pointer;
-  display: inline-block;
-  height: 20px;
-  opacity: 100;
-  padding-top: 2px;
-  position: relative;
-  text-align: center;
-  width: 20px;
-  z-index: auto;
-}
-
-#ad_providers, #countries {
-  margin: 10px 0 20px;
-}
-
-.keen-loading {
-  display: none;
-  margin-bottom: -120px;
-  margin-top: -140px;
-}
-
 #ad_providers, #countries {
   border-radius: 0;
   height: 41px;
-}
-
-.input-group .form-control {
-  height: 100%;
-  padding: 10px;
-}
-
-#form_errors {
-  color: red;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 13px;
-  list-style: none;
-}
-
-.error input, input.ng-touched.ng-invalid {
-  border: 1px solid red;
-  color: #000;
-}
-
-.ng-pristine .ng-invalid-required {
-  box-shadow: none;
-}
-
-.ngtooltip {
-  opacity: 1;
-  background: #ff9;
-  border: 2px solid #cc9;
-  border-radius: 5px;
-  color: #993;
-  padding: 5px 15px;
-  position: absolute;
-  left: -190px;
-  top: 29px;
-  width: 220px;
-  z-index: 1200;
-  text-align: left;
-}
-
-.ngtooltip.ng-hide {
-  transition: all linear 0.5s;
-  -webkit-transition: all linear 0.5s;
-  display: block !important;
-  visibility: hidden;
-  opacity: 0;
-}
-
-.tooltip:before {
-  border: solid;
-  border-color: #cc9 transparent;
-  border-width: 0 6px 6px;
-  content: "";
-  left: 22%;
-  position: absolute;
-  top: 23px;
-  z-index: 1300;
-  visibility: hidden;
-}
-
-.tooltip:hover:before {
-  visibility: visible;
-}
-
-.modal {
-  background: #fff;
-  border: 1px solid #dddde0;
-  bottom: 0;
-  color: #333;
-  display: none;
-  font-size: 13px;
-  left: 50%;
-  margin-top: 20px;
-  overflow-y: scroll;
-  padding: 40px;
-  position: fixed;
-  text-align: center;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 400px;
-  z-index: 3000;
-}
-
-.modal-overlay {
-  background: #fff;
-  bottom: 0;
-  display: none;
-  left: 0;
-  opacity: 0.9;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 2000;
-}
-
-.modal-text {
-  padding-bottom: 10px;
-  text-align: center;
-}
-
-.modal-label {
-  color: #333;
-  display: inline-block;
-  text-align: right;
-  width: 150px;
-}
-
-.modal-inactive {
-  -moz-opacity: 0.5;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: alpha(opacity=50);
-  height: 100%;
-  left: 0;
-  opacity: 0.5;
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: 10;
-}
-
-dd.error {
-  color: #E80000;
-  text-align: left;
-}
-
-.td-waterfall-config {
-  width: 250px;
-}
-
-#callback-url-label {
-  display: inline-block;
-  width: 376px;
-}
-
-.callback pre {
-  -webkit-appearance: none;
-  background: #f9f9f9;
-  border: 0;
-  border-bottom: 1px solid #c8c7cc;
-  color: #6d6d72;
-  padding: 5px;
-  text-align: left;
-}
-
-.callback {
-  font-size: 10px;
-  max-width: 376px;
-  text-align: center;
 }
 
 .checkbox-label {
@@ -837,15 +635,6 @@ dd.error {
 .inactive-link {
   cursor: default;
   pointer-events: none;
-}
-
-.modal-centered {
-  margin: auto;
-}
-
-.header-dropdown {
-  float: left;
-  padding-right: 5px;
 }
 
 .content-wrapper {
@@ -866,103 +655,6 @@ hr {
   width: 100px;
 }
 
-.modal_text {
-  margin: 10px auto;
-  text-align: center;
-  width: 220px;
-}
-
-#csv_email_form h1 {
-  color: #4f73e7;
-  font-size: 36px;
-}
-
-#email_modal {
-  background: #fff;
-  border: 1px solid #dddde0;
-  color: #333;
-  font-size: 13px;
-  left: 50%;
-  margin-left: -200px;
-  padding: 40px;
-  position: fixed;
-  text-align: center;
-  top: 180px;
-  width: 400px;
-  z-index: 3000;
-}
-
-.close_button {
-  background: url(../images/close.png);
-  cursor: pointer;
-  height: 18px;
-  position: absolute;
-  right: 18px;
-  top: 18px;
-  width: 18px;
-}
-
-#export_email {
-  margin: 10px 0 5px;
-  width: 100%;
-}
-
-.modal_submit {
-  -webkit-appearance: none;
-  background: #4f73e7;
-  border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 14px;
-  margin-top: 10px;
-  padding: 15px;
-  text-align: center;
-  width: 100%;
-}
-
-.ng-modal-overlay {
-  background: #fff;
-  bottom: 0;
-  height: 100%;
-  left: 0;
-  opacity: 0.9;
-  overflow-x: hidden;
-  overflow-y: auto;
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 100%;
-  z-index: 9999;
-}
-
-.ng-modal-dialog {
-  -moz-transform: translate(-50%, -50%);
-  -o-transform: translate(-50%, -50%);
-  -webkit-transform: translate(-50%, -50%);
-  background: #fff;
-  border: 1px solid #dddde0;
-  color: #333;
-  font-size: 13px;
-  left: 50%;
-  max-height: 90%;
-  overflow-y: auto;
-  padding: 40px;
-  position: fixed;
-  text-align: center;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10000;
-}
-
-.ng-modal-dialog-content h1 {
-  margin: 0 0 10px;
-}
-
-.registration input[type="text"], .registration input[type="password"], .registration input[type="number"], .registration input[type="email"], .registration button[type="submit"], .registration button[type="button"], .app-form input[type="text"], .app-form input[type="password"], .app-form input[type="number"], .app-form input[type="email"], .app-form button[type="submit"], .app-form button[type="button"], .new-app-page #new-app input {
-  width: 100%;
-}
-
 .registration dt, .inactive-waterfall, .inactive-waterfall-content, .onoffswitch-checkbox, .hidden-wap-info, .undisplayed-wap-info, #new-app-page-header {
   display: none;
 }
@@ -978,13 +670,6 @@ hr {
 :-moz-placeholder, ::-moz-placeholder {
   color: #DEDEDE;
   opacity: 1;
-}
-
-.app-form .tip, .switch-checkbox-label {
-  color: #333;
-  font-size: 11px;
-  font-style: italic;
-  text-align: left;
 }
 
 .preserve-whitespace {
@@ -1088,6 +773,57 @@ footer .version-info {
 .footer-text-format {
   display: inline-block;
   padding: 0 5px;
+}
+
+.registration input[type="text"], .registration input[type="password"], .registration input[type="number"], .registration input[type="email"], .registration button[type="submit"], .registration button[type="button"], .app-form input[type="text"], .app-form input[type="password"], .app-form input[type="number"], .app-form input[type="email"], .app-form button[type="submit"], .app-form button[type="button"], .new-app-page #new-app input {
+  width: 100%;
+}
+
+#callback-url-label {
+  display: inline-block;
+  width: 376px;
+}
+
+.callback pre {
+  -webkit-appearance: none;
+  background: #f9f9f9;
+  border: 0;
+  border-bottom: 1px solid #c8c7cc;
+  color: #6d6d72;
+  padding: 5px;
+  text-align: left;
+}
+
+.callback {
+  font-size: 10px;
+  max-width: 376px;
+  text-align: center;
+}
+
+.input-group .form-control {
+  height: 100%;
+  padding: 10px;
+}
+
+#form_errors {
+  color: red;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 13px;
+  list-style: none;
+}
+
+.error input, input.ng-touched.ng-invalid {
+  border: 1px solid red;
+  color: #000;
+}
+
+.ng-pristine .ng-invalid-required {
+  box-shadow: none;
+}
+
+dd.error {
+  color: #E80000;
+  text-align: left;
 }
 
 header {
@@ -1229,6 +965,11 @@ header #username_header:hover #username_dropdown {
 
 .sub_header .menu li:hover {
   background: #444;
+}
+
+.header-dropdown {
+  float: left;
+  padding-right: 5px;
 }
 
 #left_content {
@@ -1624,6 +1365,163 @@ header #username_header:hover #username_dropdown {
   text-align: center;
 }
 
+.system-message {
+  margin-top: 100px;
+}
+
+#new-app-message {
+  margin-left: -200px;
+  margin-top: -67px;
+}
+
+.ng-modal-dialog {
+  -moz-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  background: #fff;
+  border: 1px solid #dddde0;
+  color: #333;
+  font-size: 13px;
+  left: 50%;
+  max-height: 90%;
+  overflow-y: auto;
+  padding: 40px;
+  position: fixed;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+}
+
+.ng-modal-dialog-content h1 {
+  margin: 0 0 10px;
+}
+
+#email_modal {
+  background: #fff;
+  border: 1px solid #dddde0;
+  color: #333;
+  font-size: 13px;
+  left: 50%;
+  margin-left: -200px;
+  padding: 40px;
+  position: fixed;
+  text-align: center;
+  top: 180px;
+  width: 400px;
+  z-index: 3000;
+}
+
+.close_button {
+  background: url(../images/close.png);
+  cursor: pointer;
+  height: 18px;
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 18px;
+}
+
+.modal_submit {
+  -webkit-appearance: none;
+  background: #4f73e7;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 14px;
+  margin-top: 10px;
+  padding: 15px;
+  text-align: center;
+  width: 100%;
+}
+
+.ng-modal-overlay {
+  background: #fff;
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  opacity: 0.9;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: 9999;
+}
+
+.modal_text {
+  margin: 10px auto;
+  text-align: center;
+  width: 220px;
+}
+
+.modal-centered {
+  margin: auto;
+}
+
+#test-mode-confirmation-modal {
+  width: 400px;
+}
+
+.modal {
+  background: #fff;
+  border: 1px solid #dddde0;
+  bottom: 0;
+  color: #333;
+  display: none;
+  font-size: 13px;
+  left: 50%;
+  margin-top: 20px;
+  overflow-y: scroll;
+  padding: 40px;
+  position: fixed;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  z-index: 3000;
+}
+
+.modal-overlay {
+  background: #fff;
+  bottom: 0;
+  display: none;
+  left: 0;
+  opacity: 0.9;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 2000;
+}
+
+.modal-text {
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+.modal-label {
+  color: #333;
+  display: inline-block;
+  text-align: right;
+  width: 150px;
+}
+
+.modal-inactive {
+  -moz-opacity: 0.5;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: alpha(opacity=50);
+  height: 100%;
+  left: 0;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+}
+
 #registration-link {
   margin: 0 auto;
   padding-top: 20px;
@@ -1673,6 +1571,64 @@ header #username_header:hover #username_dropdown {
   font-size: 30px;
   padding: 20px;
   text-align: center;
+}
+
+span#viewTerms:hover {
+  text-decoration: underline;
+}
+
+.tooltip {
+  background: #6d6d72;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  height: 20px;
+  opacity: 100;
+  padding-top: 2px;
+  position: relative;
+  text-align: center;
+  width: 20px;
+  z-index: auto;
+}
+
+.ngtooltip {
+  opacity: 1;
+  background: #ff9;
+  border: 2px solid #cc9;
+  border-radius: 5px;
+  color: #993;
+  padding: 5px 15px;
+  position: absolute;
+  left: -190px;
+  top: 29px;
+  width: 220px;
+  z-index: 1200;
+  text-align: left;
+}
+
+.ngtooltip.ng-hide {
+  transition: all linear 0.5s;
+  -webkit-transition: all linear 0.5s;
+  display: block !important;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.tooltip:before {
+  border: solid;
+  border-color: #cc9 transparent;
+  border-width: 0 6px 6px;
+  content: "";
+  left: 22%;
+  position: absolute;
+  top: 23px;
+  z-index: 1300;
+  visibility: hidden;
+}
+
+.tooltip:hover:before {
+  visibility: visible;
 }
 
 #waterfall_sub_header {
@@ -2043,6 +1999,34 @@ button.inactive {
   padding: 6px;
   text-align: center;
   width: 295px;
+}
+
+.td-waterfall-config {
+  width: 250px;
+}
+
+button.cancel-button {
+  -webkit-appearance: none;
+  background: #666;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 14px;
+  height: 58px;
+  text-align: center;
+}
+
+button.confirm-button {
+  -webkit-appearance: none;
+  background: #ff6666;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 14px;
+  height: 58px;
+  text-align: center;
 }
 
 /*# sourceMappingURL=main.css.map */

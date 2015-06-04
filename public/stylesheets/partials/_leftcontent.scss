@@ -1,20 +1,17 @@
 
-#left_content
-{
+#left_content {
   left: 0;
   position: absolute;
   top: 60px;
   width: 215px;
 }
 
-.left_apps_list
-{
+.left_apps_list {
   border-bottom: 1px solid #c8c7cc;
   padding: 20px;
 }
 
-.left_apps_list h2
-{
+.left_apps_list h2 {
   color: #6d6d72;
   font-family: $mediate-font;
   font-size: 13px;
@@ -28,13 +25,11 @@
   margin-bottom: 25px;
 }
 
-.left_apps_list ul
-{
+.left_apps_list ul {
   list-style: none;
 }
 
-.left_apps_list ul li
-{
+.left_apps_list ul li {
   -webkit-transition: 150ms ease background;
   background: #fff;
   border-bottom: #c8c7cc 1px solid;
@@ -47,27 +42,23 @@
   position: relative;
 }
 
-.left_apps_list ul li:hover
-{
+.left_apps_list ul li:hover {
   background: #ccc;
 }
 
-.left_apps_list ul li.active
-{
+.left_apps_list ul li.active {
   background: $mediate-light-blue;
   color: #fff;
 }
 
-.left_apps_list ul li.active.removable
-{
+.left_apps_list ul li.active.removable {
   white-space: pre;
   overflow: hidden;
   text-overflow: ellipsis;
   padding-right: 12px;
 }
 
-.left_apps_list ul li.active.removable:before
-{
+.left_apps_list ul li.active.removable:before {
   background: url(../images/icons.png);
   background-position: -16px -55px;
   content: "";
@@ -82,13 +73,11 @@
   color: $mediate-light-blue;
 }
 
-.left_apps_list ul li.add:hover
-{
+.left_apps_list ul li.add:hover {
   background: #fff;
 }
 
-.left_apps_list ul li.add:before
-{
+.left_apps_list ul li.add:before {
   background: url(../images/icons.png);
   background-position: -14px -94px;
   content: "";
@@ -110,8 +99,7 @@
   cursor: pointer;
 }
 
-.left_apps_list ul li.arrowdown:before
-{
+.left_apps_list ul li.arrowdown:before {
   background: url(../images/icons.png);
   background-position: -14px -121px;
   content: "";
@@ -131,23 +119,20 @@
 }
 
 
-.app_list ul.full_list li
-{
+.app_list ul.full_list li {
   border: 1px solid #eee;
   margin: 20px 0 0;
   padding: 10px;
   position: relative;
 }
 
-.app_list ul.full_list li .actions
-{
+.app_list ul.full_list li .actions {
   position: absolute;
   right: 21px;
   top: 15px;
 }
 
-.app_list ul.full_list li .actions a
-{
+.app_list ul.full_list li .actions a {
   color: $mediate-blue;
   display: inline-block;
   font-family: $mediate-font;
@@ -206,8 +191,7 @@
   padding-right: 12px;
 }
 
-.left_apps_list .dropdown-menu li:hover:before, .left_apps_list .dropdown-menu li.active:before
-{
+.left_apps_list .dropdown-menu li:hover:before, .left_apps_list .dropdown-menu li.active:before {
   background: url(../images/icons.png);
   background-position: -15px -149px;
   content: "";
@@ -240,8 +224,7 @@
   display: none;
 }
 
-#create_new_app, #export_as_csv
-{
+#create_new_app, #export_as_csv {
   -webkit-transition: 150ms ease all;
   -webkit-appearance: none;
   background: #333;
@@ -257,55 +240,46 @@
   width: 173px;
 }
 
-#apps_list
-{
+#apps_list {
   background: #444;
   cursor: pointer;
   position: relative;
 }
 
-#apps_list:hover
-{
+#apps_list:hover {
   background: $mediate-blue;
 }
 
-#apps_list_menu
-{
+#apps_list_menu {
   background: #444;
   display: none;
   position: absolute;
   top: 50px;
 }
 
-#apps_list_menu li
-{
+#apps_list_menu li {
   display: block;
   float: none;
   font-family: $mediate-font;
 }
 
-#apps_list_menu li:hover
-{
+#apps_list_menu li:hover {
   background: #222;
 }
 
-#apps_list:hover #apps_list_menu, .inactive .inactive-waterfall-content, .app-form.edit-ad-providers label
-{
+#apps_list:hover #apps_list_menu, .inactive .inactive-waterfall-content, .app-form.edit-ad-providers label {
   display: block;
 }
 
-#apps_list_menu a, .content a:hover, .content a:focus, .left_apps_list ul a
-{
+#apps_list_menu a, .content a:hover, .content a:focus, .left_apps_list ul a {
   text-decoration: none;
 }
 
-.content.settings, .app_list
-{
+.content.settings, .app_list {
   margin-top: 120px;
 }
 
-.app_list ul.full_list, .waterfall ul
-{
+.app_list ul.full_list, .waterfall ul {
   list-style: none;
   width: 100%;
 }

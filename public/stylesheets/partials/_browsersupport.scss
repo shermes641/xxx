@@ -1,5 +1,4 @@
-#browser_support
-{
+#browser_support {
   display:none;
   position: fixed;
   top: 0;
@@ -31,8 +30,7 @@
   background-position:-48px -45px;
 }
 
-#dismiss_browser
-{
+#dismiss_browser {
   color:$mediate-blue;
   cursor:pointer;
   position: absolute;
@@ -45,17 +43,14 @@
   background-position:-48px -0px;
 }
 
-.browser_not_supported header, .browser_not_supported .sub_header
-{
+.browser_not_supported header, .browser_not_supported .sub_header {
   top: 60px;
 }
 
-.browser_not_supported #left_content
-{
+.browser_not_supported #left_content {
   top: 120px;
 }
 
-.browser_not_supported .split_content
-{
+.browser_not_supported .split_content {
   margin: 120px 0 0 215px;
 }

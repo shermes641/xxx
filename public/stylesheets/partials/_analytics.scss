@@ -1,45 +1,38 @@
-.content.dashboard
-{
+.content.dashboard {
   background: none;
   box-shadow: none;
   margin-top: 100px;
 }
 
-#dashboard_metrics
-{
+#dashboard_metrics {
   margin: 0 auto;
   width: 1000px;
 }
 
-.dashboard .dashboard_box
-{
+.dashboard .dashboard_box {
   float: left;
   padding: 20px 20px 0;
   text-align: center;
   width: 460px;
 }
 
-.dashboard .dashboard_numbers
-{
+.dashboard .dashboard_numbers {
   color: $mediate-blue;
   font-family: $mediate-font;
   font-size: 40px;
   font-weight: 400;
 }
 
-.dashboard .table_title
-{
+.dashboard .table_title {
   padding: 20px 0;
 }
 
-.dashboard .google-visualization-table-td
-{
+.dashboard .google-visualization-table-td {
   font-family: $mediate-font;
   padding: 10px;
 }
 
-.dashboard .google-visualization-table-tr-head .google-visualization-table-th-webkit.gradient
-{
+.dashboard .google-visualization-table-tr-head .google-visualization-table-th-webkit.gradient {
   background: #eee;
   font-family: Helvetica, sans-serif;
   font-weight: 700;
@@ -47,8 +40,7 @@
   text-align: left;
 }
 
-#analytics_overlay
-{
+#analytics_overlay {
   background: #fff;
   bottom: 0;
   left: 0;
@@ -74,8 +66,7 @@
   padding: 20px 0;
 }
 
-.analytics-circle
-{
+.analytics-circle {
   width: 180px;
   height: 180px;
   margin: 0 auto;
@@ -180,20 +171,17 @@
   border-right: 1px solid #e3e3e5;
 }
 
-.analytics-circle.average-ecpm
-{
+.analytics-circle.average-ecpm {
   background-position: 0 0;
   color: #fff;
 }
 
-.analytics-circle.fill-rate
-{
+.analytics-circle.fill-rate {
   color: #666;
   background-position: -180px 0;
 }
 
-.analytics-circle.revenue-by-day
-{
+.analytics-circle.revenue-by-day {
   color: #fff;
   background-position: -360px 0;
 }
@@ -302,4 +290,52 @@
 
 #analytics-messaging {
   margin-bottom: 20px;
+}
+
+#export_email {
+  margin: 10px 0 5px;
+  width: 100%;
+}
+
+#csv_email_form h1 {
+  color: $mediate-light-blue;
+  font-size: 36px;
+}
+
+.chart-wrapper {
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  margin-bottom: 10px;
+}
+
+.chart-wrapper .chart-title {
+  border-bottom: 1px solid #d7d7d7;
+  color: #555;
+  font-family: Helvetica, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 8px 10px 5px;
+}
+
+.chart-wrapper .chart-stage {
+  min-height: 150px;
+  padding: 5px 10px;
+}
+
+.chart-wrapper .chart-notes {
+  background: #fbfbfb;
+  border-top: 1px solid #e2e2e2;
+  color: gray;
+  font-size: 12px;
+  padding: 8px 10px 5px;
+}
+
+#ad_providers, #countries {
+  margin: 10px 0 20px;
+}
+
+.keen-loading {
+  display: none;
+  margin-bottom: -120px;
+  margin-top: -140px;
 }
