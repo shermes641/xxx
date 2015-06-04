@@ -1,7 +1,7 @@
 describe('WaterfallControllerSpec', function() {
     beforeEach(module('MediationModule'));
 
-    describe('waterfallPageSetup', function() {
+    describe('waterfallPage', function() {
         beforeEach(inject(function($rootScope, $controller, $compile, $httpBackend) {
             scope = $rootScope.$new();
             httpBackend = $httpBackend;
@@ -22,7 +22,7 @@ describe('WaterfallControllerSpec', function() {
                 "waterfallAdProviderList":[
                     {"name":"AdColony","waterfallAdProviderID":40,"cpm":1.0,"active":true,"waterfallOrder":0,"unconfigured":false,"newRecord":false,"configurable":true,"pending":false},
                     {"name":"Vungle","waterfallAdProviderID":41,"cpm":0.5,"active":true,"waterfallOrder":1,"unconfigured":false,"newRecord":false,"configurable":true,"pending":false},
-                    {"name":"HyprMarketplace&#8480","waterfallAdProviderID":5,"cpm":20.0,"active":false,"waterfallOrder":null,"unconfigured":true,"newRecord":false,"configurable":false,"pending":true},
+                    {"name":"HyprMarketplace","waterfallAdProviderID":5,"cpm":20.0,"active":false,"waterfallOrder":null,"unconfigured":true,"newRecord":false,"configurable":false,"pending":true},
                     {"name":"AppLovin","waterfallAdProviderID":4,"cpm":null,"active":false,"waterfallOrder":null,"unconfigured":true,"newRecord":true,"configurable":true,"pending":false}
                 ],
                 "appsWithWaterfalls":[
@@ -128,6 +128,31 @@ describe('WaterfallControllerSpec', function() {
             expect(scope.waterfallData.waterfall.testMode).toEqual(true);
             scope.cancelTestMode();
             expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+        });
+
+        it('should active and deactive ad providers correctly', function() {
+            var activeProviders = scope.providersByActive(true);
+            expect(activeProviders[0].name).toEqual("AdColony");
+            expect(activeProviders[1].name).toEqual("Vungle");
+            var inactiveProviders = scope.providersByActive(false);
+            expect(inactiveProviders[0].name).toEqual("HyprMarketplace");
+            expect(inactiveProviders[1].name).toEqual("AppLovin");
+
+            scope.toggleWAPStatus(activeProviders[0]);
+            inactiveProviders = scope.providersByActive(false);
+            expect(inactiveProviders[0].name).toEqual("AdColony");
+            expect(inactiveProviders[1].name).toEqual("HyprMarketplace");
+            expect(inactiveProviders[2].name).toEqual("AppLovin");
+            activeProviders = scope.providersByActive(true);
+            expect(activeProviders[0].name).toEqual("Vungle");
+
+            scope.toggleWAPStatus(inactiveProviders[2]);
+            inactiveProviders = scope.providersByActive(false);
+            expect(inactiveProviders[0].name).toEqual("AdColony");
+            expect(inactiveProviders[1].name).toEqual("HyprMarketplace");
+            activeProviders = scope.providersByActive(true);
+            expect(activeProviders[0].name).toEqual("Vungle");
+            expect(activeProviders[1].name).toEqual("AppLovin");
         });
     });
 
