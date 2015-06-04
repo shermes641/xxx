@@ -1,0 +1,41 @@
+footer
+{
+  color: #999;
+  display: inline-block;
+  font-size: 11px;
+  margin: 20px 0;
+  text-align: center;
+  width: 100%;
+}
+
+footer a
+{
+  color: #999;
+}
+
+footer span
+{
+  border-right: 1px solid #ccc;
+  display: inline-block;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-right: 10px;
+  padding-right: 10px;
+}
+
+footer span.last
+{
+  border-right: 0;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+footer .version-info
+{
+  font-style: italic;
+}
+
+.footer-text-format
+{
+  display: inline-block;
+  padding: 0 5px;
+}

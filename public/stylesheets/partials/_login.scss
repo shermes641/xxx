@@ -1,0 +1,23 @@
+.welcome_screen
+{
+  margin: 70px auto;
+  width: 600px;
+}
+
+.welcome_screen h1
+{
+  text-align: center;
+}
+
+.welcome_screen a
+{
+  background: $mediate-blue;
+  color: #fff;
+  display: block;
+  font-family: $mediate-font;
+  font-size: 16px;
+  font-weight: 400;
+  margin-top: 20px;
+  padding: 10px;
+  text-align: center;
+}

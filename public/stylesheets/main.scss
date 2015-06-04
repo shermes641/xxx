@@ -1,8 +1,18 @@
 // Modules and Variables
-@import "partials/base";
+@import "modules/all";
 
 // Partials
-@import "partials/typography";
+@import "partials/analytics";
+@import "partials/appform";
+@import "partials/base";
+@import "partials/browsersupport";
+@import "partials/footer";
+@import "partials/header";
+@import "partials/leftcontent";
+@import "partials/login";
+@import "partials/messaging";
+@import "partials/signup";
+@import "partials/waterfall";
 
 // Third-party
 @import "vendor/bootstrap.css";

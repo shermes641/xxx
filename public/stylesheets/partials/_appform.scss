@@ -1,0 +1,101 @@
+.app-form
+{
+  text-align: left;
+  width: 678px;
+}
+
+.app-form.edit-ad-providers
+{
+  width: 400px;
+}
+
+.app-form.edit-ad-providers input[type="text"], .app-form.edit-ad-providers input[type="password"], .app-form.edit-ad-providers input[type="number"], .app-form.edit-ad-providers input[type="email"], .app-form.edit-ad-providers button[type="submit"], .app-form.edit-ad-providers button[type="button"]
+{
+  width: 376px;
+}
+
+.app-form h3
+{
+  color: #6d6d72;
+  font-family: helvetica;
+  font-size: 14px;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.app-form dl
+{
+  margin-bottom: 20px;
+}
+
+.app-form dt
+{
+  font-size: 12px;
+  text-align: left;
+}
+
+.left_column
+{
+  float: left;
+  margin-top: 10px;
+  width: 330px;
+}
+
+.right_column
+{
+  float: left;
+  margin-left: 18px;
+  margin-top: 10px;
+  width: 330px;
+}
+
+.app-form h1
+{
+  font-size: 36px;
+  margin-bottom: 10px;
+  margin-top: 0;
+  text-align: center;
+}
+
+#roundUp_field
+{
+  height: 40px;
+}
+
+.app-form .switch-field
+{
+  height: 30px;
+  margin-bottom: 10px;
+}
+
+.app-form .switch-field dt
+{
+  float: left;
+  margin-right: 5px;
+  margin-top: 7px;
+}
+
+.app-form .switch-field dl
+{
+  margin-bottom: 0;
+}
+
+.new-app-page #new-app
+{
+  background: #fff;
+  border: 1px solid #dddde0;
+  margin: 0 auto 10px;
+  padding: 30px;
+  width: 740px;
+}
+
+#new-app-page-header .modal_text
+{
+  margin-bottom: 30px;
+}
+
+.app-form.edit-app-form input[type="text"], .app-form.edit-app-form input[type="password"], .app-form.edit-app-form input[type="number"], .app-form.edit-app-form input[type="email"], .app-form.edit-app-form button[type="submit"], .app-form.edit-app-form button[type="button"]
+{
+  margin-bottom: 20px;
+  width: 410px;
+}
