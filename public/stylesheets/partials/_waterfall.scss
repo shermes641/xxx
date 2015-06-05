@@ -1,3 +1,22 @@
+// Waterfall page containing Token, buttons and Ad Providers
+.waterfall-list {
+  h1 {
+    font-size: 36px;
+    margin-top: 10px;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  #edit-top h1 {
+    padding-right: 170px;
+  }
+
+  &.waterfall-sort {
+    min-height: 50px;
+  }
+}
+
 // Waterfall sub header that contains the token and switches
 #waterfall-sub-header {
   background: #efeff4;
@@ -60,24 +79,7 @@
   }
 }
 
-.waterfall-list {
-  h1 {
-    font-size: 36px;
-    margin-top: 10px;
-    text-align: center;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-
-  #edit-top h1 {
-    padding-right: 170px;
-  }
-
-  &.waterfall-sort {
-    min-height: 50px;
-  }
-}
-
+// Waterfall list containing the sortable ad provider list
 .waterfall {
   ul li {
     background: #fff;

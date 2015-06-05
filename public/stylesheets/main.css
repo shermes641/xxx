@@ -640,29 +640,24 @@ footer {
   text-align: center;
   width: 100%;
 }
-
 footer a {
   color: #999;
 }
-
 footer span {
   border-right: 1px solid #ccc;
   display: inline-block;
   margin-right: 10px;
   padding-right: 10px;
 }
-
 footer span.last {
   border-right: 0;
   margin-right: 0;
   padding-right: 0;
 }
-
 footer .version-info {
   font-style: italic;
 }
-
-.footer-text-format {
+footer .footer-text-format {
   display: inline-block;
   padding: 0 5px;
 }
@@ -676,6 +671,11 @@ footer .version-info {
   width: 376px;
 }
 
+.callback {
+  font-size: 10px;
+  max-width: 376px;
+  text-align: center;
+}
 .callback pre {
   -webkit-appearance: none;
   background: #f9f9f9;
@@ -684,12 +684,6 @@ footer .version-info {
   color: #6d6d72;
   padding: 5px;
   text-align: left;
-}
-
-.callback {
-  font-size: 10px;
-  max-width: 376px;
-  text-align: center;
 }
 
 .input-group .form-control {
@@ -1337,6 +1331,20 @@ span#viewTerms:hover {
   opacity: 0;
 }
 
+.waterfall-list h1 {
+  font-size: 36px;
+  margin-top: 10px;
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.waterfall-list #edit-top h1 {
+  padding-right: 170px;
+}
+.waterfall-list.waterfall-sort {
+  min-height: 50px;
+}
+
 #waterfall-sub-header {
   background: #efeff4;
   color: #6d6d72;
@@ -1388,20 +1396,6 @@ span#viewTerms:hover {
 #waterfall-sub-header .app-token {
   float: left;
   width: 375px;
-}
-
-.waterfall-list h1 {
-  font-size: 36px;
-  margin-top: 10px;
-  text-align: center;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-.waterfall-list #edit-top h1 {
-  padding-right: 170px;
-}
-.waterfall-list.waterfall-sort {
-  min-height: 50px;
 }
 
 .waterfall ul li {

@@ -7,22 +7,21 @@
   display: inline-block;
   width: 376px;
 }
-
-.callback pre {
-  -webkit-appearance: none;
-  background: #f9f9f9;
-  border: 0;
-  border-bottom: 1px solid #c8c7cc;
-  color: #6d6d72;
-  padding: 5px;
-  text-align: left;
-}
-
 .callback {
   font-size: 10px;
   max-width: 376px;
   text-align: center;
+  pre {
+    -webkit-appearance: none;
+    background: #f9f9f9;
+    border: 0;
+    border-bottom: 1px solid #c8c7cc;
+    color: #6d6d72;
+    padding: 5px;
+    text-align: left;
+  }
 }
+
 
 .input-group .form-control {
   height: 100%;

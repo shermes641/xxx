@@ -1,3 +1,4 @@
+// Page Footer
 footer {
   color: #999;
   display: inline-block;
@@ -5,30 +6,29 @@ footer {
   margin: 20px 0;
   text-align: center;
   width: 100%;
-}
+  a {
+    color: #999;
+  }
 
-footer a {
-  color: #999;
-}
+  span {
+    border-right: 1px solid #ccc;
+    display: inline-block;
+    margin-right: 10px;
+    padding-right: 10px;
+  }
 
-footer span {
-  border-right: 1px solid #ccc;
-  display: inline-block;
-  margin-right: 10px;
-  padding-right: 10px;
-}
+  span.last {
+    border-right: 0;
+    margin-right: 0;
+    padding-right: 0;
+  }
 
-footer span.last {
-  border-right: 0;
-  margin-right: 0;
-  padding-right: 0;
-}
+  .version-info {
+    font-style: italic;
+  }
 
-footer .version-info {
-  font-style: italic;
-}
-
-.footer-text-format {
-  display: inline-block;
-  padding: 0 5px;
+  .footer-text-format {
+    display: inline-block;
+    padding: 0 5px;
+  }
 }
