@@ -1,10 +1,10 @@
 package models
 
 import anorm._
-import models.Waterfall.WaterfallCallbackInfo
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.libs.ws.WS
+import play.api.libs.ws.{WSResponse, WS}
+import play.api.Logger
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -68,7 +68,7 @@ class Completion extends JsonConversion {
   }
 
   /**
-   * Sends POST request to callback URL if one exists.
+   * Assembles data for JSON body and sends POST request to callback URL if one exists.
    * @param callbackURL The target URL for the POST request.
    * @param adProviderRequest The original postback from the ad provider.
    * @param verificationInfo Class containing information to verify the postback and create a new Completion.
@@ -83,14 +83,26 @@ class Completion extends JsonConversion {
           "reward_quantity" -> verificationInfo.rewardQuantity,
           "estimated_offer_profit" -> verificationInfo.offerProfit
         )
-        WS.url(url).post(data).map(response =>
+        sendPost(url, data).map(response =>
           response.status match {
             case status: Int if(status == 200) => true
-            case _ => true
+            case status => {
+              Logger.error("Server to server callback to Distributor's servers returned a status code of " + status + " for URL: " +
+                url + " API Token: " + verificationInfo.appToken + " Ad Provider: " + verificationInfo.adProviderName)
+              false
+            }
           }
         )
       }
       case _ => Future { false }
     }
   }
+
+  /**
+   * Sends POST request to callback URL
+   * @param url The callback URL specified in the app
+   * @param data The JSON to be POST'ed to the callback URL
+   * @return A successful or unsuccessful WSResponse
+   */
+  def sendPost(url: String, data: JsValue): Future[WSResponse] = WS.url(url).post(data)
 }

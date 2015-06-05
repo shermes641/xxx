@@ -4,7 +4,8 @@ import models.WaterfallAdProvider.AdProviderRewardInfo
 import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
-import play.api.libs.json.{JsValue, JsObject}
+import play.api.libs.json._
+import play.api.libs.ws.WSResponse
 import resources.WaterfallSpecSetup
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -44,12 +45,30 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
   }
 
   "postCallback" should {
+    val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=None, serverToServerEnabled=false, generationNumber=1)
+    val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", offerProfit=None, rewardQuantity=1, Some(rewardInfo)))
+    val callbackURL = Some("http://someurl.com")
+    val data = JsObject(Seq("original_postback" -> JsNull, "ad_provider" -> JsString("ad provider name"), "reward_quantity" -> JsNumber(1), "estimated_offer_profit" -> JsNull))
+    val response = mock[WSResponse]
+    response.body returns ""
+    val completion = spy(new Completion)
+
     "not POST to a callback URL if one does not exist" in new WithDB {
-      val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=None, serverToServerEnabled=false, generationNumber=1)
-      val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", offerProfit=None, rewardQuantity=1, Some(rewardInfo)))
       val callbackURL = None
       val completion = new Completion
-      Await.result(completion.postCallback(callbackURL, JsObject(Seq()), verification), Duration(5000, "millis")) must beEqualTo(false)
+      Await.result(completion.postCallback(callbackURL, JsObject(Seq()), verification), Duration(5000, "millis")) must beFalse
+    }
+
+    "return true if the Distributor's servers respond with a status code of 200" in new WithDB {
+      response.status returns 200
+      completion.sendPost(callbackURL.get, data) returns Future { response }
+      Await.result(completion.postCallback(callbackURL, JsNull, verification), Duration(5000, "millis")) must beTrue
+    }
+
+    "return false if the Distributor's servers respond with a status code other than 200" in new WithDB {
+      response.status returns 400
+      completion.sendPost(callbackURL.get, data) returns Future { response }
+      Await.result(completion.postCallback(callbackURL, JsNull, verification), Duration(5000, "millis")) must beFalse
     }
   }
 }
