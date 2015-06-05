@@ -51,7 +51,7 @@ describe('NewAppSpec', function() {
             expect(scope.errors).toEqual({});
         });
 
-        it('should not be able to submit twice when response is 200', function() {
+        it('should not be able to submit twice until we receive a response from the server (200)', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
@@ -72,7 +72,7 @@ describe('NewAppSpec', function() {
             expect(form.submitting).toEqual(false);
         });
 
-        it('should be able to submit again after response is 400', function() {
+        it('should not be able to submit twice until we receive a response from the server (400)', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
