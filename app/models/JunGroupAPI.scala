@@ -5,7 +5,7 @@ import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import play.api.libs.ws._
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -120,7 +120,9 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
   def receive = {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       counter += 1
-      if(counter > RETRY_COUNT){
+      if(counter > RETRY_COUNT) {
+        Logger.error("Could not create ad network on player for DistributorUser Email: " + distributorUser.email +
+          " WaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + " API Token: " + appToken + " Failure Reason: " + lastFailure)
         api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
         context.stop(self)
       } else {
