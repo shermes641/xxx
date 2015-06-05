@@ -9,37 +9,6 @@
   width: 1000px;
 }
 
-.dashboard .dashboard-box {
-  float: left;
-  padding: 20px 20px 0;
-  text-align: center;
-  width: 460px;
-}
-
-.dashboard .dashboard-numbers {
-  color: $mediate-blue;
-  font-family: $mediate-font;
-  font-size: 40px;
-  font-weight: 400;
-}
-
-.dashboard .table-title {
-  padding: 20px 0;
-}
-
-.dashboard .google-visualization-table-td {
-  font-family: $mediate-font;
-  padding: 10px;
-}
-
-.dashboard .google-visualization-table-tr-head .google-visualization-table-th-webkit.gradient {
-  background: #eee;
-  font-family: Helvetica, sans-serif;
-  font-weight: 700;
-  padding: 10px;
-  text-align: left;
-}
-
 #analytics-overlay {
   background: #fff;
   bottom: 0;
@@ -55,7 +24,6 @@
 #analytics-header {
   text-align: center;
   font-size: 36px;
-  font-family: $mediate-font-light;
 }
 
 .analytics-row.analytics-row-header {
@@ -73,7 +41,6 @@
   background: url(../images/analytics_circles.png);
   text-align: center;
   padding-top: 62px;
-  font-family: $mediate-font;
   font-weight: bold;
   font-size: 40px;
   -webkit-transition: 1s ease all;
@@ -193,7 +160,6 @@
 .analytics-description {
   margin: 15px 0;
   font-size: 12px;
-  font-family: $mediate-font;
   color: #666;
   text-align: center;
 }
@@ -209,18 +175,18 @@
   height: 8px;
   border-radius: 4px;
   margin-right: 10px;
-}
 
-.analytics-bullet.average-ecpm {
-  background: $mediate-light-blue;
-}
+  .average-ecpm {
+    background: $mediate-light-blue;
+  }
 
-.analytics-bullet.fill-rate {
-  background: #ffcc66;
-}
+  .fill-rate {
+    background: #ffcc66;
+  }
 
-.analytics-bullet.revenue-by-day {
-  background: #42c187;
+  .revenue-by-day {
+    background: #42c187;
+  }
 }
 
 .analytics-revenue-table {
@@ -228,64 +194,63 @@
   border: 1px solid #dddde0;
   border-radius: 3px;
   border-collapse: separate;
-}
 
-.analytics-revenue-table tbody {
-  height: 300px;
-  display: block;
-  width: 100%;
-  overflow-y: scroll;
-}
+  tr th {
+    width: 100%;
+    background: #f9f9f9;
+    padding: 12px;
+    border-bottom: 1px solid #dddde0;
+    font-size: 12px;
+    color: #6d6d72;
+    overflow-y: scroll;
+  }
 
-.analytics-revenue-table tr th {
-  width: 100%;
-  background: #f9f9f9;
-  padding: 12px;
-  border-bottom: 1px solid #dddde0;
-  font-size: 12px;
-  color: #6d6d72;
-  font-family: $mediate-font;
-  overflow-y: scroll;
-}
-.analytics-revenue-table tbody tr {
-  display: block;
-  width: 100%;
-}
+  tbody {
+    height: 300px;
+    display: block;
+    width: 100%;
+    overflow-y: scroll;
+  }
 
-.analytics-revenue-table tr td {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #dddde0;
-  font-family: $mediate-font-light;
-}
+  tbody tr {
+    display: block;
+    width: 100%;
+  }
 
-.analytics-revenue-table tr .metric {
-  text-align: right;
-  float: right;
-  width: 125px;
-}
+  tr td {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    font-size: 13px;
+    border-bottom: 1px solid #dddde0;
+    font-family: $mediate-font-light;
+  }
 
-.analytics-revenue-table tr:nth-child(odd) td {
-  background: #f9f9f9;
-}
+  tr .metric {
+    text-align: right;
+    float: right;
+    width: 125px;
+  }
 
-.analytics-revenue-table tbody tr td div:first-child {
-  text-align: right;
-  font-family: $mediate-font;
-  font-weight: bold;
-}
+  tr:nth-child(odd) td {
+    background: #f9f9f9;
+  }
 
-/* A css way to get rounded corners to work in tables */
-.analytics-revenue-table tr:last-child td:first-child {
-  border-bottom-left-radius: 3px;
-  border-bottom: 0px;
-}
+  tbody tr td div:first-child {
+    text-align: right;
+    font-weight: bold;
+  }
 
-.analytics-revenue-table tr:last-child td:last-child {
-  border-bottom-right-radius: 3px;
-  border-bottom: 0px;
+  /* A css way to get rounded corners to work in tables */
+  tr:last-child td:first-child {
+    border-bottom-left-radius: 3px;
+    border-bottom: 0px;
+  }
+
+  tr:last-child td:last-child {
+    border-bottom-right-radius: 3px;
+    border-bottom: 0px;
+  }
 }
 
 #analytics-messaging {
@@ -302,40 +267,6 @@
   font-size: 36px;
 }
 
-.chart-wrapper {
-  background: #fff;
-  border: 1px solid #e2e2e2;
-  margin-bottom: 10px;
-}
-
-.chart-wrapper .chart-title {
-  border-bottom: 1px solid #d7d7d7;
-  color: #555;
-  font-family: Helvetica, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 8px 10px 5px;
-}
-
-.chart-wrapper .chart-stage {
-  min-height: 150px;
-  padding: 5px 10px;
-}
-
-.chart-wrapper .chart-notes {
-  background: #fbfbfb;
-  border-top: 1px solid #e2e2e2;
-  color: gray;
-  font-size: 12px;
-  padding: 8px 10px 5px;
-}
-
 #ad-providers, #countries {
   margin: 10px 0 20px;
-}
-
-.keen-loading {
-  display: none;
-  margin-bottom: -120px;
-  margin-top: -140px;
 }

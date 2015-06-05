@@ -10,7 +10,7 @@ html {
 body {
   background: $background-color;
   color: #222;
-  font-family: $mediate-font-light;
+  font-family: $mediate-font;
   font-size: 14px;
   height: 100%;
   min-width: 1185px;
@@ -38,7 +38,6 @@ h1 {
 }
 
 h2 {
-  font-family: Helvetica, sans-serif;
   font-size: 20px;
   font-weight: 700;
 }
@@ -48,7 +47,6 @@ input[type="text"], input[type="password"], input[type="number"], input[type="em
   background: $input-background-color;
   border: 0;
   border-bottom: 1px solid $input-border-bottom-color;
-  font-family: $mediate-font;
   font-size: 13px;
   height: 35px;
   padding: 5px;
@@ -60,7 +58,6 @@ button[type="submit"], button[type="button"] {
   border: 0;
   border-radius: 3px;
   color: $button-font-color;
-  font-family: $mediate-font;
   font-size: 14px;
   height: 58px;
   margin-top: 10px;
@@ -86,46 +83,6 @@ button[type="submit"], button[type="button"] {
 .center {
   display: block;
   text-align: center;
-}
-
-.split-content {
-  background: #fff;
-  border: 1px solid #dddde0;
-  margin: 60px 0 0 215px;
-  padding: 20px;
-  position: relative;
-}
-
-.content {
-  background: #fff;
-  border: 1px solid #dddde0;
-  margin: 70px 20px;
-  padding: 20px;
-  position: relative;
-}
-
-.content-actions {
-  position: absolute;
-  right: 20px;
-  top: 20px;
-}
-
-.content-actions a {
-  background: #efefef;
-  color: $mediate-blue;
-  display: block;
-  padding: 10px;
-}
-
-.divider {
-  height: 2px;
-  background: #dddde0;
-  width: 25%;
-}
-
-#warning-header {
-  font-size: 36px;
-  color: #ff6666;
 }
 
 #create-new-app:hover, #export-as-csv:hover {

@@ -48,6 +48,41 @@
   font-style: normal;
   font-weight: 400;
 }
+.split-content {
+  background: #fff;
+  border: 1px solid #dddde0;
+  margin: 60px 0 0 215px;
+  padding: 20px;
+  position: relative;
+}
+
+.content {
+  background: #fff;
+  border: 1px solid #dddde0;
+  margin: 70px 20px;
+  padding: 20px;
+  position: relative;
+}
+
+.content-actions {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.content-actions a {
+  background: #efefef;
+  color: #4285f4;
+  display: block;
+  padding: 10px;
+}
+
+.divider {
+  height: 2px;
+  background: #dddde0;
+  width: 25%;
+}
+
 .content.dashboard {
   background: none;
   box-shadow: none;
@@ -57,37 +92,6 @@
 #dashboard-metrics {
   margin: 0 auto;
   width: 1000px;
-}
-
-.dashboard .dashboard-box {
-  float: left;
-  padding: 20px 20px 0;
-  text-align: center;
-  width: 460px;
-}
-
-.dashboard .dashboard-numbers {
-  color: #4285f4;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 40px;
-  font-weight: 400;
-}
-
-.dashboard .table-title {
-  padding: 20px 0;
-}
-
-.dashboard .google-visualization-table-td {
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  padding: 10px;
-}
-
-.dashboard .google-visualization-table-tr-head .google-visualization-table-th-webkit.gradient {
-  background: #eee;
-  font-family: Helvetica, sans-serif;
-  font-weight: 700;
-  padding: 10px;
-  text-align: left;
 }
 
 #analytics-overlay {
@@ -105,7 +109,6 @@
 #analytics-header {
   text-align: center;
   font-size: 36px;
-  font-family: "Helvetica Neue Light", Helvetica, sans-serif;
 }
 
 .analytics-row.analytics-row-header {
@@ -123,7 +126,6 @@
   background: url(../images/analytics_circles.png);
   text-align: center;
   padding-top: 62px;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-weight: bold;
   font-size: 40px;
   -webkit-transition: 1s ease all;
@@ -242,7 +244,6 @@
 .analytics-description {
   margin: 15px 0;
   font-size: 12px;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   color: #666;
   text-align: center;
 }
@@ -259,16 +260,13 @@
   border-radius: 4px;
   margin-right: 10px;
 }
-
-.analytics-bullet.average-ecpm {
+.analytics-bullet .average-ecpm {
   background: #4f73e7;
 }
-
-.analytics-bullet.fill-rate {
+.analytics-bullet .fill-rate {
   background: #ffcc66;
 }
-
-.analytics-bullet.revenue-by-day {
+.analytics-bullet .revenue-by-day {
   background: #42c187;
 }
 
@@ -277,15 +275,8 @@
   border: 1px solid #dddde0;
   border-radius: 3px;
   border-collapse: separate;
+  /* A css way to get rounded corners to work in tables */
 }
-
-.analytics-revenue-table tbody {
-  height: 300px;
-  display: block;
-  width: 100%;
-  overflow-y: scroll;
-}
-
 .analytics-revenue-table tr th {
   width: 100%;
   background: #f9f9f9;
@@ -293,15 +284,18 @@
   border-bottom: 1px solid #dddde0;
   font-size: 12px;
   color: #6d6d72;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   overflow-y: scroll;
 }
-
+.analytics-revenue-table tbody {
+  height: 300px;
+  display: block;
+  width: 100%;
+  overflow-y: scroll;
+}
 .analytics-revenue-table tbody tr {
   display: block;
   width: 100%;
 }
-
 .analytics-revenue-table tr td {
   display: block;
   width: 100%;
@@ -310,29 +304,22 @@
   border-bottom: 1px solid #dddde0;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
 }
-
 .analytics-revenue-table tr .metric {
   text-align: right;
   float: right;
   width: 125px;
 }
-
 .analytics-revenue-table tr:nth-child(odd) td {
   background: #f9f9f9;
 }
-
 .analytics-revenue-table tbody tr td div:first-child {
   text-align: right;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-weight: bold;
 }
-
-/* A css way to get rounded corners to work in tables */
 .analytics-revenue-table tr:last-child td:first-child {
   border-bottom-left-radius: 3px;
   border-bottom: 0px;
 }
-
 .analytics-revenue-table tr:last-child td:last-child {
   border-bottom-right-radius: 3px;
   border-bottom: 0px;
@@ -352,42 +339,8 @@
   font-size: 36px;
 }
 
-.chart-wrapper {
-  background: #fff;
-  border: 1px solid #e2e2e2;
-  margin-bottom: 10px;
-}
-
-.chart-wrapper .chart-title {
-  border-bottom: 1px solid #d7d7d7;
-  color: #555;
-  font-family: Helvetica, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 8px 10px 5px;
-}
-
-.chart-wrapper .chart-stage {
-  min-height: 150px;
-  padding: 5px 10px;
-}
-
-.chart-wrapper .chart-notes {
-  background: #fbfbfb;
-  border-top: 1px solid #e2e2e2;
-  color: gray;
-  font-size: 12px;
-  padding: 8px 10px 5px;
-}
-
 #ad-providers, #countries {
   margin: 10px 0 20px;
-}
-
-.keen-loading {
-  display: none;
-  margin-bottom: -120px;
-  margin-top: -140px;
 }
 
 .app-form {
@@ -396,7 +349,6 @@
 }
 .app-form h3 {
   color: #6d6d72;
-  font-family: helvetica;
   font-size: 14px;
   margin: 10px 0;
   text-align: center;
@@ -488,7 +440,7 @@ html {
 body {
   background: #efefef;
   color: #222;
-  font-family: "Helvetica Neue Light", Helvetica, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   height: 100%;
   min-width: 1185px;
@@ -516,7 +468,6 @@ h1 {
 }
 
 h2 {
-  font-family: Helvetica, sans-serif;
   font-size: 20px;
   font-weight: 700;
 }
@@ -526,7 +477,6 @@ input[type="text"], input[type="password"], input[type="number"], input[type="em
   background: #f9f9f9;
   border: 0;
   border-bottom: 1px solid #c8c7cc;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 13px;
   height: 35px;
   padding: 5px;
@@ -538,7 +488,6 @@ button[type="submit"], button[type="button"] {
   border: 0;
   border-radius: 3px;
   color: #ffffff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   height: 58px;
   margin-top: 10px;
@@ -564,46 +513,6 @@ button[type="submit"], button[type="button"] {
 .center {
   display: block;
   text-align: center;
-}
-
-.split-content {
-  background: #fff;
-  border: 1px solid #dddde0;
-  margin: 60px 0 0 215px;
-  padding: 20px;
-  position: relative;
-}
-
-.content {
-  background: #fff;
-  border: 1px solid #dddde0;
-  margin: 70px 20px;
-  padding: 20px;
-  position: relative;
-}
-
-.content-actions {
-  position: absolute;
-  right: 20px;
-  top: 20px;
-}
-
-.content-actions a {
-  background: #efefef;
-  color: #4285f4;
-  display: block;
-  padding: 10px;
-}
-
-.divider {
-  height: 2px;
-  background: #dddde0;
-  width: 25%;
-}
-
-#warning-header {
-  font-size: 36px;
-  color: #ff6666;
 }
 
 #create-new-app:hover, #export-as-csv:hover {
@@ -691,7 +600,6 @@ hr {
   right: 0;
   height: 60px;
   font-size: 14px;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   color: #fff;
   padding: 18px;
   border-bottom: 1px solid #fff;
@@ -699,12 +607,10 @@ hr {
   text-align: center;
   z-index: 2000;
 }
-
 #browser-support a {
   text-decoration: underline;
   color: #fff;
 }
-
 #browser-support .warning-icon {
   display: inline-block;
   width: 35px;
@@ -714,8 +620,7 @@ hr {
   background: url(../images/icons.png);
   background-position: -48px -45px;
 }
-
-#dismiss-browser {
+#browser-support #dismiss-browser {
   color: #4285f4;
   cursor: pointer;
   position: absolute;
@@ -725,18 +630,6 @@ hr {
   height: 35px;
   background: url(../images/icons.png);
   background-position: -48px -0px;
-}
-
-.browser-not-supported header, .browser-not-supported .sub-header {
-  top: 60px;
-}
-
-.browser-not-supported #left-content {
-  top: 120px;
-}
-
-.browser-not-supported .split-content {
-  margin: 120px 0 0 215px;
 }
 
 footer {
@@ -755,7 +648,6 @@ footer a {
 footer span {
   border-right: 1px solid #ccc;
   display: inline-block;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   margin-right: 10px;
   padding-right: 10px;
 }
@@ -807,7 +699,6 @@ footer .version-info {
 
 #form-errors {
   color: #ff0000;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 13px;
   list-style: none;
 }
@@ -829,7 +720,6 @@ dd.error {
 header {
   background: #222222;
   box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
-  font-family: Helvetica, sans-serif;
   font-size: 20px;
   font-weight: 700;
   height: 60px;
@@ -840,7 +730,6 @@ header {
   top: 0;
   z-index: 2000;
 }
-
 header #logo {
   border-right: 1px solid #000;
   display: block;
@@ -850,24 +739,20 @@ header #logo {
   top: 0;
   width: 216px;
 }
-
 header .actions {
   bottom: 0;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 13px;
   font-weight: 400;
   position: absolute;
   right: 0;
   top: 0;
 }
-
 header .actions .header-actions {
   border-left: 1px solid #000;
   float: right;
   padding: 21px 22px;
   position: relative;
 }
-
 header .actions .header-actions:before {
   border-left: 1px solid #333;
   bottom: 1px;
@@ -878,12 +763,10 @@ header .actions .header-actions:before {
   top: 1px;
   z-index: -1;
 }
-
 header #username-header {
   color: #666;
   cursor: pointer;
 }
-
 header .header-actions #username-dropdown {
   background: #efeff4;
   border: 1px solid #dddde0;
@@ -896,14 +779,18 @@ header .header-actions #username-dropdown {
   position: absolute;
   width: 100%;
 }
-
 header .header-actions #username-dropdown a:hover {
   color: #666;
 }
-
 header .actions a {
   color: #666;
   text-decoration: none;
+}
+header #username-header:hover #username-dropdown {
+  display: block;
+}
+header #username-header:hover, header .actions a:hover {
+  color: #fff;
 }
 
 header #logo:before, .sub-header .menu li:before {
@@ -917,18 +804,6 @@ header #logo:before, .sub-header .menu li:before {
   z-index: -1;
 }
 
-header #username-header:hover, header .actions a:hover {
-  color: #fff;
-}
-
-.sub-header .menu li.active, .sub-header .menu li.active:hover {
-  border-bottom: #4f73e7 5px solid;
-}
-
-header #username-header:hover #username-dropdown {
-  display: block;
-}
-
 .sub-header {
   background: #222;
   height: 60px;
@@ -938,7 +813,6 @@ header #username-header:hover #username-dropdown {
   width: 414px;
   z-index: 2001;
 }
-
 .sub-header .menu {
   bottom: 0;
   display: block;
@@ -947,13 +821,11 @@ header #username-header:hover #username-dropdown {
   position: absolute;
   top: 0;
 }
-
 .sub-header .menu li {
   -webkit-transition: 400ms ease all;
   border-right: 1px solid #000;
   color: #fff;
   float: left;
-  font-family: Helvetica, sans-serif;
   font-size: 13px;
   height: 60px;
   margin: 0;
@@ -962,14 +834,11 @@ header #username-header:hover #username-dropdown {
   text-align: center;
   width: 138px;
 }
-
 .sub-header .menu li:hover {
   background: #444;
 }
-
-.header-dropdown {
-  float: left;
-  padding-right: 5px;
+.sub-header .menu li.active, .sub-header .menu li.active:hover {
+  border-bottom: #4f73e7 5px solid;
 }
 
 #left-content {
@@ -986,7 +855,6 @@ header #username-header:hover #username-dropdown {
 
 .left-apps-list h2 {
   color: #6d6d72;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 13px;
 }
 
@@ -1107,7 +975,6 @@ header #username-header:hover #username-dropdown {
 .app-list ul.full-list li .actions a {
   color: #4285f4;
   display: inline-block;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   font-weight: 400;
   margin-left: 20px;
@@ -1203,7 +1070,6 @@ header #username-header:hover #username-dropdown {
   border: 0;
   border-radius: 3px;
   color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   height: 58px;
   margin: 20px;
@@ -1232,7 +1098,6 @@ header #username-header:hover #username-dropdown {
 #apps-list-menu li {
   display: block;
   float: none;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
 }
 
 #apps-list-menu li:hover {
@@ -1269,7 +1134,6 @@ header #username-header:hover #username-dropdown {
   background: #4285f4;
   color: #fff;
   display: block;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 16px;
   font-weight: 400;
   margin-top: 20px;
@@ -1318,7 +1182,6 @@ header #username-header:hover #username-dropdown {
   border: 2px solid #cc9;
   border-radius: 1px;
   color: #993;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   left: 0;
   margin: 70px 10px 10px;
   padding: 20px;
@@ -1381,48 +1244,42 @@ header #username-header:hover #username-dropdown {
   width: 400px;
 }
 
-#termsContainer {
-  color: #666;
-  height: 300px;
-  margin-top: 20px;
-  overflow: scroll;
-  text-align: left;
-}
-
 .registration {
   margin: 120px auto 0;
   padding: 40px;
   text-align: center;
   width: 400px;
 }
-
 .registration h3 {
   margin-top: 20px;
 }
-
 .registration ul {
   padding-left: 25px;
   padding-top: 10px;
 }
-
 .registration dl {
   margin-bottom: 10px;
   margin-top: 10px;
 }
-
 .registration .modal-text {
   margin: 20px auto;
 }
-
 .registration input[type="checkbox"] {
   float: left;
   margin: 10px 5px 10px 0;
 }
-
 .registration h2 {
   font-size: 30px;
   padding: 20px;
   text-align: center;
+}
+
+#termsContainer {
+  color: #666;
+  height: 300px;
+  margin-top: 20px;
+  overflow: scroll;
+  text-align: left;
 }
 
 span#viewTerms:hover {
@@ -1443,6 +1300,20 @@ span#viewTerms:hover {
   width: 20px;
   z-index: auto;
 }
+.tooltip:before {
+  border: solid;
+  border-color: #cc9 transparent;
+  border-width: 0 6px 6px;
+  content: "";
+  left: 22%;
+  position: absolute;
+  top: 23px;
+  z-index: 1300;
+  visibility: hidden;
+}
+.tooltip:hover:before {
+  visibility: visible;
+}
 
 .ngtooltip {
   opacity: 1;
@@ -1458,29 +1329,12 @@ span#viewTerms:hover {
   z-index: 1200;
   text-align: left;
 }
-
 .ngtooltip.ng-hide {
   transition: all linear 0.5s;
   -webkit-transition: all linear 0.5s;
   display: block !important;
   visibility: hidden;
   opacity: 0;
-}
-
-.tooltip:before {
-  border: solid;
-  border-color: #cc9 transparent;
-  border-width: 0 6px 6px;
-  content: "";
-  left: 22%;
-  position: absolute;
-  top: 23px;
-  z-index: 1300;
-  visibility: hidden;
-}
-
-.tooltip:hover:before {
-  visibility: visible;
 }
 
 #waterfall-sub-header {
@@ -1490,8 +1344,7 @@ span#viewTerms:hover {
   margin-top: 20px;
   padding: 12px;
 }
-
-.waterfall-buttons {
+#waterfall-sub-header .waterfall-buttons {
   position: relative;
   float: right;
   height: 31px;
@@ -1499,22 +1352,18 @@ span#viewTerms:hover {
   border-left: 1px solid #dddde0;
   padding-left: 10px;
 }
-
-.waterfall-buttons .text-label {
+#waterfall-sub-header .waterfall-buttons .text-label {
   color: #6d6d72;
   font-size: 12px;
   margin-top: 7px;
 }
-
-.waterfall-buttons .onoffswitch {
+#waterfall-sub-header .waterfall-buttons .onoffswitch {
   margin-left: 9px;
 }
-
-.waterfall-buttons.first {
+#waterfall-sub-header .waterfall-buttons.first {
   border-left: 0px;
 }
-
-.waterfall-buttons.disabled .button-overlay {
+#waterfall-sub-header .waterfall-buttons.disabled .button-overlay {
   position: absolute;
   top: 0;
   right: 0;
@@ -1524,8 +1373,7 @@ span#viewTerms:hover {
   opacity: 0.8;
   z-index: 1000;
 }
-
-.pause {
+#waterfall-sub-header .waterfall-buttons .pause {
   background: url(../images/icons.png);
   background-position: -50px -81px;
   cursor: pointer;
@@ -1534,19 +1382,12 @@ span#viewTerms:hover {
   float: right;
   margin-left: 10px;
 }
-
-.pause.play {
+#waterfall-sub-header .waterfall-buttons .pause.play {
   background-position: -50px -122px;
 }
-
-.app-token {
+#waterfall-sub-header .app-token {
   float: left;
   width: 375px;
-}
-
-.content.waterfall-list {
-  margin-top: 120px;
-  overflow: hidden;
 }
 
 .waterfall-list h1 {
@@ -1556,12 +1397,10 @@ span#viewTerms:hover {
   text-overflow: ellipsis;
   overflow: hidden;
 }
-
 .waterfall-list #edit-top h1 {
   padding-right: 170px;
 }
-
-.waterfall-sort {
+.waterfall-list.waterfall-sort {
   min-height: 50px;
 }
 
@@ -1573,39 +1412,32 @@ span#viewTerms:hover {
   padding: 24px;
   position: relative;
 }
-
 .waterfall ul li button {
   background: #333;
   float: right;
   margin: 0 0 0 10px;
   width: 130px;
 }
-
 .waterfall ul li button.configure {
   background: #333;
 }
-
 .waterfall ul li .waterfall-app-info {
   float: left;
   margin-left: 60px;
   margin-top: 12px;
+  font-family: "Helvetica Neue Light", Helvetica, sans-serif;
 }
-
 .waterfall ul li .waterfall-app-info h3 {
   color: #4f73e7;
   font-size: 18px;
 }
-
 .waterfall ul li b {
-  font-family: Helvetica, sans-serif;
   font-size: 12px;
   font-weight: 700;
 }
-
 .waterfall ul li .actions {
   color: #4285f4;
   cursor: pointer;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   font-weight: 400;
   min-height: 90px;
@@ -1694,7 +1526,6 @@ button.inactive {
   color: #FFF;
   display: block;
   float: left;
-  font-family: Trebuchet, Arial, sans-serif;
   font-size: 14px;
   font-weight: 700;
   height: 30px;
@@ -1816,7 +1647,6 @@ button.inactive {
   border: 0;
   border-radius: 3px;
   color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   height: 58px;
   padding: 15px;
@@ -1857,28 +1687,24 @@ button.inactive {
   width: 250px;
 }
 
-button.cancel-button {
+#warning-header {
+  font-size: 36px;
+  color: #ff6666;
+}
+
+button.cancel-button, button.confirm-button {
   -webkit-appearance: none;
   background: #666;
   border: 0;
   border-radius: 3px;
   color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   height: 58px;
   text-align: center;
 }
 
 button.confirm-button {
-  -webkit-appearance: none;
   background: #ff6666;
-  border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 14px;
-  height: 58px;
-  text-align: center;
 }
 
 .ng-modal-dialog {
@@ -1935,7 +1761,6 @@ button.confirm-button {
   border: 0;
   border-radius: 3px;
   color: #fff;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
   margin-top: 10px;
   padding: 15px;
@@ -1958,7 +1783,7 @@ button.confirm-button {
   z-index: 9999;
 }
 
-.modal-text {
+#email_modal .modal-text {
   margin: 10px auto;
   text-align: center;
   width: 220px;

@@ -6,51 +6,38 @@
   right: 0;
   height: 60px;
   font-size:14px;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
   color: #fff;
   padding: 18px;
   border-bottom: 1px solid #fff;
   background: #fb504b;
   text-align:center;
   z-index: 2000;
-}
 
-#browser-support a {
-  text-decoration: underline;
-  color: #fff;
-}
+  a {
+    text-decoration: underline;
+    color: #fff;
+  }
 
-#browser-support .warning-icon {
-  display: inline-block;
-  width: 35px;
-  height: 26px;
-  margin-bottom: -8px;
-  margin-right: 5px;
-  background:url(../images/icons.png);
-  background-position:-48px -45px;
-}
+  .warning-icon {
+    display: inline-block;
+    width: 35px;
+    height: 26px;
+    margin-bottom: -8px;
+    margin-right: 5px;
+    background:url(../images/icons.png);
+    background-position:-48px -45px;
+  }
 
-#dismiss-browser {
-  color:$mediate-blue;
-  cursor:pointer;
-  position: absolute;
-  top:10px;
-  right: 10px;
-  width: 35px;
-  height: 35px;
+  #dismiss-browser {
+    color:$mediate-blue;
+    cursor:pointer;
+    position: absolute;
+    top:10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
 
-  background:url(../images/icons.png);
-  background-position:-48px -0px;
-}
-
-.browser-not-supported header, .browser-not-supported .sub-header {
-  top: 60px;
-}
-
-.browser-not-supported #left-content {
-  top: 120px;
-}
-
-.browser-not-supported .split-content {
-  margin: 120px 0 0 215px;
+    background:url(../images/icons.png);
+    background-position:-48px -0px;
+  }
 }

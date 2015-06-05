@@ -1,133 +1,131 @@
-
+// Waterfall sub header that contains the token and switches
 #waterfall-sub-header {
   background: #efeff4;
   color: #6d6d72;
   height: 53px;
   margin-top: 20px;
   padding: 12px;
+
+  .waterfall-buttons {
+    position: relative;
+    float: right;
+    height: 31px;
+    padding-right: 10px;
+    border-left: 1px solid #dddde0;
+    padding-left: 10px;
+
+    .text-label {
+      color: #6d6d72;
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .onoffswitch {
+      margin-left: 9px;
+    }
+
+    &.first {
+      border-left: 0px;
+    }
+
+    &.disabled .button-overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      background: #efeff4;
+      opacity: 0.8;
+      z-index: 1000;
+    }
+
+    .pause {
+      background: url(../images/icons.png);
+      background-position: -50px -81px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      float: right;
+      margin-left: 10px;
+    }
+
+    .pause.play {
+      background-position: -50px -122px;
+    }
+  }
+
+  .app-token {
+    float: left;
+    width: 375px;
+  }
 }
 
-.waterfall-buttons {
-  position: relative;
-  float: right;
-  height: 31px;
-  padding-right: 10px;
-  border-left: 1px solid #dddde0;
-  padding-left: 10px;
+.waterfall-list {
+  h1 {
+    font-size: 36px;
+    margin-top: 10px;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  #edit-top h1 {
+    padding-right: 170px;
+  }
+
+  &.waterfall-sort {
+    min-height: 50px;
+  }
 }
 
-.waterfall-buttons .text-label {
-  color: #6d6d72;
-  font-size: 12px;
-  margin-top: 7px;
-}
+.waterfall {
+  ul li {
+    background: #fff;
+    border: 2px solid #eee;
+    height: 110px;
+    margin: 10px 0;
+    padding: 24px;
+    position: relative;
 
-.waterfall-buttons .onoffswitch {
-  margin-left: 9px;
-}
+    button {
+      background: #333;
+      float: right;
+      margin: 0 0 0 10px;
+      width: 130px;
+    }
 
-.waterfall-buttons.first {
-  border-left: 0px;
-}
+    button.configure {
+      background: #333;
+    }
 
-.waterfall-buttons.disabled .button-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  background: #efeff4;
-  opacity: 0.8;
-  z-index: 1000;
-}
+    .waterfall-app-info {
+      float: left;
+      margin-left: 60px;
+      margin-top: 12px;
+      font-family: $mediate-font-light;
+    }
 
-.pause {
-  background: url(../images/icons.png);
-  background-position: -50px -81px;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  float: right;
-  margin-left: 10px;
-}
+    .waterfall-app-info h3 {
+      color: $mediate-light-blue;
+      font-size: 18px;
+    }
 
-.pause.play {
-  background-position: -50px -122px;
-}
+    b {
+      font-size: 12px;
+      font-weight: 700;
+    }
 
-.app-token {
-  float: left;
-  width: 375px;
-}
-
-.content.waterfall-list {
-  margin-top: 120px;
-  overflow: hidden;
-}
-
-.waterfall-list h1 {
-  font-size: 36px;
-  margin-top: 10px;
-  text-align: center;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-.waterfall-list #edit-top h1 {
-  padding-right: 170px;
-}
-
-.waterfall-sort {
-  min-height: 50px;
-}
-
-.waterfall ul li {
-  background: #fff;
-  border: 2px solid #eee;
-  height: 110px;
-  margin: 10px 0;
-  padding: 24px;
-  position: relative;
-}
-
-.waterfall ul li button {
-  background: #333;
-  float: right;
-  margin: 0 0 0 10px;
-  width: 130px;
-}
-
-.waterfall ul li button.configure {
-  background: #333;
-}
-
-.waterfall ul li .waterfall-app-info {
-  float: left;
-  margin-left: 60px;
-  margin-top: 12px;
-}
-
-.waterfall ul li .waterfall-app-info h3 {
-  color: $mediate-light-blue;
-  font-size: 18px;
-}
-
-.waterfall ul li b {
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.waterfall ul li .actions {
-  color: $mediate-blue;
-  cursor: pointer;
-  font-family: $mediate-font;
-  font-size: 14px;
-  font-weight: 400;
-  min-height: 90px;
-  position: absolute;
-  right: 21px;
-  top: 21px;
+    .actions {
+      color: $mediate-blue;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 400;
+      min-height: 90px;
+      position: absolute;
+      right: 21px;
+      top: 21px;
+    }
+  }
 }
 
 .ui-sortable-disabled .waterfall-drag-1, .ui-sortable-disabled .waterfall-drag-2, .ui-sortable-disabled .waterfall-drag-3 {
@@ -177,7 +175,6 @@ button.inactive {
   background-color: #d3dcf9;
 }
 
-
 .onoffswitch {
   -moz-user-select: none;
   -ms-user-select: none;
@@ -211,7 +208,6 @@ button.inactive {
   color: #FFF;
   display: block;
   float: left;
-  font-family: Trebuchet, Arial, sans-serif;
   font-size: 14px;
   font-weight: 700;
   height: 30px;
@@ -334,7 +330,6 @@ button.inactive {
   border: 0;
   border-radius: 3px;
   color: #fff;
-  font-family: $mediate-font;
   font-size: 14px;
   height: 58px;
   padding: 15px;
@@ -375,26 +370,24 @@ button.inactive {
   width: 250px;
 }
 
+// Test mode confirmation modal
+#warning-header {
+  font-size: 36px;
+  color: #ff6666;
+}
+
 button.cancel-button {
   -webkit-appearance: none;
   background: #666;
   border: 0;
   border-radius: 3px;
   color: #fff;
-  font-family: $mediate-font;
   font-size: 14px;
   height: 58px;
   text-align: center;
 }
 
 button.confirm-button {
-  -webkit-appearance: none;
+  @extend button.cancel-button;
   background: #ff6666;
-  border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-family: $mediate-font;
-  font-size: 14px;
-  height: 58px;
-  text-align: center;
 }

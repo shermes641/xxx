@@ -1,7 +1,7 @@
+// Header and Sub Header
 header {
   background:$header-background-color;
   box-shadow:1px 1px 1px rgba(0,0,0,.1);
-  font-family:Helvetica, sans-serif;
   font-size:20px;
   font-weight:700;
   height:60px;
@@ -11,71 +11,78 @@ header {
   right:0;
   top:0;
   z-index:2000;
-}
 
-header #logo {
-  border-right:1px solid #000;
-  display:block;
-  height:100%;
-  left:0;
-  position:absolute;
-  top:0;
-  width:216px;
-}
+  #logo {
+    border-right:1px solid #000;
+    display:block;
+    height:100%;
+    left:0;
+    position:absolute;
+    top:0;
+    width:216px;
+  }
 
-header .actions {
-  bottom:0;
-  font-family:"Helvetica Neue", Helvetica, sans-serif;
-  font-size:13px;
-  font-weight:400;
-  position:absolute;
-  right:0;
-  top:0;
-}
+  .actions {
+    bottom:0;
+    font-size:13px;
+    font-weight:400;
+    position:absolute;
+    right:0;
+    top:0;
+  }
 
-header .actions .header-actions {
-  border-left:1px solid #000;
-  float:right;
-  padding:21px 22px;
-  position:relative;
-}
+  .actions .header-actions {
+    border-left:1px solid #000;
+    float:right;
+    padding:21px 22px;
+    position:relative;
+  }
 
-header .actions .header-actions:before {
-  border-left:1px solid #333;
-  bottom:1px;
-  content:" ";
-  left:0;
-  position:absolute;
-  right:1px;
-  top:1px;
-  z-index:-1;
-}
+  .actions .header-actions:before {
+    border-left:1px solid #333;
+    bottom:1px;
+    content:" ";
+    left:0;
+    position:absolute;
+    right:1px;
+    top:1px;
+    z-index:-1;
+  }
 
-header #username-header {
-  color:#666;
-  cursor:pointer;
-}
+  #username-header {
+    color:#666;
+    cursor:pointer;
+  }
 
-header .header-actions #username-dropdown {
-  background:#efeff4;
-  border:1px solid #dddde0;
-  bottom:-60px;
-  color:#6d6d72;
-  display:none;
-  height:60px;
-  left:0;
-  padding:20px;
-  position:absolute;
-  width:100%;
-}
+  .header-actions #username-dropdown {
+    background:#efeff4;
+    border:1px solid #dddde0;
+    bottom:-60px;
+    color:#6d6d72;
+    display:none;
+    height:60px;
+    left:0;
+    padding:20px;
+    position:absolute;
+    width:100%;
+  }
 
-header .header-actions #username-dropdown a:hover {
-  color:#666;
-}
+  .header-actions #username-dropdown a:hover {
+    color:#666;
+  }
 
-header .actions a {
-  color:#666;
-  text-decoration:none;
+  .actions a {
+    color:#666;
+    text-decoration:none;
+  }
+
+  #username-header:hover #username-dropdown {
+    display: block;
+  }
+
+  #username-header:hover, .actions a:hover {
+    color: #fff;
+  }
 }
 
 header #logo:before, .sub-header .menu li:before {
@@ -89,18 +96,6 @@ header #logo:before, .sub-header .menu li:before {
   z-index: -1;
 }
 
-header #username-header:hover, header .actions a:hover {
-  color: #fff;
-}
-
-.sub-header .menu li.active,.sub-header .menu li.active:hover {
-  border-bottom: $mediate-light-blue 5px solid;
-}
-
-header #username-header:hover #username-dropdown {
-  display: block;
-}
-
 .sub-header {
   background: #222;
   height: 60px;
@@ -109,37 +104,35 @@ header #username-header:hover #username-dropdown {
   top: 0;
   width: 414px;
   z-index: 2001;
-}
 
-.sub-header .menu {
-  bottom: 0;
-  display: block;
-  left: 0;
-  list-style: none;
-  position: absolute;
-  top: 0;
-}
+  .menu {
+    bottom: 0;
+    display: block;
+    left: 0;
+    list-style: none;
+    position: absolute;
+    top: 0;
+  }
 
-.sub-header .menu li {
-  -webkit-transition: 400ms ease all;
-  border-right: 1px solid #000;
-  color: #fff;
-  float: left;
-  font-family: Helvetica, sans-serif;
-  font-size: 13px;
-  height: 60px;
-  margin: 0;
-  padding-top: 22px;
-  position: relative;
-  text-align: center;
-  width: 138px;
-}
+  .menu li {
+    -webkit-transition: 400ms ease all;
+    border-right: 1px solid #000;
+    color: #fff;
+    float: left;
+    font-size: 13px;
+    height: 60px;
+    margin: 0;
+    padding-top: 22px;
+    position: relative;
+    text-align: center;
+    width: 138px;
 
-.sub-header .menu li:hover {
-  background: #444;
-}
+    &:hover {
+      background: #444;
+    }
 
-.header-dropdown {
-  float: left;
-  padding-right: 5px;
+    &.active, &.active:hover {
+      border-bottom: $mediate-light-blue 5px solid;
+    }
+  }
 }
