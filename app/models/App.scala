@@ -3,6 +3,7 @@ package models
 import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
+import play.api.Logger
 import play.api.Play.current
 import java.sql.Connection
 import scala.language.postfixOps
@@ -348,9 +349,9 @@ object App {
    * @return Prints a success or error message to the console depending on the success or error of the update.
    */
   def updateAppConfigRefreshInterval(appID: Long, appConfigRefreshInterval: Long): Boolean = {
-    def printFailure(failureMessage: String = "App was not updated.")(implicit connection: Connection): Boolean = {
+    def logFailure(failureMessage: String = "App was not updated.")(implicit connection: Connection): Boolean = {
       connection.rollback()
-      println(failureMessage)
+      Logger.error(failureMessage)
       false
     }
 
@@ -370,22 +371,22 @@ object App {
               case (1, Some(config)) =>  {
                 AppConfig.create(app.id, app.token, config.generationNumber) match {
                   case Some(newGenerationNumber) if (newGenerationNumber == config.generationNumber + 1) => {
-                    println("App was updated successfully!")
+                    Logger.debug("App was updated successfully!")
                     true
                   }
-                  case _ => printFailure("App was not updated because the app config has not changed.  Check if the waterfall for this app is in Test mode.")
+                  case _ => logFailure("App was not updated because the app config has not changed.  Check if the waterfall for this app is in Test mode.")
                 }
               }
-              case (_, _) => printFailure()
+              case (_, _) => logFailure()
             }
           } catch {
-            case error: org.postgresql.util.PSQLException => printFailure()
-            case error: IllegalArgumentException => printFailure()
+            case error: org.postgresql.util.PSQLException => logFailure()
+            case error: IllegalArgumentException => logFailure()
           }
         }
       }
       case None => {
-        println("App could not be found.")
+        Logger.error("App could not be found.")
         false
       }
     }

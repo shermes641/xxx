@@ -5,8 +5,9 @@
 
 import anorm._
 import models._
-import play.api.Play
 import play.api.db.DB
+import play.api.Logger
+import play.api.Play
 import play.api.Play.current
 import scala.language.postfixOps
 
@@ -55,7 +56,7 @@ object Script extends JsonConversion with UpdateHyprMarketplace {
 
       query.as(parser*) match {
         case List(waterfallAdProvider) => updateHyprMarketplaceDistributorID(waterfallAdProvider)
-        case _ => println("WaterfallAdProvider ID could not be found!")
+        case _ => Logger.error("WaterfallAdProvider ID could not be found!")
       }
     }
     unsuccessfulWaterfallAdProviderIDs = List()
@@ -65,21 +66,21 @@ object Script extends JsonConversion with UpdateHyprMarketplace {
   /**
    * Sends a create ad network request to Player for each HyprMarketplace WaterfallAdProvider instance found in the database.
    */
-  def recreateAllAdNetworks = {
+  def recreateAllAdNetworks() = {
     if(!Environment.isProd) {
       val adProviders = getHyprMarketplaceWaterfallAdProviders
       adProviders.foreach { wap => updateHyprMarketplaceDistributorID(wap) }
 
       if(unsuccessfulWaterfallAdProviderIDs.size > 0) {
-        println("Ad networks were not created for the following WaterfallAdProvider IDs: [ " + unsuccessfulWaterfallAdProviderIDs.mkString(", ") + " ]")
-        println("This may be due to the fact that Ad networks already exist for these WaterfallAdProviders.  Check the output above for the reason why each WaterfallAdProvider was not updated.")
+        Logger.error("Ad networks were not created for the following WaterfallAdProvider IDs: [ " + unsuccessfulWaterfallAdProviderIDs.mkString(", ") + " ]\n" +
+        "This may be due to the fact that Ad networks already exist for these WaterfallAdProviders.  Check the output above for the reason why each WaterfallAdProvider was not updated.")
       } else if(successfulWaterfallAdProviderIDs.size != adProviders.size) {
-        println("Not all WaterfallAdProviders were successfully updated yet.  Player is taking a while to respond to requests but we will log any errors as we receive them.")
+        Logger.debug("Not all WaterfallAdProviders were successfully updated yet.  Player is taking a while to respond to requests but we will log any errors as we receive them.")
       } else {
-        println("All ad networks were created successfully")
+        Logger.debug("All ad networks were created successfully")
       }
     } else {
-      println("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
+      Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
     }
     unsuccessfulWaterfallAdProviderIDs = List()
     successfulWaterfallAdProviderIDs = List()
