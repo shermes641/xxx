@@ -1,4 +1,4 @@
-#browser_support {
+#browser-support {
   display:none;
   position: fixed;
   top: 0;
@@ -15,12 +15,12 @@
   z-index: 2000;
 }
 
-#browser_support a {
+#browser-support a {
   text-decoration: underline;
   color: #fff;
 }
 
-#browser_support .warning_icon {
+#browser-support .warning-icon {
   display: inline-block;
   width: 35px;
   height: 26px;
@@ -30,7 +30,7 @@
   background-position:-48px -45px;
 }
 
-#dismiss_browser {
+#dismiss-browser {
   color:$mediate-blue;
   cursor:pointer;
   position: absolute;
@@ -43,14 +43,14 @@
   background-position:-48px -0px;
 }
 
-.browser_not_supported header, .browser_not_supported .sub_header {
+.browser-not-supported header, .browser-not-supported .sub-header {
   top: 60px;
 }
 
-.browser_not_supported #left_content {
+.browser-not-supported #left-content {
   top: 120px;
 }
 
-.browser_not_supported .split_content {
+.browser-not-supported .split-content {
   margin: 120px 0 0 215px;
 }

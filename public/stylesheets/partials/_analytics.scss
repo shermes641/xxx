@@ -4,26 +4,26 @@
   margin-top: 100px;
 }
 
-#dashboard_metrics {
+#dashboard-metrics {
   margin: 0 auto;
   width: 1000px;
 }
 
-.dashboard .dashboard_box {
+.dashboard .dashboard-box {
   float: left;
   padding: 20px 20px 0;
   text-align: center;
   width: 460px;
 }
 
-.dashboard .dashboard_numbers {
+.dashboard .dashboard-numbers {
   color: $mediate-blue;
   font-family: $mediate-font;
   font-size: 40px;
   font-weight: 400;
 }
 
-.dashboard .table_title {
+.dashboard .table-title {
   padding: 20px 0;
 }
 
@@ -40,7 +40,7 @@
   text-align: left;
 }
 
-#analytics_overlay {
+#analytics-overlay {
   background: #fff;
   bottom: 0;
   left: 0;
@@ -292,12 +292,12 @@
   margin-bottom: 20px;
 }
 
-#export_email {
+#export-email {
   margin: 10px 0 5px;
   width: 100%;
 }
 
-#csv_email_form h1 {
+#csv-email-form h1 {
   color: $mediate-light-blue;
   font-size: 36px;
 }
@@ -330,7 +330,7 @@
   padding: 8px 10px 5px;
 }
 
-#ad_providers, #countries {
+#ad-providers, #countries {
   margin: 10px 0 20px;
 }
 

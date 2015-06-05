@@ -3,9 +3,9 @@
 <div class="app-form">
     <form id="edit-app" name="form.editAppForm" ng-submit="submitEditApp(form.editAppForm)">
         <h1>App Configuration</h1>
-        <div class="left_column">
-            <dl id="app_name">
-                <dt><label for="app_name">*App Name</label></dt>
+        <div class="left-column">
+            <dl id="app-name">
+                <dt><label for="app-name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
                     <input required type="text" ng-model="data.appName" ng-model-options="{updateOn: 'blur'}" id="appName" name="appName" value="" placeholder="name" label="*App Name">
                 </dd>
@@ -15,7 +15,7 @@
                 </div>
             </dl>
 
-            <dl class="switch-field onoff-field" id="serverToServerEnabled_field">
+            <dl class="switch-field onoff-field" id="serverToServerEnabled-field">
                 <dt>
                     <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>
                 </dt>
@@ -31,9 +31,9 @@
                 </dd>
             </dl>
 
-            <dl id="callback_url">
+            <dl id="callback-url">
                 <dt>
-                    <label for="callback_url">
+                    <label for="callback-url">
                         {{"Callback URL" | conditionalRequiredField: data.serverToServerEnabled}}
                     </label>
                     <h4 ng-mouseenter="hoverCallback=true" ng-mouseleave="hoverCallback=false" class="tooltip">
@@ -49,8 +49,8 @@
                 </div>
             </dl>
 
-            <dl id="currency_name">
-                <dt><label for="currency_name">*Reward Name</label></dt>
+            <dl id="currency-name">
+                <dt><label for="currency-name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">
                     <input required type="text" ng-model="data.currencyName" ng-model-options="{updateOn: 'blur'}" id="currencyName" name="currencyName" placeholder="e.g. Gold or Silver" label="*Reward Name">
                     <div class="tip">Reward Name is the name of your in-app reward.</div>
@@ -60,10 +60,10 @@
                 </div>
             </dl>
         </div>
-        <div class="right_column">
+        <div class="right-column">
 
-            <dl id="exchange_rate">
-                <dt><label for="exchange_rate">*Exchange Rate</label></dt>
+            <dl id="exchange-rate">
+                <dt><label for="exchange-rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
                     <input required-integer type="text" ng-model="data.exchangeRate" ng-model-options="{updateOn: 'blur'}" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
                     <div class="tip">The amount to reward per $1.</div>
@@ -74,8 +74,8 @@
                 </div>
             </dl>
 
-            <dl id="reward_min">
-                <dt><label for="reward_min">*Minimum to Reward per Completed Offer</label></dt>
+            <dl id="reward-min">
+                <dt><label for="reward-min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
                     <input required-integer less-than-or-equal-to="{{data.rewardMax}}" type="text" ng-model="data.rewardMin" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
@@ -85,8 +85,8 @@
                 </div>
             </dl>
 
-            <dl id="reward_max">
-                <dt><label for="reward_max">Maximum to Reward per Completed Offer</label></dt>
+            <dl id="reward-max">
+                <dt><label for="reward-max">Maximum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
                     <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-model-options="{updateOn: 'blur'}" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
                 </dd>
@@ -96,7 +96,7 @@
                 </div>
             </dl>
 
-            <dl class="switch-field" id="roundUp_field">
+            <dl class="switch-field" id="roundUp-field">
                 <dt>
                     <label for="roundUp">Round Up Reward</label>
                 </dt>

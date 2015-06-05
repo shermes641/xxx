@@ -28,15 +28,15 @@
   padding: 10px;
 }
 
-#form_errors {
-  color: red;
+#form-errors {
+  color: $form-error;
   font-family: $mediate-font;
   font-size: 13px;
   list-style: none;
 }
 
 .error input, input.ng-touched.ng-invalid {
-  border: 1px solid red;
+  border: 1px solid $form-error;
   color: #000;
 }
 
@@ -45,6 +45,6 @@
 }
 
 dd.error {
-  color: #E80000;
+  color: $form-error;
   text-align: left;
 }

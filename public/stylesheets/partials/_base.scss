@@ -88,7 +88,7 @@ button[type="submit"], button[type="button"] {
   text-align: center;
 }
 
-.split_content {
+.split-content {
   background: #fff;
   border: 1px solid #dddde0;
   margin: 60px 0 0 215px;
@@ -104,13 +104,13 @@ button[type="submit"], button[type="button"] {
   position: relative;
 }
 
-.content_actions {
+.content-actions {
   position: absolute;
   right: 20px;
   top: 20px;
 }
 
-.content_actions a {
+.content-actions a {
   background: #efefef;
   color: $mediate-blue;
   display: block;
@@ -128,7 +128,7 @@ button[type="submit"], button[type="button"] {
   color: #ff6666;
 }
 
-#create_new_app:hover, #export_as_csv:hover {
+#create-new-app:hover, #export-as-csv:hover {
   background: $mediate-light-blue;
 }
 
@@ -142,7 +142,7 @@ div [class^="col-"] {
   padding-right: 5px;
 }
 
-#ad_providers, #countries {
+#ad-providers, #countries {
   border-radius: 0;
   height: 41px;
 }

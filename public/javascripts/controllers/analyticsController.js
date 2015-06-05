@@ -87,9 +87,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          */
         $scope.startDatepicker = function() {
             $scope.elements = {
-                startDate: $( '#start_date' ),
-                endDate: $( '#end_date' ),
-                emailInput: $( '#export_email' )
+                startDate: $( '#start-date' ),
+                endDate: $( '#end-date' ),
+                emailInput: $( '#export-email' )
             };
 
             // Distributor ID to be used in AJAX calls.
@@ -597,7 +597,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 _.defer(function(){
                     $scope.$apply();
                     // Estimated Revenue Chart
-                    new Keen.Visualization({ result: chart_data }, document.getElementById("estimated_revenue_chart"), chartConfiguration);
+                    new Keen.Visualization({ result: chart_data }, document.getElementById("estimated-revenue-chart"), chartConfiguration);
                 });
             } );
         };

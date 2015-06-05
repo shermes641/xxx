@@ -51,12 +51,12 @@ header .actions .header-actions:before {
   z-index:-1;
 }
 
-header #username_header {
+header #username-header {
   color:#666;
   cursor:pointer;
 }
 
-header .header-actions #username_dropdown {
+header .header-actions #username-dropdown {
   background:#efeff4;
   border:1px solid #dddde0;
   bottom:-60px;
@@ -69,7 +69,7 @@ header .header-actions #username_dropdown {
   width:100%;
 }
 
-header .header-actions #username_dropdown a:hover {
+header .header-actions #username-dropdown a:hover {
   color:#666;
 }
 
@@ -78,7 +78,7 @@ header .actions a {
   text-decoration:none;
 }
 
-header #logo:before, .sub_header .menu li:before {
+header #logo:before, .sub-header .menu li:before {
   border-right: 1px solid #333;
   bottom: 1px;
   content: " ";
@@ -89,19 +89,19 @@ header #logo:before, .sub_header .menu li:before {
   z-index: -1;
 }
 
-header #username_header:hover, header .actions a:hover {
+header #username-header:hover, header .actions a:hover {
   color: #fff;
 }
 
-.sub_header .menu li.active,.sub_header .menu li.active:hover {
+.sub-header .menu li.active,.sub-header .menu li.active:hover {
   border-bottom: $mediate-light-blue 5px solid;
 }
 
-header #username_header:hover #username_dropdown {
+header #username-header:hover #username-dropdown {
   display: block;
 }
 
-.sub_header {
+.sub-header {
   background: #222;
   height: 60px;
   left: 217px;
@@ -111,7 +111,7 @@ header #username_header:hover #username_dropdown {
   z-index: 2001;
 }
 
-.sub_header .menu {
+.sub-header .menu {
   bottom: 0;
   display: block;
   left: 0;
@@ -120,7 +120,7 @@ header #username_header:hover #username_dropdown {
   top: 0;
 }
 
-.sub_header .menu li {
+.sub-header .menu li {
   -webkit-transition: 400ms ease all;
   border-right: 1px solid #000;
   color: #fff;
@@ -135,7 +135,7 @@ header #username_header:hover #username_dropdown {
   width: 138px;
 }
 
-.sub_header .menu li:hover {
+.sub-header .menu li:hover {
   background: #444;
 }
 

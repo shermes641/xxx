@@ -22,7 +22,7 @@
   margin: 0 0 10px;
 }
 
-#email_modal {
+#email-modal {
   background: #fff;
   border: 1px solid #dddde0;
   color: #333;
@@ -37,7 +37,7 @@
   z-index: 3000;
 }
 
-.close_button {
+.close-button {
   background: url(../images/close.png);
   cursor: pointer;
   height: 18px;
@@ -47,7 +47,7 @@
   width: 18px;
 }
 
-.modal_submit {
+.modal-submit {
   -webkit-appearance: none;
   background: $mediate-light-blue;
   border: 0;
@@ -76,7 +76,7 @@
   z-index: 9999;
 }
 
-.modal_text {
+#email_modal .modal-text {
   margin: 10px auto;
   text-align: center;
   width: 220px;
