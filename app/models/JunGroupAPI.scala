@@ -22,6 +22,9 @@ case class CreateAdNetwork(distributorUser: DistributorUser)
  * Encapsulates interactions with Player.
  */
 class JunGroupAPI {
+  val PlayerStagingURL: String = "staging.hyprmx.com"
+  val PlayerProdURL: String = "live.hyprmx.com"
+
   /**
    * Creates the request using the config passed.
    * @param adNetwork JSON containing the appropriate information to create a new AdNetwork in Player.
@@ -58,6 +61,16 @@ class JunGroupAPI {
     val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
     val adNetworkName = companyName + " - " + appName
     val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
+    val payoutURLEnvironment: String = {
+      val playerURL: String = Play.current.configuration.getString("jungroup.url").getOrElse("")
+      if(playerURL == PlayerProdURL) {
+        "production"
+      } else if(playerURL == PlayerStagingURL) {
+        "staging"
+      } else {
+        Environment.mode
+      }
+    }
     JsObject(
       Seq(
         "ad_network" -> JsObject(
@@ -76,7 +89,7 @@ class JunGroupAPI {
           Seq(
             "url" -> JsString(hyprMarketplacePayoutUrl),
             "method" -> JsString("get"),
-            "environment" -> JsString(Environment.mode),
+            "environment" -> JsString(payoutURLEnvironment),
             "signature" -> JsArray(
               Seq(
                 JsString("UID"),
