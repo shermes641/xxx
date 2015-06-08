@@ -80,12 +80,14 @@ header {
     display: block;
   }
 
-  #username-header:hover, .actions a:hover {
+  #username-header:hover,
+  .actions a:hover {
     color: #fff;
   }
 }
 
-header #logo:before, .sub-header .menu li:before {
+header #logo:before,
+.sub-header .menu li:before {
   border-right: 1px solid #333;
   bottom: 1px;
   content: " ";
@@ -131,7 +133,8 @@ header #logo:before, .sub-header .menu li:before {
       background: #444;
     }
 
-    &.active, &.active:hover {
+    &.active,
+    &.active:hover {
       border-bottom: $mediate-light-blue 5px solid;
     }
   }

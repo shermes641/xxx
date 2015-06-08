@@ -87,7 +87,9 @@
   }
 }
 
-.analytics-loading .square-1, .analytics-loading .square-2, .analytics-loading .square-3 {
+.analytics-loading .square-1,
+.analytics-loading .square-2,
+.analytics-loading .square-3 {
   display: inline-block;
   width: 15px;
   height: 15px;
@@ -100,8 +102,12 @@
   -webkit-animation: loading 600ms alternate infinite;
 }
 
-.analytics-circle.revenue-by-day .analytics-loading .square-1, .analytics-circle.revenue-by-day .analytics-loading .square-2, .analytics-circle.revenue-by-day .analytics-loading .square-3,
-.analytics-circle.average-ecpm .analytics-loading .square-1, .analytics-circle.average-ecpm .analytics-loading .square-2, .analytics-circle.average-ecpm .analytics-loading .square-3 {
+.analytics-circle.revenue-by-day .analytics-loading .square-1,
+.analytics-circle.revenue-by-day .analytics-loading .square-2,
+.analytics-circle.revenue-by-day .analytics-loading .square-3,
+.analytics-circle.average-ecpm .analytics-loading .square-1,
+.analytics-circle.average-ecpm .analytics-loading .square-2,
+.analytics-circle.average-ecpm .analytics-loading .square-3 {
   background: #fff;
 }
 
@@ -163,11 +169,11 @@
   font-size: 12px;
   color: #666;
   text-align: center;
-}
 
-.analytics-description i {
-  font-family: $mediate-font-light;
-  padding-left: 10px;
+  i {
+    font-family: $mediate-font-light;
+    padding-left: 10px;
+  }
 }
 
 .analytics-bullet {
@@ -177,15 +183,15 @@
   border-radius: 4px;
   margin-right: 10px;
 
-  .average-ecpm {
+  &.average-ecpm {
     background: $mediate-light-blue;
   }
 
-  .fill-rate {
+  &.fill-rate {
     background: #ffcc66;
   }
 
-  .revenue-by-day {
+  &.revenue-by-day {
     background: #42c187;
   }
 }
@@ -263,9 +269,17 @@
   width: 100%;
 }
 
-#csv-email-form h1 {
-  color: $mediate-light-blue;
-  font-size: 36px;
+#csv-email-form {
+  h1 {
+    color: $mediate-light-blue;
+    font-size: 36px;
+  }
+
+  .modal-text {
+    width: 220px;
+    margin: 10px auto;
+    padding: 0;
+  }
 }
 
 #ad-providers, #countries {

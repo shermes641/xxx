@@ -24,6 +24,7 @@
   height: 53px;
   margin-top: 20px;
   padding: 12px;
+  font-family: $mediate-font-light;
 
   .waterfall-buttons {
     position: relative;
@@ -130,7 +131,9 @@
   }
 }
 
-.ui-sortable-disabled .waterfall-drag-1, .ui-sortable-disabled .waterfall-drag-2, .ui-sortable-disabled .waterfall-drag-3 {
+.ui-sortable-disabled .waterfall-drag-1,
+.ui-sortable-disabled .waterfall-drag-2,
+.ui-sortable-disabled .waterfall-drag-3 {
   background: #efefef;
 }
 
@@ -152,7 +155,8 @@
   height: 2px;
 }
 
-.waterfall-drag-2, .waterfall-drag-3 {
+.waterfall-drag-2,
+.waterfall-drag-3 {
   background: #dddde0;
   height: 2px;
   margin-top: 6px;
@@ -203,7 +207,8 @@ button.inactive {
   width: 200%;
 }
 
-.onoffswitch-inner:before, .onoffswitch-inner:after {
+.onoffswitch-inner:before,
+.onoffswitch-inner:after {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
@@ -271,6 +276,7 @@ button.inactive {
   background: #dce3fa;
   border: 2px solid #b9c7f5;
   color: $mediate-light-blue;
+  font-family: $mediate-font-light;
   margin-top: 10px;
   padding: 22px;
   position: relative;

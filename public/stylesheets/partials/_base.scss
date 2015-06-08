@@ -43,7 +43,12 @@ h2 {
   font-weight: 700;
 }
 
-input[type="text"], input[type="password"], input[type="number"], input[type="email"], button[type="submit"], button[type="button"] {
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="email"],
+button[type="submit"],
+button[type="button"] {
   -webkit-appearance: none;
   background: $input-background-color;
   border: 0;
@@ -53,7 +58,8 @@ input[type="text"], input[type="password"], input[type="number"], input[type="em
   padding: 5px;
 }
 
-button[type="submit"], button[type="button"] {
+button[type="submit"],
+button[type="button"] {
   -webkit-appearance: none;
   background: $button-background-color;
   border: 0;
@@ -67,16 +73,6 @@ button[type="submit"], button[type="button"] {
   width: 100%;
 }
 
-.clickable {
-  color: $mediate-blue;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.unclickable {
-  pointer-events: none;
-}
-
 .tip {
   color: #555;
 }
@@ -86,7 +82,8 @@ button[type="submit"], button[type="button"] {
   text-align: center;
 }
 
-#create-new-app:hover, #export-as-csv:hover {
+#create-new-app:hover,
+#export-as-csv:hover {
   background: $mediate-light-blue;
 }
 
@@ -100,16 +97,10 @@ div [class^="col-"] {
   padding-right: 5px;
 }
 
-#ad-providers, #countries {
+#ad-providers,
+#countries {
   border-radius: 0;
   height: 41px;
-}
-
-.checkbox-label {
-  font-size: 11px;
-  margin-top: 20px;
-  max-width: 400px;
-  text-align: left;
 }
 
 .inactive-link {
@@ -135,19 +126,28 @@ hr {
   width: 100px;
 }
 
-.registration dt, .inactive-waterfall, .inactive-waterfall-content, .onoffswitch-checkbox, .hidden-wap-info, .undisplayed-wap-info, #new-app-page-header {
+.registration dt,
+.inactive-waterfall,
+.inactive-waterfall-content,
+.onoffswitch-checkbox,
+.hidden-wap-info,
+.undisplayed-wap-info,
+#new-app-page-header {
   display: none;
 }
 
-.flash-message.error, dd.modal-error {
+.flash-message.error,
+dd.modal-error {
   color: #E80000;
 }
 
-::-webkit-input-placeholder, :-ms-input-placeholder {
+::-webkit-input-placeholder,
+:-ms-input-placeholder {
   color: #DEDEDE;
 }
 
-:-moz-placeholder, ::-moz-placeholder {
+:-moz-placeholder,
+::-moz-placeholder {
   color: #DEDEDE;
   opacity: 1;
 }

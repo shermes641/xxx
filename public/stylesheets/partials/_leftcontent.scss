@@ -9,112 +9,113 @@
 .left-apps-list {
   border-bottom: 1px solid #c8c7cc;
   padding: 20px;
-}
 
-.left-apps-list h2 {
-  color: #6d6d72;
-  font-size: 13px;
-}
+  h2 {
+    color: #6d6d72;
+    font-size: 13px;
+  }
 
-.left-apps-list .reset-filters {
-  color: #333333;
-  text-decoration: underline;
-  font-size: 13px;
-  cursor: pointer;
-  margin-bottom: 25px;
-}
+  .reset-filters {
+    color: #333333;
+    text-decoration: underline;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 25px;
+  }
 
-.left-apps-list ul {
-  list-style: none;
-}
+  ul {
+    list-style: none;
+    font-family: $mediate-font-light;
 
-.left-apps-list ul li {
-  -webkit-transition: 150ms ease background;
-  background: #fff;
-  border-bottom: #c8c7cc 1px solid;
-  border-radius: 2px;
-  cursor: pointer;
-  display: block;
-  font-size: 13px;
-  margin-top: 10px;
-  padding: 8px 10px;
-  position: relative;
-}
+    li {
+      -webkit-transition: 150ms ease background;
+      background: #fff;
+      border-bottom: #c8c7cc 1px solid;
+      border-radius: 2px;
+      cursor: pointer;
+      display: block;
+      font-size: 13px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      position: relative;
 
-.left-apps-list ul li:hover {
-  background: #ccc;
-}
+      &:hover {
+        background: #ccc;
+      }
 
-.left-apps-list ul li.active {
-  background: $mediate-light-blue;
-  color: #fff;
-}
+      &.active {
+        background: $mediate-light-blue;
+        color: #fff;
+      }
 
-.left-apps-list ul li.active.removable {
-  white-space: pre;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-right: 12px;
-}
+      &.active.removable {
+        white-space: pre;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 12px;
+      }
 
-.left-apps-list ul li.active.removable:before {
-  background: url(../images/icons.png);
-  background-position: -16px -55px;
-  content: "";
-  height: 10px;
-  position: absolute;
-  right: 10px;
-  top: 11px;
-  width: 10px;
-}
+      &.active.removable:before {
+        background: url(../images/icons.png);
+        background-position: -16px -55px;
+        content: "";
+        height: 10px;
+        position: absolute;
+        right: 10px;
+        top: 11px;
+        width: 10px;
+      }
 
-.left-apps-list ul li.add {
-  color: $mediate-light-blue;
-}
+      &.add {
+        color: $mediate-light-blue;
+      }
 
-.left-apps-list ul li.add:hover {
-  background: #fff;
-}
+      &.add:hover {
+        background: #fff;
+      }
 
-.left-apps-list ul li.add:before {
-  background: url(../images/icons.png);
-  background-position: -14px -94px;
-  content: "";
-  height: 12px;
-  position: absolute;
-  right: 10px;
-  top: 12px;
-  width: 12px;
-  pointer-events: none;
-}
+      &.add:before {
+        background: url(../images/icons.png);
+        background-position: -14px -94px;
+        content: "";
+        height: 12px;
+        position: absolute;
+        right: 10px;
+        top: 12px;
+        width: 12px;
+        pointer-events: none;
+      }
 
-.left-apps-list ul li.arrowdown {
-  padding: 0;
-  width: 175px;
-  background: #fff;
-}
+      &.arrowdown {
+        padding: 0;
+        width: 175px;
+        background: #fff;
+      }
 
-.left-apps-list ul li.arrowdown input.form-control {
-  cursor: pointer;
-}
+      &.arrowdown input.form-control {
+        cursor: pointer;
+      }
 
-.left-apps-list ul li.arrowdown:before {
-  background: url(../images/icons.png);
-  background-position: -14px -121px;
-  content: "";
-  height: 12px;
-  position: absolute;
-  right: 10px;
-  top: 12px;
-  width: 12px;
-}
+      &.arrowdown:before {
+        background: url(../images/icons.png);
+        background-position: -14px -121px;
+        content: "";
+        height: 12px;
+        position: absolute;
+        right: 10px;
+        top: 12px;
+        width: 12px;
+      }
 
-.left-apps-list ul li input.form-control {
-  display: block;
-  float: none;
-  border-bottom: 0;
-  background: none;
-  text-align: left;
+      input.form-control {
+        display: block;
+        float: none;
+        border-bottom: 0;
+        background: none;
+        text-align: left;
+      }
+    }
+  }
 }
 
 

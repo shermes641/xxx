@@ -4,6 +4,7 @@
   padding-top: 20px;
   text-align: center;
   width: 400px;
+  font-family: $mediate-font-light;
 }
 
 .registration {
@@ -28,6 +29,8 @@
 
   .modal-text {
     margin: 20px auto;
+    width: 220px;
+    padding: 0;
   }
 
   input[type="checkbox"] {
@@ -52,4 +55,25 @@
 
 span#viewTerms:hover {
   text-decoration: underline;
+}
+
+.clickable {
+  color: $mediate-blue;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.unclickable {
+  pointer-events: none;
+}
+
+.checkbox-label {
+  font-size: 11px;
+  margin-top: 20px;
+  max-width: 400px;
+  text-align: left;
+
+  label {
+    font-family: $mediate-font-light;
+  }
 }

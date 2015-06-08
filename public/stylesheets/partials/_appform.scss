@@ -3,6 +3,13 @@
   text-align: left;
   width: 678px;
 
+  h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    margin-top: 0;
+    text-align: center;
+  }
+
   h3 {
     color: #6d6d72;
     font-size: 14px;
@@ -19,11 +26,8 @@
     text-align: left;
   }
 
-  h1 {
-    font-size: 36px;
-    margin-bottom: 10px;
-    margin-top: 0;
-    text-align: center;
+  label {
+    font-family: $mediate-font-light;
   }
 
   .switch-field {
@@ -39,6 +43,31 @@
 
   .switch-field dl {
     margin-bottom: 0;
+  }
+
+
+  &.edit-ad-providers {
+    width: 400px;
+  }
+
+  &.edit-ad-providers input[type="text"],
+  &.edit-ad-providers input[type="password"],
+  &.edit-ad-providers input[type="number"],
+  &.edit-ad-providers input[type="email"],
+  &.edit-ad-providers button[type="submit"],
+  &.edit-ad-providers button[type="button"] {
+    width: 376px;
+  }
+
+
+  &.edit-app-form input[type="text"],
+  &.edit-app-form input[type="password"],
+  &.edit-app-form input[type="number"],
+  &.edit-app-form input[type="email"],
+  &.edit-app-form button[type="submit"],
+  &.edit-app-form button[type="button"] {
+    margin-bottom: 20px;
+    width: 410px;
   }
 }
 
@@ -70,20 +99,7 @@
 
 #new-app-page-header .modal-text {
   margin-bottom: 30px;
-}
-
-.app-form.edit-ad-providers {
-  width: 400px;
-}
-
-.app-form.edit-ad-providers input[type="text"], .app-form.edit-ad-providers input[type="password"], .app-form.edit-ad-providers input[type="number"], .app-form.edit-ad-providers input[type="email"], .app-form.edit-ad-providers button[type="submit"], .app-form.edit-ad-providers button[type="button"] {
-  width: 376px;
-}
-
-
-.app-form.edit-app-form input[type="text"], .app-form.edit-app-form input[type="password"], .app-form.edit-app-form input[type="number"], .app-form.edit-app-form input[type="email"], .app-form.edit-app-form button[type="submit"], .app-form.edit-app-form button[type="button"] {
-  margin-bottom: 20px;
-  width: 410px;
+  font-family: $mediate-font-light;
 }
 
 .app-form .tip, .switch-checkbox-label {
