@@ -284,27 +284,6 @@ object App {
   }
 
   /**
-   * Checks database for an existing enabled App name for a particular Distributor.
-   * @param appName The potential name of a new App.
-   * @param distributorID The Distributor who will own the new App.
-   */
-  def nameExists(appName: String, distributorID: Long, appID: Option[Long] = None): Option[Long] = {
-    DB.withConnection { implicit connection =>
-      val appNameInfo: List[(Long, String)] = SQL(
-        """
-          SELECT id, name FROM apps
-          WHERE distributor_id = {distributor_id} AND active = true;
-        """
-      ).on("distributor_id" -> distributorID)().map(row => (row[Long]("id"), row[String]("name"))).toList
-      appNameInfo.find(info => info._2.toLowerCase == appName.toLowerCase) match {
-        case None => None
-        case Some(info) if(info._1 != appID.getOrElse(None)) => Some(info._1)
-        case _ => None
-      }
-    }
-  }
-
-  /**
    * SQL statement for inserting a new record into the apps table.
    * @param distributorID ID of current Distributor
    * @param name Maps to name column in the apps table

@@ -47,7 +47,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       clickAndWaitForAngular("#filter_apps")
 
       // hyprMX must be part of dropdown
-      waitUntilContainsText("#apps_filter .add", "New App")
+      waitUntilContainsText("#apps_filter .add", currentApp.name)
       clickAndWaitForAngular("#apps_filter .add .dropdown-menu .active")
 
       // Verify analytics data has been loaded

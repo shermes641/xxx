@@ -318,7 +318,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None, None).url)
     }
 
-    "render the updated pending status, on browser refresh, for HyprMarketplace ad provider" in new WithAppBrowser(distributor.id.get, "Some new test app") {
+    "render the updated pending status, on browser refresh, for HyprMarketplace ad provider" in new WithAppBrowser(distributor.id.get) {
       val wapID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID2.get, None, None, true, false, true).get
 
       logInUser()
@@ -391,7 +391,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "persist the last waterfall viewed by the user when switching between the analytics page and the waterfall edit page" in new WithAppBrowser(distributor.id.get) {
-      val (newApp, newWaterfall, _, _) = setUpApp(distributor.id.get, "New App 1")
+      val (newApp, newWaterfall, _, _) = setUpApp(distributor.id.get)
 
       logInUser()
 
@@ -442,9 +442,12 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(distributor.id.get, None, None).url)
-      val waterfallID = App.findAllAppsWithWaterfalls(distributor.id.get).head.waterfallID
-      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfallID).url)
-      browser.pageSource must contain(currentWaterfall.name)
+      val newestWaterfall = {
+        val id = App.findAllAppsWithWaterfalls(distributor.id.get).head.waterfallID
+        Waterfall.find(id, distributor.id.get).get
+      }
+      browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newestWaterfall.id).url)
+      browser.pageSource must contain(newestWaterfall.name)
     }
 
     "redirect to the App creation page if the Distributor has not created any Apps" in new WithFakeBrowser {
