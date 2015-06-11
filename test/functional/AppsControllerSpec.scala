@@ -225,7 +225,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
       clickAndWaitForAngular("#waterfall-app-settings-button")
+      currentApp.serverToServerEnabled must beFalse
+      browser.find("#callbackURL").first.isEnabled must beFalse
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.find("#callbackURL").first.isEnabled must beTrue
       browser.fill("#callbackURL").`with`("invalid-url")
       browser.clear("#currencyName")
       clickAndWaitForAngular("button[name=submit]")
