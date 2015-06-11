@@ -43,6 +43,19 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.find("#confirmation-errors").first().isDisplayed
       browser.find("#confirmation-errors").first().getText must beEqualTo("Password confirmation doesn't match Password.")
     }
+
+    "not display the welcome email flash message unless a user has just signed up" in new WithFakeBrowser {
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      browser.fill("#company").`with`(companyName)
+      browser.fill("#email").`with`("UniqueUser1@gmail.com")
+      browser.fill("#password").`with`(password)
+      browser.fill("#confirmation").`with`(password)
+      browser.$("#terms").click()
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").containsText("Your confirmation email will arrive shortly.")
+      browser.goTo(controllers.routes.Application.index.url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").areNotDisplayed
+    }
   }
 
   "DistributorUsersController.create" should {

@@ -6,7 +6,9 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
             $scope.newAppPage = true;
             $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
             $scope.flashMessage = flashMessage;
-            flashMessage.add({message: "Your confirmation email will arrive shortly.", status: "success"});
+            if($routeParams["recently_signed_up"] === "true") {
+                flashMessage.add({message: "Your confirmation email will arrive shortly.", status: "success"});
+            }
 
             // Submit form if fields are valid.
             $scope.submitNewApp = function(form) {
