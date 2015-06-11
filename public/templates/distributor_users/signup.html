@@ -2,7 +2,7 @@
     <h1>Create An Account</h1>
     <hr />
     <div class="modal-text">To begin, sign up below.  You will receive an email upon approval.</div>
-    <form name="newDistributorUserForm" ng-controller="SignupController" ng-submit="submit(newDistributorUserForm)" novalidate>
+    <form name="{{formName}}" ng-controller="SignupController" ng-submit="submit(newDistributorUserForm)" novalidate>
         <fieldset ng-disabled="waitForAuth">
             <dl id="company-field">
                 <dt><label for="company"></label></dt>
@@ -18,11 +18,11 @@
             <dl id="email-field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
-                    <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
+                    <input ng-model="data.email" clear-error-on-change="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.email.$touched">
-                    <dd class="error">{{errors.email}}</dd>
-                    <dd class="error" ng-show="newDistributorUserForm.email.$error.required">Email address is required</dd>
+                    <dd class="error" id="email-custom-error">{{errors.email}}</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.email.$error.required" id="email-required-error">Email address is required</dd>
                     <dd class="error" ng-show="newDistributorUserForm.email.$error.email">The email you entered is invalid.</dd>
                 </div>
             </dl>
@@ -34,7 +34,9 @@
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.password.$touched">
                     <dd class="error">{{errors.password}}</dd>
-                    <dd class="error" ng-show="newDistributorUserForm.password.$error.minlength">Password must be a minimum of 8 characters.</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.password.$error.minlength && !newDistributorUserForm.password.$error.required">
+                        Password must be a minimum of 8 characters.
+                    </dd>
                     <dd class="error" ng-show="newDistributorUserForm.password.$error.required">Password is required</dd>
                 </div>
             </dl>
@@ -46,7 +48,9 @@
                 </dd>
                 <div id="confirmation-errors" ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
                     <dd class="error">{{errors.confirmation}}</dd>
-                    <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.passwordConfirmation">Password confirmation doesn't match Password.</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.passwordConfirmation && !newDistributorUserForm.confirmation.$error.required">
+                        Password confirmation doesn't match Password.
+                    </dd>
                     <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.required">Password confirmation is required</dd>
                 </div>
             </dl>
