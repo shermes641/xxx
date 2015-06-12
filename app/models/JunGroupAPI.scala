@@ -9,7 +9,7 @@ import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{TimeoutException, Future}
 import scala.language.postfixOps
 
 /**
@@ -134,9 +134,9 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       counter += 1
       if(counter > RETRY_COUNT) {
-        Logger.error("Could not create ad network on player for DistributorUser Email: " + distributorUser.email +
-          " WaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + " API Token: " + appToken + " Failure Reason: " + lastFailure)
-        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
+        val emailError = "Could not create ad network on player for DistributorUser Email: " +
+          distributorUser.email + "\nLast Failure: " + lastFailure
+        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, emailError)
         context.stop(self)
       } else {
         val adNetwork = api.adNetworkConfiguration(companyName, appName, appToken)
@@ -145,7 +145,8 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
             if(response.status != 500) {
               try {
                 Json.parse(response.body) match {
-                  case _:JsUndefined => {
+                  case error: JsUndefined => {
+                    lastFailure = assembleAndLogError("Received a JsUndefined error while parsing Player's response", Some(response.body))
                     retry(distributorUser)
                   }
                   case results if(response.status == 200 || response.status == 304) => {
@@ -158,31 +159,57 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                           AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
                         } catch {
                           case error: org.postgresql.util.PSQLException => {
+                            assembleAndLogError("Encountered a Postgres Exception while updating the HyprMarketplace WaterfallAdProvider", Some(response.body))
                             connection.rollback()
                           }
                         }
                       }
                     } else {
                       val error: JsValue = results \ "error"
-                      lastFailure = error.as[String]
+                      lastFailure = assembleAndLogError("There was an error while creating the ad network in Player: " + error.as[String], Some(response.body))
                       retry(distributorUser)
                     }
                   }
-                  case _ => retry(distributorUser)
+                  case error => {
+                    lastFailure = assembleAndLogError("Received a " + response.status + " status code from Player", Some(response.body))
+                    retry(distributorUser)
+                  }
                 }
               } catch {
                 case parsingError: com.fasterxml.jackson.core.JsonParseException => {
-                  lastFailure = response.body
+                  lastFailure = assembleAndLogError("Received a JSON parsing error", Some(response.body))
                   retry(distributorUser)
                 }
               }
             } else {
+              lastFailure = assembleAndLogError("Received a 500 response from Player", Some(response.body))
               retry(distributorUser)
             }
+          }
+        } recover {
+          case _: TimeoutException => {
+            lastFailure = assembleAndLogError("Request to Player timed out")
+            retry(distributorUser)
+          }
+          case error => {
+            lastFailure = assembleAndLogError("Recovered from Player response error")
+            retry(distributorUser)
           }
         }
       }
     }
+  }
+
+  /**
+   * Appends identifiable app information to an error message and logs it to the console
+   * @param errorMessage The message to be logged
+   * @param responseBody The body of Player's response
+   */
+  def assembleAndLogError(errorMessage: String, responseBody: Option[String] = None): String = {
+    val fullError = "JunGroupAPI Error for API Token: " + appToken + "\nWaterfallAdProvider ID: " +
+      hyprWaterfallAdProvider.id + "\nError Message: " + errorMessage + "\nResponse Body: " + responseBody.getOrElse("")
+    Logger.error(fullError)
+    fullError
   }
 }
 
