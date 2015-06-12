@@ -1,6 +1,7 @@
 update_commit_info () {
     if [ $? -eq 1 ]; then
         echo Deploy Failed.  SHA and Branch name were not updated.
+        exit 1
     else
         hash_name=LATEST_SHA
         hash=$(git rev-parse HEAD)
