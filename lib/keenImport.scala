@@ -50,6 +50,183 @@ if(Environment.isProd) {
     }
   }
 
+  class DailyEvent(appName: String, appID: Long, adProvider: AdProvider, startDate: DateTime) {
+    var date = startDate
+    lazy val inventoryRequestCount = Random.nextInt(60) + 30
+    lazy val inventoryRequests = Array.fill(inventoryRequestCount) {
+      date = date - 1.minute
+      Json.obj(
+        "distributor_id" -> distributorID,
+        "distributor_name" -> companyName,
+        "app_name" -> appName,
+        "platform" -> "iOS",
+        "app_id" -> appID,
+        "ad_provider_id" -> adProvider.id,
+        "ad_provider_name" -> adProvider.name,
+        "device_type" -> "iphone",
+        "device_unique_id" -> "UUID",
+        "ip_address" -> "${keen.ip}",
+        "keen" -> Json.obj(
+          "timestamp" -> date.toString()
+        )
+      )
+    }
+    date = startDate
+
+    lazy val inventoryAvailableCount = Random.nextInt(30) + 1
+    lazy val inventoryAvailable = Array.fill(inventoryAvailableCount) {
+      date = date - 1.minute
+      Json.obj(
+        "distributor_name" -> companyName,
+        "distributor_id" -> distributorID,
+        "app_name" -> appName,
+        "platform" -> "iOS",
+        "app_id" -> appID,
+        "ad_provider_id" -> adProvider.id,
+        "ad_provider_name" -> adProvider.name,
+        "device_type" -> "iphone",
+        "device_unique_id" -> "UUID",
+        "ip_address" -> "${keen.ip}",
+        "keen" -> Json.obj(
+          "timestamp" -> date.toString()
+        )
+      )
+    }
+    date = startDate
+
+    lazy val mediationRequestsCount = Random.nextInt(100) + 50
+    lazy val mediationInventoryRequests = Array.fill(mediationRequestsCount) {
+      date = date - 1.minute
+      Json.obj(
+        "distributor_id" -> distributorID,
+        "distributor_name" -> companyName,
+        "app_name" -> appName,
+        "platform" -> "iOS",
+        "app_id" -> appID,
+        "device_type" -> "iphone",
+        "device_unique_id" -> "UUID",
+        "ip_address" -> "${keen.ip}",
+        "keen" -> Json.obj(
+          "timestamp" -> date.toString()
+        )
+      )
+    }
+    date = startDate
+
+    lazy val mediationAvailableCount = Random.nextInt(50) + 1
+    lazy val mediationInventoryAvailable = Array.fill(mediationAvailableCount) {
+      date = date - 1.minute
+      Json.obj(
+        "distributor_id" -> distributorID,
+        "app_name" -> appName,
+        "platform" -> "iOS",
+        "app_id" -> appID,
+        "device_type" -> "iphone",
+        "device_unique_id" -> "UUID",
+        "ip_address" -> "${keen.ip}",
+        "ad_provider_id" -> adProvider.id,
+        "ad_provider_name" -> adProvider.name,
+        "keen" -> Json.obj(
+          "timestamp" -> date.toString()
+        )
+      )
+    }
+    date = startDate
+
+    lazy val adDisplayedCount = Random.nextInt(25) + 15
+    lazy val adDisplayed = Array.fill(adDisplayedCount) {
+      date = date - 1.minute
+      Json.obj(
+        "distributor_name" -> companyName,
+        "distributor_id" -> distributorID,
+        "app_name" -> appName,
+        "platform" -> "iOS",
+        "app_id" -> appID,
+        "ad_provider_id" -> adProvider.id,
+        "ad_provider_name" -> adProvider.name,
+        "device_type" -> "iphone",
+        "device_unique_id" -> "UUID",
+        "ip_address" -> "${keen.ip}",
+        "keen" -> Json.obj(
+          "timestamp" -> date.toString()
+        )
+      )
+    }
+    date = startDate
+
+    lazy val adCompletedCount = Random.nextInt(15) + 1
+    var eCPMSum = 0
+    lazy val adCompleted = Array.fill(adCompletedCount) {
+      lazy val eCPMValue = Random.nextInt(10) + 1
+      eCPMSum += eCPMValue
+      date = date - 1.minute
+      Json.obj(
+        "distributor_id" -> distributorID,
+        "distributor_name" -> companyName,
+        "app_name" -> appName,
+        "platform" -> "iOS",
+        "app_id" -> appID,
+        "ad_provider_id" -> adProvider.id,
+        "ad_provider_name" -> adProvider.name,
+        "device_type" -> "iphone",
+        "device_unique_id" -> "UUID",
+        "ip_address" -> "${keen.ip}",
+        "virtual_currency_awarded" -> 1,
+        "virtual_currency_reward_max" -> 100,
+        "ad_provider_eCPM" -> eCPMValue,
+        "virtual_currency_round_up" -> "yes",
+        "offer_reward_id" -> 0,
+        "offer_reward_text" -> "1 reward",
+        "offer_reward_quantity" -> 1,
+        "offer_title" -> "another test",
+        "offer_description" -> "one more test video",
+        "virtual_currency_exchange_rate" -> 100,
+        "virtual_currency_name" -> "Coins",
+        "offer_type" -> "video",
+        "offer_is_default" -> "false",
+        "virtual_currency_reward_min" -> 1,
+        "keen" -> Json.obj(
+          "timestamp" -> date.toString()
+        )
+      )
+    }
+    lazy val eCPMAverage = eCPMSum.toFloat / adCompletedCount
+
+    lazy val batch_request: JsValue = Json.obj(
+      "availability_requested" -> inventoryRequests,
+      "availability_response_true" -> inventoryAvailable
+    )
+
+    lazy val batch_request_mediation: JsValue = Json.obj(
+      "mediate_availability_requested" -> mediationInventoryRequests,
+      "mediate_availability_response_true" -> mediationInventoryAvailable
+    )
+
+    lazy val batch_request_ads: JsValue = Json.obj(
+      "ad_displayed" -> adDisplayed,
+      "ad_completed" -> adCompleted
+    )
+
+    def publishToKeen() = {
+      client.addEvents(Json.stringify(Json.toJson(batch_request)))
+      client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
+      client.addEvents(Json.stringify(Json.toJson(batch_request_ads)))
+
+      println("==================")
+      println("Date:                      " + date.toString(DateTimeFormat.forPattern("MM-dd-yyyy")))
+      println("Inventory Request Count:   " + inventoryRequestCount)
+      println("Inventory Available Count: " + inventoryAvailableCount)
+      println("Fill Rate:                 " + (inventoryAvailableCount.toFloat / inventoryRequestCount))
+      println("Mediate Requested Count: " + mediationRequestsCount)
+      println("Mediate Available Count: " + mediationAvailableCount)
+      println("Mediate Fill Rate:       " + (mediationAvailableCount.toFloat / mediationRequestsCount))
+      println("Ad Displayed Count:        " + adDisplayedCount)
+      println("Ad Completed Count:        " + adCompletedCount)
+      println("Average eCPM Value:        " + eCPMAverage)
+      println("")
+    }
+  }
+
   val firstApp = AppHelper.createApp("First App")
 
   // Repeat first app to get multiple ad providers
@@ -107,184 +284,41 @@ if(Environment.isProd) {
       println("App ID:            " + appID)
       println("Ad Provider ID:    " + adProvider.id)
 
-      createEvents(appName, appID, adProvider, DateTime.now)
-      createEvents(appName, appID, adProvider, DateTime.now - 1.day)
-      createEvents(appName, appID, adProvider, DateTime.now - 2.day)
+      var events = List(
+        new DailyEvent(appName, appID, adProvider, DateTime.now),
+        new DailyEvent(appName, appID, adProvider, DateTime.now - 1.day),
+        new DailyEvent(appName, appID, adProvider, DateTime.now - 2.day)
+      )
+
+      events.map(event => event.publishToKeen())
+
+      println("")
+      println(events.length + " day totals for " + appName.toUpperCase + " using Ad Provider " + adProvider.name.toUpperCase)
+      printDateRangeTotals(appName, adProvider.name, events)
   }
 
-  def createEvents(appName: String, appID: Long, adProvider: AdProvider, startDate: DateTime) = {
-    var date = startDate
-    val inventoryRequestCount = Random.nextInt(60) + 30
-    val inventoryRequests = Array.fill(inventoryRequestCount) {
-      date = date - 1.minute
-      Json.obj(
-        "distributor_id" -> distributorID,
-        "distributor_name" -> companyName,
-        "app_name" -> appName,
-        "platform" -> "iOS",
-        "app_id" -> appID,
-        "ad_provider_id" -> adProvider.id,
-        "ad_provider_name" -> adProvider.name,
-        "device_type" -> "iphone",
-        "device_unique_id" -> "UUID",
-        "ip_address" -> "${keen.ip}",
-        "keen" -> Json.obj(
-          "timestamp" -> date.toString()
-        )
-      )
+  def printDateRangeTotals(appName: String, adProviderName: String, appEvents: List[DailyEvent]) = {
+    val totalInventoryRequestCount = appEvents.foldLeft(0)((total, event) => total + event.inventoryRequestCount)
+    val totalInventoryAvailableCount = appEvents.foldLeft(0)((total, event) => total + event.inventoryAvailableCount)
+    val totalMediationRequestsCount = appEvents.foldLeft(0)((total, event) => total + event.mediationRequestsCount)
+    val totalMediationAvailableCount = appEvents.foldLeft(0)((total, event) => total + event.mediationAvailableCount)
+    val totalAdDisplayedCount = appEvents.foldLeft(0)((total, event) => total + event.adDisplayedCount)
+    val totalAdCompletedCount = appEvents.foldLeft(0)((total, event) => total + event.adCompletedCount)
+    val totalEcpmAverage = {
+      val totalEcpmSum: Float = appEvents.foldLeft(0)((total, event) => total + event.eCPMSum)
+      totalEcpmSum / totalAdCompletedCount
     }
-    date = startDate
-
-    val inventoryAvailableCount = Random.nextInt(30) + 1
-    val inventoryAvailable = Array.fill(inventoryAvailableCount) {
-      date = date - 1.minute
-      Json.obj(
-        "distributor_name" -> companyName,
-        "distributor_id" -> distributorID,
-        "app_name" -> appName,
-        "platform" -> "iOS",
-        "app_id" -> appID,
-        "ad_provider_id" -> adProvider.id,
-        "ad_provider_name" -> adProvider.name,
-        "device_type" -> "iphone",
-        "device_unique_id" -> "UUID",
-        "ip_address" -> "${keen.ip}",
-        "keen" -> Json.obj(
-          "timestamp" -> date.toString()
-        )
-      )
-    }
-    date = startDate
-
-    val mediationRequestsCount = Random.nextInt(100) + 50
-    val mediationInventoryRequests = Array.fill(mediationRequestsCount) {
-      date = date - 1.minute
-      Json.obj(
-        "distributor_id" -> distributorID,
-        "distributor_name" -> companyName,
-        "app_name" -> appName,
-        "platform" -> "iOS",
-        "app_id" -> appID,
-        "device_type" -> "iphone",
-        "device_unique_id" -> "UUID",
-        "ip_address" -> "${keen.ip}",
-        "keen" -> Json.obj(
-          "timestamp" -> date.toString()
-        )
-      )
-    }
-    date = startDate
-
-    val mediationAvailableCount = Random.nextInt(50) + 1
-    val mediationInventoryAvailable = Array.fill(mediationAvailableCount) {
-      date = date - 1.minute
-      Json.obj(
-        "distributor_id" -> distributorID,
-        "app_name" -> appName,
-        "platform" -> "iOS",
-        "app_id" -> appID,
-        "device_type" -> "iphone",
-        "device_unique_id" -> "UUID",
-        "ip_address" -> "${keen.ip}",
-        "ad_provider_id" -> adProvider.id,
-        "ad_provider_name" -> adProvider.name,
-        "keen" -> Json.obj(
-          "timestamp" -> date.toString()
-        )
-      )
-    }
-    date = startDate
-
-    val adDisplayedCount = Random.nextInt(25) + 15
-    val adDisplayed = Array.fill(adDisplayedCount) {
-      date = date - 1.minute
-      Json.obj(
-        "distributor_name" -> companyName,
-        "distributor_id" -> distributorID,
-        "app_name" -> appName,
-        "platform" -> "iOS",
-        "app_id" -> appID,
-        "ad_provider_id" -> adProvider.id,
-        "ad_provider_name" -> adProvider.name,
-        "device_type" -> "iphone",
-        "device_unique_id" -> "UUID",
-        "ip_address" -> "${keen.ip}",
-        "keen" -> Json.obj(
-          "timestamp" -> date.toString()
-        )
-      )
-    }
-    date = startDate
-
-    val adCompletedCount = Random.nextInt(15) + 1
-    var eCPMSum = 0
-    val adCompleted = Array.fill(adCompletedCount) {
-      val eCPMValue = Random.nextInt(10) + 1
-      eCPMSum += eCPMValue
-      date = date - 1.minute
-      Json.obj(
-        "distributor_id" -> distributorID,
-        "distributor_name" -> companyName,
-        "app_name" -> appName,
-        "platform" -> "iOS",
-        "app_id" -> appID,
-        "ad_provider_id" -> adProvider.id,
-        "ad_provider_name" -> adProvider.name,
-        "device_type" -> "iphone",
-        "device_unique_id" -> "UUID",
-        "ip_address" -> "${keen.ip}",
-        "virtual_currency_awarded" -> 1,
-        "virtual_currency_reward_max" -> 100,
-        "ad_provider_eCPM" -> eCPMValue,
-        "virtual_currency_round_up" -> "yes",
-        "offer_reward_id" -> 0,
-        "offer_reward_text" -> "1 reward",
-        "offer_reward_quantity" -> 1,
-        "offer_title" -> "another test",
-        "offer_description" -> "one more test video",
-        "virtual_currency_exchange_rate" -> 100,
-        "virtual_currency_name" -> "Coins",
-        "offer_type" -> "video",
-        "offer_is_default" -> "false",
-        "virtual_currency_reward_min" -> 1,
-        "keen" -> Json.obj(
-          "timestamp" -> date.toString()
-        )
-      )
-    }
-    val eCPMAverage = eCPMSum.toFloat / adCompletedCount
-
-    val batch_request: JsValue = Json.obj(
-      "availability_requested" -> inventoryRequests,
-      "availability_response_true" -> inventoryAvailable
-    )
-
-    val batch_request_mediation: JsValue = Json.obj(
-      "mediate_availability_requested" -> mediationInventoryRequests,
-      "mediate_availability_response_true" -> mediationInventoryAvailable
-    )
-
-    val batch_request_ads: JsValue = Json.obj(
-      "ad_displayed" -> adDisplayed,
-      "ad_completed" -> adCompleted
-    )
-
-    // Publish lots of events
-    client.addEvents(Json.stringify(Json.toJson(batch_request)))
-    client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
-    client.addEvents(Json.stringify(Json.toJson(batch_request_ads)))
 
     println("==================")
-    println("Date:                      " + date.toString(DateTimeFormat.forPattern("MM-dd-yyyy")))
-    println("Inventory Request Count:   " + inventoryRequestCount)
-    println("Inventory Available Count: " + inventoryAvailableCount)
-    println("Fill Rate:                 " + (inventoryAvailableCount.toFloat / inventoryRequestCount))
-    println("Mediate Requested Count: " + mediationRequestsCount)
-    println("Mediate Available Count: " + mediationAvailableCount)
-    println("Mediate Fill Rate:       " + (mediationAvailableCount.toFloat / mediationRequestsCount))
-    println("Ad Displayed Count:        " + adDisplayedCount)
-    println("Ad Completed Count:        " + adCompletedCount)
-    println("Average eCPM Value:        " + eCPMAverage)
+    println("Inventory Request Count:   " + totalInventoryRequestCount)
+    println("Inventory Available Count: " + totalInventoryAvailableCount)
+    println("Fill Rate:                 " + (totalInventoryAvailableCount.toFloat / totalInventoryRequestCount))
+    println("Mediate Requested Count: " + totalMediationRequestsCount)
+    println("Mediate Available Count: " + totalMediationAvailableCount)
+    println("Mediate Fill Rate:       " + (totalMediationAvailableCount.toFloat / totalMediationRequestsCount))
+    println("Ad Displayed Count:        " + totalAdDisplayedCount)
+    println("Ad Completed Count:        " + totalAdCompletedCount)
+    println("Average eCPM Value:        " + totalEcpmAverage)
     println("")
   }
 }
