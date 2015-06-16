@@ -93,7 +93,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     }
 
     "allow a new app to be created if the Distributor has already created and deactivated an App with the same name" in new WithFakeBrowser {
-      val (currentApp, _, _, _) = setUpApp(user.distributorID.get, "Some unique app name")
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
       App.update(new UpdatableApp(currentApp.id, active = false, distributorID = user.distributorID.get, name = currentApp.name, callbackURL = None, serverToServerEnabled = false))
       val appCount = App.findAll(user.distributorID.get).size
 

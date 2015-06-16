@@ -60,7 +60,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
     }
 
     "should set the app_config_refresh_interval to 0 by default" in new WithDB {
-      val appID = App.create(distributor.id.get, appName).get
+      val appID = App.create(distributor.id.get, randomAppName).get
       val appConfigRefreshInterval = DB.withConnection { implicit connection =>
         SQL(
           """
@@ -152,34 +152,6 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
     "return false if the App ID is not found" in new WithDB {
       val fakeAppID = 12345
       App.updateAppConfigRefreshInterval(fakeAppID, 500) must beEqualTo(false)
-    }
-  }
-
-  "App.nameExists" should {
-    "return None if the App name does not exist for the current Distributor" in new WithDB {
-      val appName = "Some unique app name"
-      App.nameExists(appName, distributor.id.get) must beNone
-    }
-
-    "return None if the App name matches the current App ID for the current Distributor" in new WithDB {
-      val appName = "Some existing app name"
-      val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
-      App.nameExists(appName, distributor.id.get, Some(currentApp.id)) must beNone
-    }
-
-    "return None if the App name matches an existing deactivated App for the current Distributor" in new WithDB {
-      val appName = "Some existing app name 2"
-      val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
-      App.update(new UpdatableApp(currentApp.id, active = false, distributorID = distributor.id.get, name = currentApp.name, callbackURL = None, serverToServerEnabled = false))
-      App.nameExists(appName, distributor.id.get, appID = None) must beNone
-    }
-
-    "return the ID of the existing App if the App name is not unique for the current Distributor, regardless of case" in new WithDB {
-      val appName = "Another Existing App Name"
-      val (currentApp, _, _, _) = setUpApp(distributor.id.get, appName)
-      List(appName, appName.toLowerCase, appName.toUpperCase).map {name =>
-        App.nameExists(name, distributor.id.get, None).get must beEqualTo(currentApp.id)
-      }
     }
   }
 }
