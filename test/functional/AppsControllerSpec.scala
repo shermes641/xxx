@@ -274,36 +274,6 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       clickAndWaitForAngular("button[name=submit]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
     }
-
-    "display an error message is exchange rate is too long" in new WithAppBrowser(user.distributorID.get) {
-      logInUser()
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
-      browser.fill("#exchangeRate").`with`("9999999999999999")
-      browser.fill("#appName").`with`(currentApp.name)
-      clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must 15 characters or less.")
-    }
-
-    "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
-      logInUser()
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
-      browser.fill("#rewardMin").`with`("9999999999999999")
-      browser.fill("#appName").`with`(currentApp.name)
-      clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Exchange Rate must 15 characters or less.")
-    }
-
-    "display an error message is reward max is too long" in new WithAppBrowser(user.distributorID.get) {
-      logInUser()
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
-      browser.fill("#rewardMax").`with`("9999999999999999")
-      browser.fill("#appName").`with`(currentApp.name)
-      clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_max").containsText("Exchange Rate must 15 characters or less.")
-    }
   }
 
   "AppsController.update" should {
