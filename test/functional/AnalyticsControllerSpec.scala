@@ -194,6 +194,15 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       contentAsString(result) must equalTo("Expecting Json data")
     }
 
+    "Refresh analytics page when clicking on the HyprMediate logo without a persisted app_id" in new WithFakeBrowser {
+      setUpApp(distributorID)
+      logInUser(distributorUser.email, password)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, None, None).url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#logo").isPresent
+      clickAndWaitForAngular("#logo")
+      browser.url must beEqualTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, None, None).url)
+    }
+
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
       browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
