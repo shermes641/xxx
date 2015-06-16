@@ -214,7 +214,7 @@ if(Environment.isProd) {
 
       println("==================")
       println("Date:                      " + date.toString(DateTimeFormat.forPattern("MM-dd-yyyy")))
-      println("Inventory Request Count:   " + inventoryRequestCounti + " (Requests)")
+      println("Inventory Request Count:   " + inventoryRequestCount + " (Requests)")
       println("Inventory Available Count: " + inventoryAvailableCount)
       println("Fill Rate:                 " + (inventoryAvailableCount.toFloat / inventoryRequestCount) + " (Fill Rate)")
       println("Mediate Requested Count:   " + mediationRequestsCount + " (Requests, All Ad Providers)")
