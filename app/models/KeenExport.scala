@@ -240,7 +240,8 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       } yield (requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse)
 
       futureResponse.recover {
-        case _ =>
+        case e: Exception =>
+          sendEmail(Play.current.configuration.getString("jungroup.email").get, "Error Exporting CSV for " + email, e.getMessage)
           sendEmail(email, "Error Exporting CSV", "There was a problem exporting your data.  Please try again.")
       }
 
