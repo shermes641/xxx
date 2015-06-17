@@ -2217,3 +2217,16 @@ header #username_header:hover #username_dropdown,#apps_list:hover #apps_list_men
     -moz-user-select:none;
     -ms-user-select:none;
 }
+
+.app_modal_message
+{
+    margin-left:-200px;
+    margin-top:-65px;
+}
+
+.wap_modal_message
+{
+    position:fixed;
+    margin-left:-200px;
+    margin-top:-65px;
+}

@@ -302,9 +302,15 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
       clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#appName").`with`(newAppName)
+      browser.executeScript("$('#serverToServerEnabled').click();")
+      val longCallbackURL = "http://" + "a" * 2037 + ".com" // This meets the 2048 character limit for the callback_url field
+      browser.fill("#callbackURL").`with`(longCallbackURL)
+      browser.fill("#rewardMax").`with`("")
       browser.executeScript("$('#update-app').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
-      App.find(currentApp.id).get.name must beEqualTo(newAppName)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
+      val updatedApp = App.find(currentApp.id).get
+      updatedApp.name must beEqualTo(newAppName)
+      updatedApp.callbackURL.get must beEqualTo(longCallbackURL)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -324,7 +330,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`(rewardMin.toString)
       browser.fill("#rewardMax").`with`(rewardMax.toString)
       browser.executeScript("$('#update-app').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
 
       val updatedVC = VirtualCurrency.find(currentVirtualCurrency.id).get
       updatedVC.rewardMin must beEqualTo(rewardMin)

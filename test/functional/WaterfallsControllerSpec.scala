@@ -106,7 +106,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("var providers = angular.element($('#waterfall-controller')).scope().waterfallData.waterfallAdProviderList; angular.element($('#waterfall-controller')).scope().waterfallData.waterfallAdProviderList = [providers.pop()].concat(providers); angular.element($('#waterfall-controller')).scope().sortableOptions.stop();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder(0).providerName must not equalTo(firstProvider)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -120,7 +120,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.$("button[name=status]").first().click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
       newOrder.filter(adProvider => adProvider.active.get).size must equalTo(originalOrder.size - 1)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
@@ -159,7 +159,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
       browser.executeScript("$('#optimized-mode-switch').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
@@ -175,7 +175,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       browser.executeScript("$('#test-mode-switch').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
@@ -194,7 +194,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.executeScript("$('#test-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
       browser.find("#test_mode_confirmation").click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
@@ -363,10 +363,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", "some key")
       browser.executeScript("$('button[name=update-ad-provider]').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviders(0) + " updated!")
       browser.findFirst("button[name=status]").getText must contain("Activate")
       browser.$("button[name=status]").first().click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
+      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       WaterfallAdProvider.findAllOrdered(currentWaterfall.id).size must beEqualTo(1)
     }
 
@@ -383,7 +383,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed()
       browser.fill("input[name=appName]").`with`(newAppName)
       browser.executeScript("$('button[name=submit]').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
       browser.find(".left_apps_list").getText must contain(newAppName)
       browser.find(".left_apps_list").getText must not contain(oldAppName)
       browser.find("#edit-top").getText must contain(newAppName)
