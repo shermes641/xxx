@@ -17,7 +17,6 @@ class HyprMarketplaceCallback(appToken: String, userID: String, signature: Strin
   override val adProviderName = "HyprMarketplace"
   override val token = appToken
   override val receivedVerification = signature
-  override lazy val rawPayoutAmount = offerProfit
   override def payout = offerProfit
   override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
 

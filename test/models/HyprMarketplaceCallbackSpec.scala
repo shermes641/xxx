@@ -10,13 +10,15 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, hyprMarketplaceID, None, None, true, true).get
+    val id = WaterfallAdProvider.create(waterfall.id, hyprMarketplaceID, waterfallOrder = None, cpm = None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq()),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
-    WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, None, Some(true), None, configuration, false))
+    WaterfallAdProvider.update(
+      new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, waterfallOrder = None,
+        cpm = Some(20), active = Some(true), fillRate = None, configurationData = configuration, reportingActive = false)
+    )
   }
-
   val userID = "abc"
   val signature = "b6125341cbd0393e5b5ab67169964c63aba583982cb44f0bc75a48f2587ab870"
   val time = "1419972045"
@@ -45,7 +47,7 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
         new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
       }
-      callback.currencyAmount must beEqualTo(50)
+      callback.currencyAmount must beEqualTo(2) // ($20 eCPM/1000) * (100 currency/dollar) = 2 currency
       callback.currencyAmount must not(beEqualTo(quantity))
     }
 
@@ -54,7 +56,7 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
         new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
       }
-      callback.currencyAmount must beEqualTo(5)
+      callback.currencyAmount must beEqualTo(5) // ($20 eCPM/1000) * (1 currency/dollar) = 0.02 currency
     }
 
     "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
@@ -62,7 +64,7 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=false))
         new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
       }
-      callback.currencyAmount must beEqualTo(0)
+      callback.currencyAmount must beEqualTo(0) // ($20 eCPM/1000) * (1 currency/dollar) = 0.02 currency
     }
 
     "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
@@ -70,13 +72,13 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
         new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
       }
-      callbackWithoutRewardMax.currencyAmount must beEqualTo(250)
+      callbackWithoutRewardMax.currencyAmount must beEqualTo(10) // ($20 eCPM/1000) * (500 currency/dollar) = 10 currency
 
       val callbackWithRewardMax = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
         new HyprMarketplaceCallback(app1.token, userID, signature, time, subID, payout, quantity)
       }
-      callbackWithRewardMax.currencyAmount must beEqualTo(2)
+      callbackWithRewardMax.currencyAmount must beEqualTo(2) // ($20 eCPM/1000) * (500 currency/dollar) = 10 currency
     }
   }
 
