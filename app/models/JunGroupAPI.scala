@@ -45,7 +45,8 @@ class JunGroupAPI {
   def sendFailureEmail(distributorUser: DistributorUser, waterfallAdProviderID: Long, appToken: String, failureReason: String) {
     val subject = "Player Ad Network Creation Failure"
     val body = "Jun Group ad network account was not created successfully. <br> Email: " + distributorUser.email +
-      " <br> WaterfallAdProviderID: " + waterfallAdProviderID + " <br> AppToken: " + appToken + " <br> Error: " + failureReason
+      " <br> WaterfallAdProviderID: " + waterfallAdProviderID + " <br> AppToken: " + appToken + " <br> Error: " + failureReason +
+      " <br> For More information visit: https://wiki.jungroup.com/display/MED/Create+Ad+Network+for+HyprMarketplace+on+Player+API+Failure"
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(Play.current.configuration.getString("jungroup.email").get, subject, body)))
     emailActor ! "email"
   }
@@ -117,7 +118,7 @@ class JunGroupAPI {
 class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, distributorID: Long, api: JunGroupAPI) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
-  private val RETRY_FREQUENCY = 3.seconds
+  private val RETRY_FREQUENCY = 60.seconds
   var lastFailure = ""
   val companyName = Distributor.find(distributorID).get.name
 
@@ -132,7 +133,6 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
 
   def receive = {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
-      counter += 1
       if(counter > RETRY_COUNT) {
         val emailError = lastFailure
         api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, emailError)
@@ -196,6 +196,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
           }
         }
       }
+      counter += 1
     }
   }
 
@@ -205,9 +206,9 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
    * @param responseBody The body of Player's response
    */
   def assembleAndLogError(errorMessage: String, responseBody: Option[String] = None): String = {
-    val fullError =  errorMessage + "<br> Response Body: " + responseBody.getOrElse("None")
-    Logger.error(fullError)
-    fullError
+    val error =  errorMessage + " Response Body: " + responseBody.getOrElse("None")
+    Logger.error("JunGroupAPI Error for API Token: " + appToken + "\nWaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + "\n" + error)
+    error
   }
 }
 
