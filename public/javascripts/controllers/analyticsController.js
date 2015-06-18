@@ -16,6 +16,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.flashMessage = flashMessage;
         $scope.defaultStartDate = '-13d';
         $scope.defaultEndDate = '0';
+        $scope.email = "";
 
         if($scope.debounceWait !== 0){
             $scope.debounceWait = 2000;
@@ -572,7 +573,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         },
                         isStacked: true
                     }
-                }
+                };
 
                 if (config.adProvider.length > 1) {
                     $scope.analyticsData.fillRateMetric = "N/A";
@@ -628,7 +629,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     return;
                 }
 
-                var emailAddress = $scope.elements.emailInput.val();
+                var emailAddress = $scope.email;
 
                 var filters = $scope.getExportCSVFilters(dates);
                 filters.email = emailAddress;
@@ -669,7 +670,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Hide overlay and other modal elements
          */
         $scope.hideModal = function() {
-            $scope.elements.emailInput.val("");
+            $scope.email = "";
             $scope.modalDefaults();
             $scope.exportForm.$setPristine();
             $scope.exportForm.$setUntouched();
