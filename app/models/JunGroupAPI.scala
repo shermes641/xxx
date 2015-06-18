@@ -43,9 +43,10 @@ class JunGroupAPI {
    * @param failureReason The error from Player.
    */
   def sendFailureEmail(distributorUser: DistributorUser, waterfallAdProviderID: Long, appToken: String, failureReason: String) {
-    val subject = "Distribution Sign Up Failure"
-    val body = "Jun group ad network account was not created successfully for Email: " + distributorUser.email +
-      ", WaterfallAdProviderID: " + waterfallAdProviderID + ", AppToken: " + appToken + ". Error: " + failureReason
+    val subject = "Player Ad Network Creation Failure"
+    val body = "Jun Group ad network account was not created successfully. <br> Email: " + distributorUser.email +
+      " <br> WaterfallAdProviderID: " + waterfallAdProviderID + " <br> AppToken: " + appToken + " <br> Error: " + failureReason +
+      " <br> For More information visit: https://wiki.jungroup.com/display/MED/Create+Ad+Network+for+HyprMarketplace+on+Player+API+Failure"
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(Play.current.configuration.getString("jungroup.email").get, subject, body)))
     emailActor ! "email"
   }
@@ -117,7 +118,7 @@ class JunGroupAPI {
 class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, distributorID: Long, api: JunGroupAPI) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
-  private val RETRY_FREQUENCY = 3.seconds
+  private val RETRY_FREQUENCY = 60.seconds
   var lastFailure = ""
   val companyName = Distributor.find(distributorID).get.name
 
@@ -132,10 +133,8 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
 
   def receive = {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
-      counter += 1
       if(counter > RETRY_COUNT) {
-        val emailError = "Could not create ad network on player for DistributorUser Email: " +
-          distributorUser.email + "\nLast Failure: " + lastFailure
+        val emailError = lastFailure
         api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, emailError)
         context.stop(self)
       } else {
@@ -192,11 +191,12 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
             retry(distributorUser)
           }
           case error => {
-            lastFailure = assembleAndLogError("Recovered from Player response error")
+            lastFailure = assembleAndLogError("Recovered from Player response error", Some(error.getMessage))
             retry(distributorUser)
           }
         }
       }
+      counter += 1
     }
   }
 
@@ -206,10 +206,9 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
    * @param responseBody The body of Player's response
    */
   def assembleAndLogError(errorMessage: String, responseBody: Option[String] = None): String = {
-    val fullError = "JunGroupAPI Error for API Token: " + appToken + "\nWaterfallAdProvider ID: " +
-      hyprWaterfallAdProvider.id + "\nError Message: " + errorMessage + "\nResponse Body: " + responseBody.getOrElse("")
-    Logger.error(fullError)
-    fullError
+    val error =  errorMessage + " Response Body: " + responseBody.getOrElse("None")
+    Logger.error("JunGroupAPI Error for API Token: " + appToken + "\nWaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + "\n" + error)
+    error
   }
 }
 
