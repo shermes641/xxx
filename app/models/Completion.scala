@@ -20,7 +20,7 @@ class Completion extends JsonConversion {
    * @param appToken The token for the App to which the completion belongs.
    * @param adProviderName The name of the ad provider to which the completion belongs.
    * @param transactionID A unique ID that verifies a completion.
-   * @param offerProfit The estimated revenue earned by a Distributor for a Completion.
+   * @param offerProfit The estimated revenue earned by a Distributor for a Completion. In the case of HyprMarketplace, this value is passed to us in the server to server callback.
    * @param rewardQuantity The amount to reward the user.  This is calculated based on cpm of the WaterfallAdProvider and the VirtualCurrency information on the server at the time the callback is received.
    *                       This can differ from the reward calculated by the SDK and the reward quantity passed to us from the ad provider in the server to server callback.
    * @param generationNumber The generationNumber from the latest AppConfig at the time the server to server callback is received.
