@@ -177,7 +177,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                   }
                 }
               } catch {
-                case parsingError: com.fasterxml.jackson.core.JsonParseException | JsResultException => {
+                case _: com.fasterxml.jackson.core.JsonParseException | _: play.api.libs.json.JsResultException => {
                   lastFailure = assembleAndLogError("Received a JSON parsing error", Some(response.body))
                   retry(distributorUser)
                 }
