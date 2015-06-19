@@ -348,7 +348,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
             // Return if start date after end date
             if (config.end_date.getTime() < config.start_date.getTime()) {
-                return;
+                $scope.elements.startDate.datepicker('setDate', config.end_date);
+                config.start_date = $scope.elements.startDate.datepicker('getUTCDate');
             }
 
             $scope.updatingStatus = "Updating...";
