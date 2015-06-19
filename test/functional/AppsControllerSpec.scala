@@ -86,10 +86,13 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.$("button[id=create-app]").first.isEnabled must beEqualTo(false)
-      fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
-      clickAndWaitForAngular("button[id=create-app]")
-      browser.pageSource must contain("You already have an App with the same name.")
-      App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+      val appNames = List(currentApp.name, currentApp.name.toUpperCase, currentApp.name.toLowerCase)
+      appNames.map { name =>
+        fillInAppValues(appName = name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+        clickAndWaitForAngular("button[id=create-app]")
+        browser.pageSource must contain("You already have an App with the same name.")
+        App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+      }
     }
 
     "allow a new app to be created if the Distributor has already created and deactivated an App with the same name" in new WithFakeBrowser {
