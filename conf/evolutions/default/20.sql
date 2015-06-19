@@ -1,7 +1,7 @@
 # --- !Ups
 
-CREATE UNIQUE INDEX active_distributor_app_name on apps(name, distributor_id, active);
+ALTER TABLE apps ALTER COLUMN callback_url TYPE VARCHAR(2048);
 
 # --- !Downs
 
-DROP INDEX IF EXISTS active_distributor_app_name;
+ALTER TABLE apps ALTER COLUMN callback_url TYPE VARCHAR(255);
