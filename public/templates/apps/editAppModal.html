@@ -71,7 +71,7 @@
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.exchangeRate.$touched">
                     <dd class="error">{{errors.exchangeRate}}</dd>
                     <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.requiredInteger">Exchange Rate must be a valid integer greater than or equal to 1.</dd>
-                    <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.maxlength">Exchange Rate must 15 characters or less.</dd>
+                    <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.maxlength">Exchange Rate must be 15 characters or less.</dd>
                 </div>
             </dl>
 
@@ -83,7 +83,7 @@
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMin.$touched">
                     <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
                     <dd class="error" ng-show="form.editAppForm.rewardMin.$error.lessThanOrEqualTo">Minimum Reward must be less than or equal to Maximum Reward.</dd>
-                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Reward Min must 15 characters or less.</dd>
+                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Reward Min must be 15 characters or less.</dd>
                 </div>
             </dl>
 
@@ -95,7 +95,7 @@
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMax.$touched">
                     <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
                     <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
-                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Reward Max must 15 characters or less.</dd>
+                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
                 </div>
             </dl>
 

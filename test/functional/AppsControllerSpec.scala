@@ -282,7 +282,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#exchangeRate").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must br 15 characters or less.")
     }
 
     "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -292,7 +292,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Reward Min must 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Reward Min must be 15 characters or less.")
     }
 
     "display an error message is reward max is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -302,7 +302,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMax").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_max").containsText("Reward Max must 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_max").containsText("Reward Max must be 15 characters or less.")
     }
   }
 
