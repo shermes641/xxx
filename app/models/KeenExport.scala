@@ -34,9 +34,13 @@ case class KeenExport() {
    *
    * @param distributorID The DistributorID with the apps needed for export.
    * @param email The email to send the export to.
+   * @param filters Filters for the analytic events
+   * @param timeframe Timeframe for the analytics events
+   * @param selectedApps Apps to loop through for events
+   * @param adProvidersSelected true if ad providers are selected individually
    */
-  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String]) = {
-    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps)))
+  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean) = {
+    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps, adProvidersSelected)))
     actor ! GetDataFromKeen()
   }
 
@@ -81,8 +85,12 @@ case class KeenExport() {
  * Actor that makes the long running requests to keen
  * @param distributorID The ID of the distributor
  * @param email The Email address to send the final CSV
+ * @param filters Filters for the analytic events
+ * @param timeframe Timeframe for the analytics events
+ * @param selectedApps Apps to loop through for events
+ * @param adProvidersSelected true if ad providers are selected individually
  */
-class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String]) extends Actor with Mailer {
+class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean) extends Actor with Mailer {
   private var counter = 0
   val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
   /**
@@ -226,14 +234,15 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
   }
 
   def getData(writer: CSVWriter) = {
+    val (requestCollection, responseCollection) = if(adProvidersSelected) ("availability_requested", "availability_response_true") else ("mediate_availability_requested", "mediate_availability_response_true")
+
     for (appID <- selectedApps) {
       val name = App.find(appID.toLong).get.name
-      println(KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID))
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
-        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID))
-        dauResponse <- KeenExport().createRequest("count_unique", KeenExport().createFilter(timeframe, filters, "mediate_availability_requested", appID, "device_unique_id"))
-        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "mediate_availability_response_true", appID))
+        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, requestCollection, appID))
+        dauResponse <- KeenExport().createRequest("count_unique", KeenExport().createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
+        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, responseCollection, appID))
         impressionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_displayed", appID))
         completionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_completed", appID))
         eCPMResponse <- KeenExport().createRequest("average", KeenExport().createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
