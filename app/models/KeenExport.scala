@@ -5,7 +5,7 @@ import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import play.api.libs.ws._
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,7 +48,8 @@ case class KeenExport() {
    */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
     val config = Play.current.configuration
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(60000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
+    // Timeout set to 5 minutes (300000)
+    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(300000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
   }
 
   /**
@@ -241,7 +242,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
 
       futureResponse.recover {
         case e: Exception =>
-          sendEmail(Play.current.configuration.getString("jungroup.email").get, "Error Exporting CSV for " + email, e.getMessage)
+          Logger.error("Error Exporting CSV for " + email + " Message: " + e.getMessage)
           sendEmail(email, "Error Exporting CSV", "There was a problem exporting your data.  Please try again.")
       }
 
