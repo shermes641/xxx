@@ -136,7 +136,7 @@ object AnalyticsController extends Controller with Secured {
    * @param filters Maps to the filters JsArray
    * @param timeframe Maps to the timeframe as a JsObject
    * @param apps ad_providers_selected to the apps list in the Json Array
-   * @param ad_providers_selected Maps to the ad_providers list in the Json Array
+   * @param ad_providers_selected Maps to the ad_providers_selected Boolean
    */
   case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String], ad_providers_selected: Boolean)
 }
