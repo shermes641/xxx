@@ -233,21 +233,15 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
   }
 
   def getData(writer: CSVWriter) = {
-    var request_collection = "mediate_availability_requested"
-    var response_collection = "mediate_availability_response_true"
-
-    if(adProvidersSelected) {
-      request_collection = "availability_requested"
-      response_collection = "availability_response_true"
-    }
+    val (requestCollection, responseCollection) = if(adProvidersSelected) ("availability_requested", "availability_response_true") else ("mediate_availability_requested", "mediate_availability_response_true")
 
     for (appID <- selectedApps) {
       val name = App.find(appID.toLong).get.name
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
-        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, request_collection, appID))
-        dauResponse <- KeenExport().createRequest("count_unique", KeenExport().createFilter(timeframe, filters, request_collection, appID, "device_unique_id"))
-        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, response_collection, appID))
+        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, requestCollection, appID))
+        dauResponse <- KeenExport().createRequest("count_unique", KeenExport().createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
+        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, responseCollection, appID))
         impressionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_displayed", appID))
         completionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_completed", appID))
         eCPMResponse <- KeenExport().createRequest("average", KeenExport().createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
