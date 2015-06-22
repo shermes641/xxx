@@ -16,7 +16,7 @@
             <dl id="new-app-app-name">
                 <dt><label for="new-app-app-name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
-                    <input required type="text" ng-model="newApp.appName" ng-model-options="{updateOn: 'blur'}" id="newAppName" name="appName" placeholder="name" label="*App Name">
+                    <input required type="text" ng-model="newApp.appName" id="newAppName" name="appName" placeholder="name" label="*App Name">
                 </dd>
                 <dd class="error">{{errors.appName}}</dd>
                 <div ng-show="form.newAppForm.$submitted || form.newAppForm.appName.$touched">
@@ -27,7 +27,7 @@
             <dl id="new-app-currency-name">
                 <dt><label for="new-app-currency-name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">
-                    <input required type="text" ng-model="newApp.currencyName" ng-model-options="{updateOn: 'blur'}" id="newAppCurrencyName" name="currencyName" placeholder="e.g. Gold or Silver">
+                    <input required type="text" ng-model="newApp.currencyName" id="newAppCurrencyName" name="currencyName" placeholder="e.g. Gold or Silver">
                     <div class="tip">Reward Name is the name of your in-app reward.</div>
                 </dd>
                 <div ng-show="form.newAppForm.$submitted || form.newAppForm.currencyName.$touched">
@@ -38,7 +38,7 @@
             <dl id="new-app-exchange-rate">
                 <dt><label for="new-app-exchange-rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input required-integer type="text" ng-model="newApp.exchangeRate" ng-model-options="{updateOn: 'blur'}" ng-maxlength="15" id="newAppExchangeRate" name="exchangeRate" placeholder="e.g. 100">
+                    <input required-integer type="text" ng-model="newApp.exchangeRate" ng-maxlength="15" id="newAppExchangeRate" name="exchangeRate" placeholder="e.g. 100">
                     <div class="tip">The amount to reward per $1.</div>
                 </dd>
                 <div ng-show="form.newAppForm.$submitted || form.newAppForm.exchangeRate.$touched">
@@ -52,7 +52,7 @@
             <dl id="new-app-reward-min">
                 <dt><label for="new-app-reward-min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input required-integer type="text" ng-model="newApp.rewardMin" ng-model-options="{updateOn: 'blur'}" ng-maxlength="15" id="newAppRewardMin" name="rewardMin" placeholder="e.g. 1">
+                    <input required-integer type="text" ng-model="newApp.rewardMin" id="newAppRewardMin" ng-maxlength="15" name="rewardMin" placeholder="e.g. 1">
                 </dd>
                 <div ng-show="form.newAppForm.$submitted || form.newAppForm.rewardMin.$touched">
                     <dd class="error">{{errors.rewardMin}}</dd>
@@ -64,14 +64,12 @@
             <dl id="new-app-reward-max">
                 <dt><label for="new-app-reward-max">Maximum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input reward-max-validator greater-than-or-equal-to="{{newApp.rewardMin}}" type="text" ng-model="newApp.rewardMax" ng-maxlength="15" ng-model-options="{updateOn: 'blur'}" id="newAppRewardMax" name="rewardMax" placeholder="e.g. 10">
+                    <input reward-max-validator greater-than-or-equal-to="{{newApp.rewardMin}}" type="text" ng-model="newApp.rewardMax" ng-maxlength="15" id="newAppRewardMax" name="rewardMax" placeholder="e.g. 10">
                 </dd>
-                <div ng-show="form.newAppForm.$submitted || form.newAppForm.rewardMax.$touched">
-                    <dd class="error">{{errors.rewardMax}}</dd>
-                    <dd class="error" ng-show="form.newAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
-                    <dd class="error" ng-show="form.newAppForm.rewardMax.$error.greaterThanOrEqualTo">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
-                    <dd class="error" ng-show="form.newAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
-                </div>
+                <dd class="error">{{errors.rewardMax}}</dd>
+                <dd class="error" ng-show="form.newAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
+                <dd class="error" ng-show="form.newAppForm.rewardMax.$error.greaterThanOrEqualTo && !form.newAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
+                <dd class="error" ng-show="form.newAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
             </dl>
 
             <dl class="switch-field" id="roundUp-field">

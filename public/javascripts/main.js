@@ -233,7 +233,7 @@ mediationModule.directive(greaterThanDirectiveName, function() {
         link: function(scope, elm, attrs, ctrl) {
             var validate = function(viewValue) {
                 var comparisonModel = attrs.greaterThanOrEqualTo;
-                ctrl.$setValidity(greaterThanDirectiveName, ctrl.$isEmpty(viewValue) ? true : parseInt(viewValue) >= parseInt(comparisonModel));
+                ctrl.$setValidity(greaterThanDirectiveName, (ctrl.$isEmpty(viewValue) || comparisonModel === "") ? true : parseInt(viewValue) >= parseInt(comparisonModel));
                 return viewValue;
             };
 
