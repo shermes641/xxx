@@ -18,7 +18,8 @@ object AnalyticsController extends Controller with Secured {
       (JsPath \ "email").read[String] and
       (JsPath \ "filters").read[JsArray] and
       (JsPath \ "timeframe").read[JsObject] and
-      (JsPath \ "apps").read[List[String]]
+      (JsPath \ "apps").read[List[String]] and
+      (JsPath \ "ad_providers_selected").read[Boolean]
     )(exportMapping.apply _)
 
   def show(distributorID: Long, currentAppID: Option[Long], waterfallFound: Option[Boolean]) = withAuth(Some(distributorID)) { username => implicit request =>
@@ -31,11 +32,10 @@ object AnalyticsController extends Controller with Secured {
   }
 
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-
     request.body.asJson.map { json =>
       json.validate[exportMapping].map { exportParameters =>
         KeenExport().exportToCSV(distributorID, exportParameters.email, exportParameters.filters,
-          exportParameters.timeframe, exportParameters.apps)
+          exportParameters.timeframe, exportParameters.apps, exportParameters.ad_providers_selected)
         Ok("success")
       }.recoverTotal {
         error => BadRequest(Json.obj("status" -> "error", "message" -> "Missing parameters"))
@@ -135,7 +135,8 @@ object AnalyticsController extends Controller with Secured {
    * @param email Maps to the email field
    * @param filters Maps to the filters JsArray
    * @param timeframe Maps to the timeframe as a JsObject
-   * @param apps Maps to the apps list in the Json Array
+   * @param apps ad_providers_selected to the apps list in the Json Array
+   * @param ad_providers_selected Maps to the ad_providers list in the Json Array
    */
-  case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String])
+  case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String], ad_providers_selected: Boolean)
 }
