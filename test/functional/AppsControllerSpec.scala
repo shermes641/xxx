@@ -282,7 +282,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#exchangeRate").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must br 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be 15 characters or less.")
     }
 
     "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
