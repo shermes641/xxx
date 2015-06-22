@@ -42,18 +42,19 @@
         </div>
         <header>
             <div ng-controller="HeaderController">
-                <a id="logo" href="{{'/distributors/' + sharedIDs.distributorID() + '/analytics?app_id=' + sharedIDs.appID()}}" target="_self" class=@{if(title == "") "inactive-link" else ""}>
+                <a id="logo" href="{{analyticsURL()}}" target="_self" class=@{if(title == "") "inactive-link" else ""}>
                     <img height="60" src="@routes.Assets.at("images/mediate-logo.png")">
                 </a>
                 <div class="actions">
                     @session.get("username").map { user =>
+
                         <div id="username-header" class="header-actions">
-                                @session.get("username")
-                            <div id="username-dropdown">
-                                <a href="@routes.DistributorUsersController.logout()" target="_self">
+                            @session.get("username")
+                            <a href="@routes.DistributorUsersController.logout()" target="_self">
+                                <div id="username-dropdown">
                                     Logout
-                                </a>
-                            </div>
+                                </div>
+                            </a>
                         </div>
                     }
                     <div class="header-actions">

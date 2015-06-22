@@ -132,6 +132,7 @@ describe('AnalyticsController', function() {
             var filters = scope.getExportCSVFilters(dates);
             console.log(filters);
             expect(filters.apps[0]).toEqual("578021165");
+            expect(filters.ad_providers_selected).toEqual(true);
             expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
             expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
             expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
@@ -139,6 +140,18 @@ describe('AnalyticsController', function() {
             expect(filters.filters[1].property_name).toEqual("ad_provider_id");
             expect(filters.filters[1].property_value[0]).toEqual(1);
             expect(filters.filters[1].property_value[1]).toEqual(2);
+
+            scope.removeFromSelected("ad_providers", {"name":"AdColony","id":1}, 0);
+            scope.removeFromSelected("ad_providers", {"name":"HyprMarketplace","id":2}, 0);
+
+            var filters = scope.getExportCSVFilters(dates);
+            console.log(filters);
+            expect(filters.apps[0]).toEqual("578021165");
+            expect(filters.ad_providers_selected).toEqual(false);
+            expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
+            expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
+            expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
+            expect(filters.filters[0].property_value[0]).toEqual("Ireland");
         });
 
         it('should reject invalid dates', function(){

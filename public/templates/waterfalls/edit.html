@@ -3,8 +3,8 @@
     <div ng-show="waterfallInfoCallComplete" id="waterfall-page">
         <div ng-include="subHeader"></div>
         <div ng-include="appList"></div>
-        <div id="waterfall-edit" class="split-content waterfall-list">
-            <div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
+        <div id="waterfall-edit" class="split_content waterfall_list">
+            <div ng-hide="flashMessage.text() === '' || modalShown" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
                 {{flashMessage.text()}}
             </div>
             <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-static-message">

@@ -32,14 +32,14 @@ case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends R
     response.status match {
       case 200 | 304 => {
         Json.parse(response.body) \ "eCPM" match {
-          case _: JsUndefined => None
+          case _: JsUndefined => logResponseError("eCPM key was not present", waterfallAdProviderID, response.body)
           case eCPM: JsNumber => {
             updateEcpm(waterfallAdProviderID, eCPM.as[Double])
           }
-          case _ => None
+          case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
         }
       }
-      case _ => None
+      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
     }
   }
 }

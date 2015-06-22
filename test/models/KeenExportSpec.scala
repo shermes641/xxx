@@ -71,7 +71,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get))).underlyingActor
+      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true)).underlyingActor
       setUpApp(newDistributor.id.get)
 
       val writer = keenExportActor.createCSVFile()
@@ -88,7 +88,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get))).underlyingActor
+      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true)).underlyingActor
       var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
@@ -120,7 +120,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
 
-      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get))).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify dividing by 0 does not cause error
@@ -135,7 +135,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
 
-      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get))).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify eCPM defaults to 0

@@ -1,5 +1,6 @@
-<div id="error-message" class="flash-message error"></div>
-<div id="success-message" class="flash-message success"></div>
+<div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message app_modal_message">
+    {{flashMessage.text()}}
+</div>
 <div class="app-form">
     <form id="edit-app" name="form.editAppForm" ng-submit="submitEditApp(form.editAppForm)">
         <h1>App Configuration</h1>
@@ -42,7 +43,7 @@
                     </h4>
                 </dt>
                 <dd ng-class="errors.callbackURLClass">
-                    <input callback-validator="{{data.serverToServerEnabled}}" type="text" ng-model="data.callbackURL" ng-model-options="{updateOn: 'blur'}" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
+                    <input callback-validator="{{data.serverToServerEnabled}}" ng-disabled="!data.serverToServerEnabled" ng-class="{'inactive-input': !data.serverToServerEnabled}" type="text" ng-model="data.callbackURL" ng-model-options="{updateOn: 'blur'}" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.callbackURL.$touched">
                     <dd class="error" ng-show="form.editAppForm.callbackURL.$error.callbackValidator">A valid HTTP or HTTPS callback URL is required.</dd>
@@ -65,34 +66,37 @@
             <dl id="exchange-rate">
                 <dt><label for="exchange-rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input required-integer type="text" ng-model="data.exchangeRate" ng-model-options="{updateOn: 'blur'}" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+                    <input required-integer type="text" ng-model="data.exchangeRate" ng-model-options="{updateOn: 'blur'}" ng-maxlength="15" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
                     <div class="tip">The amount to reward per $1.</div>
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.exchangeRate.$touched">
                     <dd class="error">{{errors.exchangeRate}}</dd>
                     <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.requiredInteger">Exchange Rate must be a valid integer greater than or equal to 1.</dd>
+                    <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.maxlength">Exchange Rate must be 15 characters or less.</dd>
                 </div>
             </dl>
 
             <dl id="reward-min">
                 <dt><label for="reward-min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input required-integer less-than-or-equal-to="{{data.rewardMax}}" type="text" ng-model="data.rewardMin" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                    <input required-integer less-than-or-equal-to="{{data.rewardMax}}" type="text" ng-model="data.rewardMin" ng-maxlength="15" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMin.$touched">
                     <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
                     <dd class="error" ng-show="form.editAppForm.rewardMin.$error.lessThanOrEqualTo">Minimum Reward must be less than or equal to Maximum Reward.</dd>
+                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Reward Min must be 15 characters or less.</dd>
                 </div>
             </dl>
 
             <dl id="reward-max">
                 <dt><label for="reward-max">Maximum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-model-options="{updateOn: 'blur'}" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
+                    <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-maxlength="15" ng-model-options="{updateOn: 'blur'}" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMax.$touched">
                     <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
                     <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
+                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
                 </div>
             </dl>
 
@@ -121,6 +125,6 @@
         <input type="number" ng-model="data.currencyID" id="currencyID" name="currencyID" style="display: none">
         <input type="number" ng-model="data.generationNumber" id="generationNumber" name="generationNumber" style="display: none">
 
-        <button id="update-app" ng-disabled="form.editAppForm.$invalid" ng-class="{inactive: form.editAppForm.$invalid}" type="submit" name="submit">Save Changes</button>
+        <button id="update-app" ng-disabled="form.editAppForm.$invalid" type="submit" name="submit">Save Changes</button>
     </form>
 </div>

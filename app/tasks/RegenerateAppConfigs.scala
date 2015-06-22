@@ -4,18 +4,16 @@ import anorm._
 import java.sql.Connection
 import models._
 import play.api.db.DB
-import play.api.Play
+import play.api.Logger
 import play.api.Play.current
 import scala.language.postfixOps
 
-object RegenerateAppConfigs extends Mailer {
-  val emailSubject = "AppConfigRegeneration Script Results"
-  val recipient = Play.current.configuration.getString("hyprmediate_ops_email").get
-
+object RegenerateAppConfigs {
+  val taskName = "RegenerateAppConfigs: "
   /**
    * Script to update AppConfigs for all Waterfalls.
    */
-  def run = {
+  def run() = {
     if(AdProvider.updateAll == AdProvider.allProviders.size) {
       var unsuccessfulWaterfallIDs: Set[Long] = Set()
       var unsuccessfulWaterfallAdProviderIDs: Vector[Long] = Vector()
@@ -33,7 +31,7 @@ object RegenerateAppConfigs extends Mailer {
                 case 0 => {
                   unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ wap.id
                   unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + wap.waterfallID
-                  println("Error updating WaterfallAdProvider ID: " + wap.id)
+                  Logger.error("Error updating WaterfallAdProvider ID: " + wap.id)
                 }
                 case _ => None
               }
@@ -41,7 +39,7 @@ object RegenerateAppConfigs extends Mailer {
               case error: play.api.libs.json.JsResultException => {
                 unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ wap.id
                 unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + wap.waterfallID
-                println("Error updating JSON configuration for WaterfallAdProvider ID: " + wap.id)
+                Logger.error("Error updating JSON configuration for WaterfallAdProvider ID: " + wap.id)
               }
             }
           }
@@ -50,46 +48,40 @@ object RegenerateAppConfigs extends Mailer {
               case Some(newGenerationNumber) => None
               case None => {
                 unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + waterfallID
-                println("AppConfig not updated for Waterfall ID: " + waterfallID)
+                Logger.debug("AppConfig not updated for Waterfall ID: " + waterfallID)
               }
             }
           } catch {
             case error: org.postgresql.util.PSQLException => {
-              var message = "Received the following error: " + error.getServerErrorMessage
-              rollbackWithError(message)
+              rollbackWithError("Received the following error: " + error.getServerErrorMessage)
             }
             case error: IllegalArgumentException => {
-              var message = "Received error message: " + error.getLocalizedMessage + "\n"
-              message += "Stack Trace: " + error.fillInStackTrace
+              val message = "Received error message: " + error.getLocalizedMessage + "\n" +
+                "Stack Trace: " + error.fillInStackTrace
               rollbackWithError(message)
             }
           }
         }
         if(unsuccessfulWaterfallAdProviderIDs.size == 0 && unsuccessfulWaterfallIDs.size == 0) {
-          val body = "All AppConfigs successfully updated!"
-          println(body)
-          sendEmail(recipient = recipient, subject = emailSubject, body = body)
+          Logger.info(taskName + "All AppConfigs successfully updated!")
         } else {
-          var body = "AppConfigs for the following Waterfall IDs were not updated successfully: [" + unsuccessfulWaterfallIDs.mkString(", ") + "]\n"
-          body += "The following WaterfallAdProvider IDs were not updated successfully: [" + unsuccessfulWaterfallAdProviderIDs.mkString(", ") + "]"
-          println(body)
-          sendEmail(recipient = recipient, subject = emailSubject, body = body)
+          val errorMessage = "AppConfigs for the following Waterfall IDs were not updated successfully: [" + unsuccessfulWaterfallIDs.mkString(", ") + "]\n" +
+            "The following WaterfallAdProvider IDs were not updated successfully: [" + unsuccessfulWaterfallAdProviderIDs.mkString(", ") + "]"
+          Logger.error(taskName + errorMessage)
         }
       }
     } else {
-      var body = "Stopping update because there was a problem updating the Ad Providers. Please check the logs for more details."
-      println(body)
-      sendEmail(recipient = recipient, subject = emailSubject, body = body)
+      Logger.error(taskName + "Stopping update because there was a problem updating the Ad Providers. Please check the logs for more details.")
     }
   }
 
   /**
-   * Rolls back transaction and sends notification email
-   * @param body The body of the email
+   * Rolls back transaction and logs an error
+   * @param errorMessage The message to be logged
    * @param connection A shared database connection
    */
-  def rollbackWithError(body: String)(implicit connection: Connection): Unit = {
+  def rollbackWithError(errorMessage: String)(implicit connection: Connection): Unit = {
     connection.rollback()
-    sendEmail(recipient = recipient, subject = emailSubject, body = body)
+    Logger.error(errorMessage)
   }
 }

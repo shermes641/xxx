@@ -59,3 +59,8 @@ dd.error {
   color: $form-error;
   text-align: left;
 }
+
+button:disabled
+{
+  background-color:#d3dcf9;
+}

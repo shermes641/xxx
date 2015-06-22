@@ -1,10 +1,10 @@
 package models
 
 import anorm._
-import models.Waterfall.WaterfallCallbackInfo
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.libs.ws.WS
+import play.api.libs.ws.{WSResponse, WS}
+import play.api.Logger
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -20,7 +20,7 @@ class Completion extends JsonConversion {
    * @param appToken The token for the App to which the completion belongs.
    * @param adProviderName The name of the ad provider to which the completion belongs.
    * @param transactionID A unique ID that verifies a completion.
-   * @param offerProfit The estimated revenue earned by a Distributor for a Completion.
+   * @param offerProfit The estimated revenue earned by a Distributor for a Completion. In the case of HyprMarketplace, this value is passed to us in the server to server callback.
    * @param rewardQuantity The amount to reward the user.  This is calculated based on cpm of the WaterfallAdProvider and the VirtualCurrency information on the server at the time the callback is received.
    *                       This can differ from the reward calculated by the SDK and the reward quantity passed to us from the ad provider in the server to server callback.
    * @param generationNumber The generationNumber from the latest AppConfig at the time the server to server callback is received.
@@ -68,7 +68,7 @@ class Completion extends JsonConversion {
   }
 
   /**
-   * Sends POST request to callback URL if one exists.
+   * Assembles data for JSON body and sends POST request to callback URL if one exists.
    * @param callbackURL The target URL for the POST request.
    * @param adProviderRequest The original postback from the ad provider.
    * @param verificationInfo Class containing information to verify the postback and create a new Completion.
@@ -83,14 +83,26 @@ class Completion extends JsonConversion {
           "reward_quantity" -> verificationInfo.rewardQuantity,
           "estimated_offer_profit" -> verificationInfo.offerProfit
         )
-        WS.url(url).post(data).map(response =>
+        sendPost(url, data).map(response =>
           response.status match {
             case status: Int if(status == 200) => true
-            case _ => true
+            case status => {
+              Logger.error("Server to server callback to Distributor's servers returned a status code of " + status + " for URL: " +
+                url + " API Token: " + verificationInfo.appToken + " Ad Provider: " + verificationInfo.adProviderName)
+              false
+            }
           }
         )
       }
       case _ => Future { false }
     }
   }
+
+  /**
+   * Sends POST request to callback URL
+   * @param url The callback URL specified in the app
+   * @param data The JSON to be POST'ed to the callback URL
+   * @return A successful or unsuccessful WSResponse
+   */
+  def sendPost(url: String, data: JsValue): Future[WSResponse] = WS.url(url).post(data)
 }

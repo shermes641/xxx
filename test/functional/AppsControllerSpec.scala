@@ -86,14 +86,17 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       browser.$("button[id=create-app]").first.isEnabled must beEqualTo(false)
-      fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
-      clickAndWaitForAngular("button[id=create-app]")
-      browser.pageSource must contain("You already have an App with the same name.")
-      App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+      val appNames = List(currentApp.name, currentApp.name.toUpperCase, currentApp.name.toLowerCase)
+      appNames.map { name =>
+        fillInAppValues(appName = name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+        clickAndWaitForAngular("button[id=create-app]")
+        browser.pageSource must contain("You already have an App with the same name.")
+        App.findAll(user.distributorID.get).size must beEqualTo(appCount)
+      }
     }
 
     "allow a new app to be created if the Distributor has already created and deactivated an App with the same name" in new WithFakeBrowser {
-      val (currentApp, _, _, _) = setUpApp(user.distributorID.get, "Some unique app name")
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
       App.update(new UpdatableApp(currentApp.id, active = false, distributorID = user.distributorID.get, name = currentApp.name, callbackURL = None, serverToServerEnabled = false))
       val appCount = App.findAll(user.distributorID.get).size
 
@@ -225,7 +228,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
       clickAndWaitForAngular("#waterfall-app-settings-button")
+      currentApp.serverToServerEnabled must beFalse
+      browser.find("#callbackURL").first.isEnabled must beFalse
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.find("#callbackURL").first.isEnabled must beTrue
       browser.fill("#callbackURL").`with`("invalid-url")
       browser.clear("#currencyName")
       clickAndWaitForAngular("button[name=submit]")
@@ -271,6 +277,36 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       clickAndWaitForAngular("button[name=submit]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
     }
+
+    "display an error message is exchange rate is too long" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.fill("#exchangeRate").`with`("9999999999999999")
+      browser.fill("#appName").`with`(currentApp.name)
+      clickAndWaitForAngular("button[name=submit]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be 15 characters or less.")
+    }
+
+    "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.fill("#rewardMin").`with`("9999999999999999")
+      browser.fill("#appName").`with`(currentApp.name)
+      clickAndWaitForAngular("button[name=submit]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Reward Min must be 15 characters or less.")
+    }
+
+    "display an error message is reward max is too long" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.fill("#rewardMax").`with`("9999999999999999")
+      browser.fill("#appName").`with`(currentApp.name)
+      clickAndWaitForAngular("button[name=submit]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_max").containsText("Reward Max must be 15 characters or less.")
+    }
   }
 
   "AppsController.update" should {
@@ -299,9 +335,15 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
       clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#appName").`with`(newAppName)
+      browser.executeScript("$('#serverToServerEnabled').click();")
+      val longCallbackURL = "http://" + "a" * 2037 + ".com" // This meets the 2048 character limit for the callback_url field
+      browser.fill("#callbackURL").`with`(longCallbackURL)
+      browser.fill("#rewardMax").`with`("")
       browser.executeScript("$('#update-app').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
-      App.find(currentApp.id).get.name must beEqualTo(newAppName)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
+      val updatedApp = App.find(currentApp.id).get
+      updatedApp.name must beEqualTo(newAppName)
+      updatedApp.callbackURL.get must beEqualTo(longCallbackURL)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -321,7 +363,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`(rewardMin.toString)
       browser.fill("#rewardMax").`with`(rewardMax.toString)
       browser.executeScript("$('#update-app').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").areDisplayed()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
 
       val updatedVC = VirtualCurrency.find(currentVirtualCurrency.id).get
       updatedVC.rewardMin must beEqualTo(rewardMin)

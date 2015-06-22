@@ -4,6 +4,7 @@ import java.util.concurrent.TimeoutException
 import models._
 import play.api.mvc._
 import play.api.libs.json._
+import play.api.Logger
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.implicitConversions
@@ -155,13 +156,24 @@ object APIController extends Controller {
         try {
           Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest), Duration(DefaultTimeout, "millis")) match {
             case true => callback.returnSuccess
-            case false => callback.returnFailure
+            case false => {
+              Logger.error("Server to server callback to Distributor's servers was unsuccessful for Ad Provider: " +
+                callback.adProviderName + "API Token: " + callback.token + " Callback URL: " + callback.verificationInfo.callbackURL)
+              callback.returnFailure
+            }
           }
         } catch {
-          case _: TimeoutException => callback.returnFailure
+          case _: TimeoutException => {
+            Logger.error("Server to server callback to Distributor's servers timed out for Ad Provider: " +
+              callback.adProviderName + "API Token: " + callback.token + " Callback URL: " + callback.verificationInfo.callbackURL)
+            callback.returnFailure
+          }
         }
       }
-      case false => callback.returnFailure
+      case false => {
+        Logger.error("Invalid server to server callback verification for Ad Provider: " + callback.adProviderName + " API Token: " + callback.token)
+        callback.returnFailure
+      }
     }
   }
 }

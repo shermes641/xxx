@@ -16,6 +16,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.flashMessage = flashMessage;
         $scope.defaultStartDate = '-13d';
         $scope.defaultEndDate = '0';
+        $scope.email = "";
 
         if($scope.debounceWait !== 0){
             $scope.debounceWait = 2000;
@@ -345,9 +346,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 return;
             }
 
-            // Return if start date after end date
+            // Update start date to be before the selected end date if it is not already
             if (config.end_date.getTime() < config.start_date.getTime()) {
-                return;
+                $scope.elements.startDate.datepicker('setDate', config.end_date);
+                config.start_date = $scope.elements.startDate.datepicker('getUTCDate');
             }
 
             $scope.updatingStatus = "Updating...";
@@ -572,7 +574,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         },
                         isStacked: true
                     }
-                }
+                };
 
                 if (config.adProvider.length > 1) {
                     $scope.analyticsData.fillRateMetric = "N/A";
@@ -628,7 +630,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     return;
                 }
 
-                var emailAddress = $scope.elements.emailInput.val();
+                var emailAddress = $scope.email;
 
                 var filters = $scope.getExportCSVFilters(dates);
                 filters.email = emailAddress;
@@ -651,6 +653,12 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 apps = _.pluck($scope.filters.apps.available, 'id');
             }
 
+            // If ad providers are individually selected we use a different event collection
+            var ad_providers_selected = false;
+            if (_.pluck($scope.filters.ad_providers.selected, 'id').indexOf( "all" ) === -1) {
+                ad_providers_selected = true;
+            }
+
             // Build filters based on the dropdown selections
             var filters = $scope.buildFilters([],_.pluck($scope.filters.countries.selected, 'id'),
                 _.pluck($scope.filters.ad_providers.selected, 'id'));
@@ -661,7 +669,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 end: moment(dates.end_date).utc().add(1, 'days').format()
             };
 
-            return { apps: apps, filters: filters, timeframe: timeframe };
+            return { apps: apps, ad_providers_selected: ad_providers_selected, filters: filters, timeframe: timeframe };
         };
 
 
@@ -669,7 +677,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Hide overlay and other modal elements
          */
         $scope.hideModal = function() {
-            $scope.elements.emailInput.val("");
+            $scope.email = "";
             $scope.modalDefaults();
             $scope.exportForm.$setPristine();
             $scope.exportForm.$setUntouched();

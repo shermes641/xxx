@@ -158,10 +158,37 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
       clickAndWaitForAngular("#export_as_csv")
-      browser.fill("#export_email").`with`("test@test.com")
+      browser.fill("#export_email").`with`("test.com")
       clickAndWaitForAngular("#export_submit")
 
-      browser.pageSource must contain("The email you entered is invalid.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv_email_form").containsText("The email you entered is invalid.")
+    }
+
+    "export analytics data as csv should not allow field to be empty" in new WithAppBrowser(distributorUser.distributorID.get) {
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("")
+      clickAndWaitForAngular("#export_submit")
+
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv_email_form").containsText("Email address is required")
+    }
+
+    "export analytics data as csv should not allow field to be empty after already successfully exporting" in new WithAppBrowser(distributorUser.distributorID.get) {
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("test@test.com")
+      clickAndWaitForAngular("#export_submit")
+      clickAndWaitForAngular("#analytics_overlay")
+
+      clickAndWaitForAngular("#export_as_csv")
+      browser.fill("#export_email").`with`("")
+      clickAndWaitForAngular("#export_submit")
+
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv_email_form").containsText("Email address is required")
     }
 
     "Send JSON data without email and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -192,6 +219,15 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
       status(result) must equalTo(400)
       contentAsString(result) must equalTo("Expecting Json data")
+    }
+
+    "Refresh analytics page when clicking on the HyprMediate logo without a persisted app_id" in new WithFakeBrowser {
+      setUpApp(distributorID)
+      logInUser(distributorUser.email, password)
+      browser.goTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, None, None).url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#logo").isPresent
+      clickAndWaitForAngular("#logo")
+      browser.url must beEqualTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, None, None).url)
     }
 
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {

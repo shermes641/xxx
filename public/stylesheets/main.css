@@ -603,6 +603,17 @@ dd.modal-error {
   -ms-user-select: none;
 }
 
+.app_modal_message {
+  margin-left: -200px;
+  margin-top: -65px;
+}
+
+.wap_modal_message {
+  position: fixed;
+  margin-left: -200px;
+  margin-top: -65px;
+}
+
 #browser-support {
   display: none;
   position: fixed;
@@ -732,6 +743,10 @@ footer .footer-text-format {
 dd.error {
   color: #ff0000;
   text-align: left;
+}
+
+button:disabled {
+  background-color: #d3dcf9;
 }
 
 header {

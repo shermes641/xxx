@@ -75,11 +75,10 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
     }
 
     "set lastFailure properly when there is an HTTP Auth failure" in new WithDB {
-      val httpAuthError = "HTTP Auth Failure"
-      playerResponse.body returns httpAuthError
+      playerResponse.body returns "HTTP Auth Failure"
       playerResponse.status returns 401
       junActor.receive(CreateAdNetwork(user))
-      junActor.lastFailure must beEqualTo(httpAuthError).eventually(3, 1 second)
+      junActor.lastFailure must contain("Received a JSON parsing error").eventually(3, 1 second)
     }
 
     "set lastFailure properly when the response code is 200 but the request was not successful" in new WithDB {
@@ -88,7 +87,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       playerResponse.body returns playerErrorBody
       playerResponse.status returns 200
       junActor.receive(CreateAdNetwork(user))
-      junActor.lastFailure must beEqualTo(playerError).eventually(3, 1 second)
+      junActor.lastFailure must contain (playerError).eventually(3, 1 second)
     }
   }
 

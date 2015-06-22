@@ -10,7 +10,7 @@
             <hr />
             <div class="modal-text">Enter the email address you would like to export all the data to.</div>
             <form name="exportForm" ng-submit="submit()" novalidate>
-                <input type="email" ng-model="data.email" id="export-email" name="export_email" placeholder="Email Address" required />
+                <input type="email" ng-model="email" id="export-email" name="export_email" placeholder="Email Address" required />
                 <div ng-show="exportForm.$submitted || exportForm.export_email.$touched">
                     <dd class="error" ng-show="exportForm.export_email.$error.required">Email address is required</dd>
                     <dd class="error" ng-show="exportForm.export_email.$error.email">The email you entered is invalid.</dd>

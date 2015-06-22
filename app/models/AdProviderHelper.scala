@@ -2,6 +2,7 @@ package models
 
 import anorm._
 import play.api.db.DB
+import play.api.Logger
 import play.api.Play.current
 
 trait AdProviderHelper {
@@ -189,9 +190,9 @@ trait AdProviderHelper {
       update(adProvider) match {
         case 1 => {
           successfullyUpdatedProvidersCount += 1
-          println(adProvider.name + " was updated successfully!")
+          Logger.debug(adProvider.name + " was updated successfully!")
         }
-        case _ => println(adProvider.name + " was not updated successfully.")
+        case _ => Logger.error(adProvider.name + " was not updated successfully.")
       }
     }
     successfullyUpdatedProvidersCount

@@ -205,15 +205,18 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Submit form if fields are valid.
             $scope.submitNewApp = function(form) {
                 if(form.$valid) {
+                    form.submitting = true;
                     ga('send', 'event', 'submit_new_app', 'click', 'waterfalls');
                     var distributorID = $routeParams.distributorID;
                     setNumberValues("newApp");
                     $http.post('/distributors/' + distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
+                            form.submitting = false;
                             $scope.toggleNewAppModal();
                             $location.path('/distributors/' + distributorID + '/waterfalls/' + data.waterfallID + '/edit').replace();
                             flashMessage.add(data);
                         }).error(function(data, status, headers, config) {
+                            form.submitting = false;
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";

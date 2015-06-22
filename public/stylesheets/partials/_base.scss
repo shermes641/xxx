@@ -155,9 +155,23 @@ dd.modal-error {
   white-space: pre;
 }
 
-.unselectable {
-  display: inline;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+.unselectable
+{
+  display:inline;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+}
+
+.app_modal_message
+{
+  margin-left:-200px;
+  margin-top:-65px;
+}
+
+.wap_modal_message
+{
+  position:fixed;
+  margin-left:-200px;
+  margin-top:-65px;
 }

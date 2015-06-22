@@ -29,8 +29,8 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.$("#viewTerms").click()
       val terms = browser.find("#termsContainer").first().getText
       // Gets MD5 of agreements and compares to last approved version
-      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("1c189cbd2005b2629ee83936c1ac74cc")
-      terms must contain("Updated: 06/01/2015 Revision: 3")
+      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("bbf7b618f70a77dddac2e4ca570b8122")
+      terms must contain("Updated: 06/08/2015 Revision: 4")
     }
 
     "render an error when the password does not match the confirmation" in new WithFakeBrowser {
@@ -42,6 +42,19 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.$("#terms").click()
       browser.find("#confirmation-errors").first().isDisplayed
       browser.find("#confirmation-errors").first().getText must beEqualTo("Password confirmation doesn't match Password.")
+    }
+
+    "not display the welcome email flash message unless a user has just signed up" in new WithFakeBrowser {
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      browser.fill("#company").`with`(companyName)
+      browser.fill("#email").`with`("UniqueUser1@gmail.com")
+      browser.fill("#password").`with`(password)
+      browser.fill("#confirmation").`with`(password)
+      browser.$("#terms").click()
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").containsText("Your confirmation email will arrive shortly.")
+      browser.goTo(controllers.routes.Application.index.url)
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").areNotDisplayed
     }
   }
 
