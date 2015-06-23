@@ -129,7 +129,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       // Verify scopedKey
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, (response \ "scopedKey").as[String]).toMap.toString()
-      decrypted must contain("property-value="+distributorID.toString)
+      decrypted must contain("property_value="+distributorID.toString)
     }
 
     "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
