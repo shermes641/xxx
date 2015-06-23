@@ -22,7 +22,6 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                     $scope.newApp.exchangeRate = parseInt($scope.newApp.exchangeRate);
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps', $scope.newApp).
                         success(function(data, status, headers, config) {
-                            form.submitting = false;
                             // Prevent redirect if in testing environment
                             if($scope.testing){
                                 return;
