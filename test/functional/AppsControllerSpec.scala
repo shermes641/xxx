@@ -36,7 +36,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "100", rewardMax = "1")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_reward_max").containsText("Maximum Reward must be greater than or equal to Minimum Reward.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-reward-max").containsText("Maximum Reward must be greater than or equal to Minimum Reward.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -62,7 +62,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "0", rewardMax = "10")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_reward_min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-reward-min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -74,7 +74,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "0", rewardMin = "1", rewardMax = "10")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_exchange_rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-exchange-rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -181,10 +181,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       val newAppName = "My left list test app"
       goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(user.distributorID.get, None, None).url)
-      clickAndWaitForAngular("#create_new_app")
+      clickAndWaitForAngular("#create-new-app")
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       clickAndWaitForAngular("button[id=create-app]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".left_apps_list").containsText("My left list test app")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".left-apps-list").containsText("My left list test app")
     }
 
     "return the new waterfall ID in the JSON if the app is created successfully" in new WithFakeBrowser {
@@ -235,7 +235,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#callbackURL").`with`("invalid-url")
       browser.clear("#currencyName")
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#callback_url").containsText("A valid HTTP or HTTPS callback URL is required.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#callback-url").containsText("A valid HTTP or HTTPS callback URL is required.")
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
@@ -265,7 +265,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`("0")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
     }
 
     "display an error message if exchange rate is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
@@ -275,7 +275,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#exchangeRate").`with`("0")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange-rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
     }
 
     "display an error message is exchange rate is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -285,7 +285,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#exchangeRate").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange-rate").containsText("Exchange Rate must be 15 characters or less.")
     }
 
     "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -295,7 +295,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Reward Min must be 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-min").containsText("Reward Min must be 15 characters or less.")
     }
 
     "display an error message is reward max is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -305,7 +305,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMax").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_max").containsText("Reward Max must be 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max").containsText("Reward Max must be 15 characters or less.")
     }
   }
 

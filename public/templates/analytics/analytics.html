@@ -49,11 +49,11 @@
         <div class="left-apps-list">
             <div class="reset-filters" ng-click="resetAllFilters()">Reset all Filters</div>
             <h2>Filter By Ad Provider</h2>
-            <ul id="ad_providers_filter">
+            <ul id="ad-providers-filter">
                 <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)" title="{{provider.name}}">{{provider.name}}</li>
                 <li class="add" ng-click="openDropdown('ad_providers')" ng-class="{open: filters.ad_providers.open}">
                     <span class="dropdown-label">Add Provider</span>
-                    <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"
+                    <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter-ad-providers" id="filter-ad-providers"
                            typeahead="name as ad_provider.name for ad_provider in filters.ad_providers.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
                            typeahead-on-select="addToSelected('ad_providers', $item)"
                            ng-blur="closeDropdown('ad_providers')"/>
@@ -75,11 +75,11 @@
         </div>
         <div class="left-apps-list">
             <h2>Filter By Country</h2>
-            <ul id="countries_filter">
+            <ul id="countries-filter">
                 <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)" title="{{country.name}}">{{country.name}}</li>
                 <li class="add" ng-click="openDropdown('countries')" ng-class="{open: filters.countries.open}">
                     <span class="dropdown-label">Add Country</span>
-                    <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter_countries" id="filter_countries"
+                    <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter-countries" id="filter-countries"
                            typeahead="name as country.name for country in filters.countries.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
                            typeahead-on-select="addToSelected('countries', $item)"
                            ng-blur="closeDropdown('countries')"/>
