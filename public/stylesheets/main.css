@@ -603,17 +603,6 @@ dd.modal-error {
   -ms-user-select: none;
 }
 
-.app_modal_message {
-  margin-left: -200px;
-  margin-top: -65px;
-}
-
-.wap_modal_message {
-  position: fixed;
-  margin-left: -200px;
-  margin-top: -65px;
-}
-
 #browser-support {
   display: none;
   position: fixed;
@@ -1895,5 +1884,17 @@ button.confirm-button {
   width: 100%;
   z-index: 10;
 }
+
+.app-modal-message {
+    margin-left: -200px;
+    margin-top: -65px;
+}
+
+.wap-modal-message {
+    position: fixed;
+    margin-left: -200px;
+    margin-top: -65px;
+}
+
 
 /*# sourceMappingURL=main.css.map */
