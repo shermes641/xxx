@@ -76,7 +76,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $scope.keenClient = new Keen( {
                     projectId: $scope.keenProject,
                     readKey: $scope.scopedKey,
-                    protocol: "http",
+                    protocol: "https",
                     requestType: "xhr"
             } );
 
