@@ -12,7 +12,7 @@ describe('AnalyticsController', function() {
         sinon.log = function(message) {
             console.log(message);
         };
-        var urlRoot = "http://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
+        var urlRoot = "https://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
         var apiKey = "api_key=D8DD8FDF000323000448F";
         var timeframe = "timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
         var listenForKeen = function(filter) {
