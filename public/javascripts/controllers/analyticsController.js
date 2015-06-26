@@ -14,8 +14,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
-        $scope.defaultStartDate = new Date(moment.utc().subtract(13, 'days').format());
-        $scope.defaultEndDate = new Date(moment.utc().format());
+        // utc(0, HH) current date at the following time: 0:00:00.000
+        $scope.defaultStartDate = new Date(moment.utc(0, "HH").subtract(13, 'days').format());
+        $scope.defaultEndDate = new Date(moment.utc(0, "HH").format());
         $scope.email = "";
 
         if($scope.debounceWait !== 0){
