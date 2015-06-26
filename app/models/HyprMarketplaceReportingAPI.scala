@@ -52,8 +52,8 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
               case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
                 val result = results.as[JsArray].as[List[JsValue]].last
                 (result \ "global_stats" \ "revenue", result \ "global_stats" \ "impressions") match {
-                  case (revenue: JsNumber, impressions: JsNumber) => {
-                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[Double], impressions.as[Double]))
+                  case (revenue: JsValue, impressions: JsValue) => {
+                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.as[String].toDouble))
                   }
                   case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
                 }
