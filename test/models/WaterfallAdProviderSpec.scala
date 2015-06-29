@@ -115,13 +115,25 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   "WaterfallAdProvider.findAllReportingEnabled" should {
-    "return a list of all active waterfall ad providers that have reporting enabled" in new WithDB {
-      val wapReportingCount = WaterfallAdProvider.findAllReportingEnabled.size
-      val updatedWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, None, None, Some(true), None, configurationJson, true)
-      WaterfallAdProvider.update(updatedWaterfallAdProvider)
-      val reportingEnabledWAPs = WaterfallAdProvider.findAllReportingEnabled
-      reportingEnabledWAPs.size must beEqualTo(wapReportingCount + 1)
-      reportingEnabledWAPs.map( wap => wap.waterfallAdProviderID) must contain(updatedWaterfallAdProvider.id)
+    "return a list of all waterfall ad providers that have reporting enabled" in new WithDB {
+      def verifyReportingWAPs = {
+        val reportingEnabledWAPs = WaterfallAdProvider.findAllReportingEnabled
+        reportingEnabledWAPs.size must beEqualTo(originalWAPReportingCount + 1)
+        reportingEnabledWAPs.map(wap => wap.waterfallAdProviderID) must contain(updatedActiveWaterfallAdProvider.id)
+      }
+
+      val originalWAPReportingCount = WaterfallAdProvider.findAllReportingEnabled.size
+      val updatedActiveWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, waterfallOrder = None,
+        cpm = None, active = Some(true), fillRate = None, configurationData = configurationJson, reportingActive = true)
+      WaterfallAdProvider.update(updatedActiveWaterfallAdProvider)
+
+      verifyReportingWAPs
+
+      val updatedInActiveWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, waterfallOrder = None,
+        cpm = None, active = Some(false), fillRate = None, configurationData = configurationJson, reportingActive = true)
+      WaterfallAdProvider.update(updatedInActiveWaterfallAdProvider)
+
+      verifyReportingWAPs
     }
   }
 

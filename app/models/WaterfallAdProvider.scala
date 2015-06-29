@@ -286,7 +286,7 @@ object WaterfallAdProvider extends JsonConversion {
         """
           SELECT wap.id as id, ap.name, wap.configuration_data FROM ad_providers ap
           JOIN waterfall_ad_providers wap ON wap.ad_provider_id = ap.id
-          WHERE wap.active = true AND wap.reporting_active = true;
+          WHERE wap.reporting_active = true;
         """
       )
       query.as(waterfallAdProviderRevenueDataParser*).toList
