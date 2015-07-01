@@ -14,7 +14,7 @@ describe('AnalyticsController', function() {
         };
         var urlRoot = "https://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
         var apiKey = "api_key=D8DD8FDF000323000448F";
-        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
+        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-03T00%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-16T00%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
         var listenForKeen = function(filter) {
             server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": 5.01123595505618}) ]);
@@ -47,8 +47,8 @@ describe('AnalyticsController', function() {
             $window = _$window_;
             scope.debounceWait = 0;
             testCont = $controller('AnalyticsController', {$scope: scope});
-            scope.defaultStartDate = new Date("2015-04-03T00:00:00.000Z");
-            scope.defaultEndDate = new Date("2015-04-15T00:00:00.000Z");
+            scope.defaultStartDate = new Date(moment.utc("2015-04-03T00:00:00.000Z").format());
+            scope.defaultEndDate = new Date(moment.utc("2015-04-15T00:00:00.000Z").format());
             angular.element(document.body).append('<input id="start_date" /><input id="end_date" />');
 
             $httpBackend.flush();
