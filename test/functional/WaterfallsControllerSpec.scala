@@ -426,7 +426,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "includes working code snippet SDK documentation link" in new WithAppBrowser(distributor.id.get) {
       logInUser()
 
-      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.click("#initialize_sdk")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#sdk_documentation_link").areDisplayed()
       val documentationLink = browser.find("#sdk_documentation_link").getAttribute("href")
