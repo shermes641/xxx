@@ -14,8 +14,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
-        $scope.defaultStartDate = '-13d';
-        $scope.defaultEndDate = '0';
+        // utc(0, HH) current date at the following time: 0:00:00.000
+        $scope.defaultStartDate = new Date(moment.utc(0, "HH").subtract(13, 'days').format());
+        $scope.defaultEndDate = new Date(moment.utc(0, "HH").format());
         $scope.email = "";
 
         if($scope.debounceWait !== 0){
@@ -76,7 +77,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $scope.keenClient = new Keen( {
                     projectId: $scope.keenProject,
                     readKey: $scope.scopedKey,
-                    protocol: "http",
+                    protocol: "https",
                     requestType: "xhr"
             } );
 
@@ -102,9 +103,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 format: "M dd, yyyy"
             } ).on( "changeDate", $scope.updateAnalytics );
 
-            // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', $scope.defaultStartDate);
-            $scope.elements.endDate.datepicker('setDate', $scope.defaultEndDate);
+            // Set initial start date to the last 2 weeks
+            $scope.elements.startDate.datepicker('setUTCDate', $scope.defaultStartDate);
+            $scope.elements.endDate.datepicker('setUTCDate', $scope.defaultEndDate);
         };
 
         /**
