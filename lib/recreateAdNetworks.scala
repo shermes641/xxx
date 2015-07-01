@@ -5,7 +5,7 @@
 import anorm._
 import models._
 import play.api.db.DB
-import play.api.Logger
+import play.api.{Play, Logger}
 import play.api.Play.current
 import scala.language.postfixOps
 
@@ -26,13 +26,13 @@ object Script extends JsonConversion with UpdateHyprMarketplace {
           JOIN waterfalls w ON w.id = wap.waterfall_id
           JOIN apps ON apps.id = w.app_id
           JOIN distributors d ON d.id = apps.distributor_id
-          WHERE wap.id = {wap_id};
+          WHERE wap.id = {wap_id} AND wap.ad_provider_id = {hypr_ad_provider_id};
         """
-      ).on("wap_id" -> waterfallAdProviderID)
+      ).on("wap_id" -> waterfallAdProviderID, "hypr_ad_provider_id" -> Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get)
 
       query.as(parser*) match {
         case List(waterfallAdProvider) => updateHyprMarketplaceDistributorID(waterfallAdProvider)
-        case _ => Logger.error("WaterfallAdProvider ID could not be found!")
+        case _ => Logger.error("HyprMarketplace WaterfallAdProvider could not be found!")
       }
     }
     unsuccessfulWaterfallAdProviderIDs = List()
