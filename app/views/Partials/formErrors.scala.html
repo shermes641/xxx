@@ -1,6 +1,6 @@
 @(hasErrors: Boolean, errors: Seq[FormError])
 @if(hasErrors) {
-    <ul id="form_errors">
+    <ul id="form-errors">
     @errors.map { error =>
         @if(error.message != "") {
             <li>@error.message</li>

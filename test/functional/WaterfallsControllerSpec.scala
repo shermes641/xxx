@@ -196,7 +196,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("$('#test-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
-      browser.find("#test_mode_confirmation").click()
+      browser.find("#test-mode-confirmation").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -215,7 +215,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("$('#test-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
-      browser.find("#test_mode_cancel").click()
+      browser.find("#test-mode-cancel").click()
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       generationNumber(app1.id) must beEqualTo(originalGeneration)
       AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
@@ -354,7 +354,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.findFirst("button[name=status]").getText must not contain "Activate"
       browser.$("button[name=configure-wap]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
-      browser.executeScript("$('.close_button').click();")
+      browser.executeScript("$('.close-button').click();")
       browser.find("button[name=status]").getText must not contain "Activate"
     }
 
@@ -387,8 +387,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.fill("input[name=appName]").`with`(newAppName)
       browser.executeScript("$('button[name=submit]').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
-      browser.find(".left_apps_list").getText must contain(newAppName)
-      browser.find(".left_apps_list").getText must not contain(oldAppName)
+      browser.find(".left-apps-list").getText must contain(newAppName)
+      browser.find(".left-apps-list").getText must not contain(oldAppName)
       browser.find("#edit-top").getText must contain(newAppName)
       browser.find("#edit-top").getText must not contain(oldAppName)
     }
@@ -414,7 +414,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      clickAndWaitForAngular("#create_new_app")
+      clickAndWaitForAngular("#create-new-app")
       browser.fill("input").`with`(newAppName, "Coins", "1")
       clickAndWaitForAngular("#create-app")
       val newestApp = App.findAll(distributor.id.get).filter(_.name == newAppName)(0)

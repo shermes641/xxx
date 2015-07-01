@@ -1,0 +1,66 @@
+// Generic form styling
+.registration input[type="text"],
+.registration input[type="password"],
+.registration input[type="number"],
+.registration input[type="email"],
+.registration button[type="submit"],
+.registration button[type="button"],
+.app-form input[type="text"],
+.app-form input[type="password"],
+.app-form input[type="number"],
+.app-form input[type="email"],
+.app-form button[type="submit"],
+.app-form button[type="button"],
+.new-app-page #new-app input {
+  width: 100%;
+}
+
+#callback-url-label {
+  display: inline-block;
+  width: 376px;
+}
+.callback {
+  font-size: 10px;
+  max-width: 376px;
+  text-align: center;
+  pre {
+    -webkit-appearance: none;
+    background: #f9f9f9;
+    border: 0;
+    border-bottom: 1px solid #c8c7cc;
+    color: #6d6d72;
+    padding: 5px;
+    text-align: left;
+  }
+}
+
+
+.input-group .form-control {
+  height: 100%;
+  padding: 10px;
+}
+
+#form-errors {
+  color: $form-error;
+  font-size: 13px;
+  list-style: none;
+}
+
+.error input, input.ng-touched.ng-invalid {
+  border: 1px solid $form-error;
+  color: #000;
+}
+
+.ng-pristine .ng-invalid-required {
+  box-shadow: none;
+}
+
+dd.error {
+  color: $form-error;
+  text-align: left;
+}
+
+button:disabled
+{
+  background-color:#d3dcf9;
+}

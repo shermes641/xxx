@@ -1,0 +1,44 @@
+// Browser support notification
+#browser-support {
+  display:none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  font-size:14px;
+  color: #fff;
+  padding: 18px;
+  border-bottom: 1px solid #fff;
+  background: #fb504b;
+  text-align:center;
+  z-index: 2000;
+
+  a {
+    text-decoration: underline;
+    color: #fff;
+  }
+
+  .warning-icon {
+    display: inline-block;
+    width: 35px;
+    height: 26px;
+    margin-bottom: -8px;
+    margin-right: 5px;
+    background:url(../images/icons.png);
+    background-position:-48px -45px;
+  }
+
+  #dismiss-browser {
+    color:$mediate-blue;
+    cursor:pointer;
+    position: absolute;
+    top:10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+
+    background:url(../images/icons.png);
+    background-position:-48px -0px;
+  }
+}

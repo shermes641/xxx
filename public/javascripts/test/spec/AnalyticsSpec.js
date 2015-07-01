@@ -47,9 +47,10 @@ describe('AnalyticsController', function() {
             $window = _$window_;
             scope.debounceWait = 0;
             testCont = $controller('AnalyticsController', {$scope: scope});
+
             scope.defaultStartDate = new Date(moment.utc("2015-04-03T00:00:00.000Z").format());
             scope.defaultEndDate = new Date(moment.utc("2015-04-15T00:00:00.000Z").format());
-            angular.element(document.body).append('<input id="start_date" /><input id="end_date" />');
+            angular.element(document.body).append('<input id="start-date" /><input id="end-date" />');
 
             $httpBackend.flush();
         }));
@@ -65,7 +66,7 @@ describe('AnalyticsController', function() {
         afterEach(function() {
             $httpBackend.verifyNoOutstandingExpectation();
             $httpBackend.verifyNoOutstandingRequest();
-            angular.element('#start_date, #end_date').remove();
+            angular.element('#start-date, #end-date').remove();
         });
 
         it('should be defined', function(){

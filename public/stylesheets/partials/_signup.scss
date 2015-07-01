@@ -1,0 +1,79 @@
+// Registration/Sign Up page
+#registration-link {
+  margin: 0 auto;
+  padding-top: 20px;
+  text-align: center;
+  width: 400px;
+  font-family: $mediate-font-light;
+}
+
+.registration {
+  margin: 120px auto 0;
+  padding: 40px;
+  text-align: center;
+  width: 400px;
+
+  h3 {
+    margin-top: 20px;
+  }
+
+  ul {
+    padding-left: 25px;
+    padding-top: 10px;
+  }
+
+  dl {
+    margin-bottom: 10px;
+    margin-top: 10px;
+  }
+
+  .modal-text {
+    margin: 20px auto;
+    width: 220px;
+    padding: 0;
+  }
+
+  input[type="checkbox"] {
+    float: left;
+    margin: 10px 5px 10px 0;
+  }
+
+  h2 {
+    font-size: 30px;
+    padding: 20px;
+    text-align: center;
+  }
+}
+
+#termsContainer {
+  color: #666;
+  height: 300px;
+  margin-top: 20px;
+  overflow: scroll;
+  text-align: left;
+}
+
+span#viewTerms:hover {
+  text-decoration: underline;
+}
+
+.clickable {
+  color: $mediate-blue;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.unclickable {
+  pointer-events: none;
+}
+
+.checkbox-label {
+  font-size: 11px;
+  margin-top: 20px;
+  max-width: 400px;
+  text-align: left;
+
+  label {
+    font-family: $mediate-font-light;
+  }
+}
