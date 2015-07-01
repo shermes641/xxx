@@ -121,6 +121,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
             scope.hideModal = function() {
                 scope.errors = {};
                 if(scope.showTestModeConfirmationModal) {
+                    ga('send', 'event', 'testmode_toggle_close', 'click', 'waterfalls');
                     scope.waterfallData.waterfall.testMode = false;
                 }
                 scope.showModal(false);
