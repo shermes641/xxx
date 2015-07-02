@@ -135,7 +135,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
 
             // Add body class to prevent scrolling when modal open
             scope.showModal = function(display) {
-                scope.dialogStyle.overflowY = "auto";
+                scope.dialogStyle.overflowY = scope.showEditAppModal ? "visible" : "auto";
                 $rootScope.bodyClass = display ? "modal-active" : "";
                 scope.modalShown = display;
             };
