@@ -4,9 +4,12 @@ import models._
 import anorm._
 import play.api.db.DB
 import play.api.libs.json._
+import play.api.libs.ws.{WSAuthScheme, WS}
 import play.api.test._
 import play.api.test.Helpers._
 import resources.DistributorUserSetup
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
   val appName = "App 1"
@@ -306,6 +309,24 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max").containsText("Reward Max must be 15 characters or less.")
+    }
+
+    "Callback URL tooltip documentation link is correct" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      val documentationLinkText = browser.find("#callback-url-documentation-link").getAttribute("ng-bind-html")
+      val urlPattern = new scala.util.matching.Regex("""http:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+      val documentationLink = urlPattern findFirstIn documentationLinkText match {
+        case Some(url) => url
+        case None => ""
+      }
+      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      Await.result(request.get().map { response =>
+        response.status must beEqualTo(200)
+        response.body must contain("Server to Server Callbacks")
+      }, Duration(5000, "millis"))
     }
   }
 
