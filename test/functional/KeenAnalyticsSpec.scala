@@ -30,7 +30,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // Verify analytics data has been loaded
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
 
       // eCPM metric
       verifyAnalyticsHaveLoaded
@@ -43,15 +43,15 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
 
       verifyAnalyticsHaveLoaded
 
-      clickAndWaitForAngular("#apps_filter .add")
-      clickAndWaitForAngular("#filter_apps")
+      clickAndWaitForAngular("#apps-filter .add")
+      clickAndWaitForAngular("#filter-apps")
 
       // hyprMX must be part of dropdown
-      waitUntilContainsText("#apps_filter .add", currentApp.name)
-      clickAndWaitForAngular("#apps_filter .add .dropdown-menu .active")
+      waitUntilContainsText("#apps-filter .add", currentApp.name)
+      clickAndWaitForAngular("#apps-filter .add .dropdown-menu .active")
 
       // Verify analytics data has been loaded
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
     }
 
@@ -63,15 +63,15 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
 
       verifyAnalyticsHaveLoaded
 
-      clickAndWaitForAngular("#ad_providers_filter .add")
-      clickAndWaitForAngular("#filter_ad_providers")
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad-providers")
 
       // hyprMX must be part of dropdown
-      waitUntilContainsText("#ad_providers_filter .add", "hyprMX")
-      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
       // Verify analytics data has been loaded
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
     }
 
@@ -84,19 +84,19 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
 
       verifyAnalyticsHaveLoaded
 
-      clickAndWaitForAngular("#ad_providers_filter .add")
-      clickAndWaitForAngular("#filter_ad_providers")
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad-providers")
 
-      fillAndWaitForAngular("#filter_ad_providers", "Vungl")
-      waitUntilContainsText("#ad_providers_filter .add", "Vungle")
-      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+      fillAndWaitForAngular("#filter-ad-providers", "Vungl")
+      waitUntilContainsText("#ad-providers-filter .add", "Vungle")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
-      fillAndWaitForAngular("#filter_ad_providers", "hyprMX")
-      waitUntilContainsText("#ad_providers_filter .add", "hyprMX")
-      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+      fillAndWaitForAngular("#filter-ad-providers", "hyprMX")
+      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
       // Verify analytics data has been loaded
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
     }
 
@@ -109,24 +109,24 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
 
       verifyAnalyticsHaveLoaded
 
-      clickAndWaitForAngular("#ad_providers_filter .add")
-      clickAndWaitForAngular("#filter_ad_providers")
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad-providers")
 
-      fillAndWaitForAngular("#filter_ad_providers", "Vungl")
-      waitUntilContainsText("#ad_providers_filter .add", "Vungle")
-      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+      fillAndWaitForAngular("#filter-ad-providers", "Vungl")
+      waitUntilContainsText("#ad-providers-filter .add", "Vungle")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
-      fillAndWaitForAngular("#filter_ad_providers", "hyprMX")
-      waitUntilContainsText("#ad_providers_filter .add", "hyprMX")
-      clickAndWaitForAngular("#ad_providers_filter .add .dropdown-menu .active")
+      fillAndWaitForAngular("#filter-ad-providers", "hyprMX")
+      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
       // Verify analytics data has been loaded
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
 
-      clickAndWaitForAngular(".reset_filters")
+      clickAndWaitForAngular(".reset-filters")
 
       // Verify analytics data has been loaded
-      waitUntilContainsText("#analytics_loading_status", "Waiting...")
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
 
     }

@@ -6,8 +6,6 @@
     <head>
         <base href="/">
         <title>@title - hyprMediate</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/datepicker.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script>
@@ -38,9 +36,9 @@
         <script src="@routes.Assets.at("javascripts/controllers/headerController.js")" type="text/javascript"></script>
     </head>
     <body ng-class="bodyClass" ng-app="MediationModule">
-        <div id="browser_support" ng-controller="BrowserSupportController">
-            <span class="warning_icon"></span>You are using an unsupported browser.
-            See <a target="_blank" href="http://documentation.hyprmx.com/display/ADMIN/Browser+support">supported browsers</a> for more information.<div ng-click="dismissPopup()" id="dismiss_browser"></div>
+        <div id="browser-support" ng-controller="BrowserSupportController">
+            <span class="warning-icon"></span>You are using an unsupported browser.
+            See <a target="_blank" href="http://documentation.hyprmx.com/display/ADMIN/Browser+support">supported browsers</a> for more information.<div ng-click="dismissPopup()" id="dismiss-browser"></div>
         </div>
         <header>
             <div ng-controller="HeaderController">
@@ -49,17 +47,18 @@
                 </a>
                 <div class="actions">
                     @session.get("username").map { user =>
-                        <div id="username_header" class="header-actions">
+
+                        <div id="username-header" class="header-actions">
                             @session.get("username")
                             <a href="@routes.DistributorUsersController.logout()" target="_self">
-                                <div id="username_dropdown">
+                                <div id="username-dropdown">
                                     Logout
                                 </div>
                             </a>
                         </div>
                     }
                     <div class="header-actions">
-                        <a id="main_documentation_link" target="_blank" href="http://documentation.hyprmx.com">Documentation</a>
+                        <a id="main-documentation-link" target="_blank" href="http://documentation.hyprmx.com">Documentation</a>
                     </div>
                 </div>
             </div>

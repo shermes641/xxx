@@ -3,7 +3,7 @@
     <div ng-show="waterfallInfoCallComplete" id="waterfall-page">
         <div ng-include="subHeader"></div>
         <div ng-include="appList"></div>
-        <div id="waterfall-edit" class="split_content waterfall_list">
+        <div id="waterfall-edit" class="split-content waterfall-list">
             <div ng-hide="flashMessage.text() === '' || modalShown" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
                 {{flashMessage.text()}}
             </div>
@@ -17,7 +17,7 @@
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
                 <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
             </div>
-            <div id="waterfall_sub_header">
+            <div id="waterfall-sub-header">
                 <div class="app-token">
                     <div class="unselectable">
                         API Token
@@ -82,12 +82,12 @@
                 </div>
             </div>
 
-            <div id="initialize_sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}">
-                <div id="arrow_dropdown"></div>
+            <div id="initialize-sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}">
+                <div id="arrow-dropdown"></div>
                 Click here for HyprMediate initialization code snippet
                 <div class="code-block">
                     <div class="waterfall-edit-description" ng-click="$event.stopPropagation()">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a id="sdk_documentation_link" target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
+                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a id="sdk-documentation-link" target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
                         // See documentation for suggestions on how to define hyprUserId.

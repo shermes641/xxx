@@ -1,0 +1,282 @@
+// Content on the left side of page
+#left-content {
+  left: 0;
+  position: absolute;
+  top: 60px;
+  width: 215px;
+}
+
+.left-apps-list {
+  border-bottom: 1px solid #c8c7cc;
+  padding: 20px;
+
+  h2 {
+    color: #6d6d72;
+    font-size: 13px;
+  }
+
+  .reset-filters {
+    color: #333333;
+    text-decoration: underline;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 25px;
+  }
+
+  ul {
+    list-style: none;
+    font-family: $mediate-font-light;
+
+    li {
+      -webkit-transition: 150ms ease background;
+      background: #fff;
+      border-bottom: #c8c7cc 1px solid;
+      border-radius: 2px;
+      cursor: pointer;
+      display: block;
+      font-size: 13px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      position: relative;
+
+      &:hover {
+        background: #ccc;
+      }
+
+      &.active {
+        background: $mediate-light-blue;
+        color: #fff;
+      }
+
+      &.active.removable {
+        white-space: pre;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 12px;
+      }
+
+      &.active.removable:before {
+        background: url(../images/icons.png);
+        background-position: -16px -55px;
+        content: "";
+        height: 10px;
+        position: absolute;
+        right: 10px;
+        top: 11px;
+        width: 10px;
+      }
+
+      &.add {
+        color: $mediate-light-blue;
+      }
+
+      &.add:hover {
+        background: #fff;
+      }
+
+      &.add:before {
+        background: url(../images/icons.png);
+        background-position: -14px -94px;
+        content: "";
+        height: 12px;
+        position: absolute;
+        right: 10px;
+        top: 12px;
+        width: 12px;
+        pointer-events: none;
+      }
+
+      &.arrowdown {
+        padding: 0;
+        width: 175px;
+        background: #fff;
+      }
+
+      &.arrowdown input.form-control {
+        cursor: pointer;
+      }
+
+      &.arrowdown:before {
+        background: url(../images/icons.png);
+        background-position: -14px -121px;
+        content: "";
+        height: 12px;
+        position: absolute;
+        right: 10px;
+        top: 12px;
+        width: 12px;
+      }
+
+      input.form-control {
+        display: block;
+        float: none;
+        border-bottom: 0;
+        background: none;
+        text-align: left;
+      }
+    }
+  }
+}
+
+
+.app-list ul.full-list li {
+  border: 1px solid #eee;
+  margin: 20px 0 0;
+  padding: 10px;
+  position: relative;
+}
+
+.app-list ul.full-list li .actions {
+  position: absolute;
+  right: 21px;
+  top: 15px;
+}
+
+.app-list ul.full-list li .actions a {
+  color: $mediate-blue;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 400;
+  margin-left: 20px;
+  text-decoration: none;
+}
+
+#waterfall-controller .left-apps-list ul li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.left-apps-list .dropdown-menu {
+  position: absolute;
+  top: 35px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  border-top: #e0e0e9 1px solid;
+  border-bottom: #c8c7cc 1px solid;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.left-apps-list .dropdown-menu li {
+  margin-top: 0;
+  background: #fff;
+  border-radius: 0;
+  padding: 8px 10px;
+  border-bottom: #e0e0e9 1px solid;
+}
+
+.left-apps-list .dropdown-menu li:hover {
+  background: $mediate-light-blue;
+  color: #fff;
+}
+
+.left-apps-list .dropdown-menu > .active > a, .left-apps-list .dropdown-menu > .active > a:hover, .left-apps-list .dropdown-menu > .active > a:focus {
+  background: none;
+  color: #fff;
+}
+
+.left-apps-list .dropdown-menu > li > a {
+  display: block;
+  padding: 0;
+  clear: both;
+  font-weight: normal;
+  line-height: normal;
+  color: #222;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 12px;
+}
+
+.left-apps-list .dropdown-menu li:hover:before, .left-apps-list .dropdown-menu li.active:before {
+  background: url(../images/icons.png);
+  background-position: -15px -149px;
+  content: "";
+  height: 12px;
+  position: absolute;
+  right: 10px;
+  top: 11px;
+  width: 12px;
+}
+
+.left-apps-list .add .dropdown-filter {
+  color: #8e8e93;
+  display: none;
+  padding-left: 10px;
+}
+
+.left-apps-list .add.open {
+  padding: 0;
+}
+
+.left-apps-list .add.open .dropdown {
+  display: block;
+}
+
+.left-apps-list .add.open .dropdown-filter {
+  display: block;
+}
+
+.left-apps-list .add.open .dropdown-label {
+  display: none;
+}
+
+#create-new-app, #export-as-csv {
+  -webkit-transition: 150ms ease all;
+  -webkit-appearance: none;
+  background: #333;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 14px;
+  height: 58px;
+  margin: 20px;
+  padding: 15px;
+  text-align: center;
+  width: 173px;
+}
+
+#apps-list {
+  background: #444;
+  cursor: pointer;
+  position: relative;
+}
+
+#apps-list:hover {
+  background: $mediate-blue;
+}
+
+#apps-list-menu {
+  background: #444;
+  display: none;
+  position: absolute;
+  top: 50px;
+}
+
+#apps-list-menu li {
+  display: block;
+  float: none;
+}
+
+#apps-list-menu li:hover {
+  background: #222;
+}
+
+#apps-list:hover #apps-list-menu, .inactive .inactive-waterfall-content, .app-form.edit-ad-providers label {
+  display: block;
+}
+
+#apps-list-menu a, .content a:hover, .content a:focus, .left-apps-list ul a {
+  text-decoration: none;
+}
+
+.content.settings, .app-list {
+  margin-top: 120px;
+}
+
+.app-list ul.full-list, .waterfall ul {
+  list-style: none;
+  width: 100%;
+}

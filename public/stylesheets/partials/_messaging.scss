@@ -1,0 +1,90 @@
+// Flash message styling
+#flash {
+  cursor: pointer;
+  display: inline-block;
+}
+
+#login-message {
+  margin-left: -200px;
+  margin-top: -88px;
+}
+
+#analytics-message {
+  margin-top: -28px;
+}
+
+.flash-message {
+  background: #ff9;
+  border: 2px solid #cc9;
+  border-radius: 1px;
+  color: #993;
+  display: none;
+  left: 50%;
+  margin-left: -200px;
+  padding: 5px;
+  position: fixed;
+  text-align: center;
+  top: 0;
+  width: 400px;
+  z-index: 2001;
+  margin-top: 30px;
+  padding: 14px;
+}
+
+.flash-message.success {
+  color: $mediate-blue;
+}
+
+#full-system-message {
+  background: #ff9;
+  border: 2px solid #cc9;
+  border-radius: 1px;
+  color: #993;
+  left: 0;
+  margin: 70px 10px 10px;
+  padding: 20px;
+  text-align: center;
+}
+
+.full-success-message {
+  background: #ffff99;
+  border: 2px solid #cccc99;
+  border-radius: 1px;
+  color: #999933;
+  left: 50%;
+  padding: 14px;
+  text-align: center;
+  position: fixed;
+  width: 400px;
+  margin-top: -50px;
+  margin-left: -90px;
+  z-index: 4000;
+  font-family: $mediate-font-light;
+}
+
+.full-error-message {
+  @extend .full-success-message;
+  background: #ff9999;
+  border: 2px solid #ff6666;
+  color: #fff;
+}
+
+.full-static-message {
+  background: #ff9999;
+  border: 2px solid #ff6666;
+  border-radius: 1px;
+  color: #fff;
+  left: 0;
+  padding: 14px;
+  text-align: center;
+  font-family: $mediate-font-light;
+}
+
+.system-message {
+  margin-top: 100px;
+}
+
+#new-app-message {
+  margin-left: -200px;
+  margin-top: -67px;
+}

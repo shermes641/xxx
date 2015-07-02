@@ -36,7 +36,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
 
     "include a working link to documentation in the navigation bar" in new WithFakeBrowser {
       goToAndWaitForAngular("http://localhost:" + port + "/login")
-      val documentationLink = browser.find("#main_documentation_link").getAttribute("href")
+      val documentationLink = browser.find("#main-documentation-link").getAttribute("href")
       val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
       Await.result(request.get().map { response =>
         response.status must beEqualTo(200)
