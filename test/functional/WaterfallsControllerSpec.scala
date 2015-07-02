@@ -427,9 +427,9 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.click("#initialize_sdk")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#sdk_documentation_link").areDisplayed()
-      val documentationLink = browser.find("#sdk_documentation_link").getAttribute("href")
+      browser.click("#initialize-sdk")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#sdk-documentation-link").areDisplayed()
+      val documentationLink = browser.find("#sdk-documentation-link").getAttribute("href")
       val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
       Await.result(request.get().map { response =>
         response.status must beEqualTo(200)
