@@ -109,6 +109,21 @@ describe('NewAppSpec', function() {
             expect(form.submitting).toEqual(false);
         });
 
+        it('should show maintenance error message if response is 503', function() {
+            scope.newApp.rewardMax = "123";
+            scope.newApp.rewardMin = "13";
+            scope.newApp.exchangeRate = "1";
+            scope.$digest();
+
+            newAppResponseMock.respond(503, { data: "" });
+            httpBackend.flush();
+
+            form.$valid = true;
+            scope.submitNewApp(form);
+            httpBackend.flush();
+            expect(scope.flashMessage.text()).toEqual("We are currently down for maintenance.  Please try again later.");
+        });
+
         it('should handle error if server returns 400', function(){
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
@@ -217,6 +232,21 @@ describe('NewAppSpec', function() {
             httpBackend.flush();
             // Only after request has completed should you be able to submit again
             expect(form.submitting).toEqual(false);
+        });
+
+        it('should show maintenance error message if response is 503', function() {
+            scope.newApp.rewardMax = "123";
+            scope.newApp.rewardMin = "13";
+            scope.newApp.exchangeRate = "1";
+            scope.$digest();
+
+            newAppResponseMock.respond(503, { data: "" });
+            httpBackend.flush();
+
+            form.$valid = true;
+            scope.submitNewApp(form);
+            httpBackend.flush();
+            expect(scope.flashMessage.text()).toEqual("We are currently down for maintenance.  Please try again later.");
         });
 
         it('should handle error if server returns 400', function(){

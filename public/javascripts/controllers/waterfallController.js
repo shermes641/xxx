@@ -160,8 +160,12 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.generationNumber = data.newGenerationNumber;
                     $scope.disableTestModeToggle = checkTestModeToggle();
                     flashMessage.add(data);
-                }).error(function(data) {
-                    flashMessage.add(data);
+                }).error(function(data, status) {
+                    if(status === 503){
+                        flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                    } else {
+                        flashMessage.add(data);
+                    }
                 });
             };
 
@@ -217,9 +221,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             flashMessage.add(data);
                         }).error(function(data, status, headers, config) {
                             form.submitting = false;
-                            if(data.fieldName) {
-                                $scope.errors[data.fieldName] = data.message;
-                                $scope.errors[data.fieldName + "Class"] = "error";
+                            if(status === 503){
+                                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                            } else {
+                                if(data.fieldName) {
+                                    $scope.errors[data.fieldName] = data.message;
+                                    $scope.errors[data.fieldName + "Class"] = "error";
+                                }
                             }
                         });
                 }
@@ -254,11 +262,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             $scope.showModal(false);
                             flashMessage.add(data);
                         }).error(function(data, status, headers, config) {
-                            if(data.fieldName) {
-                                $scope.errors[data.fieldName] = data.message;
-                                $scope.errors[data.fieldName + "Class"] = "error";
+                            if(status === 503){
+                                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
                             } else {
-                                flashMessage.add(data);
+                                if(data.fieldName) {
+                                    $scope.errors[data.fieldName] = data.message;
+                                    $scope.errors[data.fieldName + "Class"] = "error";
+                                } else {
+                                    flashMessage.add(data);
+                                }
                             }
                         });
                 }
@@ -307,7 +319,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         $scope.generationNumber = data.newGenerationNumber;
                         setWAPData(data)
                     }).error(function(data) {
-                        flashMessage.add(data);
+                        if(status === 503){
+                            flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                        } else {
+                            flashMessage.add(data);
+                        }
                     });
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
@@ -356,7 +372,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         var successMessage = $scope.wapData.adProviderName + " updated!";
                         flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
                     }).error(function(data) {
-                        flashMessage.add(data);
+                        if(status === 503){
+                            flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                        } else {
+                         flashMessage.add(data);
+                        }
                     });
                 }
             };
