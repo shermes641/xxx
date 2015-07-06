@@ -718,6 +718,7 @@ footer .footer-text-format {
   color: #6d6d72;
   padding: 5px;
   text-align: left;
+  white-space: pre-wrap;
 }
 
 .input-group .form-control {
