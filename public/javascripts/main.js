@@ -333,6 +333,27 @@ mediationModule.directive(passwordConfirmation, function() {
     };
 });
 
+var validateRequiredParamFormat = 'validateRequiredParamFormat';
+
+mediationModule.directive(validateRequiredParamFormat, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function() {
+                if(attrs.requiredParamDataType === "Array") {
+                    ctrl.$setValidity(validateRequiredParamFormat, attrs.validateRequiredParamFormat.split(",").filter(function(zoneID) { return zoneID.match(/^(^$|\s+)$/); }).length === 0);
+                } else {
+                    ctrl.$setValidity(validateRequiredParamFormat, true);
+                }
+            };
+
+            attrs.$observe(validateRequiredParamFormat, function(){
+                return validate(ctrl.$viewValue);
+            });
+        }
+    };
+});
+
 // Filters
 angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
     return function(value) {

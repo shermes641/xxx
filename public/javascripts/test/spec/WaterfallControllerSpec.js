@@ -242,4 +242,40 @@ describe('WaterfallControllerSpec', function() {
             expect(form.reportKey.$valid).toEqual(true);
         });
     });
+
+    describe('validateRequiredParamFormat', function() {
+        var scope, form, element;
+
+        beforeEach(inject(function($rootScope, $compile) {
+            element = angular.element(
+                '<form name="form">' +
+                '<input required validate-required-param-format="{{param.value}}" required-param-data-type="{{param.dataType}}" ng-minlength="{{param.minLength}}" name="{{param.key}}" type="text" ng-model="param.value"></input>' +
+                '</form>'
+            );
+            scope = $rootScope.$new();
+            scope.param = { value: '', dataType: 'Array', minLength: 1, key: 'zone IDs' };
+            $compile(element)(scope);
+            form = scope.form;
+        }));
+
+        it('should be invalid if an element of the array is empty', function() {
+            var testValues = ["zone1, ,zone2", "zone1,    ,zone2", "zone1,", "zone1,,zone2", ",zone1,zone2", "", " "];
+            for(var i = 0; i < testValues.length; i++) {
+                scope.param.value = testValues[i];
+                scope.$digest();
+                expect(form[scope.param.key].$error.validateRequiredParamFormat).toEqual(true);
+                expect(form[scope.param.key].$valid).toEqual(false);
+            }
+        });
+
+        it('should be valid if none of the elements in the array are empty', function() {
+            var testValues = ["zone1,zone2", "zone1, zone2", "zone1,    zone2", "zone1", "zone1,zone2, zone3"];
+            for(var i = 0; i < testValues.length; i++) {
+                scope.param.value = testValues[i];
+                scope.$digest();
+                expect(form[scope.param.key].$error).toEqual({});
+                expect(form[scope.param.key].$valid).toEqual(true);
+            }
+        });
+    });
 });
