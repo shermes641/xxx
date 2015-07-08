@@ -28,7 +28,7 @@
                             ?
                             <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
                         </h4>
-                        <div class="required-params-errors">
+                        <div class="required-params-errors" ng-show="form.editWAP.$submitted || form.editWAP.{{param.key}}.$touched">
                             <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.validateRequiredParamFormat && !form.editWAP.{{param.key}}.$error.required">{{param.displayKey}} cannot be empty.</dd>
                             <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.required">{{param.displayKey}} required.</dd>
                             <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.minlength">{{param.displayKey}} requires at least {{param.minLength}} characters.</dd>
