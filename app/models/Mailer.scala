@@ -24,10 +24,10 @@ trait Mailer {
       mail.setFrom("HyprMediate <publishing@hyprmx.com>")
       mail.setSubject(subject)
       if(attachmentFileName != "") {
-        val dateFormat = DateTimeFormat.forPattern("d-M-y")
+        val dateFormat = DateTimeFormat.forPattern("y-M-d")
         val currentTime = new DateTime(DateTimeZone.UTC)
         val date = currentTime.toString(dateFormat)
-        mail.addAttachment(date + "-export.csv", new File(attachmentFileName))
+        mail.addAttachment(date + "-UTC-export.csv", new File(attachmentFileName))
       }
       // Logging to help email debugging
       Logger.debug("Email Sent - Subject: " + subject + "\nBody: " + body + "\nRecipient: " + recipient)
