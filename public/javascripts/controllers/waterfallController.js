@@ -22,6 +22,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.errors = {};
             $scope.form = {};
             $scope.flashMessage = flashMessage;
+            $scope.maintenanceMessage = "We are currently down for maintenance.  Please try again later.";
 
             // Retrieve Waterfall data
             $scope.getWaterfallData = function() {
@@ -160,13 +161,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.generationNumber = data.newGenerationNumber;
                     $scope.disableTestModeToggle = checkTestModeToggle();
                     flashMessage.add(data);
-                }).error(function(data, status) {
-                    if(status === 503){
-                        flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
-                    } else {
-                        flashMessage.add(data);
-                    }
-                });
+                }).error($scope.showFlashErrorMessage);
             };
 
             // Toggles active/inactive status for an AdProvider
@@ -222,7 +217,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         }).error(function(data, status, headers, config) {
                             form.submitting = false;
                             if(status === 503){
-                                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                                flashMessage.add({message: $scope.maintenanceMessage, status: "error"});
                             } else {
                                 if(data.fieldName) {
                                     $scope.errors[data.fieldName] = data.message;
@@ -263,7 +258,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             flashMessage.add(data);
                         }).error(function(data, status, headers, config) {
                             if(status === 503){
-                                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                                flashMessage.add({message: $scope.maintenanceMessage, status: "error"});
                             } else {
                                 if(data.fieldName) {
                                     $scope.errors[data.fieldName] = data.message;
@@ -318,13 +313,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         }
                         $scope.generationNumber = data.newGenerationNumber;
                         setWAPData(data)
-                    }).error(function(data) {
-                        if(status === 503){
-                            flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
-                        } else {
-                            flashMessage.add(data);
-                        }
-                    });
+                    }).error($scope.showFlashErrorMessage);
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
@@ -371,13 +360,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                         var restartParams = Object.keys($scope.changedRestartParams);
                         var successMessage = $scope.wapData.adProviderName + " updated!";
                         flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
-                    }).error(function(data) {
-                        if(status === 503){
-                            flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
-                        } else {
-                         flashMessage.add(data);
-                        }
-                    });
+                    }).error($scope.showFlashErrorMessage);
+                }
+            };
+
+            $scope.showFlashErrorMessage = function(data, status) {
+                if(status === 503){
+                    flashMessage.add({message: $scope.maintenanceMessage, status: "error"});
+                } else {
+                    flashMessage.add(data);
                 }
             };
 
