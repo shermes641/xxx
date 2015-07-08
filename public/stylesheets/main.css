@@ -50,9 +50,9 @@
 }
 .split-content {
   background: #fff;
-  border: 1px solid #dddde0;
-  margin: 60px 0 0 215px;
-  padding: 20px;
+  border: 1px solid #c8c7cc;
+  margin: 60px 0 0 220px;
+  padding: 40px;
   position: relative;
 }
 
@@ -266,7 +266,7 @@
   margin-right: 10px;
 }
 .analytics-bullet.average-ecpm {
-  background: #4f73e7;
+  background: #3c7cea;
 }
 .analytics-bullet.fill-rate {
   background: #ffcc66;
@@ -340,7 +340,7 @@
 }
 
 #csv-email-form h1 {
-  color: #4f73e7;
+  color: #3c7cea;
   font-size: 36px;
 }
 #csv-email-form .modal-text {
@@ -449,7 +449,7 @@ html {
 }
 
 body {
-  background: #efefef;
+  background: #f0eff5;
   color: #222;
   font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
@@ -501,7 +501,7 @@ button[type="button"] {
 button[type="submit"],
 button[type="button"] {
   -webkit-appearance: none;
-  background: #4f73e7;
+  background: #3c7cea;
   border: 0;
   border-radius: 3px;
   color: #ffffff;
@@ -524,7 +524,7 @@ button[type="button"] {
 
 #create-new-app:hover,
 #export-as-csv:hover {
-  background: #4f73e7;
+  background: #3c7cea;
 }
 
 .settings dl {
@@ -601,6 +601,17 @@ dd.modal-error {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+
+.app-modal-message {
+  margin-left: -200px;
+  margin-top: -65px;
+}
+
+.wap-modal-message {
+  position: fixed;
+  margin-left: -200px;
+  margin-top: -65px;
 }
 
 #browser-support {
@@ -758,7 +769,7 @@ header #logo {
   left: 0;
   position: absolute;
   top: 0;
-  width: 216px;
+  width: 220px;
 }
 header .actions {
   bottom: 0;
@@ -830,7 +841,7 @@ header #logo:before,
 .sub-header {
   background: #222;
   height: 60px;
-  left: 217px;
+  left: 221px;
   position: fixed;
   top: 0;
   width: 414px;
@@ -861,23 +872,23 @@ header #logo:before,
   background: #444;
 }
 .sub-header .menu li.active, .sub-header .menu li.active:hover {
-  border-bottom: #4f73e7 5px solid;
+  border-bottom: #3c7cea 5px solid;
 }
 
 #left-content {
   left: 0;
   position: absolute;
   top: 60px;
-  width: 215px;
+  width: 220px;
 }
 
 .left-apps-list {
-  border-bottom: 1px solid #c8c7cc;
-  padding: 20px;
+  padding: 30px 30px 20px 30px;
 }
 .left-apps-list h2 {
   color: #6d6d72;
   font-size: 13px;
+  margin-bottom: 20px;
 }
 .left-apps-list .reset-filters {
   color: #333333;
@@ -893,20 +904,20 @@ header #logo:before,
 .left-apps-list ul li {
   -webkit-transition: 150ms ease background;
   background: #fff;
-  border-bottom: #c8c7cc 1px solid;
+  border-bottom: #b4b3b8 1px solid;
   border-radius: 2px;
   cursor: pointer;
   display: block;
   font-size: 13px;
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 10px;
   position: relative;
 }
 .left-apps-list ul li:hover {
   background: #ccc;
 }
 .left-apps-list ul li.active {
-  background: #4f73e7;
+  background: #3c7cea;
   color: #fff;
 }
 .left-apps-list ul li.active.removable {
@@ -926,7 +937,7 @@ header #logo:before,
   width: 10px;
 }
 .left-apps-list ul li.add {
-  color: #4f73e7;
+  color: #3c7cea;
 }
 .left-apps-list ul li.add:hover {
   background: #fff;
@@ -966,6 +977,9 @@ header #logo:before,
   border-bottom: 0;
   background: none;
   text-align: left;
+}
+.left-apps-list ul a li {
+  color: #000;
 }
 
 .app-list ul.full-list li {
@@ -1017,7 +1031,7 @@ header #logo:before,
 }
 
 .left-apps-list .dropdown-menu li:hover {
-  background: #4f73e7;
+  background: #3c7cea;
   color: #fff;
 }
 
@@ -1075,16 +1089,13 @@ header #logo:before,
 #create-new-app, #export-as-csv {
   -webkit-transition: 150ms ease all;
   -webkit-appearance: none;
-  background: #333;
   border: 0;
-  border-radius: 3px;
-  color: #fff;
+  background: #f0eff5;
+  color: #6e6d72;
   font-size: 14px;
-  height: 58px;
-  margin: 20px;
-  padding: 15px;
+  margin: 0 30px;
   text-align: center;
-  width: 173px;
+  width: 160px;
 }
 
 #apps-list {
@@ -1363,7 +1374,7 @@ span#viewTerms:hover {
 .waterfall-list h1 {
   font-size: 36px;
   margin-top: 10px;
-  text-align: center;
+  text-align: left;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -1375,7 +1386,7 @@ span#viewTerms:hover {
 }
 
 #waterfall-sub-header {
-  background: #efeff4;
+  background: #f0eff5;
   color: #6d6d72;
   height: 53px;
   margin-top: 20px;
@@ -1389,11 +1400,6 @@ span#viewTerms:hover {
   padding-right: 10px;
   border-left: 1px solid #dddde0;
   padding-left: 10px;
-}
-#waterfall-sub-header .waterfall-buttons .text-label {
-  color: #6d6d72;
-  font-size: 12px;
-  margin-top: 7px;
 }
 #waterfall-sub-header .waterfall-buttons .onoffswitch {
   margin-left: 9px;
@@ -1423,6 +1429,44 @@ span#viewTerms:hover {
 #waterfall-sub-header .waterfall-buttons .pause.play {
   background-position: -50px -122px;
 }
+#waterfall-sub-header .waterfall-status {
+  position: relative;
+  float: left;
+  height: 31px;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container {
+  position: relative;
+  border-radius: 15px;
+  width: 150px;
+  height: 30px;
+  padding-top: 4px;
+  float: right;
+  margin-left: 10px;
+  text-align: center;
+  background: #6e6d72;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container span {
+  color: #fff;
+  font-size: 11px;
+  margin: 0 10px;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle {
+  border-radius: 12px;
+  height: 24px;
+  width: 50px;
+  background: #3c7cea;
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  -webkit-transition: 200ms ease all;
+}
+#waterfall-sub-header .text-label {
+  color: #6d6d72;
+  font-size: 12px;
+  margin-top: 7px;
+}
 #waterfall-sub-header .app-token {
   float: left;
   width: 375px;
@@ -1430,29 +1474,39 @@ span#viewTerms:hover {
 
 .waterfall ul li {
   background: #fff;
-  border: 2px solid #eee;
-  height: 110px;
-  margin: 10px 0;
-  padding: 24px;
+  border: 1px solid #c8c7cc;
+  height: 80px;
+  margin: 30px 0;
+  padding: 20px;
   position: relative;
 }
 .waterfall ul li button {
-  background: #333;
+  background: #6cd28b;
+  border-bottom: 1px solid #319443;
   float: right;
   margin: 0 0 0 10px;
-  width: 130px;
+  width: 120px;
+  height: 40px;
+  padding: 10px;
 }
-.waterfall ul li button.configure {
-  background: #333;
+.waterfall ul li div.configure {
+  cursor: pointer;
+  width: 22px;
+  height: 21px;
+  margin-top: 8px;
+  margin-right: 10px;
+  background: url(../images/icons.png);
+  background-position: -90px -5px;
+  float: right;
 }
 .waterfall ul li .waterfall-app-info {
   float: left;
   margin-left: 60px;
-  margin-top: 12px;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
 }
 .waterfall ul li .waterfall-app-info h3 {
-  color: #4f73e7;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  color: #000;
   font-size: 18px;
 }
 .waterfall ul li b {
@@ -1485,7 +1539,7 @@ span#viewTerms:hover {
   height: 30px;
   left: 30px;
   position: absolute;
-  top: 44px;
+  top: 30px;
   width: 26px;
 }
 
@@ -1534,15 +1588,16 @@ button.inactive {
   cursor: pointer;
   display: block;
   overflow: hidden;
+  box-shadow: inset 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
 }
 
 .onoffswitch-inner {
-  -moz-transition: margin .3s ease-in 0;
-  -o-transition: margin .3s ease-in 0;
-  -webkit-transition: margin .3s ease-in 0;
+  -moz-transition: margin .3s ease-in;
+  -o-transition: margin .3s ease-in;
+  -webkit-transition: margin .3s ease-in;
   display: block;
   margin-left: -100%;
-  transition: margin .3s ease-in 0;
+  transition: margin .3s ease-in;
   width: 200%;
 }
 
@@ -1563,14 +1618,14 @@ button.inactive {
 }
 
 .onoffswitch-inner:before {
-  background-color: #4f73e7;
+  background-color: #3c7cea;
   color: #FFF;
   content: "";
   padding-left: 10px;
 }
 
 .onoffswitch-inner:after {
-  background-color: #CCC;
+  background-color: #6e6d72;
   color: #999;
   content: "";
   padding-right: 10px;
@@ -1578,9 +1633,9 @@ button.inactive {
 }
 
 .onoffswitch-switch {
-  -moz-transition: all .3s ease-in 0;
-  -o-transition: all .3s ease-in 0;
-  -webkit-transition: all .3s ease-in 0;
+  -moz-transition: all .3s ease-in;
+  -o-transition: all .3s ease-in;
+  -webkit-transition: all .3s ease-in;
   background: #FFF;
   border-radius: 15px;
   bottom: 0;
@@ -1590,8 +1645,9 @@ button.inactive {
   position: absolute;
   right: 20px;
   top: 0;
-  transition: all .3s ease-in 0;
+  transition: all .3s ease-in;
   width: 24px;
+  box-shadow: 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
 }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
@@ -1613,9 +1669,10 @@ button.inactive {
 #initialize-sdk {
   background: #dce3fa;
   border: 2px solid #b9c7f5;
-  color: #4f73e7;
-  font-family: "Helvetica Neue Light", Helvetica, sans-serif;
-  margin-top: 10px;
+  color: #3c7cea;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  margin-top: 30px;
+  font-size: 14px;
   padding: 22px;
   position: relative;
   text-align: center;
@@ -1672,7 +1729,7 @@ button.inactive {
 
 #waterfall-app-settings-button {
   -webkit-appearance: none;
-  background: #4f73e7;
+  background: #3c7cea;
   border: 0;
   border-radius: 3px;
   color: #fff;
@@ -1757,6 +1814,7 @@ button.confirm-button {
 
 .ng-modal-dialog-content h1 {
   margin: 0 0 10px;
+  text-align: center;
   font-family: "Helvetica Neue Ultra Light", sans-serif;
 }
 
@@ -1787,7 +1845,7 @@ button.confirm-button {
 
 .modal-submit {
   -webkit-appearance: none;
-  background: #4f73e7;
+  background: #3c7cea;
   border: 0;
   border-radius: 3px;
   color: #fff;
@@ -1884,17 +1942,5 @@ button.confirm-button {
   width: 100%;
   z-index: 10;
 }
-
-.app-modal-message {
-    margin-left: -200px;
-    margin-top: -65px;
-}
-
-.wap-modal-message {
-    position: fixed;
-    margin-left: -200px;
-    margin-top: -65px;
-}
-
 
 /*# sourceMappingURL=main.css.map */

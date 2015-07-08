@@ -3,16 +3,16 @@
   left: 0;
   position: absolute;
   top: 60px;
-  width: 215px;
+  width: 220px;
 }
 
 .left-apps-list {
-  border-bottom: 1px solid #c8c7cc;
-  padding: 20px;
+  padding: 30px 30px 20px 30px;
 
   h2 {
     color: #6d6d72;
     font-size: 13px;
+    margin-bottom: 20px;
   }
 
   .reset-filters {
@@ -30,13 +30,13 @@
     li {
       -webkit-transition: 150ms ease background;
       background: #fff;
-      border-bottom: #c8c7cc 1px solid;
+      border-bottom: #b4b3b8 1px solid;
       border-radius: 2px;
       cursor: pointer;
       display: block;
       font-size: 13px;
       margin-top: 10px;
-      padding: 8px 10px;
+      padding: 10px;
       position: relative;
 
       &:hover {
@@ -114,6 +114,10 @@
         background: none;
         text-align: left;
       }
+    }
+
+    a li {
+      color: #000;
     }
   }
 }
@@ -226,16 +230,13 @@
 #create-new-app, #export-as-csv {
   -webkit-transition: 150ms ease all;
   -webkit-appearance: none;
-  background: #333;
   border: 0;
-  border-radius: 3px;
-  color: #fff;
+  background: $background-color;
+  color: #6e6d72;
   font-size: 14px;
-  height: 58px;
-  margin: 20px;
-  padding: 15px;
+  margin: 0 30px;
   text-align: center;
-  width: 173px;
+  width: 160px;
 }
 
 #apps-list {
