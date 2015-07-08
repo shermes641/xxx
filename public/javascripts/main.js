@@ -344,7 +344,7 @@ mediationModule.directive(passwordConfirmation, function() {
             ctrl.$parsers.unshift(validate);
             ctrl.$formatters.push(validate);
 
-            attrs.$observe(passwordConfirmation, function(password){
+            attrs.$observe(passwordConfirmation, function(password) {
                 return validate(ctrl.$viewValue);
             });
         }
