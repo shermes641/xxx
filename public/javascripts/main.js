@@ -127,6 +127,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
                 scope.showModal(false);
                 scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
+                scope.data = {};
                 scope.showNewAppModal = false;
                 scope.showTestModeConfirmationModal = false;
                 scope.showPauseConfirmationModal = false;
@@ -289,7 +290,7 @@ mediationModule.directive(callbackValidator, function() {
         link: function(scope, elm, attrs, ctrl) {
             var validate = function(viewValue) {
                 var serverToServerEnabled = attrs.callbackValidator === "true";
-                if((serverToServerEnabled || !ctrl.$isEmpty(ctrl.$viewValue)) && !ctrl.$pristine) {
+                if(serverToServerEnabled || !ctrl.$isEmpty(ctrl.$viewValue)) {
                     ctrl.$setValidity(callbackValidator, (/(http|https):\/\//).test(ctrl.$viewValue));
                 } else {
                     ctrl.$setValidity(callbackValidator, true);
