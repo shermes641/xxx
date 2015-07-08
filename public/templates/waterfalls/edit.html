@@ -80,10 +80,10 @@
                     </h4>
                     <label class="text-label">Waterfall Status</label>
                     <div class="waterfall-status-container">
-                        <div id="status-toggle"></div>
-                        <span>Test</span>
-                        <span>Live</span>
-                        <span>Pause</span>
+                        <div id="status-toggle" ng-class="{live: !waterfallData.waterfall.testMode, paused: waterfallData.waterfall.paused}"></div>
+                        <span ng-click="waterfallData.waterfall.paused = false; waterfallData.waterfall.testMode = true">Test</span>
+                        <span ng-click="waterfallData.waterfall.paused = false; waterfallData.waterfall.testMode = false">Live</span>
+                        <span ng-click="waterfallData.waterfall.paused = true; waterfallData.waterfall.testMode = false">Pause</span>
                     </div>
                 </div>
             </div>

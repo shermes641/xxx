@@ -1388,10 +1388,11 @@ span#viewTerms:hover {
 #waterfall-sub-header {
   background: #f0eff5;
   color: #6d6d72;
-  height: 53px;
+  height: 60px;
   margin-top: 20px;
-  padding: 12px;
+  padding: 15px;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
+  border: 1px solid #c8c7cc;
 }
 #waterfall-sub-header .waterfall-buttons {
   position: relative;
@@ -1446,11 +1447,15 @@ span#viewTerms:hover {
   margin-left: 10px;
   text-align: center;
   background: #6e6d72;
+  box-shadow: inset 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
 }
 #waterfall-sub-header .waterfall-status .waterfall-status-container span {
+  position: relative;
   color: #fff;
   font-size: 11px;
   margin: 0 10px;
+  z-index: 10;
+  cursor: pointer;
 }
 #waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle {
   border-radius: 12px;
@@ -1458,9 +1463,18 @@ span#viewTerms:hover {
   width: 50px;
   background: #3c7cea;
   position: absolute;
-  top: 2px;
-  left: 5px;
+  top: 3px;
+  left: 3px;
+  z-index: 0;
   -webkit-transition: 200ms ease all;
+  box-shadow: 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle.live {
+  left: 45px;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle.paused {
+  left: 90px;
+  width: 56px;
 }
 #waterfall-sub-header .text-label {
   color: #6d6d72;
