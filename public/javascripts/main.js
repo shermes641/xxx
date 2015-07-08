@@ -106,6 +106,23 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
 }]);
 
 // Directives
+var clearErrorOnChange = 'clearErrorOnChange';
+mediationModule.directive(clearErrorOnChange, function() {
+    return {
+        require: 'ngModel',
+        scope: false,
+        link: function(scope, elm, attrs, ctrl) {
+            scope.$watch(attrs.clearErrorOnChange, function() {
+                var form = scope[attrs.formName] ? scope[attrs.formName] : scope[scope.formName];
+                if(form.$submitted) {
+                    scope.errors[attrs.name] = "";
+                    scope.errors[attrs.name + "Class"] = "";
+                }
+            });
+        }
+    };
+});
+
 mediationModule.directive('modalDialog', function($rootScope) {
     return {
         restrict: 'E',

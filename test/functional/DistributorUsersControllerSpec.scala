@@ -56,6 +56,22 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.goTo(controllers.routes.Application.index.url)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").areNotDisplayed
     }
+
+    "display the latest email error" in new WithFakeBrowser {
+      val distributorUserEmail = "UniqueUser2@gmail.com"
+      DistributorUser.create(distributorUserEmail, password = "password", company = "new company")
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      browser.fill("#company").`with`(companyName)
+      browser.fill("#email").`with`(distributorUserEmail)
+      browser.fill("#password").`with`(password)
+      browser.fill("#confirmation").`with`(password)
+      browser.$("#terms").click()
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#email-custom-error").containsText("This email has been registered already.")
+      browser.fill("#email").`with`("")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#email-custom-error").hasText("")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#email-required-error").areDisplayed
+    }
   }
 
   "DistributorUsersController.create" should {
@@ -135,6 +151,19 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       status(result) must beEqualTo(200)
       currentSession.get("username") must beNone
       currentSession.get("distributorID") must beNone
+    }
+
+    "display the latest password error" in new WithFakeBrowser {
+      val distributorUserEmail = "UniqueUser3@gmail.com"
+      DistributorUser.create(distributorUserEmail, password = "password", company = "new company")
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
+      browser.fill("#email").`with`(distributorUserEmail)
+      browser.fill("#password").`with`("incorrect password")
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-custom-error").containsText("Invalid Password.")
+      browser.fill("#password").`with`("")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-custom-error").hasText("")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-required-error").areDisplayed
     }
   }
 }

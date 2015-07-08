@@ -3,6 +3,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
             $scope.showTerms = false;
             $scope.waitForAuth = false;
             $scope.errors = {};
+            $scope.formName = 'newDistributorUserForm';
             $scope.termsTemplate = 'assets/templates/distributor_users/terms.html';
 
             $scope.toggleTerms = function() {
