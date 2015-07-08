@@ -195,7 +195,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     val earningList = parseResponse(earningsResponse.body)
 
     for(i <- requestList.indices){
-      val date = (requestList(i).timeframe \ "start").as[String]
+      val date = (requestList(i).timeframe \ "start").as[String].split("T")(0)
       val requests = requestList(i).value.as[Long]
       val dau = dauList(i).value.as[Long]
       val impressions = impressionList(i).value.as[Long]
