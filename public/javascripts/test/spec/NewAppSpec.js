@@ -241,7 +241,6 @@ describe('NewAppSpec', function() {
             scope.$digest();
 
             newAppResponseMock.respond(503, { data: "" });
-            httpBackend.flush();
 
             form.$valid = true;
             scope.submitNewApp(form);
