@@ -234,11 +234,31 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       currentApp.serverToServerEnabled must beFalse
       browser.find("#callbackURL").first.isEnabled must beFalse
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.find("button[name=submit]").first.isEnabled must beFalse
       browser.find("#callbackURL").first.isEnabled must beTrue
       browser.fill("#callbackURL").`with`("invalid-url")
       browser.clear("#currencyName")
-      clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#callback-url").containsText("A valid HTTP or HTTPS callback URL is required.")
+      browser.find("button[name=submit]").first.isEnabled must beFalse
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
+    }
+
+    "enable the 'Save Changes' button after a callback URL error was encountered, the enable server to server option was toggled to 'off,' the modal was closed, then reopened" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      currentApp.serverToServerEnabled must beFalse
+      browser.find("#callbackURL").first.isEnabled must beFalse
+      browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.find("#callbackURL").first.isEnabled must beTrue
+      browser.fill("#callbackURL").`with`("invalid-url")
+      browser.clear("#rewardMax")
+      browser.find("button[name=submit]").first.isEnabled must beFalse
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
+      browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.find("button[name=submit]").first.isEnabled must beTrue
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
