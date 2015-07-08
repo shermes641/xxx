@@ -289,7 +289,7 @@ mediationModule.directive(callbackValidator, function() {
         link: function(scope, elm, attrs, ctrl) {
             var validate = function(viewValue) {
                 var serverToServerEnabled = attrs.callbackValidator === "true";
-                if(serverToServerEnabled || !ctrl.$isEmpty(ctrl.$viewValue)) {
+                if((serverToServerEnabled || !ctrl.$isEmpty(ctrl.$viewValue)) && !ctrl.$pristine) {
                     ctrl.$setValidity(callbackValidator, (/(http|https):\/\//).test(ctrl.$viewValue));
                 } else {
                     ctrl.$setValidity(callbackValidator, true);
