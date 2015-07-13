@@ -47,6 +47,8 @@ class JunGroupAPI {
     val body = "Jun Group ad network account was not created successfully. <br> <b>Email:</b> " + distributorUser.email +
       " <br> <b>WaterfallAdProviderID:</b> " + waterfallAdProviderID +
       " <br> <b>AppToken:</b> " + appToken +
+      " <br> <b>Environment:</b> " + Environment.mode +
+      " <br> <b>Domain:</b> " + Play.current.configuration.getString("app_domain").getOrElse("") +
       " <br><br> <b>Error:</b> " + failureReason +
       " <br><br> For More information visit: <a href='https://wiki.jungroup.com/display/MED/Create+Ad+Network+for+HyprMarketplace+on+Player+API+Failure'>Ad Network Documentation</a>"
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(Play.current.configuration.getString("jungroup.email").get, subject, body)))
