@@ -74,7 +74,7 @@
             <dl id="reward-min">
                 <dt><label for="reward-min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input required-integer type="text" ng-model="data.rewardMin" ng-maxlength="15" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                    <input required-integer type="text" ng-model="data.rewardMin" ng-maxlength="15" ng-change="form.editAppForm.rewardMax.$setTouched()" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Reward Min must be 15 characters or less.</dd>
@@ -86,7 +86,7 @@
                     <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-maxlength="15" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
                 </dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
-                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo && !form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
+                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo && !form.editAppForm.rewardMax.$error.rewardMaxValidator" id="reward-max-error">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
             </dl>
 

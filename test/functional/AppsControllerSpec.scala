@@ -331,6 +331,18 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max").containsText("Reward Max must be 15 characters or less.")
     }
 
+    "display an error message when reward min is greater than reward max" in new WithAppBrowser(user.distributorID.get) {
+      VirtualCurrency.update(new VirtualCurrency(currentVirtualCurrency.id, currentApp.id, currentVirtualCurrency.name,
+        currentVirtualCurrency.exchangeRate, rewardMin = 1, rewardMax = Some(1), roundUp = currentVirtualCurrency.roundUp))
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.fill("#rewardMin").`with`("5")
+      Thread.sleep(10000)
+      browser.find("button[name=submit]").first.isEnabled must beFalse
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max-error").areDisplayed
+    }
+
     "Callback URL tooltip documentation link is correct" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
 
