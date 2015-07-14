@@ -31,11 +31,14 @@ describe('EditAppSpec', function() {
             expect(form.rewardMax.$valid).toEqual(true);
         });
 
-        it('should be valid if rewardMax is empty', function() {
+        it('should be valid if rewardMax is empty or blank', function() {
+            var rewardMaxValues = [undefined, ""];
             scope.data.rewardMin = '1';
-            scope.data.rewardMax = undefined;
-            scope.$digest();
-            expect(form.rewardMax.$valid).toEqual(true);
+            for(var i = 0; i < rewardMaxValues.length; i++) {
+                scope.data.rewardMax = rewardMaxValues[i];
+                scope.$digest();
+                expect(form.rewardMax.$valid).toEqual(true);
+            }
         });
     });
 
