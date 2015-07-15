@@ -88,7 +88,7 @@
 
       &.arrowdown {
         padding: 0;
-        width: 175px;
+        width: 160px;
         background: #fff;
       }
 
@@ -148,6 +148,25 @@
 #waterfall-controller .left-apps-list ul li {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 25px;
+
+  .settings-icon {
+    background: url(../images/icons.png);
+    background-position: -95px -40px;
+    height: 15px;
+    position: absolute;
+    right: 10px;
+    top: 12px;
+    width: 15px;
+  }
+
+  &.active .settings-icon {
+    background-position: -95px -57px;
+  }
+}
+
+#analytics-controller .left-apps-list {
+  border-bottom: 1px solid #c8c7cc;
 }
 
 .left-apps-list .dropdown-menu {
@@ -233,10 +252,29 @@
   border: 0;
   background: $background-color;
   color: #6e6d72;
-  font-size: 14px;
+  font-size: 12px;
   margin: 0 30px;
   text-align: center;
   width: 160px;
+  cursor: pointer;
+  vertical-align: middle;
+
+  &:hover {
+    color: #000;
+  }
+
+  .icon {
+    display: inline-block;
+    margin-right: 5px;
+    background: url(../images/icons.png);
+    background-position: -94px -81px;
+    height: 22px;
+    width: 22px;
+    vertical-align: middle;
+  }
+}
+#export-as-csv {
+  margin-top: 30px;
 }
 
 #apps-list {
@@ -280,4 +318,9 @@
 .app-list ul.full-list, .waterfall ul {
   list-style: none;
   width: 100%;
+  margin-bottom: 0;
+}
+
+.input-group {
+  display: block;
 }

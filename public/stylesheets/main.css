@@ -522,11 +522,6 @@ button[type="button"] {
   text-align: center;
 }
 
-#create-new-app:hover,
-#export-as-csv:hover {
-  background: #3c7cea;
-}
-
 .settings dl {
   margin-bottom: 5px;
   margin-top: 20px;
@@ -782,7 +777,7 @@ header .actions {
 header .actions .header-actions {
   border-left: 1px solid #000;
   float: right;
-  padding: 21px 22px;
+  padding: 20px 22px;
   position: relative;
 }
 header .actions .header-actions:before {
@@ -955,7 +950,7 @@ header #logo:before,
 }
 .left-apps-list ul li.arrowdown {
   padding: 0;
-  width: 175px;
+  width: 160px;
   background: #fff;
 }
 .left-apps-list ul li.arrowdown input.form-control {
@@ -1007,6 +1002,23 @@ header #logo:before,
 #waterfall-controller .left-apps-list ul li {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 25px;
+}
+#waterfall-controller .left-apps-list ul li .settings-icon {
+  background: url(../images/icons.png);
+  background-position: -95px -40px;
+  height: 15px;
+  position: absolute;
+  right: 10px;
+  top: 12px;
+  width: 15px;
+}
+#waterfall-controller .left-apps-list ul li.active .settings-icon {
+  background-position: -95px -57px;
+}
+
+#analytics-controller .left-apps-list {
+  border-bottom: 1px solid #c8c7cc;
 }
 
 .left-apps-list .dropdown-menu {
@@ -1092,10 +1104,28 @@ header #logo:before,
   border: 0;
   background: #f0eff5;
   color: #6e6d72;
-  font-size: 14px;
+  font-size: 12px;
   margin: 0 30px;
   text-align: center;
   width: 160px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+#create-new-app:hover, #export-as-csv:hover {
+  color: #000;
+}
+#create-new-app .icon, #export-as-csv .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -81px;
+  height: 22px;
+  width: 22px;
+  vertical-align: middle;
+}
+
+#export-as-csv {
+  margin-top: 30px;
 }
 
 #apps-list {
@@ -1139,6 +1169,11 @@ header #logo:before,
 .app-list ul.full-list, .waterfall ul {
   list-style: none;
   width: 100%;
+  margin-bottom: 0;
+}
+
+.input-group {
+  display: block;
 }
 
 .welcome-screen {
@@ -1237,6 +1272,8 @@ header #logo:before,
   padding: 14px;
   text-align: center;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
+  margin-bottom: 20px;
+  animation: splash 500ms normal forwards ease-in-out;
 }
 
 .system-message {
@@ -1336,7 +1373,7 @@ span#viewTerms:hover {
 }
 .tooltip:before {
   border: solid;
-  border-color: #cc9 transparent;
+  border-color: #000 transparent;
   border-width: 0 6px 6px;
   content: "";
   left: 22%;
@@ -1344,18 +1381,20 @@ span#viewTerms:hover {
   top: 23px;
   z-index: 1300;
   visibility: hidden;
+  opacity: 0;
+  transition: all linear 0.2s;
+  -webkit-transition: all linear 0.2s;
 }
 .tooltip:hover:before {
+  opacity: 1;
   visibility: visible;
 }
 
 .ngtooltip {
   opacity: 1;
-  background: #ff9;
-  border: 2px solid #cc9;
-  border-radius: 5px;
-  color: #993;
-  padding: 5px 15px;
+  background: #000;
+  color: #fff;
+  padding: 5px 5px;
   position: absolute;
   left: -190px;
   top: 29px;
@@ -1373,13 +1412,9 @@ span#viewTerms:hover {
 
 .waterfall-list h1 {
   font-size: 36px;
-  margin-top: 10px;
   text-align: left;
   text-overflow: ellipsis;
   overflow: hidden;
-}
-.waterfall-list #edit-top h1 {
-  padding-right: 170px;
 }
 .waterfall-list.waterfall-sort {
   min-height: 50px;
@@ -1447,7 +1482,7 @@ span#viewTerms:hover {
   margin-left: 10px;
   text-align: center;
   background: #6e6d72;
-  box-shadow: inset 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 1px 2px 2px 1px rgba(0, 0, 0, 0.25);
 }
 #waterfall-sub-header .waterfall-status .waterfall-status-container span {
   position: relative;
@@ -1467,41 +1502,120 @@ span#viewTerms:hover {
   left: 3px;
   z-index: 0;
   -webkit-transition: 200ms ease all;
-  box-shadow: 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 1px 2px 2px 1px rgba(0, 0, 0, 0.25);
 }
 #waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle.live {
+  background: #6cd28b;
   left: 45px;
 }
 #waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle.paused {
+  background: #989898;
   left: 90px;
   width: 56px;
 }
 #waterfall-sub-header .text-label {
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
   color: #6d6d72;
   font-size: 12px;
   margin-top: 7px;
+  margin-left: 5px;
 }
 #waterfall-sub-header .app-token {
   float: left;
   width: 375px;
 }
 
+@keyframes splash {
+  from {
+    opacity: 0.2;
+    transform: scale(1, 1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1, 1);
+  }
+  to {
+    transform: scale(1, 1);
+  }
+}
 .waterfall ul li {
   background: #fff;
   border: 1px solid #c8c7cc;
   height: 80px;
-  margin: 30px 0;
+  margin: 30px 0 0 0;
   padding: 20px;
   position: relative;
+  animation: splash 500ms normal forwards ease-in-out;
 }
 .waterfall ul li button {
+  position: relative;
   background: #6cd28b;
-  border-bottom: 1px solid #319443;
   float: right;
   margin: 0 0 0 10px;
   width: 120px;
   height: 40px;
   padding: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+}
+.waterfall ul li button.active:hover .deactivate {
+  left: 0;
+}
+.waterfall ul li button.inactive:hover .activate {
+  right: 0;
+}
+.waterfall ul li button.active {
+  border-bottom: 1px solid #319443;
+}
+.waterfall ul li button.active .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -109px;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+.waterfall ul li button.inactive {
+  background: #383838;
+  border-bottom: 1px solid #000000;
+}
+.waterfall ul li button.inactive .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -138px;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+.waterfall ul li button label {
+  margin: 0 0 2px 0;
+  font-weight: normal;
+  vertical-align: middle;
+}
+.waterfall ul li button .deactivate {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  padding: 10px;
+  background: #e37070;
+  height: 100%;
+  width: 100%;
+  -webkit-transition: 250ms ease all;
+  transition: 250ms ease all;
+}
+.waterfall ul li button .activate {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  padding: 10px;
+  background: #3c7cea;
+  height: 100%;
+  width: 100%;
+  -webkit-transition: 300ms ease all;
+  transition: 250ms ease all;
 }
 .waterfall ul li div.configure {
   cursor: pointer;
@@ -1691,6 +1805,7 @@ button.inactive {
   position: relative;
   text-align: center;
   cursor: pointer;
+  animation: splash 500ms normal forwards ease-in-out;
 }
 
 #initialize-sdk .code-block {
@@ -1737,7 +1852,6 @@ button.inactive {
 }
 
 #edit-top {
-  margin-top: 20px;
   position: relative;
 }
 

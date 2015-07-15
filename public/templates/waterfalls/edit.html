@@ -15,7 +15,7 @@
             </div>
             <div id="edit-top">
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
-                <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
+                <!--<button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>-->
             </div>
             <div id="waterfall-sub-header">
                 <modal-dialog show='modalShown'>
@@ -32,7 +32,7 @@
                         <div ng-include="testModeConfirmationModal"></div>
                     </div>
                 </modal-dialog>
-
+                <!--
                 <div class="waterfall-buttons" ng-class="{disabled: waterfallData.waterfall.testMode}">
                     <div class="button-overlay"></div>
                     <h4 ng-mouseenter="hoverPause=true" ng-mouseleave="hoverPause=false" class="tooltip">
@@ -43,8 +43,8 @@
                     <label ng-if="!waterfallData.waterfall.paused" class="text-label">Pause Ads</label>
                     <div class="pause" ng-class="{play: waterfallData.waterfall.paused}" ng-click="togglePaused()"></div>
                 </div>
-
-                <div class="waterfall-buttons">
+                -->
+                <div class="waterfall-buttons first">
                     <h4 ng-mouseenter="hoverOptimized=true" ng-mouseleave="hoverOptimized=false" class="tooltip">
                         ?
                         <div class="ngtooltip" ng-show="hoverOptimized">Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.</div>
@@ -58,7 +58,7 @@
                         </label>
                     </div>
                 </div>
-
+                <!--
                 <div class="waterfall-buttons first">
                     <h4 ng-mouseenter="hoverTestMode=true" ng-mouseleave="hoverTestMode=false" class="tooltip">
                         ?
@@ -73,6 +73,7 @@
                         </label>
                     </div>
                 </div>
+                -->
                 <div class="waterfall-status">
                     <h4 ng-mouseenter="hoverStatusMode=true" ng-mouseleave="hoverStatusMode=false" class="tooltip">
                         ?
@@ -88,7 +89,7 @@
                 </div>
             </div>
 
-            <div id="initialize-sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}">
+            <div id="initialize-sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}" ng-show="waterfallData.waterfall.testMode">
                 <div id="arrow-dropdown"></div>
                 Initialize hyprMediate in your SDK
                 <div class="code-block">
@@ -121,8 +122,11 @@
                                 </div>
                             </div>
                             <div ng-hide="{{adProviderConfig.pending}}" class="wap-buttons">
-                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" type="submit" name="status">
-                                    {{adProviderConfig.active | waterfallStatus}}
+                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" ng-class="{active: adProviderConfig.active, inactive: !adProviderConfig.active}" type="submit" name="status">
+                                    <div class="icon"></div>
+                                    <label>{{adProviderConfig.active | waterfallStatus}}</label>
+                                    <div class="deactivate">Deactivate</div>
+                                    <div class="activate">Activate</div>
                                 </button>
                                 <div ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" name="configure-wap" class="configure active-button" type="submit"></div>
                             </div>

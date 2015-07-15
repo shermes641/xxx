@@ -347,7 +347,7 @@ angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
 
 angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
     return function(status) {
-        return status ? "Deactivate" : "Activate";
+        return status ? "Active" : "Inactive";
     };
 });
 

@@ -176,10 +176,12 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             /* App logic */
             // Open the App settings page
-            $scope.toggleEditAppModal = function() {
+            $scope.toggleEditAppModal = function(appID) {
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
-                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
+                console.log(appID);
+                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + appID + '/edit').success(function(data) {
+                    $scope.editAppID = appID;
                     $scope.data = data;
                     $scope.form.editAppForm.$setPristine();
                     $scope.form.editAppForm.$setUntouched();
@@ -238,13 +240,14 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     ga('send', 'event', 'submit_edit_app', 'click', 'waterfalls');
                     setNumberValues("data");
                     $scope.data.generationNumber = $scope.generationNumber;
-                    $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
+                    console.log($scope.editAppID);
+                    $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.editAppID, $scope.data).
                         success(function(data, status, headers, config) {
                             if($scope.appName !== $scope.data.appName) {
                                 var apps = $scope.waterfallData.appsWithWaterfalls;
                                 $scope.appName = $scope.data.appName;
                                 for(index in apps) {
-                                    if(apps[index].id === $scope.appID) {
+                                    if(apps[index].id === $scope.editAppID) {
                                         apps[index].name = $scope.data.appName;
                                     }
                                 }
