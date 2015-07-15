@@ -8,10 +8,10 @@
             <dl id="app-name">
                 <dt><label for="app-name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
-                    <input required type="text" ng-model="data.appName" id="appName" name="appName" value="" placeholder="name" label="*App Name">
+                    <input required type="text" ng-model="data.appName" clear-error-on-change="data.appName" form-name="form.editAppForm" id="appName" name="appName" value="" placeholder="name" label="*App Name">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.appName.$touched">
-                    <dd class="error">{{errors.appName}}</dd>
+                    <dd id="edit-app-app-name-custom-error" class="error">{{errors.appName}}</dd>
                 </div>
                 <dd class="error" ng-show="form.editAppForm.appName.$error.required">App Name is required.</dd>
             </dl>

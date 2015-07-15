@@ -93,7 +93,9 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       appNames.map { name =>
         fillInAppValues(appName = name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
         clickAndWaitForAngular("button[id=create-app]")
-        browser.pageSource must contain("You already have an App with the same name.")
+        browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-app-name-custom-error").containsText("You already have an App with the same name.")
+        browser.fill("#newAppName").`with`("")
+        browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-app-name-custom-error").hasText("")
         App.findAll(user.distributorID.get).size must beEqualTo(appCount)
       }
     }
@@ -338,9 +340,20 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
       clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.fill("#rewardMin").`with`("5")
-      Thread.sleep(10000)
       browser.find("button[name=submit]").first.isEnabled must beFalse
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max-error").areDisplayed
+    }
+
+    "render an error if the user tries to change the app name to the same name as one of their other active apps" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      val (anotherApp, _, _, _) = setUpApp(user.distributorID.get)
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.fill("#appName").`with`(anotherApp.name)
+      browser.executeScript("$('#update-app').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app-app-name-custom-error").containsText("You already have an App with the same name.")
+      browser.fill("#appName").`with`("")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app-app-name-custom-error").hasText("")
     }
 
     "Callback URL tooltip documentation link is correct" in new WithAppBrowser(user.distributorID.get) {

@@ -16,9 +16,9 @@
             <dl id="new-app-app-name">
                 <dt><label for="new-app-app-name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
-                    <input required type="text" ng-model="newApp.appName" id="newAppName" name="appName" placeholder="name" label="*App Name">
+                    <input required type="text" clear-error-on-change="newApp.appName" form-name="form.newAppForm" ng-model="newApp.appName" id="newAppName" name="appName" placeholder="name" label="*App Name">
                 </dd>
-                <dd class="error">{{errors.appName}}</dd>
+                <dd id="new-app-app-name-custom-error" class="error">{{errors.appName}}</dd>
                 <div ng-show="form.newAppForm.$submitted || form.newAppForm.appName.$touched">
                     <dd class="error" ng-show="form.newAppForm.appName.$error.required">App Name is required.</dd>
                 </div>
