@@ -5,7 +5,7 @@
 mediationModule.controller( 'BrowserSupportController', [ '$scope',
 
     function( $scope ) {
-        $scope.popupElement = $( '#browser_support' );
+        $scope.popupElement = $( '#browser-support' );
         $scope.supportedBrowsers = [ "chrome", "safari", "firefox" ];
         $scope.cookieString = "dismissed_browser_popup";
 
@@ -53,15 +53,15 @@ mediationModule.controller( 'BrowserSupportController', [ '$scope',
         $scope.openPopup = function() {
             if( document.cookie.indexOf( $scope.cookieString ) === -1 ){
                 ga('send', 'event', 'browser_support_popup_shown', 'browser_unsupported', 'browser_support');
-                angular.element(document.body).addClass('browser_not_supported');
-                $( '#browser_support' ).css('display','block');
+                angular.element(document.body).addClass('browser-not-supported');
+                $( '#browser-support' ).css('display','block');
             }
         };
 
         // Closes popup and sets cookie
         $scope.dismissPopup = function() {
             ga('send', 'event', 'browser_support_popup_dismissed', 'click', 'browser_support');
-            angular.element(document.body).removeClass('browser_not_supported');
+            angular.element(document.body).removeClass('browser-not-supported');
             $scope.popupElement.hide();
             var expirationDate = new Date();
             var time = expirationDate.getTime();

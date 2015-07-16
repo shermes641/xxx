@@ -42,3 +42,18 @@
     background-position:-48px -0px;
   }
 }
+
+.browser-not-supported header, .browser-not-supported .sub-header
+{
+  top: 60px;
+}
+
+.browser-not-supported #left-content
+{
+  top: 120px;
+}
+
+.browser-not-supported .split-content
+{
+  margin: 120px 0 0 215px;
+}
