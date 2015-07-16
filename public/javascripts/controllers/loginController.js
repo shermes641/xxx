@@ -3,6 +3,7 @@ distributorUsersControllers.controller('LoginController', ['$scope', '$http', '$
             $scope.waitForAuth = false;
             $scope.errors = {};
             $scope.flashMessage = flashMessage;
+            $scope.formName = 'loginForm';
             if($routeParams.recently_logged_out === "true") {
                 flashMessage.add({message: "You are now logged out.", status: "success"});
             }

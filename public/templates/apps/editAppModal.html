@@ -46,7 +46,7 @@
                     <input callback-validator="{{data.serverToServerEnabled}}" ng-disabled="!data.serverToServerEnabled" ng-class="{'inactive-input': !data.serverToServerEnabled}" type="text" ng-model="data.callbackURL" ng-model-options="{updateOn: 'blur'}" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.callbackURL.$touched">
-                    <dd class="error" ng-show="form.editAppForm.callbackURL.$error.callbackValidator">A valid HTTP or HTTPS callback URL is required.</dd>
+                    <dd class="error" ng-show="form.editAppForm.callbackURL.$error.callbackValidator" id="valid-callback-url-error">A valid HTTP or HTTPS callback URL is required.</dd>
                 </div>
             </dl>
 

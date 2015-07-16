@@ -108,6 +108,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.showTestModeConfirmationModal = false;
             };
 
+
+            <span ng-click="waterfallData.waterfall.paused = false; waterfallData.waterfall.testMode = true">Test</span>
+            <span ng-click="waterfallData.waterfall.paused = false; waterfallData.waterfall.testMode = false">Live</span>
+            <span ng-click="waterfallData.waterfall.paused = true; waterfallData.waterfall.testMode = false">Pause</span>
+
             // Toggles optimized mode on/off
             $scope.toggleOptimizedMode = function() {
                 ga('send', 'event', 'optimized_toggle', 'click', 'waterfalls');

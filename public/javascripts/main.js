@@ -106,6 +106,23 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
 }]);
 
 // Directives
+var clearErrorOnChange = 'clearErrorOnChange';
+mediationModule.directive(clearErrorOnChange, function() {
+    return {
+        require: 'ngModel',
+        scope: false,
+        link: function(scope, elm, attrs, ctrl) {
+            scope.$watch(attrs.clearErrorOnChange, function() {
+                var form = scope[attrs.formName] ? scope[attrs.formName] : scope[scope.formName];
+                if(form.$submitted) {
+                    scope.errors[attrs.name] = "";
+                    scope.errors[attrs.name + "Class"] = "";
+                }
+            });
+        }
+    };
+});
+
 mediationModule.directive('modalDialog', function($rootScope) {
     return {
         restrict: 'E',
@@ -127,6 +144,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
                 scope.showModal(false);
                 scope.showWaterfallAdProviderModal = false;
                 scope.showEditAppModal = false;
+                scope.data = {};
                 scope.showNewAppModal = false;
                 scope.showTestModeConfirmationModal = false;
                 scope.showPauseConfirmationModal = false;
@@ -135,7 +153,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
 
             // Add body class to prevent scrolling when modal open
             scope.showModal = function(display) {
-                scope.dialogStyle.overflowY = "auto";
+                scope.dialogStyle.overflowY = scope.showEditAppModal ? "visible" : "auto";
                 $rootScope.bodyClass = display ? "modal-active" : "";
                 scope.modalShown = display;
             };
@@ -326,7 +344,28 @@ mediationModule.directive(passwordConfirmation, function() {
             ctrl.$parsers.unshift(validate);
             ctrl.$formatters.push(validate);
 
-            attrs.$observe(passwordConfirmation, function(password){
+            attrs.$observe(passwordConfirmation, function(password) {
+                return validate(ctrl.$viewValue);
+            });
+        }
+    };
+});
+
+var validateRequiredParamFormat = 'validateRequiredParamFormat';
+
+mediationModule.directive(validateRequiredParamFormat, function() {
+    return {
+        require: 'ngModel',
+        link: function(scope, elm, attrs, ctrl) {
+            var validate = function() {
+                if(attrs.requiredParamDataType === "Array") {
+                    ctrl.$setValidity(validateRequiredParamFormat, attrs.validateRequiredParamFormat.split(",").filter(function(zoneID) { return zoneID.match(/^(^$|\s+)$/); }).length === 0);
+                } else {
+                    ctrl.$setValidity(validateRequiredParamFormat, true);
+                }
+            };
+
+            attrs.$observe(validateRequiredParamFormat, function(){
                 return validate(ctrl.$viewValue);
             });
         }

@@ -164,7 +164,7 @@ describe('NewAppSpec', function() {
             expect(scope.newAppModalTitle).toEqual("Welcome to hyprMediate!");
         });
 
-        it('should not be able to submit twice until we receive a response from the server (200)', function() {
+        it('should not be able to submit twice due to redirect on valid response (200)', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
@@ -180,8 +180,6 @@ describe('NewAppSpec', function() {
             // Before new app response, form should be in submitting state
             expect(form.submitting).toEqual(true);
             httpBackend.flush();
-            // Only after request has completed should you be able to submit again
-            expect(form.submitting).toEqual(false);
         });
 
         it('should not be able to submit twice until we receive a response from the server (400)', function() {

@@ -121,7 +121,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
 
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
 
       keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
@@ -136,7 +136,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       earningsResponse.body returns "{\"result\": [{\"value\": 10002, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
 
       keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
 
       keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
@@ -144,7 +144,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       // Verify eCPM defaults to 0
       eCPMResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       keenExportActor.buildAppRows("App Name", requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02T00:00:00.000Z,App Name,0,0,0.0,10,4,0.0,0,10.002")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,0,10.002")
     }
   }
 }
