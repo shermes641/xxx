@@ -605,6 +605,17 @@ dd.modal-error {
   -ms-user-select: none;
 }
 
+.app-modal-message {
+  margin-left: -200px;
+  margin-top: -65px;
+}
+
+.wap-modal-message {
+  position: fixed;
+  margin-left: -200px;
+  margin-top: -65px;
+}
+
 #browser-support {
   display: none;
   position: fixed;
@@ -643,6 +654,18 @@ dd.modal-error {
   height: 35px;
   background: url(../images/icons.png);
   background-position: -48px -0px;
+}
+
+.browser-not-supported header, .browser-not-supported .sub-header {
+  top: 60px;
+}
+
+.browser-not-supported #left-content {
+  top: 120px;
+}
+
+.browser-not-supported .split-content {
+  margin: 120px 0 0 215px;
 }
 
 footer {
@@ -1886,17 +1909,6 @@ button.confirm-button {
   top: 0;
   width: 100%;
   z-index: 10;
-}
-
-.app-modal-message {
-    margin-left: -200px;
-    margin-top: -65px;
-}
-
-.wap-modal-message {
-    position: fixed;
-    margin-left: -200px;
-    margin-top: -65px;
 }
 
 /*# sourceMappingURL=main.css.map */
