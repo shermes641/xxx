@@ -32,7 +32,7 @@ describe('EditAppSpec', function() {
         });
 
         it('should be valid if rewardMax is empty or blank', function() {
-            var rewardMaxValues = [undefined, ""];
+            var rewardMaxValues = [undefined, null, ""];
             scope.data.rewardMin = '1';
             for(var i = 0; i < rewardMaxValues.length; i++) {
                 scope.data.rewardMax = rewardMaxValues[i];
