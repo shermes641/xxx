@@ -158,9 +158,9 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       // Extended wait for Keen to load
       browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-header.loaded").isPresent
       // Average Revenue metric
-      waitUntilContainsText("#unique_users", "$")
+      waitUntilContainsText("#unique-users", "$")
       // Revenue Table
-      waitUntilContainsText("#analytics_revenue_table", "$")
+      waitUntilContainsText("#analytics-revenue-table", "$")
     }
 
     /**
