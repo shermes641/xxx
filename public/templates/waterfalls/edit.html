@@ -82,9 +82,9 @@
                     <label class="text-label">Waterfall Status</label>
                     <div class="waterfall-status-container">
                         <div id="status-toggle" ng-class="{live: !waterfallData.waterfall.testMode, paused: waterfallData.waterfall.paused}"></div>
-                        <span ng-click="waterfallData.waterfall.paused = false; waterfallData.waterfall.testMode = true">Test</span>
-                        <span ng-click="waterfallData.waterfall.paused = false; waterfallData.waterfall.testMode = false">Live</span>
-                        <span ng-click="waterfallData.waterfall.paused = true; waterfallData.waterfall.testMode = false">Pause</span>
+                        <span ng-click="activateTestMode()">Test</span>
+                        <span ng-click="activateLiveMode()">Live</span>
+                        <span ng-click="activatePausedMode()">Pause</span>
                     </div>
                 </div>
             </div>
