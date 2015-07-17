@@ -132,7 +132,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             if(filter.open === false){
                 filter.open = true;
                 $timeout(function() {
-                    document.getElementById('filter_' + filterType).focus();
+                    document.getElementById('filter-' + filterType).focus();
                 });
             }
         };
