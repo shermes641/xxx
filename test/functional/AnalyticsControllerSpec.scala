@@ -57,7 +57,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter").containsText("All Ad Providers")
 
       clickAndWaitForAngular("#ad-providers-filter .add")
-      clickAndWaitForAngular("#filter-ad-providers")
+      clickAndWaitForAngular("#filter-ad_providers")
 
       // hyprMX must be part of dropdown
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText("hyprMX")
