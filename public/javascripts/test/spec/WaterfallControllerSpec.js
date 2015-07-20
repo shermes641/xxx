@@ -109,10 +109,30 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.waterfallAdProviderList[0].waterfallOrder).toEqual(0);
         });
 
-        it('should update paused when toggled', function() {
-            scope.togglePaused();
+        it('should update to paused mode when toggled', function() {
+            scope.activatePausedMode();
             expect(scope.waterfallData.waterfall.paused).toEqual(true);
-            scope.togglePaused();
+            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            scope.activateLiveMode();
+            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            expect(scope.waterfallData.waterfall.paused).toEqual(false);
+        });
+
+        it('should update to test mode when toggled', function() {
+            scope.confirmTestMode();
+            expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+            expect(scope.waterfallData.waterfall.paused).toEqual(false);
+            scope.activateLiveMode();
+            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            expect(scope.waterfallData.waterfall.paused).toEqual(false);
+        });
+
+        it('should update live mode  when toggled', function() {
+            scope.activateLiveMode();
+            expect(scope.waterfallData.waterfall.paused).toEqual(false);
+            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            scope.confirmTestMode();
+            expect(scope.waterfallData.waterfall.testMode).toEqual(true);
             expect(scope.waterfallData.waterfall.paused).toEqual(false);
         });
 
