@@ -154,9 +154,17 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Toggles active/inactive status for an AdProvider
             $scope.toggleWAPStatus = function(adProviderConfig) {
                 ga('send', 'event', 'toggle_wap_status', 'click', 'waterfalls');
+
                 adProviderConfig.active = !adProviderConfig.active;
+                adProviderConfig.loading = true;
                 $scope.updateWaterfall();
                 $scope.orderOptimizedWaterfallList();
+
+                // Delays the hover animation after toggling.  This is for UX purposes only.
+                $timeout(function(){
+                    adProviderConfig.loading = false;
+                }, 2000);
+
             };
 
             /* App logic */

@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                             <div ng-hide="{{adProviderConfig.pending}}" class="wap-buttons">
-                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" ng-class="{active: adProviderConfig.active, inactive: !adProviderConfig.active}" type="submit" name="status">
+                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" ng-class="{active: adProviderConfig.active, inactive: !adProviderConfig.active, loading: adProviderConfig.loading}" type="submit" name="status">
                                     <div class="icon"></div>
                                     <label>{{adProviderConfig.active | waterfallStatus}}</label>
                                     <div class="deactivate">Deactivate</div>

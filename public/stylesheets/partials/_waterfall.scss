@@ -184,6 +184,18 @@
         }
       }
 
+      &.loading.active:hover {
+        .deactivate {
+          left: 100%;
+        }
+      }
+
+      &.loading.inactive:hover {
+        .activate {
+          right: 100%;
+        }
+      }
+
       &.active {
         border-bottom: 1px solid #319443;
 

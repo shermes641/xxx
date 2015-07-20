@@ -1580,6 +1580,12 @@ span#viewTerms:hover {
 .waterfall ul li button.inactive:hover .activate {
   right: 0;
 }
+.waterfall ul li button.loading.active:hover .deactivate {
+  left: 100%;
+}
+.waterfall ul li button.loading.inactive:hover .activate {
+  right: 100%;
+}
 .waterfall ul li button.active {
   border-bottom: 1px solid #319443;
 }
