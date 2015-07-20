@@ -97,4 +97,3 @@ object AdProvider extends JsonConversion with AdProviderHelper {
     }
   }
 }
-

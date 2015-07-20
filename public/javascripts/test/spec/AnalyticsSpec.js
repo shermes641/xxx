@@ -12,9 +12,9 @@ describe('AnalyticsController', function() {
         sinon.log = function(message) {
             console.log(message);
         };
-        var urlRoot = "http://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
+        var urlRoot = "https://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
         var apiKey = "api_key=D8DD8FDF000323000448F";
-        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-02T20%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-15T20%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
+        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-03T00%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-16T00%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
         var listenForKeen = function(filter) {
             server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": 5.01123595505618}) ]);
@@ -47,9 +47,10 @@ describe('AnalyticsController', function() {
             $window = _$window_;
             scope.debounceWait = 0;
             testCont = $controller('AnalyticsController', {$scope: scope});
-            scope.defaultStartDate = new Date("2015-04-03T00:00:00.000Z");
-            scope.defaultEndDate = new Date("2015-04-15T00:00:00.000Z");
-            angular.element(document.body).append('<input id="start_date" /><input id="end_date" />');
+
+            scope.defaultStartDate = new Date(moment.utc("2015-04-03T00:00:00.000Z").format());
+            scope.defaultEndDate = new Date(moment.utc("2015-04-15T00:00:00.000Z").format());
+            angular.element(document.body).append('<input id="start-date" /><input id="end-date" />');
 
             $httpBackend.flush();
         }));
@@ -65,7 +66,7 @@ describe('AnalyticsController', function() {
         afterEach(function() {
             $httpBackend.verifyNoOutstandingExpectation();
             $httpBackend.verifyNoOutstandingRequest();
-            angular.element('#start_date, #end_date').remove();
+            angular.element('#start-date, #end-date').remove();
         });
 
         it('should be defined', function(){
@@ -118,6 +119,40 @@ describe('AnalyticsController', function() {
             scope.updateCharts();
             expect(scope.analyticsData.fillRateMetric).toEqual("N/A");
             expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("N/A");
+        });
+
+        it('should build the export CSV filters correctly', function(){
+            var dates = {
+                start_date: "Wed Feb 25 2015 16:00:00 GMT-0800 (PST)",
+                end_date: "Tue Mar 10 2015 17:00:00 GMT-0700 (PDT)"
+            };
+            scope.addToSelected("ad_providers", {"name":"AdColony","id":1});
+            scope.addToSelected("ad_providers", {"name":"HyprMarketplace","id":2});
+            scope.addToSelected("countries", {"name":"Ireland","id":"Ireland"});
+
+            var filters = scope.getExportCSVFilters(dates);
+            console.log(filters);
+            expect(filters.apps[0]).toEqual("578021165");
+            expect(filters.ad_providers_selected).toEqual(true);
+            expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
+            expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
+            expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
+            expect(filters.filters[0].property_value[0]).toEqual("Ireland");
+            expect(filters.filters[1].property_name).toEqual("ad_provider_id");
+            expect(filters.filters[1].property_value[0]).toEqual(1);
+            expect(filters.filters[1].property_value[1]).toEqual(2);
+
+            scope.removeFromSelected("ad_providers", {"name":"AdColony","id":1}, 0);
+            scope.removeFromSelected("ad_providers", {"name":"HyprMarketplace","id":2}, 0);
+
+            var filters = scope.getExportCSVFilters(dates);
+            console.log(filters);
+            expect(filters.apps[0]).toEqual("578021165");
+            expect(filters.ad_providers_selected).toEqual(false);
+            expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
+            expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
+            expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
+            expect(filters.filters[0].property_value[0]).toEqual("Ireland");
         });
 
         it('should reject invalid dates', function(){

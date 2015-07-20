@@ -3,25 +3,20 @@
     <div ng-show="waterfallInfoCallComplete" id="waterfall-page">
         <div ng-include="subHeader"></div>
         <div ng-include="appList"></div>
-        <div id="waterfall-edit" class="split_content waterfall_list">
-            <div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
+        <div id="waterfall-edit" class="split-content waterfall-list">
+            <div ng-hide="flashMessage.text() === '' || modalShown" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message">
                 {{flashMessage.text()}}
             </div>
             <div ng-show="waterfallData.waterfall.testMode" id="test-mode-message" class="full-static-message">
-                You are currently working in Test Mode.
+                You are currently working in Test Mode. Reward settings will not be observed.
+            </div>
+            <div ng-show="waterfallData.waterfall.paused && !waterfallData.waterfall.testMode" id="paused-mode-message" class="full-static-message">
+                Your waterfall is currently paused
             </div>
             <div id="edit-top">
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
-                <button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>
             </div>
-            <div id="waterfall_sub_header">
-                <div class="app-token">
-                    <div class="unselectable">
-                        API Token
-                    </div>
-                    <code class="copy-paste-code">{{waterfallData.waterfall.appToken}}</code>
-                </div>
-
+            <div id="waterfall-sub-header">
                 <modal-dialog show='modalShown'>
                     <div id="edit-app" ng-show="showEditAppModal">
                         <div ng-include="editAppModal"></div>
@@ -35,23 +30,8 @@
                     <div id="test-mode-confirmation" ng-show="showTestModeConfirmationModal">
                         <div ng-include="testModeConfirmationModal"></div>
                     </div>
-                    <div id="pause-confirmation" ng-show="showPauseConfirmationModal">
-                        <div ng-include="pauseConfirmationModal"></div>
-                    </div>
                 </modal-dialog>
-
-                <div class="waterfall-buttons" ng-class="{disabled: waterfallData.waterfall.testMode}">
-                    <div class="button-overlay"></div>
-                    <h4 ng-mouseenter="hoverPause=true" ng-mouseleave="hoverPause=false" class="tooltip">
-                        ?
-                        <div class="ngtooltip" ng-show="hoverPause">Pause and resume this waterfall</div>
-                    </h4>
-                    <label ng-if="waterfallData.waterfall.paused" class="text-label">Resume Ads</label>
-                    <label ng-if="!waterfallData.waterfall.paused" class="text-label">Pause Ads</label>
-                    <div class="pause" ng-class="{play: waterfallData.waterfall.paused}" ng-click="togglePaused()"></div>
-                </div>
-
-                <div class="waterfall-buttons">
+                <div class="waterfall-buttons first">
                     <h4 ng-mouseenter="hoverOptimized=true" ng-mouseleave="hoverOptimized=false" class="tooltip">
                         ?
                         <div class="ngtooltip" ng-show="hoverOptimized">Optimized Mode will ensure that your waterfall will be ordered by eCPM with the highest paying partners at the top.</div>
@@ -65,38 +45,32 @@
                         </label>
                     </div>
                 </div>
-
-                <div class="waterfall-buttons first">
-                    <h4 ng-mouseenter="hoverTestMode=true" ng-mouseleave="hoverTestMode=false" class="tooltip">
+                <div class="waterfall-status">
+                    <h4 ng-mouseenter="hoverStatusMode=true" ng-mouseleave="hoverStatusMode=false" class="tooltip">
                         ?
-                        <div class="ngtooltip" ng-show="hoverTestMode">Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.</div>
+                        <div class="ngtooltip" ng-show="hoverStatusMode">Switch between available waterfall modes.</div>
                     </h4>
-                    <label class="text-label">Test Mode</label>
-                    <div class="onoffswitch">
-                        <input ng-click="toggleTestMode(waterfallData.waterfall.testMode)" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
-                        <label class="onoffswitch-label" for="test-mode-switch">
-                            <span class="onoffswitch-inner"></span>
-                            <span class="onoffswitch-switch"></span>
-                        </label>
+                    <label class="text-label">Waterfall Status</label>
+                    <div class="waterfall-status-container">
+                        <div id="status-toggle" ng-class="{live: !waterfallData.waterfall.testMode, paused: waterfallData.waterfall.paused}"></div>
+                        <span id="test-mode-switch" ng-click="activateTestMode()">Test</span>
+                        <span id="live-mode-switch" ng-click="activateLiveMode()">Live</span>
+                        <span id="pause-mode-switch" ng-click="activatePausedMode()">Pause</span>
                     </div>
                 </div>
             </div>
 
-            <div id="initialize_sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}">
-                <div id="arrow_dropdown"></div>
-                Click here for HyprMediate initialization code snippet
+            <div id="initialize-sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}" ng-show="waterfallData.waterfall.testMode">
+                <div id="arrow-dropdown"></div>
+                Initialize hyprMediate in your SDK
                 <div class="code-block">
-                    <div class="waterfall-edit-description">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a target="_blank" href="http://documentation.hyprmx.com/display/IS/Implementing+Basic+Features">documentation</a>.
+                    <div class="waterfall-edit-description" ng-click="$event.stopPropagation()">
+                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a id="sdk-documentation-link" target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
-                        // This way of creating a userID is an example.
+                        // See documentation for suggestions on how to define hyprUserId.
                         <br/>
-                        // If you copy this, you'll need to define [self createUserIDForHYPRMediate].
-                        <br/>
-                        NSString *userID = [self createUserIDForHYPRMediate];
-                        <br/>
-                        [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:userID];
+                        [HYPRMediate initialize:@"{{waterfallData.waterfall.appToken}}" userId:hyprUserId];
                     </code>
                 </div>
             </div>
@@ -122,12 +96,13 @@
                                 </div>
                             </div>
                             <div ng-hide="{{adProviderConfig.pending}}" class="wap-buttons">
-                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" type="submit" name="status">
-                                    {{adProviderConfig.active | waterfallStatus}}
+                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" ng-class="{active: adProviderConfig.active, inactive: !adProviderConfig.active, loading: adProviderConfig.loading}" type="submit" name="status">
+                                    <div class="icon"></div>
+                                    <label>{{adProviderConfig.active | waterfallStatus}}</label>
+                                    <div class="deactivate">Deactivate</div>
+                                    <div class="activate">Activate</div>
                                 </button>
-                                <button ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" name="configure-wap" class="configure active-button" type="submit">
-                                    Configure
-                                </button>
+                                <div ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" class="configure active-button" type="submit"></div>
                             </div>
                             <div ng-hide="waterfallData.optimizedMode" class="waterfall-drag">
                                 <div class="waterfall-drag-1"></div>

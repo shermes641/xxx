@@ -48,20 +48,20 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
         response.status match {
           case 200 | 304 => {
             Json.parse(response.body) \ "results" match {
-              case _: JsUndefined => None
+              case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
               case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
                 val result = results.as[JsArray].as[List[JsValue]].last
                 (result \ "global_stats" \ "revenue", result \ "global_stats" \ "impressions") match {
-                  case (revenue: JsNumber, impressions: JsNumber) => {
-                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[Double], impressions.as[Double]))
+                  case (revenue: JsValue, impressions: JsValue) => {
+                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.as[String].toDouble))
                   }
-                  case (_, _) => None
+                  case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
                 }
               }
-              case _ => None
+              case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
             }
           }
-          case _ => None
+          case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
         }
       }
     }

@@ -15,3 +15,5 @@ dist
 /.settings
 /conf/production.conf
 /conf/test.conf
+node_modules
+.sass-cache

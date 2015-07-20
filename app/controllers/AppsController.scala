@@ -63,6 +63,10 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     "You already have an App with the same name.  Please choose a unique name for your new App."
   }
 
+  val duplicateAppNameException = {
+    "duplicate key value violates unique constraint \"active_distributor_app_name\""
+  }
+
   /**
    * Creates a new App in the database along with an associated Waterfall, VirtualCurrency, and AppConfig.
    * @param distributorID ID associated with current Distributor.
@@ -71,45 +75,41 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
       json.validate[NewAppMapping].map { newApp =>
-        App.nameExists(newApp.appName, distributorID) match {
-          case Some(existingAppID) => {
-            BadRequest(Json.obj("status" -> "error", "fieldName" -> "appName", "message" -> takenAppNameError))
-          }
-          case None => {
-            DB.withTransaction { implicit connection =>
-              val createErrorMessage = "App could not be created."
-              try {
-                App.createWithTransaction(distributorID, newApp.appName) match {
-                  case Some(appID) => {
-                    val waterfallID = Waterfall.create(appID, newApp.appName)
-                    val virtualCurrencyID = VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
-                    val persistedApp = App.findWithTransaction(appID)
-                    (waterfallID, virtualCurrencyID, persistedApp) match {
-                      case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
-                        // Set up HyprMarketplace ad provider
-                        val hyprMarketplace = AdProvider.HyprMarketplace
-                        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), hyprMarketplace.defaultEcpm, hyprMarketplace.configurable, active = false, pending = true)
-                        val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
-                        AppConfig.create(appID, app.token, 0)
-                        (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
-                          case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
-                            val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))
-                            actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
-                            Ok(Json.obj("status" -> "success", "message" -> "App Created!", "waterfallID" -> waterfallIDVal))
-                          }
-                          case (_, _) => rollbackWithError(createErrorMessage)
-                        }
+        DB.withTransaction { implicit connection =>
+          val createErrorMessage = "App could not be created."
+          try {
+            App.createWithTransaction(distributorID, newApp.appName) match {
+              case Some(appID) => {
+                val waterfallID = Waterfall.create(appID, newApp.appName)
+                val virtualCurrencyID = VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
+                val persistedApp = App.findWithTransaction(appID)
+                (waterfallID, virtualCurrencyID, persistedApp) match {
+                  case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
+                    // Set up HyprMarketplace ad provider
+                    val hyprMarketplace = AdProvider.HyprMarketplace
+                    val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), hyprMarketplace.defaultEcpm, hyprMarketplace.configurable, active = false, pending = true)
+                    val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
+                    AppConfig.create(appID, app.token, 0)
+                    (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
+                      case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
+                        val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))
+                        actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
+                        Ok(Json.obj("status" -> "success", "message" -> "App Created!", "waterfallID" -> waterfallIDVal))
                       }
-                      case (_, _, _) => rollbackWithError(createErrorMessage)
+                      case (_, _) => rollbackWithError(createErrorMessage)
                     }
                   }
-                  case _ => rollbackWithError(createErrorMessage)
-                }
-              } catch {
-                case error: org.postgresql.util.PSQLException => {
-                  rollbackWithError(createErrorMessage)
+                  case (_, _, _) => rollbackWithError(createErrorMessage)
                 }
               }
+              case _ => rollbackWithError(createErrorMessage)
+            }
+          } catch {
+            case error: org.postgresql.util.PSQLException if(error.toString contains duplicateAppNameException) => {
+              rollbackWithError(takenAppNameError, Some("appName"))
+            }
+            case error: org.postgresql.util.PSQLException => {
+              rollbackWithError(createErrorMessage)
             }
           }
         }
@@ -131,7 +131,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
         val editAppInfo = new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), None)
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber)
         Ok(Json.toJson(editAppInfo))
       }
       case None => {
@@ -149,40 +149,38 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def update(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
       json.validate[EditAppMapping].map { appInfo =>
-        App.nameExists(appInfo.appName, distributorID, Some(appID)) match {
-          case Some(existingAppID) => {
-            BadRequest(Json.obj("status" -> "error", "fieldName" -> "appName", "message" -> takenAppNameError))
-          }
-          case None => {
-            val updateErrorMessage = "App could not be updated."
-            val newAppValues = new UpdatableApp(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
-            DB.withTransaction { implicit connection =>
-              try {
-                App.updateWithTransaction(newAppValues) match {
+        val updateErrorMessage = "App could not be updated."
+        val newAppValues = new UpdatableApp(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
+        DB.withTransaction { implicit connection =>
+          try {
+            App.updateWithTransaction(newAppValues) match {
+              case 1 => {
+                VirtualCurrency.updateWithTransaction(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
+                  appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
                   case 1 => {
-                    VirtualCurrency.updateWithTransaction(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
-                      appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
-                      case 1 => {
-                        Waterfall.findByAppID(appID) match {
-                          case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
-                            val waterfall = waterfalls(0)
-                            val newGeneration: Long = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0)).getOrElse(0)
-                            Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
-                          }
-                        }
-                      }
-                      case _ => {
-                        BadRequest(Json.obj("status" -> "error", "message" -> updateErrorMessage))
+                    Waterfall.findByAppID(appID) match {
+                      case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
+                        val waterfall = waterfalls(0)
+                        val newGeneration: Long = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0)).getOrElse(0)
+                        Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
                       }
                     }
                   }
-                  case _ => rollbackWithError(updateErrorMessage)
+                  case _ => {
+                    BadRequest(Json.obj("status" -> "error", "message" -> updateErrorMessage))
+                  }
                 }
-              } catch {
-                case error: org.postgresql.util.PSQLException => rollbackWithError(updateErrorMessage)
-                case error: IllegalArgumentException => rollbackWithError(updateErrorMessage + " Please refresh your browser.")
               }
+              case _ => rollbackWithError(updateErrorMessage)
             }
+          } catch {
+            case error: org.postgresql.util.PSQLException if(error.toString contains duplicateAppNameException) => {
+              rollbackWithError(takenAppNameError, Some("appName"))
+            }
+            case error: org.postgresql.util.PSQLException => {
+              rollbackWithError(updateErrorMessage)
+            }
+            case error: IllegalArgumentException => rollbackWithError(updateErrorMessage + " Please refresh your browser.")
           }
         }
       }.recoverTotal {
@@ -196,11 +194,12 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   /**
    * Rolls back the transaction and flashes an error message to the user.
    * @param message The error message to be displayed to the user.
+   * @param fieldName The specific input field where the message should be displayed (if necessary).
    * @param connection The shared connection for the database transaction.
    */
-  def rollbackWithError(message: String)(implicit connection: Connection) = {
+  def rollbackWithError(message: String, fieldName: Option[String] = None)(implicit connection: Connection) = {
     connection.rollback()
-    BadRequest(Json.obj("status" -> "error", "message" -> message))
+    BadRequest(Json.obj("status" -> "error", "message" -> message, "fieldName" -> JsString(fieldName.getOrElse(""))))
   }
 }
 

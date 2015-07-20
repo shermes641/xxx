@@ -15,8 +15,8 @@ object AdColonyCallback extends Controller {
  * @param appToken The token for the App to which the completion will belong.
  * @param transactionID A unique ID that verifies the completion.
  * @param uid The ID of the device on Ad Colony's network.
- * @param amount The amount of virtual currency to be rewarded.
- * @param currency The type of virtual currency to be rewarded.
+ * @param amount The amount of virtual currency to reward based on AdColony's dashboard. We do not use this amount.
+ * @param currency The type of virtual currency to reward based on AdColony's dashboard. We do not use this currency name.
  * @param openUDID A unique device identifier (not Apple).
  * @param udid Apple device identifier.
  * @param odin1 Open device identification number.
@@ -28,8 +28,7 @@ class AdColonyCallback(appToken: String, transactionID: String, uid: String, amo
   override val adProviderName = "AdColony"
   override val token = appToken
   override val receivedVerification = verifier
-  override val currencyAmount = amount
-  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount)
+  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
 
   /**
    * Per AdColony's documentation, we return 'vc_success' to acknowledge that the reward process was successful.

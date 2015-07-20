@@ -1,5 +1,7 @@
 package models
 
+import models.WaterfallAdProvider.AdProviderRewardInfo
+
 /**
  * Encapsulates information to create a completion if a callback is valid.
  * @param isValid True if the callback is valid; otherwise, false.
@@ -9,4 +11,25 @@ package models
  * @param offerProfit The payout amount for a Completion.
  * @param rewardQuantity The amount of virtual currency earned.
  */
-case class CallbackVerificationInfo(isValid: Boolean, adProviderName: String, transactionID: String, appToken: String, offerProfit: Option[Double], rewardQuantity: Int)
+case class CallbackVerificationInfo(isValid: Boolean, adProviderName: String, transactionID: String, appToken: String, offerProfit: Option[Double], rewardQuantity: Long, adProviderRewardInfo: Option[AdProviderRewardInfo]) {
+  val generationNumber: Option[Long] = {
+    adProviderRewardInfo match {
+      case Some(rewardInfo) => Some(rewardInfo.generationNumber)
+      case None => None
+    }
+  }
+
+  val serverToServerEnabled: Boolean = {
+    adProviderRewardInfo match {
+      case Some(rewardInfo) => rewardInfo.serverToServerEnabled
+      case None => false
+    }
+  }
+
+  val callbackURL: Option[String] = {
+    adProviderRewardInfo match {
+      case Some(rewardInfo) => rewardInfo.callbackURL
+      case None => None
+    }
+  }
+}

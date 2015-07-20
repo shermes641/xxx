@@ -3,6 +3,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
             $scope.showTerms = false;
             $scope.waitForAuth = false;
             $scope.errors = {};
+            $scope.formName = 'newDistributorUserForm';
             $scope.termsTemplate = 'assets/templates/distributor_users/terms.html';
 
             $scope.toggleTerms = function() {
@@ -17,7 +18,7 @@ distributorUsersControllers.controller('SignupController', ['$scope', '$http', '
                     $scope.waitForAuth = true;
                     $http.post('/distributor_users', $scope.data).
                         success(function(data, status, headers, config) {
-                            $window.location.href = "/distributors/"+data.distributorID+"/apps/new";
+                            $window.location.href = "/distributors/"+data.distributorID+"/apps/new?recently_signed_up=true";
                         }).
                         error(function(data, status, headers, config) {
                             $scope.waitForAuth = false;

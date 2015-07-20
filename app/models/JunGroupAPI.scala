@@ -5,11 +5,11 @@ import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import play.api.libs.ws._
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{TimeoutException, Future}
 import scala.language.postfixOps
 
 /**
@@ -22,6 +22,9 @@ case class CreateAdNetwork(distributorUser: DistributorUser)
  * Encapsulates interactions with Player.
  */
 class JunGroupAPI {
+  val PlayerStagingURL: String = "staging.hyprmx.com"
+  val PlayerProdURL: String = "live.hyprmx.com"
+
   /**
    * Creates the request using the config passed.
    * @param adNetwork JSON containing the appropriate information to create a new AdNetwork in Player.
@@ -40,9 +43,12 @@ class JunGroupAPI {
    * @param failureReason The error from Player.
    */
   def sendFailureEmail(distributorUser: DistributorUser, waterfallAdProviderID: Long, appToken: String, failureReason: String) {
-    val subject = "Distribution Sign Up Failure"
-    val body = "Jun group ad network account was not created successfully for Email: " + distributorUser.email +
-      ", WaterfallAdProviderID: " + waterfallAdProviderID + ", AppToken: " + appToken + ". Error: " + failureReason
+    val subject = "Player Ad Network Creation Failure"
+    val body = "Jun Group ad network account was not created successfully. <br> <b>Email:</b> " + distributorUser.email +
+      " <br> <b>WaterfallAdProviderID:</b> " + waterfallAdProviderID +
+      " <br> <b>AppToken:</b> " + appToken +
+      " <br><br> <b>Error:</b> " + failureReason +
+      " <br><br> For More information visit: <a href='https://wiki.jungroup.com/display/MED/Create+Ad+Network+for+HyprMarketplace+on+Player+API+Failure'>Ad Network Documentation</a>"
     val emailActor = Akka.system.actorOf(Props(new JunGroupEmailActor(Play.current.configuration.getString("jungroup.email").get, subject, body)))
     emailActor ! "email"
   }
@@ -58,6 +64,16 @@ class JunGroupAPI {
     val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
     val adNetworkName = companyName + " - " + appName
     val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
+    val payoutURLEnvironment: String = {
+      val playerURL: String = Play.current.configuration.getString("jungroup.url").getOrElse("")
+      if(playerURL == PlayerProdURL) {
+        "production"
+      } else if(playerURL == PlayerStagingURL) {
+        "staging"
+      } else {
+        Environment.mode
+      }
+    }
     JsObject(
       Seq(
         "ad_network" -> JsObject(
@@ -76,7 +92,7 @@ class JunGroupAPI {
           Seq(
             "url" -> JsString(hyprMarketplacePayoutUrl),
             "method" -> JsString("get"),
-            "environment" -> JsString(Environment.mode),
+            "environment" -> JsString(payoutURLEnvironment),
             "signature" -> JsArray(
               Seq(
                 JsString("UID"),
@@ -104,7 +120,7 @@ class JunGroupAPI {
 class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, distributorID: Long, api: JunGroupAPI) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
-  private val RETRY_FREQUENCY = 3.seconds
+  private val RETRY_FREQUENCY = 60.seconds
   var lastFailure = ""
   val companyName = Distributor.find(distributorID).get.name
 
@@ -119,9 +135,9 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
 
   def receive = {
     case CreateAdNetwork(distributorUser: DistributorUser) => {
-      counter += 1
-      if(counter > RETRY_COUNT){
-        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, lastFailure)
+      if(counter > RETRY_COUNT) {
+        val emailError = lastFailure
+        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, emailError)
         context.stop(self)
       } else {
         val adNetwork = api.adNetworkConfiguration(companyName, appName, appToken)
@@ -130,7 +146,8 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
             if(response.status != 500) {
               try {
                 Json.parse(response.body) match {
-                  case _:JsUndefined => {
+                  case error: JsUndefined => {
+                    lastFailure = assembleAndLogError("Received a JsUndefined error while parsing Player's response", Some(response.body))
                     retry(distributorUser)
                   }
                   case results if(response.status == 200 || response.status == 304) => {
@@ -143,31 +160,57 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                           AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
                         } catch {
                           case error: org.postgresql.util.PSQLException => {
+                            assembleAndLogError("Encountered a Postgres Exception while updating the HyprMarketplace WaterfallAdProvider", Some(response.body))
                             connection.rollback()
                           }
                         }
                       }
                     } else {
                       val error: JsValue = results \ "error"
-                      lastFailure = error.as[String]
+                      lastFailure = assembleAndLogError("There was an error while creating the ad network in Player: " + error.as[String], Some(response.body))
                       retry(distributorUser)
                     }
                   }
-                  case _ => retry(distributorUser)
+                  case error => {
+                    lastFailure = assembleAndLogError("Received a " + response.status + " status code from Player", Some(response.body))
+                    retry(distributorUser)
+                  }
                 }
               } catch {
-                case parsingError: com.fasterxml.jackson.core.JsonParseException => {
-                  lastFailure = response.body
+                case _: com.fasterxml.jackson.core.JsonParseException | _: play.api.libs.json.JsResultException => {
+                  lastFailure = assembleAndLogError("Received a JSON parsing error", Some(response.body))
                   retry(distributorUser)
                 }
               }
             } else {
+              lastFailure = assembleAndLogError("Received a 500 response from Player", Some(response.body))
               retry(distributorUser)
             }
           }
+        } recover {
+          case _: TimeoutException => {
+            lastFailure = assembleAndLogError("Request to Player timed out")
+            retry(distributorUser)
+          }
+          case error => {
+            lastFailure = assembleAndLogError("Recovered from Player response error", Some(error.getMessage))
+            retry(distributorUser)
+          }
         }
       }
+      counter += 1
     }
+  }
+
+  /**
+   * Appends identifiable app information to an error message and logs it to the console
+   * @param errorMessage The message to be logged
+   * @param responseBody The body of Player's response
+   */
+  def assembleAndLogError(errorMessage: String, responseBody: Option[String] = None): String = {
+    val error =  errorMessage + " Response Body: " + responseBody.getOrElse("None")
+    Logger.error("JunGroupAPI Error for API Token: " + appToken + "\nWaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + "\n" + error)
+    error
   }
 }
 

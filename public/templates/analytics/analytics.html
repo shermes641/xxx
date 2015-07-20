@@ -3,106 +3,107 @@
 </div>
 <div id="analytics-controller">
     <div ng-include="subHeader"></div>
-    <div id="email_modal" ng-show="showExportModal">
-        <div class="close_button" ng-click="hideModal()"></div>
-        <div id="csv_email_form" ng-show="showExportForm">
-            <h1>Export All Data</h1>
+    <div id="email-modal" ng-show="showExportModal">
+        <div class="close-button" ng-click="hideModal()"></div>
+        <div id="csv-email-form" ng-show="showExportForm">
+            <h1>Export Data</h1>
             <hr />
-            <div class="modal_text">Enter the email address you would like to export all the data to.</div>
+            <div class="modal-text">Enter the email address you would like to export all the data to.</div>
             <form name="exportForm" ng-submit="submit()" novalidate>
-                <input type="email" ng-model="data.email" id="export_email" name="export_email" placeholder="Email Address" required />
+                <input type="email" ng-model="email" id="export-email" name="export_email" placeholder="Email Address" required />
                 <div ng-show="exportForm.$submitted || exportForm.export_email.$touched">
                     <dd class="error" ng-show="exportForm.export_email.$error.required">Email address is required</dd>
                     <dd class="error" ng-show="exportForm.export_email.$error.email">The email you entered is invalid.</dd>
                 </div>
-                <input type="submit" class="modal_submit" id="export_submit" value="Export Data">
+                <input type="submit" class="modal-submit" id="export-submit" value="Export Data">
             </form>
         </div>
-        <div id="csv_requested" ng-show="showExportComplete">
+        <div id="csv-requested" ng-show="showExportComplete">
             <h1>Export Requested</h1>
             <hr />
-            <div class="modal_text">Export has been requested, email will be sent once complete.</div>
-            <button class="modal_submit" ng-click="hideModal()">Close</button>
+            <div class="modal-text">Export has been requested, email will be sent once complete.</div>
+            <button class="modal-submit" ng-click="hideModal()">Close</button>
         </div>
-        <div id="csv_export_error" ng-show="showExportError">
+        <div id="csv-export-error" ng-show="showExportError">
             <h1>Export Error</h1>
             <hr />
-            <div class="modal_text">There was an error when requesting the export, please try again.</div>
-            <button class="modal_submit" ng-click="hideModal()">Close</button>
+            <div class="modal-text">There was an error when requesting the export, please try again.</div>
+            <button class="modal-submit" ng-click="hideModal()">Close</button>
         </div>
     </div>
-    <div id="analytics_overlay" ng-click="hideModal()" ng-show="showExportModal"></div>
-    <div id="left_content">
-        <div class="left_apps_list">
+    <div id="analytics-overlay" ng-click="hideModal()" ng-show="showExportModal"></div>
+    <div id="left-content">
+        <div class="left-apps-list">
             <h2>Date Range</h2>
             <ul>
                 <div class="input-daterange input-group" id="datepicker">
                     <li class="arrowdown">
-                        <input type="text" class="input-sm form-control" name="start" id="start_date" />
+                        <input type="text" class="input-sm form-control" name="start" id="start-date" />
                     </li>
                     <li class="arrowdown">
-                        <input type="text" class="input-sm form-control" name="end" id="end_date" />
+                        <input type="text" class="input-sm form-control" name="end" id="end-date" />
                     </li>
                 </div>
             </ul>
         </div>
-        <div class="left_apps_list">
-            <div class="reset_filters" ng-click="resetAllFilters()">Reset all Filters</div>
+        <div class="left-apps-list">
+            <div class="reset-filters" ng-click="resetAllFilters()">Reset all Filters</div>
             <h2>Filter By Ad Provider</h2>
-            <ul id="ad_providers_filter">
+            <ul id="ad-providers-filter">
                 <li ng-repeat="provider in filters.ad_providers.selected" ng-class="{removable: provider.id != 'all'}" class="active" ng-click="removeFromSelected('ad_providers', provider, $index)" title="{{provider.name}}">{{provider.name}}</li>
                 <li class="add" ng-click="openDropdown('ad_providers')" ng-class="{open: filters.ad_providers.open}">
                     <span class="dropdown-label">Add Provider</span>
-                    <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter_ad_providers" id="filter_ad_providers"
+                    <input type="text" ng-model="filters.ad_providers.input" class="dropdown-filter input-sm form-control" name="filter-ad-providers" id="filter-ad_providers"
                            typeahead="name as ad_provider.name for ad_provider in filters.ad_providers.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
                            typeahead-on-select="addToSelected('ad_providers', $item)"
                            ng-blur="closeDropdown('ad_providers')"/>
                 </li>
             </ul>
         </div>
-        <div class="left_apps_list">
+        <div class="left-apps-list">
             <h2>Filter By App</h2>
-            <ul id="apps_filter">
+            <ul id="apps-filter">
                 <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)" title="{{appInfo.name}}">{{appInfo.name}}</li>
                 <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
                     <span class="dropdown-label">Add App</span>
-                    <input type="text" ng-model="filters.apps.input" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter_apps"
+                    <input type="text" ng-model="filters.apps.input" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter-apps"
                            typeahead="name as app.name for app in filters.apps.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
                            typeahead-on-select="addToSelected('apps', $item)"
                            ng-blur="closeDropdown('apps')"/>
                 </li>
             </ul>
         </div>
-        <div class="left_apps_list">
+        <div class="left-apps-list">
             <h2>Filter By Country</h2>
-            <ul id="countries_filter">
+            <ul id="countries-filter">
                 <li ng-repeat="country in filters.countries.selected" ng-class="{removable: country.id != 'all'}" class="active" ng-click="removeFromSelected('countries', country, $index)" title="{{country.name}}">{{country.name}}</li>
                 <li class="add" ng-click="openDropdown('countries')" ng-class="{open: filters.countries.open}">
                     <span class="dropdown-label">Add Country</span>
-                    <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter_countries" id="filter_countries"
+                    <input type="text" ng-model="filters.countries.input" class="dropdown-filter input-sm form-control" name="filter-countries" id="filter-countries"
                            typeahead="name as country.name for country in filters.countries.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
                            typeahead-on-select="addToSelected('countries', $item)"
                            ng-blur="closeDropdown('countries')"/>
                 </li>
             </ul>
         </div>
-        <button id="export_as_csv" ng-click="showExportModal = true">
-            Export All Data
+        <button id="export-as-csv" ng-click="showExportModal = true">
+            <div class="icon"></div>
+            Export as CSV
         </button>
     </div>
-    <div class="split_content dashboard" data-distributor-id="@distributorID">
+    <div class="split-content dashboard" data-distributor-id="@distributorID">
         <div ng-show="analyticsTimeout" id="analytics-messaging" class="full-error-message">
             The analytics page is currently experiencing issues.  Please wait or try again later.
         </div>
         <div class="fluid-container">
             <div class="analytics-row analytics-row-header row">
                 <div class="col-sm-12">
-                    <h1 id="analytics-header" ng-class="{loaded: currentlyUpdating === false}">Analytics <span class="updating-status" ng-show="currentlyUpdating" id="analytics_loading_status">{{updatingStatus}}</span></h1>
+                    <h1 id="analytics-header" ng-class="{loaded: currentlyUpdating === false}">Analytics <span class="updating-status" ng-show="currentlyUpdating" id="analytics-loading-status">{{updatingStatus}}</span></h1>
                 </div>
             </div>
             <div class="analytics-row row">
-                <div class="col-sm-4 analytics-circle-border" id="ecpm_metric_container">
-                    <div id="ecpm_metric" class="analytics-circle average-ecpm" ng-class="{loaded: analyticsData.ecpmMetric != null}">
+                <div class="col-sm-4 analytics-circle-border" id="ecpm-metric-container">
+                    <div id="ecpm-metric" class="analytics-circle average-ecpm" ng-class="{loaded: analyticsData.ecpmMetric != null}">
                         <div ng-show="analyticsData.ecpmMetric != null" ng-bind-html="analyticsData.ecpmMetric"></div>
                         <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     </div>
@@ -112,8 +113,8 @@
                     </div>
                 </div>
 
-                <div class="col-sm-4 analytics-circle-border" id="fill_rate_container">
-                    <div id="fill_rate" class="analytics-circle fill-rate" ng-class="{loaded: analyticsData.fillRateMetric != null}">
+                <div class="col-sm-4 analytics-circle-border" id="fill-rate-container">
+                    <div id="fill-rate" class="analytics-circle fill-rate" ng-class="{loaded: analyticsData.fillRateMetric != null}">
                         <div ng-show="analyticsData.fillRateMetric != null" ng-bind-html="analyticsData.fillRateMetric"></div>
                         <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     </div>
@@ -123,8 +124,8 @@
                     </div>
                 </div>
 
-                <div class="col-sm-4" id="unique_users_container">
-                    <div id="unique_users" class="analytics-circle revenue-by-day" ng-class="{loaded: analyticsData.revenueByDayMetric != null}">
+                <div class="col-sm-4" id="unique-users-container">
+                    <div id="unique-users" class="analytics-circle revenue-by-day" ng-class="{loaded: analyticsData.revenueByDayMetric != null}">
                         <div ng-show="analyticsData.revenueByDayMetric != null" ng-bind-html="analyticsData.revenueByDayMetric"></div>
                         <div class="analytics-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     </div>
@@ -136,8 +137,8 @@
             </div>
 
             <div class="analytics-row row">
-                <div class="col-sm-12" id="estimated_revenue_chart_container">
-                    <div ng-show="analyticsData.revenueChart" id="estimated_revenue_chart">
+                <div class="col-sm-12" id="estimated-revenue-chart-container">
+                    <div ng-show="analyticsData.revenueChart" id="estimated-revenue-chart">
                     </div>
                     <div ng-show="!analyticsData.revenueChart" class="analytics-loading chart-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     <div class="analytics-description">
@@ -149,7 +150,7 @@
 
             <div class="analytics-row row">
                 <div class="col-sm-12">
-                    <table class="analytics-revenue-table" cellspacing="0" id="analytics_revenue_table">
+                    <table class="analytics-revenue-table" cellspacing="0" id="analytics-revenue-table">
                         <thead>
                             <tr>
                                 <th>Date

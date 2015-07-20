@@ -3,13 +3,23 @@ package models
 import anorm._
 import org.specs2.mutable._
 import org.specs2.specification._
+import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
 import play.api.test._
+import play.api.test.Helpers._
 import resources._
 import com.google.common.base.Predicate
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
+  val DocumentationUsername = running(FakeApplication(additionalConfiguration = testDB)) {
+    Play.current.configuration.getString("httpAuthUser").getOrElse("")
+  }
+
+  val DocumentationPassword = running(FakeApplication(additionalConfiguration = testDB)) {
+    Play.current.configuration.getString("httpAuthPassword").getOrElse("")
+  }
+
   /**
    * Drops and recreates database schema after tests are run.
    * @param tests The tests for a specific test class.
@@ -113,22 +123,31 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     }
 
     /**
-     * Helper function to wait for angualar to finish processing its current requests
+     * Helper function to wait for Angular to finish processing its current requests
      */
     def waitForAngular = {
       val ngAppElement = "body"
       val markerClass = "angularReady"
 
+      browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("body").isPresent
       browser.executeScript(
-      "angular.element(document).ready(function () {" +
-        "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
-          "angular.element(document.querySelector('" + ngAppElement + "'))" +
-          "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
-          "    function() {" +
-          "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
-          "    })" +
-          "});")
-      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      "window.onload = function (){" +
+        "angular.element(document).ready(function () {" +
+          "angular.element(document.querySelector('body')).removeClass('" + markerClass + "');" +
+            "angular.element(document.querySelector('" + ngAppElement + "'))" +
+            "  .injector().get('$browser').notifyWhenNoOutstandingRequests("+
+            "    function() {" +
+            "      angular.element(document.querySelector('body')).addClass('" + markerClass + "');" +
+            "    })" +
+        "});" +
+      "};" +
+      "window.onload();")
+      try {
+        browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until("body." + markerClass).isPresent
+      } catch {
+        // Angular has most likely finished after 20 seconds, so we catch this exception and continue with the test
+        case _: org.openqa.selenium.TimeoutException => None
+      }
       browser.await().atMost(1, java.util.concurrent.TimeUnit.SECONDS).until("body.javascript_error").isNotPresent
     }
 
@@ -139,9 +158,9 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
       // Extended wait for Keen to load
       browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-header.loaded").isPresent
       // Average Revenue metric
-      waitUntilContainsText("#unique_users", "$")
+      waitUntilContainsText("#unique-users", "$")
       // Revenue Table
-      waitUntilContainsText("#analytics_revenue_table", "$")
+      waitUntilContainsText("#analytics-revenue-table", "$")
     }
 
     /**
@@ -166,7 +185,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
    * @param appName The name of the new App.
    * @param distributorID The ID of the Distributor to which the App (and related models) belong.
    */
-  abstract class WithAppBrowser(distributorID: Long, appName: String = "New App") extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
+  abstract class WithAppBrowser(distributorID: Long, appName: Option[String] = None) extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
     lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID, appName)
   }
 }

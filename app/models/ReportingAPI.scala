@@ -4,6 +4,7 @@ import com.github.nscala_time.time.Imports._
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws._
+import play.api.Logger
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -68,7 +69,7 @@ abstract class ReportingAPI {
     response.status match {
       case 200 | 304 => {
         Json.parse(response.body) \ "results" match {
-          case _: JsUndefined => None
+          case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
           case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
             val result = results.as[JsArray].as[List[JsValue]].last
             result \ "ecpm" match {
@@ -78,13 +79,25 @@ abstract class ReportingAPI {
               case eCPM: JsNumber => {
                 updateEcpm(waterfallAdProviderID, eCPM.as[Double])
               }
-              case _ => None
+              case _ => logResponseError("ecpm key was not present in JSON response", waterfallAdProviderID, response.body)
             }
           }
-          case _ => None
+          case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
         }
       }
-      case _ => None
+      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
     }
+  }
+
+  /**
+   * Logs reporting errors in Papertrail
+   * @param errorMessage The message to be logged
+   * @param waterfallAdProviderID The ID of the WaterfallAdProvider that was supposed to be updated
+   * @param responseBody The JSON response from the reporting API
+   * @return None
+   */
+  def logResponseError(errorMessage: String, waterfallAdProviderID: Long, responseBody: String) = {
+    Logger.error(errorMessage + " URL: " + BaseURL + " WaterfallAdProvider ID: " + waterfallAdProviderID + " Response Body: " + responseBody)
+    None
   }
 }

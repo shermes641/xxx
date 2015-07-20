@@ -1,0 +1,110 @@
+// App form styling
+.app-form {
+  text-align: left;
+  width: 678px;
+
+  h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    margin-top: 0;
+    text-align: center;
+  }
+
+  h3 {
+    color: #6d6d72;
+    font-size: 14px;
+    margin: 10px 0;
+    text-align: center;
+  }
+
+  dl {
+    margin-bottom: 20px;
+  }
+
+  dt {
+    font-size: 12px;
+    text-align: left;
+  }
+
+  label {
+    font-family: $mediate-font-light;
+  }
+
+  .switch-field {
+    height: 30px;
+    margin-bottom: 10px;
+  }
+
+  .switch-field dt {
+    float: left;
+    margin-right: 5px;
+    margin-top: 7px;
+  }
+
+  .switch-field dl {
+    margin-bottom: 0;
+  }
+
+
+  &.edit-ad-providers {
+    width: 400px;
+  }
+
+  &.edit-ad-providers input[type="text"],
+  &.edit-ad-providers input[type="password"],
+  &.edit-ad-providers input[type="number"],
+  &.edit-ad-providers input[type="email"],
+  &.edit-ad-providers button[type="submit"],
+  &.edit-ad-providers button[type="button"] {
+    width: 376px;
+  }
+
+
+  &.edit-app-form input[type="text"],
+  &.edit-app-form input[type="password"],
+  &.edit-app-form input[type="number"],
+  &.edit-app-form input[type="email"],
+  &.edit-app-form button[type="submit"],
+  &.edit-app-form button[type="button"] {
+    margin-bottom: 20px;
+    width: 410px;
+  }
+}
+
+#roundUp-field {
+  height: 40px;
+}
+
+
+.left-column {
+  float: left;
+  margin-top: 10px;
+  width: 330px;
+}
+
+.right-column {
+  float: left;
+  margin-left: 18px;
+  margin-top: 10px;
+  width: 330px;
+}
+
+.new-app-page #new-app {
+  background: #fff;
+  border: 1px solid #dddde0;
+  margin: 0 auto 10px;
+  padding: 30px;
+  width: 740px;
+}
+
+#new-app-page-header .modal-text {
+  margin-bottom: 30px;
+  font-family: $mediate-font-light;
+}
+
+.app-form .tip, .switch-checkbox-label {
+  color: #333;
+  font-size: 11px;
+  font-style: italic;
+  text-align: left;
+}

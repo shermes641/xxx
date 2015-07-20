@@ -4,13 +4,13 @@
 <div class="content registration">
     <h1>Welcome Back!</h1>
     <hr />
-    <div class="modal_text">
+    <div class="modal-text">
         Enter your username and password below to gain access.
     </div>
-    <form name="loginForm" ng-controller="LoginController" ng-submit="submit(loginForm)" novalidate>
+    <form name="{{formName}}" ng-controller="LoginController" ng-submit="submit(loginForm)" novalidate>
 
         <fieldset ng-disabled="waitForAuth">
-            <dl id="email_field">
+            <dl id="email-field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
                     <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
@@ -22,19 +22,19 @@
                 </div>
             </dl>
 
-            <dl id="password_field">
+            <dl id="password-field">
                 <dt><label for="password"></label></dt>
                 <dd ng-class="errors.passwordClass">
-                    <input ng-model="data.password" ng-model-options="{updateOn: 'default'}" type="password" id="password" name="password" placeholder="Password" required/>
+                    <input ng-model="data.password" clear-error-on-change="data.password" type="password" id="password" name="password" placeholder="Password" required/>
                 </dd>
                 <div ng-show="loginForm.$submitted || loginForm.password.$touched">
-                    <dd class="error">{{errors.password}}</dd>
-                    <dd class="error" ng-show="loginForm.password.$error.required">Password is required</dd>
+                    <dd class="error" ng-show="!loginForm.password.$error.required" id="password-custom-error">{{errors.password}}</dd>
+                    <dd class="error" ng-show="loginForm.password.$error.required" id="password-required-error">Password is required.</dd>
                 </div>
             </dl>
         </fieldset>
 
-        <button ng-disabled="loginForm.$invalid || waitForAuth" ng-class="{inactive: loginForm.$invalid}" type="submit" name="submit">Sign In</button>
+        <button ng-disabled="loginForm.$invalid || waitForAuth" type="submit" name="submit">Sign In</button>
     </form>
 </div>
 <div id="registration-link">

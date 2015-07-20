@@ -4,7 +4,7 @@ import anorm.SQL
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.db.DB
-import play.api.libs.json.{JsValue, JsArray, JsString, JsObject}
+import play.api.libs.json._
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
@@ -115,13 +115,25 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   "WaterfallAdProvider.findAllReportingEnabled" should {
-    "return a list of all active waterfall ad providers that have reporting enabled" in new WithDB {
-      val wapReportingCount = WaterfallAdProvider.findAllReportingEnabled.size
-      val updatedWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, None, None, Some(true), None, configurationJson, true)
-      WaterfallAdProvider.update(updatedWaterfallAdProvider)
-      val reportingEnabledWAPs = WaterfallAdProvider.findAllReportingEnabled
-      reportingEnabledWAPs.size must beEqualTo(wapReportingCount + 1)
-      reportingEnabledWAPs.map( wap => wap.waterfallAdProviderID) must contain(updatedWaterfallAdProvider.id)
+    "return a list of all waterfall ad providers that have reporting enabled" in new WithDB {
+      def verifyReportingWAPs = {
+        val reportingEnabledWAPs = WaterfallAdProvider.findAllReportingEnabled
+        reportingEnabledWAPs.size must beEqualTo(originalWAPReportingCount + 1)
+        reportingEnabledWAPs.map(wap => wap.waterfallAdProviderID) must contain(updatedActiveWaterfallAdProvider.id)
+      }
+
+      val originalWAPReportingCount = WaterfallAdProvider.findAllReportingEnabled.size
+      val updatedActiveWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, waterfallOrder = None,
+        cpm = None, active = Some(true), fillRate = None, configurationData = configurationJson, reportingActive = true)
+      WaterfallAdProvider.update(updatedActiveWaterfallAdProvider)
+
+      verifyReportingWAPs
+
+      val updatedInActiveWaterfallAdProvider = new WaterfallAdProvider(waterfallAdProvider1.id, waterfall.id, adProviderID1.get, waterfallOrder = None,
+        cpm = None, active = Some(false), fillRate = None, configurationData = configurationJson, reportingActive = true)
+      WaterfallAdProvider.update(updatedInActiveWaterfallAdProvider)
+
+      verifyReportingWAPs
     }
   }
 
@@ -136,7 +148,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
   }
 
   "WaterfallAdProviderConfig.mappedFields" should {
-    "return a list of RequiredParam instances" in new WithDB{
+    "return a list of RequiredParam instances" in new WithDB {
       val configData = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(waterfallAdProvider1.id).get }
       val fields = configData.mappedFields("requiredParams")
       for(index <- (0 to fields.size-1)) {
@@ -144,15 +156,45 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
         fields(index).value.get must beEqualTo(configurationValues(index))
       }
     }
+
+    "convert WaterfallAdProvider configuration param values to Strings if they are not already" in new WithDB {
+      val newAppID = App.create(currentApp.distributorID, "New Test App").get
+      VirtualCurrency.create(newAppID, "Coins", exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = Some(true))
+      val newWaterfall = {
+        val id = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New Waterfall") }
+        Waterfall.find(id, currentApp.distributorID).get
+      }
+      val paramType = "requiredParams"
+      val configData = JsObject(
+        Seq(
+           paramType -> JsObject(
+            Seq(
+              configurationParams(0) -> JsNumber(5),
+              configurationParams(1) -> JsString("some string")
+            )
+          )
+        )
+      )
+      val wapConfig = {
+        val id = WaterfallAdProvider.create(newWaterfall.id, adProviderID1.get, waterfallOrder = None, cpm = None, configurable = true, active = true, pending = false).get
+        val wap = WaterfallAdProvider.find(id).get
+        WaterfallAdProvider.update(new WaterfallAdProvider(id, newWaterfall.id, adProviderID1.get, waterfallOrder = None, cpm = None, active = Some(true), fillRate = None, configurationData = configData,reportingActive = true, pending = false))
+        DB.withTransaction { implicit connection => WaterfallAdProvider.findConfigurationData(id).get }
+      }
+      val fields = wapConfig.mappedFields(paramType)
+      for(index <- (0 to fields.size-1)) {
+        fields(index).value.get must haveClass[String]
+      }
+    }
   }
 
-  "WaterfallAdProvider.findByAdProvider" should {
+  "WaterfallAdProvider.findRewardInfo" should {
     "return the configuration data JSON if a record is found" in new WithDB {
-      WaterfallAdProvider.findByAdProvider(currentApp.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.WaterfallAdProviderCallbackInfo]
+      WaterfallAdProvider.findRewardInfo(currentApp.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.AdProviderRewardInfo]
     }
 
     "return None if the configuration data does not exist" in new WithDB {
-      WaterfallAdProvider.findByAdProvider(currentApp.token, "Some fake ad provider name") must beNone
+      WaterfallAdProvider.findRewardInfo(currentApp.token, "Some fake ad provider name") must beNone
     }
   }
 
