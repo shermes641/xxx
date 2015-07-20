@@ -266,8 +266,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
     }
 
-<<<<<<< HEAD
-
     "leaving test mode, waterfall should be paused if no ad providers are active" in new WithAppBrowser(distributor.id.get) {
       val originalGeneration = generationNumber(currentApp.id)
 
