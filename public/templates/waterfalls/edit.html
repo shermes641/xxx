@@ -15,7 +15,6 @@
             </div>
             <div id="edit-top">
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
-                <!--<button ng-click="toggleEditAppModal()" id="waterfall-app-settings-button">App Settings</button>-->
             </div>
             <div id="waterfall-sub-header">
                 <modal-dialog show='modalShown'>
@@ -100,7 +99,7 @@
                                     <div class="deactivate">Deactivate</div>
                                     <div class="activate">Activate</div>
                                 </button>
-                                <div ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" name="configure-wap" class="configure active-button" type="submit"></div>
+                                <div ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" class="configure active-button" type="submit"></div>
                             </div>
                             <div ng-hide="waterfallData.optimizedMode" class="waterfall-drag">
                                 <div class="waterfall-drag-1"></div>
