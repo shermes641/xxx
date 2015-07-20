@@ -231,7 +231,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
     }
 
     "waterfall UI not should not start paused if waterfall is not paused" in new WithFakeBrowser {
@@ -243,7 +243,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
     }
 
     "toggle paused mode should show message above waterfall" in new WithFakeBrowser {
@@ -255,14 +255,14 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
-      clickAndWaitForAngular(".pause")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
+      clickAndWaitForAngular("#pause-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areDisplayed()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      clickAndWaitForAngular(".pause")
+      clickAndWaitForAngular("#live-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areNotDisplayed()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
     }
 

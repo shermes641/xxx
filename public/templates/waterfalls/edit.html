@@ -32,18 +32,6 @@
                         <div ng-include="testModeConfirmationModal"></div>
                     </div>
                 </modal-dialog>
-                <!--
-                <div class="waterfall-buttons" ng-class="{disabled: waterfallData.waterfall.testMode}">
-                    <div class="button-overlay"></div>
-                    <h4 ng-mouseenter="hoverPause=true" ng-mouseleave="hoverPause=false" class="tooltip">
-                        ?
-                        <div class="ngtooltip" ng-show="hoverPause">Pause and resume this waterfall</div>
-                    </h4>
-                    <label ng-if="waterfallData.waterfall.paused" class="text-label">Resume Ads</label>
-                    <label ng-if="!waterfallData.waterfall.paused" class="text-label">Pause Ads</label>
-                    <div class="pause" ng-class="{play: waterfallData.waterfall.paused}" ng-click="togglePaused()"></div>
-                </div>
-                -->
                 <div class="waterfall-buttons first">
                     <h4 ng-mouseenter="hoverOptimized=true" ng-mouseleave="hoverOptimized=false" class="tooltip">
                         ?
@@ -58,22 +46,6 @@
                         </label>
                     </div>
                 </div>
-                <!--
-                <div class="waterfall-buttons first">
-                    <h4 ng-mouseenter="hoverTestMode=true" ng-mouseleave="hoverTestMode=false" class="tooltip">
-                        ?
-                        <div class="ngtooltip" ng-show="hoverTestMode">Test Mode will allow you to test your integration by playing a video with an unlimited frequency cap.</div>
-                    </h4>
-                    <label class="text-label">Test Mode</label>
-                    <div class="onoffswitch">
-                        <input ng-click="toggleTestMode(waterfallData.waterfall.testMode)" ng-model="waterfallData.waterfall.testMode" type="checkbox" name="test-mode" class="onoffswitch-checkbox" id="test-mode-switch">
-                        <label class="onoffswitch-label" for="test-mode-switch">
-                            <span class="onoffswitch-inner"></span>
-                            <span class="onoffswitch-switch"></span>
-                        </label>
-                    </div>
-                </div>
-                -->
                 <div class="waterfall-status">
                     <h4 ng-mouseenter="hoverStatusMode=true" ng-mouseleave="hoverStatusMode=false" class="tooltip">
                         ?
@@ -82,9 +54,9 @@
                     <label class="text-label">Waterfall Status</label>
                     <div class="waterfall-status-container">
                         <div id="status-toggle" ng-class="{live: !waterfallData.waterfall.testMode, paused: waterfallData.waterfall.paused}"></div>
-                        <span ng-click="activateTestMode()">Test</span>
-                        <span ng-click="activateLiveMode()">Live</span>
-                        <span ng-click="activatePausedMode()">Pause</span>
+                        <span id="test-mode-switch" ng-click="activateTestMode()">Test</span>
+                        <span id="live-mode-switch" ng-click="activateLiveMode()">Live</span>
+                        <span id="pause-mode-switch" ng-click="activatePausedMode()">Pause</span>
                     </div>
                 </div>
             </div>
