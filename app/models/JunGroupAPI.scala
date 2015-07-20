@@ -32,7 +32,7 @@ class JunGroupAPI {
    */
   def createRequest(adNetwork: JsObject): Future[WSResponse] = {
     val config = Play.current.configuration
-    WS.url("http://" + config.getString("jungroup.url").get + "/admin/ad_network").withAuth(config.getString("jungroup.user").get, config.getString("jungroup.password").get, WSAuthScheme.DIGEST).post(adNetwork)
+    WS.url("http://" + config.getString("jungroup.url").get + "/admin/ad_networks").withAuth(config.getString("jungroup.user").get, config.getString("jungroup.password").get, WSAuthScheme.DIGEST).post(adNetwork)
   }
 
   /**
