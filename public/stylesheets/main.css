@@ -600,17 +600,6 @@ dd.modal-error {
   -ms-user-select: none;
 }
 
-.app-modal-message {
-  margin-left: -200px;
-  margin-top: -65px;
-}
-
-.wap-modal-message {
-  position: fixed;
-  margin-left: -200px;
-  margin-top: -65px;
-}
-
 #browser-support {
   display: none;
   position: fixed;
@@ -812,7 +801,7 @@ header #username-header {
 header .header-actions #username-dropdown {
   background: #efeff4;
   border: 1px solid #dddde0;
-  bottom: -60px;
+  bottom: -63px;
   color: #6d6d72;
   display: none;
   height: 60px;
@@ -1141,6 +1130,15 @@ header #logo:before,
 
 #export-as-csv {
   margin-top: 30px;
+}
+#export-as-csv .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -120px -80px;
+  height: 25px;
+  width: 27px;
+  vertical-align: middle;
 }
 
 #apps-list {
@@ -2090,6 +2088,17 @@ button.confirm-button {
   top: 0;
   width: 100%;
   z-index: 10;
+}
+
+.app-modal-message {
+  margin-left: -200px;
+  margin-top: -65px;
+}
+
+.wap-modal-message {
+  position: fixed;
+  margin-left: -200px;
+  margin-top: -65px;
 }
 
 /*# sourceMappingURL=main.css.map */
