@@ -1636,6 +1636,11 @@ span#viewTerms:hover {
   -webkit-transition: 300ms ease all;
   transition: 250ms ease all;
 }
+.waterfall ul li .below-reward-threshold-message {
+  color: #ff6666;
+  margin-left: 10px;
+  font-size: 13px;
+}
 .waterfall ul li div.configure {
   cursor: pointer;
   width: 22px;

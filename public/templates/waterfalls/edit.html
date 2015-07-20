@@ -90,9 +90,9 @@
                                         <label>eCPM:</label>
                                         <div name="cpm" style="display: inline-block;">${{adProviderConfig.cpm | monetaryFormat}}</div>
                                     </span>
-                                    <div class="below-reward-threshold-message" ng-hide="adProviderConfig.meetsRewardThreshold">
+                                    <span class="below-reward-threshold-message" ng-hide="adProviderConfig.meetsRewardThreshold">
                                         This Ad Network doesn't meet the minimum eCPM requirements
-                                    </div>
+                                    </span>
                                 </div>
                             </div>
                             <div ng-hide="{{adProviderConfig.pending}}" class="wap-buttons">
