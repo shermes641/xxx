@@ -172,7 +172,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleEditAppModal = function(appID) {
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
-                console.log(appID);
                 $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + appID + '/edit').success(function(data) {
                     $scope.editAppID = appID;
                     $scope.data = data;
@@ -232,20 +231,17 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(form.$valid) {
                     ga('send', 'event', 'submit_edit_app', 'click', 'waterfalls');
                     setNumberValues("data");
-                    $scope.data.generationNumber = $scope.generationNumber;
-                    console.log($scope.editAppID);
                     $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.editAppID, $scope.data).
                         success(function(data, status, headers, config) {
-                            if($scope.appName !== $scope.data.appName) {
-                                var apps = $scope.waterfallData.appsWithWaterfalls;
+                            var apps = $scope.waterfallData.appsWithWaterfalls;
+                            if($scope.appName !== $scope.data.appName && $scope.appID === $scope.editAppID) {
                                 $scope.appName = $scope.data.appName;
-                                for(index in apps) {
-                                    if(apps[index].id === $scope.editAppID) {
-                                        apps[index].name = $scope.data.appName;
-                                    }
+                            }
+                            for(index in apps) {
+                                if(apps[index].id === $scope.editAppID) {
+                                    apps[index].name = $scope.data.appName;
                                 }
                             }
-                            $scope.generationNumber = data.generationNumber;
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
                             flashMessage.add(data);

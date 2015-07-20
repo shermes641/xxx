@@ -131,7 +131,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
         val editAppInfo = new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), None)
+          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber)
         Ok(Json.toJson(editAppInfo))
       }
       case None => {
