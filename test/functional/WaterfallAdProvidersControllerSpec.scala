@@ -347,7 +347,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').last().click();")
+      browser.executeScript("$('.configure').last().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "123")
       browser.fill("input").`with`("2.0")
