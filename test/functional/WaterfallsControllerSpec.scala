@@ -382,7 +382,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(currentDistributor.id.get, newWaterfall.id).url)
       val oldAppName = newApp.name
       val newAppName = "Some Different App Name"
-      browser.executeScript("$('button[id=waterfall-app-settings-button]').first().click()")
+      browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed()
       browser.fill("input[name=appName]").`with`(newAppName)
       browser.executeScript("$('button[name=submit]').click();")

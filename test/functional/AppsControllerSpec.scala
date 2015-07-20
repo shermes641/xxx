@@ -222,7 +222,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.pageSource must contain("App Configuration")
     }
 
@@ -230,7 +230,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       currentApp.serverToServerEnabled must beFalse
       browser.find("#callbackURL").first.isEnabled must beFalse
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
@@ -246,7 +246,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       currentApp.serverToServerEnabled must beFalse
       browser.find("#callbackURL").first.isEnabled must beFalse
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
@@ -257,7 +257,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
       browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.find("button[name=submit]").first.isEnabled must beTrue
     }
 
@@ -284,7 +284,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     "display an error message if reward min is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#rewardMin").`with`("0")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
@@ -294,7 +294,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     "display an error message if exchange rate is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#exchangeRate").`with`("0")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
@@ -304,7 +304,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     "display an error message is exchange rate is too long" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#exchangeRate").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
@@ -314,7 +314,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#rewardMin").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
@@ -324,7 +324,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
     "display an error message is reward max is too long" in new WithAppBrowser(user.distributorID.get) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#rewardMax").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
@@ -335,7 +335,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       val documentationLinkText = browser.find("#callback-url-documentation-link").getAttribute("ng-bind-html")
       val urlPattern = new scala.util.matching.Regex("""http:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
       val documentationLink = urlPattern findFirstIn documentationLinkText match {
@@ -374,7 +374,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       val originalGeneration = generationNumber(currentApp.id)
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#appName").`with`(newAppName)
       browser.executeScript("$('#serverToServerEnabled').click();")
       val longCallbackURL = "http://" + "a" * 2037 + ".com" // This meets the 2048 character limit for the callback_url field
@@ -398,7 +398,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until({browser.findFirst("#currencyName").getValue() == currentVirtualCurrency.name})
 
       browser.fill("#rewardMin").`with`(rewardMin.toString)
