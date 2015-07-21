@@ -415,7 +415,7 @@ object WaterfallAdProvider extends JsonConversion {
       get[Long]("reward_min") ~
       get[Boolean]("pending") map {
       case name ~ id ~ cpm ~ active ~ waterfall_order ~ configuration_data ~ configurable ~ round_up ~ exchange_rate ~ reward_min ~ pending =>
-        OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, unconfigured(configuration_data.as[JsObject], "requiredParams"), configurable, round_up, exchange_rate, reward_min, pending, false)
+        OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, unconfigured(configuration_data.as[JsObject], "requiredParams"), configurable, round_up, exchange_rate, reward_min, pending, newRecord = false)
     }
   }
 
