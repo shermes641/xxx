@@ -266,18 +266,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
     }
 
-    "leaving test mode, waterfall should be paused if no ad providers are active" in new WithAppBrowser(distributor.id.get) {
-      val originalGeneration = generationNumber(currentApp.id)
-
-      logInUser()
-
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
-      browser.executeScript("$('#test-mode-switch').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").areDisplayed()
-      Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
-    }
-
     "persist the waterfall ordering when the eCPM is changed for a waterfall ad provider in optimized mode" in new WithAppBrowser(distributor.id.get) {
       createWaterfallAdProvider(currentWaterfall.id, adProviderID1.get, None, Some(5.0), true, true)
       createWaterfallAdProvider(currentWaterfall.id, adProviderID2.get, None, Some(5.0), true, true)
@@ -316,7 +304,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       topAdProviderText must contain("$500.00")
       topAdProviderText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
 
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
       clickAndWaitForAngular("button[name=update-ad-provider]")
