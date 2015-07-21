@@ -49,7 +49,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                 $scope.sortableOptions.containment = "#waterfall-edit";
                 $scope.waterfallInfoCallComplete = true;
-            }
+            };
 
             $scope.getWaterfallData();
 
