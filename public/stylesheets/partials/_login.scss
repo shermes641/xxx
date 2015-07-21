@@ -1,0 +1,20 @@
+ // Login Page
+.welcome-screen {
+  margin: 70px auto;
+  width: 600px;
+
+  h1 {
+    text-align: center;
+  }
+
+  a {
+    background: $mediate-blue;
+    color: #fff;
+    display: block;
+    font-size: 16px;
+    font-weight: 400;
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+  }
+}

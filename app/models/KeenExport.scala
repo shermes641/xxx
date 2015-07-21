@@ -38,9 +38,10 @@ case class KeenExport() {
    * @param timeframe Timeframe for the analytics events
    * @param selectedApps Apps to loop through for events
    * @param adProvidersSelected true if ad providers are selected individually
+   * @param scopedReadKey A Keen API read key scoped exclusively to the Distributor who is currently logged in
    */
-  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean) = {
-    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps, adProvidersSelected)))
+  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean, scopedReadKey: String) = {
+    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps, adProvidersSelected, scopedReadKey)))
     actor ! GetDataFromKeen()
   }
 
@@ -89,8 +90,9 @@ case class KeenExport() {
  * @param timeframe Timeframe for the analytics events
  * @param selectedApps Apps to loop through for events
  * @param adProvidersSelected true if ad providers are selected individually
+ * @param scopedReadKey A Keen API read key scoped exclusively to the Distributor who is currently logged in
  */
-class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean) extends Actor with Mailer {
+class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean, scopedReadKey: String) extends Actor with Mailer {
   private var counter = 0
   val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
   /**
@@ -155,7 +157,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
      */
     case GetDataFromKeen() => {
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, scopedReadKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
       val writer = createCSVFile()
@@ -193,7 +195,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     val earningList = parseResponse(earningsResponse.body)
 
     for(i <- requestList.indices){
-      val date = (requestList(i).timeframe \ "start").as[String]
+      val date = (requestList(i).timeframe \ "start").as[String].split("T")(0)
       val requests = requestList(i).value.as[Long]
       val dau = dauList(i).value.as[Long]
       val impressions = impressionList(i).value.as[Long]
@@ -237,7 +239,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     val (requestCollection, responseCollection) = if(adProvidersSelected) ("availability_requested", "availability_response_true") else ("mediate_availability_requested", "mediate_availability_response_true")
 
     for (appID <- selectedApps) {
-      val name = App.find(appID.toLong).get.name
+      val name = App.findAppWithVirtualCurrency(appID.toLong, distributorID).get.appName
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
         requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, requestCollection, appID))

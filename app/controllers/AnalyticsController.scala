@@ -35,7 +35,7 @@ object AnalyticsController extends Controller with Secured {
     request.body.asJson.map { json =>
       json.validate[exportMapping].map { exportParameters =>
         KeenExport().exportToCSV(distributorID, exportParameters.email, exportParameters.filters,
-          exportParameters.timeframe, exportParameters.apps, exportParameters.ad_providers_selected)
+          exportParameters.timeframe, exportParameters.apps, exportParameters.ad_providers_selected, getScopedReadKey(distributorID))
         Ok("success")
       }.recoverTotal {
         error => BadRequest(Json.obj("status" -> "error", "message" -> "Missing parameters"))

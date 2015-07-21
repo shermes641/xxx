@@ -1,4 +1,4 @@
-<div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message wap_modal_message">
+<div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message wap-modal-message">
     {{flashMessage.text()}}
 </div>
 <div class="contents">
@@ -23,12 +23,13 @@
                         <dt>
                              <label>{{param.displayKey | conditionalRequiredField: true}}</label>
                         </dt>
-                        <input required ng-minlength="{{param.minLength}}" name="{{param.key}}" type="text" ng-model="param.value"></input>
+                        <input required validate-required-param-format="{{param.value}}" required-param-data-type="{{param.dataType}}" ng-minlength="{{param.minLength}}" name="{{param.key}}" type="text" ng-model="param.value"></input>
                         <h4 ng-mouseenter="hover=true" ng-mouseleave="hover=false" class="tooltip">
                             ?
                             <div class="ngtooltip" ng-show="hover" ng-bind-html="param.description | escapeHtml"></div>
                         </h4>
                         <div class="required-params-errors" ng-show="form.editWAP.$submitted || form.editWAP.{{param.key}}.$touched">
+                            <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.validateRequiredParamFormat && !form.editWAP.{{param.key}}.$error.required">{{param.displayKey}} cannot be empty.</dd>
                             <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.required">{{param.displayKey}} required.</dd>
                             <dd class="modal-text error" ng-show="form.editWAP.{{param.key}}.$error.minlength">{{param.displayKey}} requires at least {{param.minLength}} characters.</dd>
                             <dd class="modal-text error">{{errors['requiredParams-' + param.key + '-message']}}</dd>

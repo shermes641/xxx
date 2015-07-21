@@ -4,9 +4,12 @@ import models._
 import anorm._
 import play.api.db.DB
 import play.api.libs.json._
+import play.api.libs.ws.{WSAuthScheme, WS}
 import play.api.test._
 import play.api.test.Helpers._
 import resources.DistributorUserSetup
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
   val appName = "App 1"
@@ -36,7 +39,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "100", rewardMax = "1")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_reward_max").containsText("Maximum Reward must be greater than or equal to Minimum Reward.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-reward-max").containsText("Maximum Reward must be greater than or equal to Minimum Reward.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -62,7 +65,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "100", rewardMin = "0", rewardMax = "10")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_reward_min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-reward-min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -74,7 +77,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = appName, currencyName = "Gold", exchangeRate = "0", rewardMin = "1", rewardMax = "10")
       browser.$("button[id=create-app]").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new_app_exchange_rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-exchange-rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
       App.findAll(user.distributorID.get).size must beEqualTo(appCount)
     }
 
@@ -181,10 +184,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
       val newAppName = "My left list test app"
       goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(user.distributorID.get, None, None).url)
-      clickAndWaitForAngular("#create_new_app")
+      clickAndWaitForAngular("#create-new-app")
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       clickAndWaitForAngular("button[id=create-app]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".left_apps_list").containsText("My left list test app")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".left-apps-list").containsText("My left list test app")
     }
 
     "return the new waterfall ID in the JSON if the app is created successfully" in new WithFakeBrowser {
@@ -231,11 +234,31 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       currentApp.serverToServerEnabled must beFalse
       browser.find("#callbackURL").first.isEnabled must beFalse
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.find("button[name=submit]").first.isEnabled must beFalse
       browser.find("#callbackURL").first.isEnabled must beTrue
       browser.fill("#callbackURL").`with`("invalid-url")
       browser.clear("#currencyName")
-      clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#callback_url").containsText("A valid HTTP or HTTPS callback URL is required.")
+      browser.find("button[name=submit]").first.isEnabled must beFalse
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
+    }
+
+    "enable the 'Save Changes' button after a callback URL error was encountered, the enable server to server option was toggled to 'off,' the modal was closed, then reopened" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      currentApp.serverToServerEnabled must beFalse
+      browser.find("#callbackURL").first.isEnabled must beFalse
+      browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.find("#callbackURL").first.isEnabled must beTrue
+      browser.fill("#callbackURL").`with`("invalid-url")
+      browser.clear("#rewardMax")
+      browser.find("button[name=submit]").first.isEnabled must beFalse
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
+      browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
+      browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      browser.find("button[name=submit]").first.isEnabled must beTrue
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit an App they do not own" in new WithAppBrowser(user.distributorID.get) {
@@ -265,7 +288,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`("0")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-min").containsText("Minimum Reward must be a valid integer greater than or equal to 1.")
     }
 
     "display an error message if exchange rate is not 1 or greater" in new WithAppBrowser(user.distributorID.get) {
@@ -275,7 +298,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#exchangeRate").`with`("0")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange-rate").containsText("Exchange Rate must be a valid integer greater than or equal to 1.")
     }
 
     "display an error message is exchange rate is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -285,7 +308,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#exchangeRate").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange_rate").containsText("Exchange Rate must be 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#exchange-rate").containsText("Exchange Rate must be 15 characters or less.")
     }
 
     "display an error message is reward min is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -295,7 +318,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMin").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_min").containsText("Reward Min must be 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-min").containsText("Reward Min must be 15 characters or less.")
     }
 
     "display an error message is reward max is too long" in new WithAppBrowser(user.distributorID.get) {
@@ -305,7 +328,25 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.fill("#rewardMax").`with`("9999999999999999")
       browser.fill("#appName").`with`(currentApp.name)
       clickAndWaitForAngular("button[name=submit]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward_max").containsText("Reward Max must be 15 characters or less.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max").containsText("Reward Max must be 15 characters or less.")
+    }
+
+    "Callback URL tooltip documentation link is correct" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+
+      browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
+      clickAndWaitForAngular("#waterfall-app-settings-button")
+      val documentationLinkText = browser.find("#callback-url-documentation-link").getAttribute("ng-bind-html")
+      val urlPattern = new scala.util.matching.Regex("""http:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+      val documentationLink = urlPattern findFirstIn documentationLinkText match {
+        case Some(url) => url
+        case None => ""
+      }
+      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      Await.result(request.get().map { response =>
+        response.status must beEqualTo(200)
+        response.body must contain("Server to Server Callbacks")
+      }, Duration(5000, "millis"))
     }
   }
 
