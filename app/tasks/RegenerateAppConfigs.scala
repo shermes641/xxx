@@ -25,15 +25,17 @@ object RegenerateAppConfigs {
           waps.map { wap =>
             try {
               val configData = WaterfallAdProvider.findConfigurationData(wap.id).get
-              val newConfig = JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForDB, configData)
-              val newWapValues = new WaterfallAdProvider(wap.id, waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, newConfig, wap.reportingActive)
-              WaterfallAdProvider.updateWithTransaction(newWapValues) match {
-                case 0 => {
-                  unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ wap.id
-                  unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + wap.waterfallID
-                  Logger.error("Error updating WaterfallAdProvider ID: " + wap.id)
+              if(!configData.pending) {
+                val newConfig = JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForDB, configData)
+                val newWapValues = new WaterfallAdProvider(wap.id, waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, newConfig, wap.reportingActive)
+                WaterfallAdProvider.updateWithTransaction(newWapValues) match {
+                  case 0 => {
+                    unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ wap.id
+                    unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + wap.waterfallID
+                    Logger.error("Error updating WaterfallAdProvider ID: " + wap.id)
+                  }
+                  case _ => None
                 }
-                case _ => None
               }
             } catch {
               case error: play.api.libs.json.JsResultException => {
