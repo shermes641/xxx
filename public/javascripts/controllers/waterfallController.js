@@ -183,12 +183,11 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.data = data;
                     $scope.form.editAppForm.$setPristine();
                     $scope.form.editAppForm.$setUntouched();
+                    $scope.showEditAppModal = !$scope.showEditAppModal;
+                    $scope.showModal(!$scope.modalShown);
                 }).error(function(data) {
                     flashMessage.add(data);
                 });
-
-                $scope.showEditAppModal = !$scope.showEditAppModal;
-                $scope.showModal(!$scope.modalShown);
             };
 
             // Open the App creation page

@@ -113,7 +113,10 @@ mediationModule.directive(clearErrorOnChange, function() {
         scope: false,
         link: function(scope, elm, attrs, ctrl) {
             scope.$watch(attrs.clearErrorOnChange, function() {
-                var form = scope[attrs.formName] ? scope[attrs.formName] : scope[scope.formName];
+                var getForm = function(name) {
+                    return name.split(".").reduce(function(formObj, formName) { return formObj[formName]; }, scope);
+                };
+                var form = getForm(attrs.formName || scope.formName);
                 if(form.$submitted) {
                     scope.errors[attrs.name] = "";
                     scope.errors[attrs.name + "Class"] = "";
@@ -233,7 +236,7 @@ mediationModule.directive(greaterThanDirectiveName, function() {
         link: function(scope, elm, attrs, ctrl) {
             var validate = function(viewValue) {
                 var comparisonModel = attrs.greaterThanOrEqualTo;
-                ctrl.$setValidity(greaterThanDirectiveName, ctrl.$isEmpty(viewValue) ? true : parseInt(viewValue) >= parseInt(comparisonModel));
+                ctrl.$setValidity(greaterThanDirectiveName, (ctrl.$isEmpty(viewValue) || comparisonModel === "") ? true : parseInt(viewValue) >= parseInt(comparisonModel));
                 return viewValue;
             };
 
