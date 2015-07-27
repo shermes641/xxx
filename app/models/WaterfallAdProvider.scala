@@ -306,7 +306,7 @@ object WaterfallAdProvider extends JsonConversion {
     val query = SQL(
       """
         SELECT ad_providers.name, reward_min, cpm, ad_providers.configuration_data as ad_provider_configuration,
-        ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active
+        ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active, wap.pending
         FROM waterfall_ad_providers wap
         INNER JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
         INNER JOIN waterfalls ON waterfalls.id = wap.waterfall_id
@@ -427,8 +427,9 @@ object WaterfallAdProvider extends JsonConversion {
       get[JsValue]("ad_provider_configuration") ~
       get[Option[String]]("callback_url_format") ~
       get[JsValue]("wap_configuration") ~
-      get[Boolean]("reporting_active") map {
-      case name ~ reward_min ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active => WaterfallAdProviderConfig(name, reward_min, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active)
+      get[Boolean]("reporting_active") ~
+      get[Boolean]("pending")  map {
+      case name ~ reward_min ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active ~ pending => WaterfallAdProviderConfig(name, reward_min, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active, pending)
     }
   }
 
@@ -482,8 +483,9 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
  * @param callbackUrlFormat General format for an AdProvider's reward callback URL.
  * @param waterfallAdProviderConfiguration Configuration data form WaterfallAdProvider record.
  * @param reportingActive Boolean value indicating if we are collecting revenue data from third-parties.
+ * @param pending A boolean that determines if the waterfall_ad_provider is able to be activated.  This is used only in the case of HyprMarketplace while we wait for a Distributor ID.
  */
-case class WaterfallAdProviderConfig(name: String, rewardMin: Long, cpm: Option[Double], adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean) extends RequiredParamJsReader {
+case class WaterfallAdProviderConfig(name: String, rewardMin: Long, cpm: Option[Double], adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean, pending: Boolean) extends RequiredParamJsReader {
   /**
    * Converts an optional String value to a Boolean.
    * @param param The original optional String value.

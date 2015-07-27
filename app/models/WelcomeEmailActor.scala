@@ -28,7 +28,7 @@ class WelcomeEmailActor extends Actor with Mailer {
 
     val body = views.html.Mails.welcomeEmailContent().toString()
     val plain: String = { "Thank you for registering with HyprMediate.\r\n\r\n" +
-      "HyprMediate is the easiest way to manage monetization partners across all of your applications." +
+      "HyprMediate is the easiest way to manage rewarded video monetization partners across your applications." +
       "Our platform is simple to use, and the setup is quick and seamless.\r\n\r\n " +
       "To get started, please visit our documentation.  http://documentation.hyprmx.com\r\n\r\n" +
       "If you have any questions, feel free to contact us by replying to this email.\r\n\r\n" +
