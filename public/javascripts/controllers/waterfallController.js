@@ -172,17 +172,17 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleEditAppModal = function(appID) {
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
-                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + appID + '/edit').success(function(data) {
+                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
+                    $scope.data = _.defaults(data, {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true});
                     $scope.editAppID = appID;
-                    $scope.data = data;
+
                     $scope.form.editAppForm.$setPristine();
                     $scope.form.editAppForm.$setUntouched();
+                    $scope.showEditAppModal = !$scope.showEditAppModal;
+                    $scope.showModal(!$scope.modalShown);
                 }).error(function(data) {
                     flashMessage.add(data);
                 });
-
-                $scope.showEditAppModal = !$scope.showEditAppModal;
-                $scope.showModal(!$scope.modalShown);
             };
 
             // Open the App creation page

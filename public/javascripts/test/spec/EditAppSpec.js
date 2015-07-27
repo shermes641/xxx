@@ -31,11 +31,14 @@ describe('EditAppSpec', function() {
             expect(form.rewardMax.$valid).toEqual(true);
         });
 
-        it('should be valid if rewardMax is empty', function() {
+        it('should be valid if rewardMax is empty or blank', function() {
+            var rewardMaxValues = [undefined, null, ""];
             scope.data.rewardMin = '1';
-            scope.data.rewardMax = undefined;
-            scope.$digest();
-            expect(form.rewardMax.$valid).toEqual(true);
+            for(var i = 0; i < rewardMaxValues.length; i++) {
+                scope.data.rewardMax = rewardMaxValues[i];
+                scope.$digest();
+                expect(form.rewardMax.$valid).toEqual(true);
+            }
         });
     });
 
@@ -159,6 +162,54 @@ describe('EditAppSpec', function() {
             scope.data.callbackURL = undefined;
             scope.$digest();
             expect(form.callbackURL.$valid).toEqual(true);
+        });
+    });
+
+    describe('clearErrorOnChange', function() {
+        var scope, form, element, appNameError, $compile, $rootScope;
+
+        beforeEach(inject(function(_$rootScope_, _$compile_) {
+            $compile = _$compile_;
+            $rootScope = _$rootScope_;
+            scope = $rootScope.$new();
+            scope.data = { appName: 'app name' };
+            appNameError = 'You already have an App with the same name.';
+            scope.errors = { appName: appNameError };
+        }));
+
+        it('should clear the appropriate custom error when the model value changes and several forms exist on the same page', function() {
+            element = angular.element(
+                '<form name="form.editAppForm">' +
+                '<input required type="text" ng-model="data.appName" clear-error-on-change="data.appName" form-name="form.editAppForm" id="appName" name="appName" value="" placeholder="name" label="*App Name">' +
+                '<dd id="edit-app-app-name-custom-error" class="error">{{errors.appName}}</dd>' +
+                '</form>'
+            );
+            $compile(element)(scope);
+            form = scope.form.editAppForm;
+            form.$submitted = true;
+
+            scope.data.appName = '';
+            expect(scope.errors.appName).toEqual(appNameError);
+            scope.$digest();
+            expect(scope.errors.appName).toEqual('');
+        });
+
+        it('should clear the appropriate custom error when the model value changes and the form name is specified on the scope object', function() {
+            element = angular.element(
+                '<form name="{{formName}}">' +
+                '<input required type="text" ng-model="data.appName" clear-error-on-change="data.appName" id="appName" name="appName" value="" placeholder="name" label="*App Name">' +
+                '<dd id="edit-app-app-name-custom-error" class="error">{{errors.appName}}</dd>' +
+                '</form>'
+            );
+            scope.data.appName = 'app name';
+            scope.formName = 'editAppForm';
+            $compile(element)(scope);
+            form = scope.editAppForm;
+            form.$submitted = true;
+
+            expect(scope.errors.appName).toEqual(appNameError);
+            scope.$digest();
+            expect(scope.errors.appName).toEqual('');
         });
     });
 });
