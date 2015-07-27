@@ -31,15 +31,11 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                         }).
                         error(function(data, status, headers, config) {
                             form.submitting = false;
-                            if(status === 503){
-                                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                            if(data.fieldName) {
+                                $scope.errors[data.fieldName] = data.message;
+                                $scope.errors[data.fieldName + "Class"] = "error";
                             } else {
-                                if(data.fieldName) {
-                                    $scope.errors[data.fieldName] = data.message;
-                                    $scope.errors[data.fieldName + "Class"] = "error";
-                                } else {
-                                    flashMessage.add(data);
-                                }
+                                flashMessage.add(data);
                             }
                         });
                 }

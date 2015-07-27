@@ -640,11 +640,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         $scope.showExportComplete = true;
                     }, $scope ))
                     .error( _.bind( function() {
-                        if(status === 503){
-                            flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
-                        } else {
-                            $scope.showExportError = true;
-                        }
+                        $scope.showExportError = true;
                     }, $scope ));
             }
         };
