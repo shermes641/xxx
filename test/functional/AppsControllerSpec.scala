@@ -338,7 +338,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
         currentVirtualCurrency.exchangeRate, rewardMin = 1, rewardMax = Some(1), roundUp = currentVirtualCurrency.roundUp))
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#rewardMin").`with`("5")
       browser.find("button[name=submit]").first.isEnabled must beFalse
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#reward-max-error").areDisplayed
@@ -348,7 +348,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
       val (anotherApp, _, _, _) = setUpApp(user.distributorID.get)
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
-      clickAndWaitForAngular("#waterfall-app-settings-button")
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       browser.fill("#appName").`with`(anotherApp.name)
       browser.executeScript("$('#update-app').click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app-app-name-custom-error").containsText("You already have an App with the same name.")
