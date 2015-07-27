@@ -76,7 +76,11 @@ mediationModule.factory('httpErrorInterceptor', ['$q', 'flashMessage', function(
         'responseError': function(rejection) {
             if(rejection.status === 503){
                 flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                return;
+            } else if(rejection.status === 0) {
+                flashMessage.add({message: "There was a problem with the request.  Please try again later.", status: "error"});
             }
+
             return $q.reject(rejection);
         }
     };
