@@ -19,7 +19,7 @@ header {
     left:0;
     position:absolute;
     top:0;
-    width:216px;
+    width:220px;
   }
 
   .actions {
@@ -34,7 +34,7 @@ header {
   .actions .header-actions {
     border-left:1px solid #000;
     float:right;
-    padding:21px 22px;
+    padding:20px 22px;
     position:relative;
   }
 
@@ -57,7 +57,7 @@ header {
   .header-actions #username-dropdown {
     background:#efeff4;
     border:1px solid #dddde0;
-    bottom:-60px;
+    bottom:-63px;
     color:#6d6d72;
     display:none;
     height:60px;
@@ -101,7 +101,7 @@ header #logo:before,
 .sub-header {
   background: #222;
   height: 60px;
-  left: 217px;
+  left: 221px;
   position: fixed;
   top: 0;
   width: 414px;

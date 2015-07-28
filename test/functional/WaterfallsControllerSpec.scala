@@ -142,7 +142,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val configKey = "some key"
       browser.fill("input").`with`("5.0", configKey)
@@ -177,7 +177,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
-      browser.executeScript("$('#test-mode-switch').click();")
+      browser.executeScript("$('#live-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -231,7 +231,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
     }
 
     "waterfall UI not should not start paused if waterfall is not paused" in new WithFakeBrowser {
@@ -243,7 +243,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
     }
 
     "toggle paused mode should show message above waterfall" in new WithFakeBrowser {
@@ -255,14 +255,14 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
-      clickAndWaitForAngular(".pause")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
+      clickAndWaitForAngular("#pause-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areDisplayed()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      clickAndWaitForAngular(".pause")
+      clickAndWaitForAngular("#live-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areNotDisplayed()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
     }
 
@@ -277,7 +277,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val topAdProviderText = browser.$(".waterfall-app-info").first().getText
       topAdProviderText must contain(adProviders(0))
       topAdProviderText must contain("$5.00")
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
       browser.click("button[name=update-ad-provider]")
@@ -352,7 +352,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.findFirst("button[name=status]").getText must not contain "Activate"
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.executeScript("$('.close-button').click();")
       browser.find("button[name=status]").getText must not contain "Activate"
@@ -362,7 +362,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click()")
+      browser.executeScript("$('.configure').first().click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", "some key")
       browser.executeScript("$('button[name=update-ad-provider]').click();")
@@ -382,7 +382,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(currentDistributor.id.get, newWaterfall.id).url)
       val oldAppName = newApp.name
       val newAppName = "Some Different App Name"
-      browser.executeScript("$('button[id=waterfall-app-settings-button]').first().click()")
+      browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed()
       browser.fill("input[name=appName]").`with`(newAppName)
       browser.executeScript("$('button[name=submit]').click();")

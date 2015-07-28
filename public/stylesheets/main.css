@@ -50,9 +50,9 @@
 }
 .split-content {
   background: #fff;
-  border: 1px solid #dddde0;
-  margin: 60px 0 0 215px;
-  padding: 20px;
+  border: 1px solid #c8c7cc;
+  margin: 60px 0 0 220px;
+  padding: 40px;
   position: relative;
 }
 
@@ -268,7 +268,7 @@
   margin-right: 10px;
 }
 .analytics-bullet.average-ecpm {
-  background: #4f73e7;
+  background: #3c7cea;
 }
 .analytics-bullet.fill-rate {
   background: #ffcc66;
@@ -342,7 +342,7 @@
 }
 
 #csv-email-form h1 {
-  color: #4f73e7;
+  color: #3c7cea;
   font-size: 36px;
 }
 #csv-email-form .modal-text {
@@ -451,7 +451,7 @@ html {
 }
 
 body {
-  background: #efefef;
+  background: #f0eff5;
   color: #222;
   font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
@@ -503,7 +503,7 @@ button[type="button"] {
 button[type="submit"],
 button[type="button"] {
   -webkit-appearance: none;
-  background: #4f73e7;
+  background: #3c7cea;
   border: 0;
   border-radius: 3px;
   color: #ffffff;
@@ -522,11 +522,6 @@ button[type="button"] {
 .center {
   display: block;
   text-align: center;
-}
-
-#create-new-app:hover,
-#export-as-csv:hover {
-  background: #4f73e7;
 }
 
 .settings dl {
@@ -773,7 +768,7 @@ header #logo {
   left: 0;
   position: absolute;
   top: 0;
-  width: 216px;
+  width: 220px;
 }
 header .actions {
   bottom: 0;
@@ -786,7 +781,7 @@ header .actions {
 header .actions .header-actions {
   border-left: 1px solid #000;
   float: right;
-  padding: 21px 22px;
+  padding: 20px 22px;
   position: relative;
 }
 header .actions .header-actions:before {
@@ -806,7 +801,7 @@ header #username-header {
 header .header-actions #username-dropdown {
   background: #efeff4;
   border: 1px solid #dddde0;
-  bottom: -60px;
+  bottom: -63px;
   color: #6d6d72;
   display: none;
   height: 60px;
@@ -845,7 +840,7 @@ header #logo:before,
 .sub-header {
   background: #222;
   height: 60px;
-  left: 217px;
+  left: 221px;
   position: fixed;
   top: 0;
   width: 414px;
@@ -876,23 +871,23 @@ header #logo:before,
   background: #444;
 }
 .sub-header .menu li.active, .sub-header .menu li.active:hover {
-  border-bottom: #4f73e7 5px solid;
+  border-bottom: #3c7cea 5px solid;
 }
 
 #left-content {
   left: 0;
   position: absolute;
   top: 60px;
-  width: 215px;
+  width: 220px;
 }
 
 .left-apps-list {
-  border-bottom: 1px solid #c8c7cc;
-  padding: 20px;
+  padding: 30px 30px 20px 30px;
 }
 .left-apps-list h2 {
   color: #6d6d72;
   font-size: 13px;
+  margin-bottom: 20px;
 }
 .left-apps-list .reset-filters {
   color: #333333;
@@ -908,20 +903,20 @@ header #logo:before,
 .left-apps-list ul li {
   -webkit-transition: 150ms ease background;
   background: #fff;
-  border-bottom: #c8c7cc 1px solid;
+  border-bottom: #b4b3b8 1px solid;
   border-radius: 2px;
   cursor: pointer;
   display: block;
   font-size: 13px;
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 10px;
   position: relative;
 }
 .left-apps-list ul li:hover {
   background: #ccc;
 }
 .left-apps-list ul li.active {
-  background: #4f73e7;
+  background: #3c7cea;
   color: #fff;
 }
 .left-apps-list ul li.active.removable {
@@ -941,7 +936,7 @@ header #logo:before,
   width: 10px;
 }
 .left-apps-list ul li.add {
-  color: #4f73e7;
+  color: #3c7cea;
 }
 .left-apps-list ul li.add:hover {
   background: #fff;
@@ -959,7 +954,7 @@ header #logo:before,
 }
 .left-apps-list ul li.arrowdown {
   padding: 0;
-  width: 175px;
+  width: 160px;
   background: #fff;
 }
 .left-apps-list ul li.arrowdown input.form-control {
@@ -981,6 +976,9 @@ header #logo:before,
   border-bottom: 0;
   background: none;
   text-align: left;
+}
+.left-apps-list ul a li {
+  color: #000;
 }
 
 .app-list ul.full-list li {
@@ -1008,6 +1006,23 @@ header #logo:before,
 #waterfall-controller .left-apps-list ul li {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 25px;
+}
+#waterfall-controller .left-apps-list ul li .settings-icon {
+  background: url(../images/icons.png);
+  background-position: -95px -40px;
+  height: 15px;
+  position: absolute;
+  right: 10px;
+  top: 12px;
+  width: 15px;
+}
+#waterfall-controller .left-apps-list ul li.active .settings-icon {
+  background-position: -95px -57px;
+}
+
+#analytics-controller .left-apps-list {
+  border-bottom: 1px solid #c8c7cc;
 }
 
 .left-apps-list .dropdown-menu {
@@ -1032,7 +1047,7 @@ header #logo:before,
 }
 
 .left-apps-list .dropdown-menu li:hover {
-  background: #4f73e7;
+  background: #3c7cea;
   color: #fff;
 }
 
@@ -1090,16 +1105,40 @@ header #logo:before,
 #create-new-app, #export-as-csv {
   -webkit-transition: 150ms ease all;
   -webkit-appearance: none;
-  background: #333;
   border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-size: 14px;
-  height: 58px;
-  margin: 20px;
-  padding: 15px;
+  background: #f0eff5;
+  color: #6e6d72;
+  font-size: 12px;
+  margin: 0 30px;
   text-align: center;
-  width: 173px;
+  width: 160px;
+  cursor: pointer;
+  vertical-align: middle;
+}
+#create-new-app:hover, #export-as-csv:hover {
+  color: #000;
+}
+#create-new-app .icon, #export-as-csv .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -81px;
+  height: 22px;
+  width: 22px;
+  vertical-align: middle;
+}
+
+#export-as-csv {
+  margin-top: 30px;
+}
+#export-as-csv .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -120px -80px;
+  height: 25px;
+  width: 27px;
+  vertical-align: middle;
 }
 
 #apps-list {
@@ -1143,6 +1182,11 @@ header #logo:before,
 .app-list ul.full-list, .waterfall ul {
   list-style: none;
   width: 100%;
+  margin-bottom: 0;
+}
+
+.input-group {
+  display: block;
 }
 
 .welcome-screen {
@@ -1241,6 +1285,8 @@ header #logo:before,
   padding: 14px;
   text-align: center;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
+  margin-bottom: 20px;
+  animation: splash 500ms normal forwards ease-in-out;
 }
 
 .system-message {
@@ -1340,7 +1386,7 @@ span#viewTerms:hover {
 }
 .tooltip:before {
   border: solid;
-  border-color: #cc9 transparent;
+  border-color: #000 transparent;
   border-width: 0 6px 6px;
   content: "";
   left: 22%;
@@ -1348,18 +1394,20 @@ span#viewTerms:hover {
   top: 23px;
   z-index: 1300;
   visibility: hidden;
+  opacity: 0;
+  transition: all linear 0.2s;
+  -webkit-transition: all linear 0.2s;
 }
 .tooltip:hover:before {
+  opacity: 1;
   visibility: visible;
 }
 
 .ngtooltip {
   opacity: 1;
-  background: #ff9;
-  border: 2px solid #cc9;
-  border-radius: 5px;
-  color: #993;
-  padding: 5px 15px;
+  background: #000;
+  color: #fff;
+  padding: 5px 5px;
   position: absolute;
   left: -190px;
   top: 29px;
@@ -1377,25 +1425,22 @@ span#viewTerms:hover {
 
 .waterfall-list h1 {
   font-size: 36px;
-  margin-top: 10px;
-  text-align: center;
+  text-align: left;
   text-overflow: ellipsis;
   overflow: hidden;
-}
-.waterfall-list #edit-top h1 {
-  padding-right: 170px;
 }
 .waterfall-list.waterfall-sort {
   min-height: 50px;
 }
 
 #waterfall-sub-header {
-  background: #efeff4;
+  background: #f0eff5;
   color: #6d6d72;
-  height: 53px;
+  height: 60px;
   margin-top: 20px;
-  padding: 12px;
+  padding: 15px;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
+  border: 1px solid #c8c7cc;
 }
 #waterfall-sub-header .waterfall-buttons {
   position: relative;
@@ -1404,11 +1449,6 @@ span#viewTerms:hover {
   padding-right: 10px;
   border-left: 1px solid #dddde0;
   padding-left: 10px;
-}
-#waterfall-sub-header .waterfall-buttons .text-label {
-  color: #6d6d72;
-  font-size: 12px;
-  margin-top: 7px;
 }
 #waterfall-sub-header .waterfall-buttons .onoffswitch {
   margin-left: 9px;
@@ -1438,36 +1478,182 @@ span#viewTerms:hover {
 #waterfall-sub-header .waterfall-buttons .pause.play {
   background-position: -50px -122px;
 }
+#waterfall-sub-header .waterfall-status {
+  position: relative;
+  float: left;
+  height: 31px;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container {
+  position: relative;
+  border-radius: 15px;
+  width: 150px;
+  height: 30px;
+  padding-top: 4px;
+  float: right;
+  margin-left: 10px;
+  text-align: center;
+  background: #6e6d72;
+  box-shadow: inset 1px 2px 2px 1px rgba(0, 0, 0, 0.25);
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container span {
+  position: relative;
+  color: #fff;
+  font-size: 11px;
+  margin: 0 10px;
+  z-index: 10;
+  cursor: pointer;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle {
+  border-radius: 12px;
+  height: 24px;
+  width: 50px;
+  background: #3c7cea;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: 0;
+  -webkit-transition: 200ms ease all;
+  box-shadow: 1px 2px 2px 1px rgba(0, 0, 0, 0.25);
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle.live {
+  background: #6cd28b;
+  left: 45px;
+}
+#waterfall-sub-header .waterfall-status .waterfall-status-container #status-toggle.paused {
+  background: #989898;
+  left: 90px;
+  width: 56px;
+}
+#waterfall-sub-header .text-label {
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  color: #6d6d72;
+  font-size: 12px;
+  margin-top: 7px;
+  margin-left: 5px;
+}
 #waterfall-sub-header .app-token {
   float: left;
   width: 375px;
 }
 
+@keyframes splash {
+  from {
+    opacity: 0.2;
+    transform: scale(1, 1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1, 1);
+  }
+  to {
+    transform: scale(1, 1);
+  }
+}
 .waterfall ul li {
   background: #fff;
-  border: 2px solid #eee;
-  height: 110px;
-  margin: 10px 0;
-  padding: 24px;
+  border: 1px solid #c8c7cc;
+  height: 80px;
+  margin: 30px 0 0 0;
+  padding: 20px;
   position: relative;
+  animation: splash 500ms normal forwards ease-in-out;
 }
 .waterfall ul li button {
-  background: #333;
+  position: relative;
+  background: #6cd28b;
   float: right;
   margin: 0 0 0 10px;
-  width: 130px;
+  width: 120px;
+  height: 40px;
+  padding: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
 }
-.waterfall ul li button.configure {
-  background: #333;
+.waterfall ul li button.active:hover .deactivate {
+  left: 0;
+}
+.waterfall ul li button.inactive:hover .activate {
+  right: 0;
+}
+.waterfall ul li button.loading.active:hover .deactivate {
+  left: 100%;
+}
+.waterfall ul li button.loading.inactive:hover .activate {
+  right: 100%;
+}
+.waterfall ul li button.active {
+  border-bottom: 1px solid #319443;
+}
+.waterfall ul li button.active .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -109px;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+.waterfall ul li button.inactive {
+  background: #383838;
+  border-bottom: 1px solid #000000;
+}
+.waterfall ul li button.inactive .icon {
+  display: inline-block;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -138px;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+}
+.waterfall ul li button label {
+  margin: 0 0 2px 0;
+  font-weight: normal;
+  vertical-align: middle;
+}
+.waterfall ul li button .deactivate {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  padding: 10px;
+  background: #e37070;
+  height: 100%;
+  width: 100%;
+  -webkit-transition: 250ms ease all;
+  transition: 250ms ease all;
+}
+.waterfall ul li button .activate {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  padding: 10px;
+  background: #3c7cea;
+  height: 100%;
+  width: 100%;
+  -webkit-transition: 300ms ease all;
+  transition: 250ms ease all;
+}
+.waterfall ul li div.configure {
+  cursor: pointer;
+  width: 22px;
+  height: 21px;
+  margin-top: 8px;
+  margin-right: 10px;
+  background: url(../images/icons.png);
+  background-position: -90px -5px;
+  float: right;
 }
 .waterfall ul li .waterfall-app-info {
   float: left;
   margin-left: 60px;
-  margin-top: 12px;
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
 }
 .waterfall ul li .waterfall-app-info h3 {
-  color: #4f73e7;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  color: #000;
   font-size: 18px;
 }
 .waterfall ul li b {
@@ -1500,7 +1686,7 @@ span#viewTerms:hover {
   height: 30px;
   left: 30px;
   position: absolute;
-  top: 44px;
+  top: 30px;
   width: 26px;
 }
 
@@ -1549,15 +1735,16 @@ button.inactive {
   cursor: pointer;
   display: block;
   overflow: hidden;
+  box-shadow: inset 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
 }
 
 .onoffswitch-inner {
-  -moz-transition: margin .3s ease-in 0;
-  -o-transition: margin .3s ease-in 0;
-  -webkit-transition: margin .3s ease-in 0;
+  -moz-transition: margin .3s ease-in;
+  -o-transition: margin .3s ease-in;
+  -webkit-transition: margin .3s ease-in;
   display: block;
   margin-left: -100%;
-  transition: margin .3s ease-in 0;
+  transition: margin .3s ease-in;
   width: 200%;
 }
 
@@ -1578,14 +1765,14 @@ button.inactive {
 }
 
 .onoffswitch-inner:before {
-  background-color: #4f73e7;
+  background-color: #3c7cea;
   color: #FFF;
   content: "";
   padding-left: 10px;
 }
 
 .onoffswitch-inner:after {
-  background-color: #CCC;
+  background-color: #6e6d72;
   color: #999;
   content: "";
   padding-right: 10px;
@@ -1593,9 +1780,9 @@ button.inactive {
 }
 
 .onoffswitch-switch {
-  -moz-transition: all .3s ease-in 0;
-  -o-transition: all .3s ease-in 0;
-  -webkit-transition: all .3s ease-in 0;
+  -moz-transition: all .3s ease-in;
+  -o-transition: all .3s ease-in;
+  -webkit-transition: all .3s ease-in;
   background: #FFF;
   border-radius: 15px;
   bottom: 0;
@@ -1605,8 +1792,9 @@ button.inactive {
   position: absolute;
   right: 20px;
   top: 0;
-  transition: all .3s ease-in 0;
+  transition: all .3s ease-in;
   width: 24px;
+  box-shadow: 0px 0px 3px 2px rgba(0, 0, 0, 0.25);
 }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
@@ -1628,13 +1816,15 @@ button.inactive {
 #initialize-sdk {
   background: #dce3fa;
   border: 2px solid #b9c7f5;
-  color: #4f73e7;
-  font-family: "Helvetica Neue Light", Helvetica, sans-serif;
-  margin-top: 10px;
+  color: #3c7cea;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  margin-top: 30px;
+  font-size: 14px;
   padding: 22px;
   position: relative;
   text-align: center;
   cursor: pointer;
+  animation: splash 500ms normal forwards ease-in-out;
 }
 
 #initialize-sdk .code-block {
@@ -1681,13 +1871,12 @@ button.inactive {
 }
 
 #edit-top {
-  margin-top: 20px;
   position: relative;
 }
 
 #waterfall-app-settings-button {
   -webkit-appearance: none;
-  background: #4f73e7;
+  background: #3c7cea;
   border: 0;
   border-radius: 3px;
   color: #fff;
@@ -1772,6 +1961,7 @@ button.confirm-button {
 
 .ng-modal-dialog-content h1 {
   margin: 0 0 10px;
+  text-align: center;
   font-family: "Helvetica Neue Ultra Light", sans-serif;
 }
 
@@ -1802,7 +1992,7 @@ button.confirm-button {
 
 .modal-submit {
   -webkit-appearance: none;
-  background: #4f73e7;
+  background: #3c7cea;
   border: 0;
   border-radius: 3px;
   color: #fff;

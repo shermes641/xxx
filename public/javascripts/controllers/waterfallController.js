@@ -35,7 +35,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     sharedIDs.setDistributorID($scope.distributorID);
                     $scope.generationNumber = data.generationNumber;
                     $scope.appToken = data.waterfall.appToken;
-                    $scope.disableTestModeToggle = checkTestModeToggle();
                     $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                     $scope.sortableOptions.containment = "#waterfall-edit";
                     $scope.waterfallInfoCallComplete = true;
@@ -59,39 +58,10 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.showCodeBlock = !$scope.showCodeBlock;
             };
 
-            // Checks status of WaterfallAdProviders to determine if the test mode toggle should be disabled
-            var checkTestModeToggle = function() {
-                var activeAdProviders = $scope.providersByActive(true);
-                return (activeAdProviders.length < 1 && $scope.waterfallData.waterfall.testMode);
-            };
-
-            // Toggles paused on/off
-            $scope.togglePaused = function() {
-                $scope.waterfallData.waterfall.paused = !$scope.waterfallData.waterfall.paused;
-                $scope.updateWaterfall();
-            };
-
-            // Toggles test mode on/off
-            $scope.toggleTestMode = function(testMode) {
-                ga('send', 'event', 'testmode_toggle', 'click', 'waterfalls');
-                if(!$scope.disableTestModeToggle) {
-                    if(testMode) {
-                        $scope.waterfallData.waterfall.testMode = false;
-                        $scope.showTestModeConfirmationModal = true;
-                        $scope.showModal(!$scope.modalShown);
-                    } else {
-                        $scope.updateWaterfall();
-                    }
-                    $scope.disableTestModeToggle = checkTestModeToggle();
-                } else {
-                    $scope.waterfallData.waterfall.testMode = false;
-                    $scope.updateWaterfall();
-                }
-            };
-
             $scope.confirmTestMode = function() {
                 ga('send', 'event', 'testmode_toggle_confirm', 'click', 'waterfalls');
                 $scope.waterfallData.waterfall.testMode = true;
+                $scope.waterfallData.waterfall.paused = false;
                 $scope.updateWaterfall();
                 closeTestModeModal();
             };
@@ -106,6 +76,23 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 ga('send', 'event', 'testmode_toggle_close', 'click', 'waterfalls');
                 $scope.showModal(false);
                 $scope.showTestModeConfirmationModal = false;
+            };
+
+            $scope.activateTestMode = function() {
+                $scope.showTestModeConfirmationModal = true;
+                $scope.showModal(!$scope.modalShown);
+            };
+
+            $scope.activateLiveMode = function() {
+                $scope.waterfallData.waterfall.paused = false;
+                $scope.waterfallData.waterfall.testMode = false;
+                $scope.updateWaterfall();
+            };
+
+            $scope.activatePausedMode = function() {
+                $scope.waterfallData.waterfall.paused = true;
+                $scope.waterfallData.waterfall.testMode = false;
+                $scope.updateWaterfall();
             };
 
             // Toggles optimized mode on/off
@@ -158,7 +145,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 };
                 $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, params).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
-                    $scope.disableTestModeToggle = checkTestModeToggle();
                     flashMessage.add(data);
                 }).error(function(data) {
                     flashMessage.add(data);
@@ -168,19 +154,28 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Toggles active/inactive status for an AdProvider
             $scope.toggleWAPStatus = function(adProviderConfig) {
                 ga('send', 'event', 'toggle_wap_status', 'click', 'waterfalls');
+
                 adProviderConfig.active = !adProviderConfig.active;
+                adProviderConfig.loading = true;
                 $scope.updateWaterfall();
-                $scope.disableTestModeToggle = checkTestModeToggle();
                 $scope.orderOptimizedWaterfallList();
+
+                // Delays the hover animation after toggling.  This is for UX purposes only.
+                $timeout(function(){
+                    adProviderConfig.loading = false;
+                }, 2000);
+
             };
 
             /* App logic */
             // Open the App settings page
-            $scope.toggleEditAppModal = function() {
+            $scope.toggleEditAppModal = function(appID) {
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
                 $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
                     $scope.data = _.defaults(data, {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true});
+                    $scope.editAppID = appID;
+
                     $scope.form.editAppForm.$setPristine();
                     $scope.form.editAppForm.$setUntouched();
                     $scope.showEditAppModal = !$scope.showEditAppModal;
@@ -236,19 +231,17 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(form.$valid) {
                     ga('send', 'event', 'submit_edit_app', 'click', 'waterfalls');
                     setNumberValues("data");
-                    $scope.data.generationNumber = $scope.generationNumber;
-                    $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
+                    $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.editAppID, $scope.data).
                         success(function(data, status, headers, config) {
-                            if($scope.appName !== $scope.data.appName) {
-                                var apps = $scope.waterfallData.appsWithWaterfalls;
+                            var apps = $scope.waterfallData.appsWithWaterfalls;
+                            if($scope.appName !== $scope.data.appName && $scope.appID === $scope.editAppID) {
                                 $scope.appName = $scope.data.appName;
-                                for(index in apps) {
-                                    if(apps[index].id === $scope.appID) {
-                                        apps[index].name = $scope.data.appName;
-                                    }
+                            }
+                            for(index in apps) {
+                                if(apps[index].id === $scope.editAppID) {
+                                    apps[index].name = $scope.data.appName;
                                 }
                             }
-                            $scope.generationNumber = data.generationNumber;
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
                             flashMessage.add(data);

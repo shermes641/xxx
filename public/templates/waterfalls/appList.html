@@ -1,11 +1,14 @@
 <div id="left-content">
     <div class="left-apps-list">
-        <h2>Apps</h2>
-        <ul ng-repeat="appInfo in waterfallData.appsWithWaterfalls" >
-            <a href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit" target="_self"><li class="preserve-whitespace" ng-class="{active: appInfo.id == appID}" title="{{appInfo.name}}">{{appInfo.name}}</li></a>
+        <h2>Active Apps</h2>
+        <ul>
+            <a ng-repeat="appInfo in waterfallData.appsWithWaterfalls" href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit" target="_self">
+                <li class="preserve-whitespace" ng-class="{active: appInfo.id == appID}" title="{{appInfo.name}}">{{appInfo.name}}<div ng-click="$event.stopPropagation(); $event.preventDefault(); toggleEditAppModal(appInfo.id);"  class="settings-icon"></div></li>
+            </a>
         </ul>
     </div>
-    <button ng-click='toggleNewAppModal()' id="create-new-app" type="button">
+    <div ng-click='toggleNewAppModal()' id="create-new-app">
+        <div class="icon"></div>
         Create New App
-    </button>
+    </div>
 </div>
