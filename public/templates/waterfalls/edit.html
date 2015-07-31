@@ -93,13 +93,15 @@
                                 </div>
                             </div>
                             <div ng-hide="{{adProviderConfig.pending}}" class="wap-buttons">
-                                <button ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" ng-class="{active: adProviderConfig.active, inactive: !adProviderConfig.active, loading: adProviderConfig.loading}" type="submit" name="status">
+                                <button ng-mouseleave="adProviderConfig.loading=false" ng-hide="adProviderConfig.unconfigured" ng-click="toggleWAPStatus(adProviderConfig)" class="status" ng-class="{active: adProviderConfig.active, inactive: !adProviderConfig.active, loading: adProviderConfig.loading}" type="submit" name="status">
                                     <div class="icon"></div>
                                     <label>{{adProviderConfig.active | waterfallStatus}}</label>
                                     <div class="deactivate">Deactivate</div>
                                     <div class="activate">Activate</div>
                                 </button>
-                                <div ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" class="configure active-button" type="submit"></div>
+                                <div ng-mouseenter="hoverAdProviderConfigure=true" ng-mouseleave="hoverAdProviderConfigure=false" ng-show="adProviderConfig.configurable" ng-click="editWaterfallAdProvider(adProviderConfig)" class="configure active-button" type="submit">
+                                    <div class="ngtooltip configure-tooltip" ng-show="hoverAdProviderConfigure">Configure</div>
+                                </div>
                             </div>
                             <div ng-hide="waterfallData.optimizedMode" class="waterfall-drag">
                                 <div class="waterfall-drag-1"></div>

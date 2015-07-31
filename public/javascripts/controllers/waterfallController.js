@@ -159,12 +159,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 adProviderConfig.loading = true;
                 $scope.updateWaterfall();
                 $scope.orderOptimizedWaterfallList();
-
-                // Delays the hover animation after toggling.  This is for UX purposes only.
-                $timeout(function(){
-                    adProviderConfig.loading = false;
-                }, 2000);
-
             };
 
             /* App logic */
@@ -172,7 +166,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleEditAppModal = function(appID) {
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
-                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
+                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + appID + '/edit').success(function(data) {
                     $scope.data = _.defaults(data, {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true});
                     $scope.editAppID = appID;
 
