@@ -280,13 +280,48 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
-      browser.click("button[name=update-ad-provider]")
+      clickAndWaitForAngular("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
       browser.$(".waterfall-app-info").first().getText must contain(adProviders(1))
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
       newTopAdProviderText must contain(adProviders(1))
       newTopAdProviderText must contain("$5.00")
+    }
+
+    "ad providers should notify user if they do not meed the eCPM requirements" in new WithAppBrowser(distributor.id.get) {
+      val (newApp, waterfall, virtualCurrency, appConfig) = setUpApp(distributor.id.get, Some("Round Up Test"), "Coins",
+                        exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = false)
+
+      createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, Some(500.0), true, true)
+      waterfall.optimizedOrder must beTrue
+
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+
+      val topAdProviderText = browser.$(".waterfall-app-info").first().getText
+      topAdProviderText must contain(adProviders(0))
+      topAdProviderText must contain("$500.00")
+      topAdProviderText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
+
+      browser.$(".configure").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input").`with`("1.0", "some key")
+      clickAndWaitForAngular("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
+      browser.$(".waterfall-app-info").first().getText must contain(adProviders(0))
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
+      newTopAdProviderText must contain(adProviders(0))
+      newTopAdProviderText must contain("$1.00")
+      newTopAdProviderText must contain("This Ad Network doesn't meet the minimum eCPM requirements")
+
+      browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
+      browser.executeScript("$(':input[name=roundUp]').click();")
+      clickAndWaitForAngular("button[name=submit]")
+
+      browser.$(".waterfall-app-info").first().getText must not contain("This Ad Network doesn't meet the minimum eCPM requirements")
+
     }
   }
 
