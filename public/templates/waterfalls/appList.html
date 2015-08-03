@@ -2,8 +2,9 @@
     <div class="left-apps-list">
         <h2>Active Apps</h2>
         <ul>
-            <a ng-repeat="appInfo in waterfallData.appsWithWaterfalls" href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit" target="_self">
-                <li class="preserve-whitespace" ng-class="{active: appInfo.id == appID}" title="{{appInfo.name}}">{{appInfo.name}}<div ng-click="$event.stopPropagation(); $event.preventDefault(); toggleEditAppModal(appInfo.id);"  class="settings-icon"></div></li>
+            <a class="app-list-link" ng-repeat="appInfo in waterfallData.appsWithWaterfalls" href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit" target="_self">
+                <div class="ngtooltip configure-tooltip" ng-show="hoverApp">Configure</div>
+                <li class="preserve-whitespace" ng-class="{active: appInfo.id == appID}" title="{{appInfo.name}}">{{appInfo.name}}<div ng-mouseenter="hoverApp=true" ng-mouseleave="hoverApp=false" ng-click="$event.stopPropagation(); $event.preventDefault(); toggleEditAppModal(appInfo.id);"  class="settings-icon"></div></li>
             </a>
         </ul>
     </div>

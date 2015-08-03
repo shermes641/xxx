@@ -148,13 +148,45 @@
   }
 }
 
+.configure-tooltip {
+  opacity: 1;
+  background: #000;
+  color: #fff;
+  left: initial;
+  padding: 5px 5px;
+  position: absolute;
+  right: -16px;
+  width: 70px;
+  font-size: 11px;
+  top: -21px;
+  z-index: 1200;
+  border-radius: 2px;
+  text-align: center;
+
+  &:before {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+
+    border-top: 6px solid #000;
+    content: "";
+    left: 41%;
+    position: absolute;
+    top: 23px;
+    z-index: 1300;
+    transition: all linear 0.2s;
+    -webkit-transition: all linear 0.2s;
+  }
+}
+
 // Waterfall list containing the sortable ad provider list
 .waterfall {
   ul li {
     background: #fff;
     border: 1px solid #c8c7cc;
     height: 80px;
-    margin: 30px 0 0 0;
+    margin: 20px 0 0 0;
     padding: 20px;
     position: relative;
 
@@ -259,6 +291,7 @@
     }
 
     div.configure {
+      position: relative;
       cursor: pointer;
       width: 22px;
       height: 21px;
@@ -267,6 +300,11 @@
       background: url(../images/icons.png);
       background-position: -90px -5px;
       float: right;
+
+      .configure-tooltip {
+        right: -24px;
+        top: -37px;
+      }
     }
 
     .waterfall-app-info {
@@ -447,7 +485,7 @@ button.inactive {
   border: 2px solid #b9c7f5;
   color: $mediate-light-blue;
   font-family: $mediate-font;
-  margin-top: 30px;
+  margin-top: 20px;
   font-size: 14px;
   padding: 22px;
   position: relative;

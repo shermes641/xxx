@@ -882,7 +882,7 @@ header #logo:before,
 }
 
 .left-apps-list {
-  padding: 30px 30px 20px 30px;
+  padding: 30px 20px 20px 20px;
 }
 .left-apps-list h2 {
   color: #6d6d72;
@@ -954,7 +954,7 @@ header #logo:before,
 }
 .left-apps-list ul li.arrowdown {
   padding: 0;
-  width: 160px;
+  width: 180px;
   background: #fff;
 }
 .left-apps-list ul li.arrowdown input.form-control {
@@ -1003,22 +1003,46 @@ header #logo:before,
   text-decoration: none;
 }
 
+.app-list-link {
+  position: relative;
+  display: block;
+}
+
 #waterfall-controller .left-apps-list ul li {
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 25px;
+  padding-right: 42px;
 }
 #waterfall-controller .left-apps-list ul li .settings-icon {
   background: url(../images/icons.png);
-  background-position: -95px -40px;
-  height: 15px;
+  background-position: -143px 3px;
+  height: 38px;
   position: absolute;
-  right: 10px;
-  top: 12px;
-  width: 15px;
+  right: 0px;
+  top: 0px;
+  border-left: 1px solid #F7F7F7;
+  width: 38px;
+  cursor: pointer;
+}
+#waterfall-controller .left-apps-list ul li .settings-icon:before {
+  content: " ";
+  position: absolute;
+  z-index: 0;
+  top: 0px;
+  left: -2px;
+  right: 4px;
+  bottom: 0px;
+  border-left: 0px;
+}
+#waterfall-controller .left-apps-list ul li:hover .settings-icon {
+  border-left: 1px solid #bbb;
 }
 #waterfall-controller .left-apps-list ul li.active .settings-icon {
-  background-position: -95px -57px;
+  border-left: 1px solid #2E73EA;
+  background-position: -115px 3px;
+}
+#waterfall-controller .left-apps-list ul li.active .settings-icon:before {
+  border-left: 1px solid #4E84E0;
 }
 
 #analytics-controller .left-apps-list {
@@ -1410,14 +1434,14 @@ span#viewTerms:hover {
   padding: 5px 5px;
   position: absolute;
   left: -190px;
-  top: 29px;
+  top: 28px;
   width: 220px;
   z-index: 1200;
   text-align: left;
 }
 .ngtooltip.ng-hide {
-  transition: all linear 0.5s;
-  -webkit-transition: all linear 0.5s;
+  transition: all linear 0.2s;
+  -webkit-transition: all linear 0.2s;
   display: block !important;
   visibility: hidden;
   opacity: 0;
@@ -1551,11 +1575,41 @@ span#viewTerms:hover {
     transform: scale(1, 1);
   }
 }
+.configure-tooltip {
+  opacity: 1;
+  background: #000;
+  color: #fff;
+  left: initial;
+  padding: 5px 5px;
+  position: absolute;
+  right: -16px;
+  width: 70px;
+  font-size: 11px;
+  top: -21px;
+  z-index: 1200;
+  border-radius: 2px;
+  text-align: center;
+}
+.configure-tooltip:before {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #000;
+  content: "";
+  left: 41%;
+  position: absolute;
+  top: 23px;
+  z-index: 1300;
+  transition: all linear 0.2s;
+  -webkit-transition: all linear 0.2s;
+}
+
 .waterfall ul li {
   background: #fff;
   border: 1px solid #c8c7cc;
   height: 80px;
-  margin: 30px 0 0 0;
+  margin: 20px 0 0 0;
   padding: 20px;
   position: relative;
   animation: splash 500ms normal forwards ease-in-out;
@@ -1637,6 +1691,7 @@ span#viewTerms:hover {
   transition: 250ms ease all;
 }
 .waterfall ul li div.configure {
+  position: relative;
   cursor: pointer;
   width: 22px;
   height: 21px;
@@ -1645,6 +1700,10 @@ span#viewTerms:hover {
   background: url(../images/icons.png);
   background-position: -90px -5px;
   float: right;
+}
+.waterfall ul li div.configure .configure-tooltip {
+  right: -24px;
+  top: -37px;
 }
 .waterfall ul li .waterfall-app-info {
   float: left;
@@ -1818,7 +1877,7 @@ button.inactive {
   border: 2px solid #b9c7f5;
   color: #3c7cea;
   font-family: "Helvetica Neue", Helvetica, sans-serif;
-  margin-top: 30px;
+  margin-top: 20px;
   font-size: 14px;
   padding: 22px;
   position: relative;

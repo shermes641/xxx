@@ -7,7 +7,7 @@
 }
 
 .left-apps-list {
-  padding: 30px 30px 20px 30px;
+  padding: 30px 20px 20px 20px;
 
   h2 {
     color: #6d6d72;
@@ -88,7 +88,7 @@
 
       &.arrowdown {
         padding: 0;
-        width: 160px;
+        width: 180px;
         background: #fff;
       }
 
@@ -145,23 +145,50 @@
   text-decoration: none;
 }
 
+.app-list-link {
+  position: relative;
+  display: block;
+}
+
 #waterfall-controller .left-apps-list ul li {
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 25px;
+  padding-right: 42px;
 
   .settings-icon {
     background: url(../images/icons.png);
-    background-position: -95px -40px;
-    height: 15px;
+    background-position: -143px 3px;
+    height: 38px;
     position: absolute;
-    right: 10px;
-    top: 12px;
-    width: 15px;
+    right: 0px;
+    top: 0px;
+    border-left: 1px solid #F7F7F7;
+    width: 38px;
+    cursor: pointer;
+
+    &:before {
+      content: " ";
+      position: absolute;
+      z-index: 0;
+      top: 0px;
+      left: -2px;
+      right: 4px;
+      bottom: 0px;
+      border-left: 0px;
+    }
+  }
+
+  &:hover .settings-icon {
+    border-left: 1px solid #bbb;
   }
 
   &.active .settings-icon {
-    background-position: -95px -57px;
+    border-left: 1px solid #2E73EA;
+    background-position: -115px 3px;
+
+    &:before {
+      border-left: 1px solid #4E84E0;
+    }
   }
 }
 
