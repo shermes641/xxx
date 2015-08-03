@@ -1706,7 +1706,7 @@ span#viewTerms:hover {
   transition: 250ms ease all;
 }
 .waterfall ul li .below-reward-threshold-message {
-  color: #ff6666;
+  color: #ff0000;
   margin-left: 10px;
   font-size: 13px;
 }
@@ -1751,7 +1751,7 @@ span#viewTerms:hover {
 }
 
 .waterfall .below-reward-threshold {
-  border: 1px solid #ff6666;
+  border: 2px solid #ff6666;
 }
 
 .ui-sortable-disabled .waterfall-drag-1,
