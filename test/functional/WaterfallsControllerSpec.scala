@@ -318,7 +318,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
       browser.executeScript("$(':input[name=roundUp]').click();")
-      clickAndWaitForAngular("button[name=submit]")
+      browser.executeScript("$('button[name=submit]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
 
       browser.$(".waterfall-app-info").first().getText must not contain("This Ad Network doesn't meet the minimum eCPM requirements")
 
