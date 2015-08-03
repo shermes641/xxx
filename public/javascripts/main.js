@@ -12,7 +12,7 @@ var distributorUsersControllers = angular.module('distributorUsersControllers', 
 var appsControllers = angular.module('appsControllers', ['ngRoute']);
 
 // Routing
-mediationModule.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+mediationModule.config(['$routeProvider', '$locationProvider', '$httpProvider', function($routeProvider, $locationProvider, $httpProvider) {
     $routeProvider.when('/distributors/:distributorID/apps/new', {
         controller: 'NewAppsController',
         templateUrl: 'assets/templates/apps/newAppModal.html'
@@ -32,6 +32,7 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
         templateUrl: 'assets/templates/distributor_users/login.html'
     });
     $locationProvider.html5Mode(true);
+    $httpProvider.interceptors.push('httpErrorInterceptor');
 }]);
 
 // Factories
@@ -66,6 +67,23 @@ mediationModule.service('sharedIDs', [function() {
             distributorID = id;
         }
     }
+}]);
+
+// Register HTTP error interceptor as service
+mediationModule.factory('httpErrorInterceptor', ['$q', 'flashMessage', function($q, flashMessage, dependency2) {
+    return {
+        // handle response Error
+        'responseError': function(rejection) {
+            if(rejection.status === 503){
+                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+                return;
+            } else if(rejection.status === 0) {
+                flashMessage.add({message: "There was a problem with the request.  Please try again later.", status: "error"});
+            }
+
+            return $q.reject(rejection);
+        }
+    };
 }]);
 
 // All controllers use this factory to display flash messages in the UI.
