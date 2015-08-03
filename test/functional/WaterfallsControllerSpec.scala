@@ -289,11 +289,11 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       newTopAdProviderText must contain("$5.00")
     }
 
-    "ad providers should notify user if they do not meed the eCPM requirements" in new WithAppBrowser(distributor.id.get) {
+    "ad providers should notify user if they do not meet the eCPM requirements" in new WithAppBrowser(distributor.id.get) {
       val (newApp, waterfall, virtualCurrency, appConfig) = setUpApp(distributor.id.get, Some("Round Up Test"), "Coins",
                         exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = false)
 
-      createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, Some(500.0), true, true)
+      createWaterfallAdProvider(waterfall.id, adProviderID1.get, waterfallOrder = None, cpm = Some(500.0), configurable = true, active = true)
       waterfall.optimizedOrder must beTrue
 
       logInUser()
