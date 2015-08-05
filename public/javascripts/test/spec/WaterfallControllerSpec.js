@@ -109,45 +109,75 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.waterfallAdProviderList[0].waterfallOrder).toEqual(0);
         });
 
-        it('should update to paused mode when toggled', function() {
-            scope.activatePausedMode();
-            expect(scope.waterfallData.waterfall.paused).toEqual(true);
-            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
-            scope.activateLiveMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
-            expect(scope.waterfallData.waterfall.paused).toEqual(false);
-        });
+        describe('waterfall status updates', function() {
+            it('should update to paused mode when toggled', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.activatePausedMode();
+                expect(scope.waterfallData.waterfall.paused).toEqual(true);
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                scope.activateLiveMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.updateWaterfall).toHaveBeenCalled();
+            });
 
-        it('should update to test mode when toggled', function() {
-            scope.confirmTestMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(true);
-            expect(scope.waterfallData.waterfall.paused).toEqual(false);
-            scope.activateLiveMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
-            expect(scope.waterfallData.waterfall.paused).toEqual(false);
-        });
+            it('should not toggle into paused mode when the waterfall is currently paused', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.waterfallData.waterfall.paused = true;
+                scope.activatePausedMode();
+                expect(scope.updateWaterfall).not.toHaveBeenCalled();
+            });
 
-        it('should update live mode  when toggled', function() {
-            scope.activateLiveMode();
-            expect(scope.waterfallData.waterfall.paused).toEqual(false);
-            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
-            scope.confirmTestMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(true);
-            expect(scope.waterfallData.waterfall.paused).toEqual(false);
-        });
+            it('should update to test mode when toggled', function() {
+                spyOn(scope, 'showModal');
+                scope.confirmTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                scope.activateLiveMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.showModal).toHaveBeenCalled();
+            });
 
-        it('should update code block when toggled', function() {
-            scope.toggleCodeBlock();
-            expect(scope.showCodeBlock).toEqual(true);
-            scope.toggleCodeBlock();
-            expect(scope.showCodeBlock).toEqual(false);
-        });
+            it('should not toggle into test mode when the waterfall is currently in test mode', function() {
+                spyOn(scope, 'showModal');
+                scope.waterfallData.waterfall.testMode = true;
+                scope.activateTestMode();
+                expect(scope.showModal).not.toHaveBeenCalled();
+            });
 
-        it('should modal cancel and confirm should toggle test mode correctly', function() {
-            scope.confirmTestMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(true);
-            scope.cancelTestMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            it('should update live mode  when toggled', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.activateLiveMode();
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                scope.confirmTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.updateWaterfall).toHaveBeenCalled();
+            });
+
+            it('should not toggle into live mode when the waterfall is currently in live mode', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.waterfallData.waterfall.testMode = false;
+                scope.waterfallData.waterfall.paused = false;
+                scope.activateLiveMode();
+                expect(scope.updateWaterfall).not.toHaveBeenCalled();
+            });
+
+            it('should update code block when toggled', function() {
+                scope.toggleCodeBlock();
+                expect(scope.showCodeBlock).toEqual(true);
+                scope.toggleCodeBlock();
+                expect(scope.showCodeBlock).toEqual(false);
+            });
+
+            it('should modal cancel and confirm should toggle test mode correctly', function() {
+                scope.confirmTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+                scope.cancelTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            });
         });
 
         it('should active and deactive ad providers correctly', function() {
