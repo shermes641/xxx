@@ -79,20 +79,26 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             };
 
             $scope.activateTestMode = function() {
-                $scope.showTestModeConfirmationModal = true;
-                $scope.showModal(!$scope.modalShown);
+                if(!$scope.waterfallData.waterfall.testMode) {
+                    $scope.showTestModeConfirmationModal = true;
+                    $scope.showModal(!$scope.modalShown);
+                }
             };
 
             $scope.activateLiveMode = function() {
-                $scope.waterfallData.waterfall.paused = false;
-                $scope.waterfallData.waterfall.testMode = false;
-                $scope.updateWaterfall();
+                if($scope.waterfallData.waterfall.testMode || $scope.waterfallData.waterfall.paused) {
+                    $scope.waterfallData.waterfall.paused = false;
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.updateWaterfall();
+                }
             };
 
             $scope.activatePausedMode = function() {
-                $scope.waterfallData.waterfall.paused = true;
-                $scope.waterfallData.waterfall.testMode = false;
-                $scope.updateWaterfall();
+                if(!$scope.waterfallData.waterfall.paused) {
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.updateWaterfall();
+                }
             };
 
             // Toggles optimized mode on/off
