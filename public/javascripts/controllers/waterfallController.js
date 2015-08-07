@@ -80,6 +80,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
 
             $scope.activateTestMode = function() {
                 if(!$scope.waterfallData.waterfall.testMode) {
+                    ga('send', 'event', 'testmode_toggle', 'click', 'waterfalls');
                     $scope.showTestModeConfirmationModal = true;
                     $scope.showModal(!$scope.modalShown);
                 }
