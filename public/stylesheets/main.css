@@ -6,48 +6,56 @@
   font-style: normal;
   font-weight: 400;
 }
+
 @font-face {
   font-family: 'Avenir Black';
   src: url("fonts/AvenirBlack.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
 }
+
 @font-face {
   font-family: 'Avenir Medium';
   src: url("fonts/AvenirMedium.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
 }
+
 @font-face {
   font-family: 'Avenir Light';
   src: url("fonts/AvenirLight.ttf") format("truetype");
   font-style: normal;
   font-weight: 100;
 }
+
 @font-face {
   font-family: 'Avenir Next Ultra Light';
   src: url("fonts/AvenirUltra.ttf") format("truetype");
   font-style: normal;
   font-weight: 200;
 }
+
 @font-face {
   font-family: 'Helvetica Neue';
   src: url("fonts/HelveticaNeue.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
 }
+
 @font-face {
   font-family: 'Helvetica Neue Light';
   src: url("fonts/HelveticaNeueLight.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
 }
+
 @font-face {
   font-family: 'Helvetica Neue Ultra Light';
   src: url("fonts/HelveticaNeueUltraLight.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
 }
+
 .split-content {
   background: #fff;
   border: 1px solid #c8c7cc;
@@ -159,24 +167,28 @@
     -o-transform: scale(1);
     transform: scale(1);
   }
+
   100% {
     -webkit-transform: scale(0.5);
     -o-transform: scale(0.5);
     transform: scale(0.5);
   }
 }
+
 @-webkit-keyframes loading {
   0% {
     -webkit-transform: scale(1);
     -o-transform: scale(1);
     transform: scale(1);
   }
+
   100% {
     -webkit-transform: scale(0.5);
     -o-transform: scale(0.5);
     transform: scale(0.5);
   }
 }
+
 .analytics-loading .square-1,
 .analytics-loading .square-2,
 .analytics-loading .square-3 {
@@ -506,7 +518,7 @@ button[type="button"] {
   background: #3c7cea;
   border: 0;
   border-radius: 3px;
-  color: #ffffff;
+  color: white;
   font-size: 14px;
   height: 58px;
   margin-top: 10px;
@@ -554,7 +566,7 @@ div [class^="col-"] {
 }
 
 .inactive-input {
-  background-color: #CCC !important;
+  background-color: #cccccc !important;
 }
 
 hr {
@@ -725,13 +737,13 @@ footer .footer-text-format {
 }
 
 #form-errors {
-  color: #ff0000;
+  color: red;
   font-size: 13px;
   list-style: none;
 }
 
 .error input, input.ng-touched.ng-invalid {
-  border: 1px solid #ff0000;
+  border: 1px solid red;
   color: #000;
 }
 
@@ -740,7 +752,7 @@ footer .footer-text-format {
 }
 
 dd.error {
-  color: #ff0000;
+  color: red;
   text-align: left;
 }
 
@@ -781,7 +793,7 @@ header .actions {
 header .actions .header-actions {
   border-left: 1px solid #000;
   float: right;
-  padding: 20px 22px;
+  padding: 21px 22px;
   position: relative;
 }
 header .actions .header-actions:before {
@@ -801,7 +813,7 @@ header #username-header {
 header .header-actions #username-dropdown {
   background: #efeff4;
   border: 1px solid #dddde0;
-  bottom: -63px;
+  bottom: -60px;
   color: #6d6d72;
   display: none;
   height: 60px;
@@ -1567,14 +1579,17 @@ span#viewTerms:hover {
     opacity: 0.2;
     transform: scale(1, 1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1, 1);
   }
+
   to {
     transform: scale(1, 1);
   }
 }
+
 .configure-tooltip {
   opacity: 1;
   background: #000;
@@ -2159,5 +2174,3 @@ button.confirm-button {
   margin-left: -200px;
   margin-top: -65px;
 }
-
-/*# sourceMappingURL=main.css.map */
