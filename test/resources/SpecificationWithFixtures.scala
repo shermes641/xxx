@@ -1,6 +1,7 @@
 package models
 
 import anorm._
+import org.openqa.selenium.chrome.ChromeDriver
 import org.specs2.mutable._
 import org.specs2.specification._
 import play.api.Play
@@ -19,6 +20,8 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   val DocumentationPassword = running(FakeApplication(additionalConfiguration = testDB)) {
     Play.current.configuration.getString("httpAuthPassword").getOrElse("")
   }
+
+  System.setProperty("webdriver.chrome.driver", "./chromedriver");
 
   /**
    * Drops and recreates database schema after tests are run.
@@ -46,7 +49,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   /**
    * Creates application for functional tests using a test database and a Firefox web browser.
    */
-  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) with DefaultUserValues {
+  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(new ChromeDriver().getClass())) with DefaultUserValues {
 
     /** makes it possible to use any f: => Boolean function with browser.await.until(f) */
     implicit def fixPredicate[E1, E2](p: => Boolean): Predicate[E2] = new Predicate[Any] {
