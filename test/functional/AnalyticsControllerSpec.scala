@@ -181,12 +181,15 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
       clickAndWaitForAngular("#export-as-csv")
       browser.fill("#export-email").`with`("test@test.com")
-      clickAndWaitForAngular("#export-submit")
-      clickAndWaitForAngular("#analytics-overlay")
+      browser.click("#export-submit")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-requested").areDisplayed
+      browser.executeScript("$('#export-requested-close').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-requested").areNotDisplayed
 
-      clickAndWaitForAngular("#export-as-csv")
+      browser.executeScript("$('#export-as-csv').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").areDisplayed
       browser.fill("#export-email").`with`("")
-      clickAndWaitForAngular("#export-submit")
+      browser.click("#export-submit")
 
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("Email address is required")
     }
