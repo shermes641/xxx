@@ -21,7 +21,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     Play.current.configuration.getString("httpAuthPassword").getOrElse("")
   }
 
-  System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/chromedriver_linux");
+  System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/chromedriver");
 
   /**
    * Drops and recreates database schema after tests are run.
@@ -49,7 +49,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   /**
    * Creates application for functional tests using a test database and a Firefox web browser.
    */
-  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(new ChromeDriver().getClass())) with DefaultUserValues {
+  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = new ChromeDriver()) with DefaultUserValues {
 
     /** makes it possible to use any f: => Boolean function with browser.await.until(f) */
     implicit def fixPredicate[E1, E2](p: => Boolean): Predicate[E2] = new Predicate[Any] {
