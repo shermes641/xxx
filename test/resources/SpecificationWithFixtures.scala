@@ -21,7 +21,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     Play.current.configuration.getString("httpAuthPassword").getOrElse("")
   }
 
-  System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/chromedriver");
+  System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/chromedriver_linux");
 
   /**
    * Drops and recreates database schema after tests are run.
