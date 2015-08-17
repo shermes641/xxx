@@ -259,7 +259,6 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
       browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
-
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal").withClass("ng-modal ng-hide")
       browser.executeScript("$('.left-apps-list .active .settings-icon').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal").areDisplayed
