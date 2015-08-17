@@ -31,12 +31,17 @@ case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends R
   override def parseResponse(waterfallAdProviderID: Long, response: WSResponse) = {
     response.status match {
       case 200 | 304 => {
-        Json.parse(response.body) \ "eCPM" match {
-          case _: JsUndefined => logResponseError("eCPM key was not present", waterfallAdProviderID, response.body)
-          case eCPM: JsNumber => {
-            updateEcpm(waterfallAdProviderID, eCPM.as[Double])
+        val results = Json.parse(response.body)
+        if(results.as[JsArray].as[List[JsValue]].size > 0) {
+          results(0) \ "eCPM" match {
+            case _: JsUndefined => logResponseError("eCPM key was not present", waterfallAdProviderID, response.body)
+            case eCPM: JsNumber => {
+              updateEcpm(waterfallAdProviderID, eCPM.as[Double])
+            }
+            case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
           }
-          case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
+        } else {
+          logResponseError("There were no events returned", waterfallAdProviderID, response.body)
         }
       }
       case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
