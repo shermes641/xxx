@@ -1,8 +1,8 @@
 package models
 
 import play.api.libs.json._
-import play.api.Play
 import play.api.libs.ws.WSResponse
+import play.api.Play
 import scala.language.postfixOps
 
 /**
@@ -34,17 +34,17 @@ case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends R
         val results = Json.parse(response.body)
         if(results.as[JsArray].as[List[JsValue]].size > 0) {
           results(0) \ "eCPM" match {
-            case _: JsUndefined => logResponseError("eCPM key was not present", waterfallAdProviderID, response.body)
+            case _: JsUndefined => logResponseError("eCPM key was not present", waterfallAdProviderID, response)
             case eCPM: JsNumber => {
               updateEcpm(waterfallAdProviderID, eCPM.as[Double])
             }
-            case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
+            case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response)
           }
         } else {
-          logResponseError("There were no events returned", waterfallAdProviderID, response.body)
+          logResponseDebug("There were no events returned", waterfallAdProviderID, response)
         }
       }
-      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
+      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
     }
   }
 }

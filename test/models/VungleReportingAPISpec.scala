@@ -85,7 +85,7 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
    * @return Response from mocked out API call.
    */
   def callAPI = {
-    vungle.retrieveAPIData(queryString) returns Future { response }
+    vungle.retrieveAPIData returns Future { response }
     Await.result(vungle.updateRevenueData, Duration(5000, "millis"))
   }
 }
