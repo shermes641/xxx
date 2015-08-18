@@ -101,7 +101,7 @@ abstract class ReportingAPI {
    */
   def logMessage(message: String, waterfallAdProviderID: Long, response: WSResponse): String = {
     message + ": " +
-    "\nReporting URL: " + targetURL.url + "?" + targetURL.queryString.toSeq.map(a => a._1 + "=" + a._2(0)).mkString("&") +
+    "\nReporting URL: " + targetURL.url + "?" + targetURL.queryString.toSeq.map(param => param._1 + "=" + param._2(0)).mkString("&") +
     "\nWaterfallAdProvider ID: " + waterfallAdProviderID +
     "\nResponse Status: " + response.status +
     "\nResponse Body: " + response.body

@@ -38,6 +38,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                     $scope.sortableOptions.containment = "#waterfall-edit";
                     $scope.waterfallInfoCallComplete = true;
+                    $scope.orderOptimizedWaterfallList();
                 }).error(function(data) {
                     $scope.waterfallInfoCallComplete = true;
                     flashMessage.add(data);
