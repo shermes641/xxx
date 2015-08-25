@@ -2,9 +2,13 @@ import com.google.common.base.Predicate
 import org.fluentlenium.core.{FluentPage, Fluent}
 import org.specs2.runner._
 import org.junit.runner._
+import play.api.Play
+import play.api.libs.ws.{WSAuthScheme, WS}
 import play.api.test._
 import play.api.test.Helpers._
 import models._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
@@ -28,6 +32,18 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       browser.fill("#password").`with`(password)
       browser.click("button")
       assertUrlEquals("/distributors/" + user.distributorID.get + "/analytics")
+    }
+
+    "include a working link to documentation in the navigation bar" in new WithFakeBrowser {
+      goToAndWaitForAngular("http://localhost:" + port + "/login")
+      val documentationLink = browser.find("#main-documentation-link").getAttribute("href")
+      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      Await.result(request.get().map { response =>
+        response.status must beEqualTo(200)
+        response.body must contain("Welcome")
+        response.body must contain("iOS SDK")
+        response.body must contain("Administration")
+      }, Duration(5000, "millis"))
     }
   }
 }

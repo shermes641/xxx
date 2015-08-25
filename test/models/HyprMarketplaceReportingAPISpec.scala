@@ -57,7 +57,7 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
       Waterfall.update(waterfallAdProvider1.waterfallID, optimizedOrder = true, testMode = false, paused = false)
       waterfallAdProvider1.cpm must beNone
       retrieveImpressionResponse = Some(1000)
-      val globalStats = JsObject(Seq("revenue" -> JsNumber(10.00), "impressions" -> JsNumber(1000)))
+      val globalStats = JsObject(Seq("revenue" -> JsString("10.00"), "impressions" -> JsString("1000")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
       retrieveAPIDataResponse.body returns statsJson.toString
       retrieveAPIDataResponse.status returns 200
@@ -81,7 +81,7 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
       retrieveImpressionResponse = Some(0)
-      val globalStats = JsObject(Seq("revenue" -> JsNumber(0.00), "impressions" -> JsNumber(0)))
+      val globalStats = JsObject(Seq("revenue" -> JsString("0.00"), "impressions" -> JsString("0")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
       retrieveAPIDataResponse.body returns statsJson.toString
       retrieveAPIDataResponse.status returns 200

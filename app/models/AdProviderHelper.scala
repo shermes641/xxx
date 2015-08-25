@@ -40,7 +40,7 @@ trait AdProviderHelper {
           "{\"description\": \"" + zoneIDDetails + "\", \"displayKey\": \"Zone IDs\", \"key\": \"zoneIds\", \"value\":\"\", \"dataType\": \"Array\", \"refreshOnAppRestart\": true, \"minLength\": 1}" +
         "], " +
         "\"reportingParams\": [" +
-          "{\"description\": \"" + reportingDescription + "\", \"displayKey\": \"Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
+          "{\"description\": \"" + reportingDescription + "\", \"displayKey\": \"Read-Only API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +
         "], " +
         "\"callbackParams\": [" +
           "{\"description\": \"" + callbackDescription + "\", \"displayKey\": \"V4VC Secret Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": false}" +

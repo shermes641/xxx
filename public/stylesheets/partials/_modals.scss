@@ -1,0 +1,162 @@
+ // Modal Styling
+.ng-modal-dialog {
+  -moz-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  background: #fff;
+  border: 1px solid #dddde0;
+  color: #333;
+  font-size: 13px;
+  left: 50%;
+  max-height: 90%;
+  overflow-y: auto;
+  padding: 40px;
+  position: fixed;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+}
+
+.ng-modal-dialog-content h1 {
+  margin: 0 0 10px;
+  font-family: $mediate-font-ultra-light;
+}
+
+#email-modal {
+  background: #fff;
+  border: 1px solid #dddde0;
+  color: #333;
+  font-size: 13px;
+  left: 50%;
+  margin-left: -200px;
+  padding: 40px;
+  position: fixed;
+  text-align: center;
+  top: 180px;
+  width: 400px;
+  z-index: 3000;
+}
+
+.close-button {
+  background: url(../images/close.png);
+  cursor: pointer;
+  height: 18px;
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 18px;
+}
+
+.modal-submit {
+  -webkit-appearance: none;
+  background: $mediate-light-blue;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 14px;
+  margin-top: 10px;
+  padding: 15px;
+  text-align: center;
+  width: 100%;
+}
+
+.ng-modal-overlay {
+  background: #fff;
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  opacity: 0.9;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: 9999;
+}
+
+#email_modal .modal-text {
+  margin: 10px auto;
+  text-align: center;
+  width: 220px;
+}
+
+.modal-centered {
+  margin: auto;
+}
+
+#test-mode-confirmation-modal {
+  width: 400px;
+}
+
+.modal {
+  background: #fff;
+  border: 1px solid #dddde0;
+  bottom: 0;
+  color: #333;
+  display: none;
+  font-size: 13px;
+  left: 50%;
+  margin-top: 20px;
+  overflow-y: scroll;
+  padding: 40px;
+  position: fixed;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  z-index: 3000;
+}
+
+.modal-overlay {
+  background: #fff;
+  bottom: 0;
+  display: none;
+  left: 0;
+  opacity: 0.9;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 2000;
+}
+
+.modal-text {
+  padding-bottom: 10px;
+  text-align: center;
+  font-family: $mediate-font-light;
+}
+
+.modal-label {
+  color: #333;
+  display: inline-block;
+  text-align: right;
+  width: 150px;
+}
+
+.modal-inactive {
+  -moz-opacity: 0.5;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: alpha(opacity=50);
+  height: 100%;
+  left: 0;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+ .app-modal-message
+ {
+   margin-left:-200px;
+   margin-top:-65px;
+ }
+
+ .wap-modal-message
+ {
+   position:fixed;
+   margin-left:-200px;
+   margin-top:-65px;
+ }

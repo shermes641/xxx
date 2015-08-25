@@ -1,0 +1,401 @@
+// Waterfall page containing Token, buttons and Ad Providers
+.waterfall-list {
+  h1 {
+    font-size: 36px;
+    margin-top: 10px;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  #edit-top h1 {
+    padding-right: 170px;
+  }
+
+  &.waterfall-sort {
+    min-height: 50px;
+  }
+}
+
+// Waterfall sub header that contains the token and switches
+#waterfall-sub-header {
+  background: #efeff4;
+  color: #6d6d72;
+  height: 53px;
+  margin-top: 20px;
+  padding: 12px;
+  font-family: $mediate-font-light;
+
+  .waterfall-buttons {
+    position: relative;
+    float: right;
+    height: 31px;
+    padding-right: 10px;
+    border-left: 1px solid #dddde0;
+    padding-left: 10px;
+
+    .text-label {
+      color: #6d6d72;
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .onoffswitch {
+      margin-left: 9px;
+    }
+
+    &.first {
+      border-left: 0px;
+    }
+
+    &.disabled .button-overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      background: #efeff4;
+      opacity: 0.8;
+      z-index: 1000;
+    }
+
+    .pause {
+      background: url(../images/icons.png);
+      background-position: -50px -81px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      float: right;
+      margin-left: 10px;
+    }
+
+    .pause.play {
+      background-position: -50px -122px;
+    }
+  }
+
+  .app-token {
+    float: left;
+    width: 375px;
+  }
+}
+
+// Waterfall list containing the sortable ad provider list
+.waterfall {
+  ul li {
+    background: #fff;
+    border: 2px solid #eee;
+    height: 110px;
+    margin: 10px 0;
+    padding: 24px;
+    position: relative;
+
+    button {
+      background: #333;
+      float: right;
+      margin: 0 0 0 10px;
+      width: 130px;
+    }
+
+    button.configure {
+      background: #333;
+    }
+
+    .waterfall-app-info {
+      float: left;
+      margin-left: 60px;
+      margin-top: 12px;
+      font-family: $mediate-font-light;
+    }
+
+    .waterfall-app-info h3 {
+      color: $mediate-light-blue;
+      font-size: 18px;
+    }
+
+    b {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .actions {
+      color: $mediate-blue;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 400;
+      min-height: 90px;
+      position: absolute;
+      right: 21px;
+      top: 21px;
+    }
+  }
+}
+
+.ui-sortable-disabled .waterfall-drag-1,
+.ui-sortable-disabled .waterfall-drag-2,
+.ui-sortable-disabled .waterfall-drag-3 {
+  background: #efefef;
+}
+
+.ui-sortable-disabled .waterfall-drag {
+  cursor: auto;
+}
+
+.waterfall-drag {
+  cursor: row-resize;
+  height: 30px;
+  left: 30px;
+  position: absolute;
+  top: 44px;
+  width: 26px;
+}
+
+.waterfall-drag-1 {
+  background: #dddde0;
+  height: 2px;
+}
+
+.waterfall-drag-2,
+.waterfall-drag-3 {
+  background: #dddde0;
+  height: 2px;
+  margin-top: 6px;
+}
+
+.inactive .inactive-waterfall {
+  background: #fff;
+  bottom: 0;
+  display: block;
+  left: 0;
+  opacity: 0.8;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.inactive-button {
+  width: 100px;
+}
+
+button.inactive {
+  background-color: #d3dcf9;
+}
+
+.onoffswitch {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  float: right;
+  position: relative;
+  width: 50px;
+}
+
+.onoffswitch-label {
+  border-radius: 15px;
+  cursor: pointer;
+  display: block;
+  overflow: hidden;
+}
+
+.onoffswitch-inner {
+  -moz-transition: margin .3s ease-in 0;
+  -o-transition: margin .3s ease-in 0;
+  -webkit-transition: margin .3s ease-in 0;
+  display: block;
+  margin-left: -100%;
+  transition: margin .3s ease-in 0;
+  width: 200%;
+}
+
+.onoffswitch-inner:before,
+.onoffswitch-inner:after {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  color: #FFF;
+  display: block;
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  height: 30px;
+  line-height: 30px;
+  padding: 0;
+  width: 50%;
+}
+
+.onoffswitch-inner:before {
+  background-color: $mediate-light-blue;
+  color: #FFF;
+  content: "";
+  padding-left: 10px;
+}
+
+.onoffswitch-inner:after {
+  background-color: #CCC;
+  color: #999;
+  content: "";
+  padding-right: 10px;
+  text-align: right;
+}
+
+.onoffswitch-switch {
+  -moz-transition: all .3s ease-in 0;
+  -o-transition: all .3s ease-in 0;
+  -webkit-transition: all .3s ease-in 0;
+  background: #FFF;
+  border-radius: 15px;
+  bottom: 0;
+  display: block;
+  height: 24px;
+  margin: 3px;
+  position: absolute;
+  right: 20px;
+  top: 0;
+  transition: all .3s ease-in 0;
+  width: 24px;
+}
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+  margin-left: 0;
+}
+
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+  right: 0;
+}
+
+.onoff-field {
+  overflow: hidden;
+}
+
+.switch-left {
+  float: left;
+}
+
+
+#initialize-sdk {
+  background: #dce3fa;
+  border: 2px solid #b9c7f5;
+  color: $mediate-light-blue;
+  font-family: $mediate-font-light;
+  margin-top: 10px;
+  padding: 22px;
+  position: relative;
+  text-align: center;
+  cursor: pointer;
+}
+
+#initialize-sdk .code-block {
+  -moz-transition: all 600ms ease;
+  -ms-transition: all 600ms ease;
+  -o-transition: all 600ms ease;
+  -webkit-transition: all 600ms ease;
+  height: 0;
+  overflow: hidden;
+  transition: all 600ms ease;
+}
+
+#arrow-dropdown {
+  -moz-transform: rotate(0deg);
+  -moz-transition: all 200ms ease;
+  -ms-transform: rotate(0deg);
+  -ms-transition: all 200ms ease;
+  -o-transform: rotate(0deg);
+  -o-transition: all 200ms ease;
+  -webkit-transform: rotate(0deg);
+  -webkit-transition: all 200ms ease;
+  background: url(../images/icons.png);
+  background-position: -11px -11px;
+  cursor: pointer;
+  height: 17px;
+  position: absolute;
+  right: 20px;
+  top: 24px;
+  transform: rotate(0deg);
+  transition: all 200ms ease;
+  width: 17px;
+}
+
+#initialize-sdk.open #arrow-dropdown {
+  -moz-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+
+#initialize-sdk.open .code-block {
+  height: 110px;
+}
+
+#edit-top {
+  margin-top: 20px;
+  position: relative;
+}
+
+#waterfall-app-settings-button {
+  -webkit-appearance: none;
+  background: $mediate-light-blue;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 14px;
+  height: 58px;
+  padding: 15px;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: -10px;
+  width: 157px;
+}
+
+.waterfall-edit-description {
+  color: #222;
+  margin: 10px auto 0;
+  max-width: 800px;
+}
+
+#initialize-sdk .copy-paste-code {
+  margin-top: 10px;
+  text-align: left;
+  width: 95%;
+  padding: 6px 40px;
+  cursor: text;
+}
+
+.copy-paste-code {
+  background: #fff;
+  border-radius: 0;
+  color: #6d6d72;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 6px;
+  text-align: center;
+  width: 295px;
+}
+
+.td-waterfall-config {
+  width: 250px;
+}
+
+// Test mode confirmation modal
+#warning-header {
+  font-size: 36px;
+  color: #ff6666;
+}
+
+button.cancel-button {
+  -webkit-appearance: none;
+  background: #666;
+  border: 0;
+  border-radius: 3px;
+  color: #fff;
+  font-size: 14px;
+  height: 58px;
+  text-align: center;
+}
+
+button.confirm-button {
+  @extend button.cancel-button;
+  background: #ff6666;
+}

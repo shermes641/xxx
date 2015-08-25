@@ -54,13 +54,13 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Ad Providers should be selected
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad_providers_filter").containsText("All Ad Providers")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter").containsText("All Ad Providers")
 
-      clickAndWaitForAngular("#ad_providers_filter .add")
-      clickAndWaitForAngular("#filter_ad_providers")
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad_providers")
 
       // hyprMX must be part of dropdown
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad_providers_filter .add").containsText("hyprMX")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText("hyprMX")
     }
 
     "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {
@@ -69,17 +69,17 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Countries should be selected
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter").containsText("All Countries")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries-filter").containsText("All Countries")
 
-      clickAndWaitForAngular("#countries_filter .add")
-      clickAndWaitForAngular("#filter_countries")
+      clickAndWaitForAngular("#countries-filter .add")
+      clickAndWaitForAngular("#filter-countries")
 
       // United States and Ireland must be part of dropdown
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter .add").containsText("United States")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries-filter .add").containsText("United States")
 
       // Test Autocomplete
-      fillAndWaitForAngular("#filter_countries", "Ire")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries_filter .add").containsText("Ireland")
+      fillAndWaitForAngular("#filter-countries", "Ire")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries-filter .add").containsText("Ireland")
     }
 
     "date picker should be setup correctly" in new WithAppBrowser(distributorID) {
@@ -89,10 +89,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       var date = DateTime.now
       // End date must be todays date
-      browser.$("#end_date").getValue() must beEqualTo(date.toString("MMM dd, yyyy"))
+      browser.$("#end-date").getValue() must beEqualTo(date.toString("MMM dd, yyyy"))
 
       // Start date must be todays date minus 1 month
-      browser.$("#start_date").getValue() must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
+      browser.$("#start-date").getValue() must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
     }
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
@@ -100,13 +100,13 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // eCPM metric
-      waitUntilContainsText("#ecpm_metric_container", "Average eCPM")
+      waitUntilContainsText("#ecpm-metric-container", "Average eCPM")
       // Fill Rate metric
-      waitUntilContainsText("#fill_rate_container", "Fill Rate")
+      waitUntilContainsText("#fill-rate-container", "Fill Rate")
       // Average Revenue metric
-      waitUntilContainsText("#unique_users_container", "Average Revenue Per Day")
+      waitUntilContainsText("#unique-users-container", "Average Revenue Per Day")
       // Revenue Table
-      waitUntilContainsText("#estimated_revenue_chart_container", "Above results use Ad Network eCPMs to estimate revenue.")
+      waitUntilContainsText("#estimated-revenue-chart-container", "Above results use Ad Network eCPMs to estimate revenue.")
     }
 
     "Check Analytics configuration info JSON" in new WithAppBrowser(distributorID) {
@@ -146,9 +146,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
-      clickAndWaitForAngular("#export_as_csv")
-      browser.fill("#export_email").`with`("test@test.com")
-      clickAndWaitForAngular("#export_submit")
+      clickAndWaitForAngular("#export-as-csv")
+      browser.fill("#export-email").`with`("test@test.com")
+      clickAndWaitForAngular("#export-submit")
 
       browser.pageSource() must contain("Export Requested")
     }
@@ -157,38 +157,38 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
-      clickAndWaitForAngular("#export_as_csv")
-      browser.fill("#export_email").`with`("test.com")
-      clickAndWaitForAngular("#export_submit")
+      clickAndWaitForAngular("#export-as-csv")
+      browser.fill("#export-email").`with`("test.com")
+      clickAndWaitForAngular("#export-submit")
 
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv_email_form").containsText("The email you entered is invalid.")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("The email you entered is invalid.")
     }
 
     "export analytics data as csv should not allow field to be empty" in new WithAppBrowser(distributorUser.distributorID.get) {
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
-      clickAndWaitForAngular("#export_as_csv")
-      browser.fill("#export_email").`with`("")
-      clickAndWaitForAngular("#export_submit")
+      clickAndWaitForAngular("#export-as-csv")
+      browser.fill("#export-email").`with`("")
+      clickAndWaitForAngular("#export-submit")
 
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv_email_form").containsText("Email address is required")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("Email address is required")
     }
 
     "export analytics data as csv should not allow field to be empty after already successfully exporting" in new WithAppBrowser(distributorUser.distributorID.get) {
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
-      clickAndWaitForAngular("#export_as_csv")
-      browser.fill("#export_email").`with`("test@test.com")
-      clickAndWaitForAngular("#export_submit")
-      clickAndWaitForAngular("#analytics_overlay")
+      clickAndWaitForAngular("#export-as-csv")
+      browser.fill("#export-email").`with`("test@test.com")
+      clickAndWaitForAngular("#export-submit")
+      clickAndWaitForAngular("#analytics-overlay")
 
-      clickAndWaitForAngular("#export_as_csv")
-      browser.fill("#export_email").`with`("")
-      clickAndWaitForAngular("#export_submit")
+      clickAndWaitForAngular("#export-as-csv")
+      browser.fill("#export-email").`with`("")
+      clickAndWaitForAngular("#export-submit")
 
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv_email_form").containsText("Email address is required")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("Email address is required")
     }
 
     "Send JSON data without email and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {

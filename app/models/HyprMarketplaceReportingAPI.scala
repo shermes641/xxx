@@ -9,7 +9,6 @@ import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-
 /**
  * Encapsulates interactions with HyprMarketplace's reporting API.
  * @param wapID The ID of the WaterfallAdProvider to be updated.
@@ -95,8 +94,8 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
               case results: JsArray if results.value.nonEmpty => {
                 val result = results.value.last
                 (result \ "global_stats" \ "revenue", getImpressions) match {
-                  case (revenue: JsNumber, Some(impressions)) => {
-                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[Double], impressions.toDouble))
+                  case (revenue: JsString, Some(impressions)) => {
+                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.toDouble, impressions.toDouble))
                   }
                   case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
                 }

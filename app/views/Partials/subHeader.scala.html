@@ -1,5 +1,5 @@
 @(page: String = "dashboard", distributorID: Long, appID: Option[Long], waterfallID: Option[Long])
-<div class="sub_header">
+<div class="sub-header">
     <ul class="menu">
         <a href="@routes.AnalyticsController.show(distributorID, appID, None)" target="_self"><li @if(page == "analytics") { class="active" }>Analytics</li></a>
         <a href="@routes.WaterfallsController.editAll(distributorID, waterfallID, appID)" target="_self"><li @if(page == "waterfall") { class="active" }>Waterfalls</li></a>

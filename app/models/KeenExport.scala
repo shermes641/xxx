@@ -1,11 +1,10 @@
 package models
 
 import akka.actor.{Props, Actor}
-import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import play.api.libs.ws._
-import play.api.Play
+import play.api.{Logger, Play}
 import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -65,6 +64,30 @@ object KeenRequest {
   KeenClient.initialize(client)
 
   val HYPR_MARKETPLACE_PROVIDER_ID: Long = Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get
+
+}
+
+/**
+ * Encapsulates interactions with Player.
+ */
+case class KeenExport() {
+  /**
+   * Sends request to Keen API exporting all app information for the given distributor ID
+   *
+   * Columns: App, Platform, Earnings, Fill, Requests, Impressions, Completions, Completion Rate
+   *
+   * @param distributorID The DistributorID with the apps needed for export.
+   * @param email The email to send the export to.
+   * @param filters Filters for the analytic events
+   * @param timeframe Timeframe for the analytics events
+   * @param selectedApps Apps to loop through for events
+   * @param adProvidersSelected true if ad providers are selected individually
+   * @param scopedReadKey A Keen API read key scoped exclusively to the Distributor who is currently logged in
+   */
+  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean, scopedReadKey: String) = {
+    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps, adProvidersSelected, scopedReadKey)))
+    actor ! GetDataFromKeen()
+  }
 }
 
 object KeenExport {
@@ -82,17 +105,17 @@ object KeenExport {
   }
 
   /**
-    * Creates requests to keen.
-    * @param collection The keen collection to query
-    * @param appID The app ID
-    * @return JsObject
-  */
+   * Creates requests to keen.
+   * @param collection The keen collection to query
+   * @param appID The app ID
+   * @return JsObject
+   */
   def createFilter(timeframe: JsObject, filters: JsArray, collection: String, appID: String, targetProperty: String = "") = {
     val allFilters = filters :+ JsObject(Seq(
-                      "property_name" -> JsString("app_id"),
-                      "operator" -> JsString("eq"),
-                      "property_value" -> JsString(appID)
-                    ))
+      "property_name" -> JsString("app_id"),
+      "operator" -> JsString("eq"),
+      "property_value" -> JsString(appID)
+    ))
 
     JsObject(
       Seq(
@@ -108,29 +131,16 @@ object KeenExport {
 }
 
 /**
- * Encapsulates interactions with Player.
- */
-case class KeenExport() {
-  /**
-   * Sends request to Keen API exporting all app information for the given distributor ID
-   *
-   * Columns: App, Platform, Earnings, Fill, Requests, Impressions, Completions, Completion Rate
-   *
-   * @param distributorID The DistributorID with the apps needed for export.
-   * @param email The email to send the export to.
-   */
-  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String]) = {
-    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps)))
-    actor ! GetDataFromKeen()
-  }
-}
-
-/**
  * Actor that makes the long running requests to keen
  * @param distributorID The ID of the distributor
  * @param email The Email address to send the final CSV
+ * @param filters Filters for the analytic events
+ * @param timeframe Timeframe for the analytics events
+ * @param selectedApps Apps to loop through for events
+ * @param adProvidersSelected true if ad providers are selected individually
+ * @param scopedReadKey A Keen API read key scoped exclusively to the Distributor who is currently logged in
  */
-class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String]) extends Actor with Mailer {
+class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean, scopedReadKey: String) extends Actor with Mailer {
   private var counter = 0
   val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
   /**
@@ -195,7 +205,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
      */
     case GetDataFromKeen() => {
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, scopedReadKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
       val writer = createCSVFile()
@@ -233,7 +243,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     val earningList = parseResponse(earningsResponse.body)
 
     for(i <- requestList.indices){
-      val date = (requestList(i).timeframe \ "start").as[String]
+      val date = (requestList(i).timeframe \ "start").as[String].split("T")(0)
       val requests = requestList(i).value.as[Long]
       val dau = dauList(i).value.as[Long]
       val impressions = impressionList(i).value.as[Long]
@@ -274,14 +284,15 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
   }
 
   def getData(writer: CSVWriter) = {
+    val (requestCollection, responseCollection) = if(adProvidersSelected) ("availability_requested", "availability_response_true") else ("mediate_availability_requested", "mediate_availability_response_true")
+
     for (appID <- selectedApps) {
-      val name = App.find(appID.toLong).get.name
-      println(KeenExport.createFilter(timeframe, filters, "mediate_availability_requested", appID))
+      val name = App.findAppWithVirtualCurrency(appID.toLong, distributorID).get.appName
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
-        requestsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "mediate_availability_requested", appID))
-        dauResponse <- KeenExport.createRequest("count_unique", KeenExport.createFilter(timeframe, filters, "mediate_availability_requested", appID, "device_unique_id"))
-        responsesResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "mediate_availability_response_true", appID))
+        requestsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, requestCollection, appID))
+        dauResponse <- KeenExport.createRequest("count_unique", KeenExport.createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
+        responsesResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, responseCollection, appID))
         impressionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_displayed", appID))
         completionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_completed", appID))
         eCPMResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
@@ -290,7 +301,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
 
       futureResponse.recover {
         case e: Exception =>
-          sendEmail(Play.current.configuration.getString("jungroup.email").get, "Error Exporting CSV for " + email, e.getMessage)
+          Logger.error("Error Exporting CSV for " + email + " Message: " + e.getMessage)
           sendEmail(email, "Error Exporting CSV", "There was a problem exporting your data.  Please try again.")
       }
 

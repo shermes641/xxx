@@ -1,0 +1,141 @@
+// Header and Sub Header
+header {
+  background:$header-background-color;
+  box-shadow:1px 1px 1px rgba(0,0,0,.1);
+  font-size:20px;
+  font-weight:700;
+  height:60px;
+  left:0;
+  padding:10px;
+  position:fixed;
+  right:0;
+  top:0;
+  z-index:2000;
+
+  #logo {
+    border-right:1px solid #000;
+    display:block;
+    height:100%;
+    left:0;
+    position:absolute;
+    top:0;
+    width:216px;
+  }
+
+  .actions {
+    bottom:0;
+    font-size:13px;
+    font-weight:400;
+    position:absolute;
+    right:0;
+    top:0;
+  }
+
+  .actions .header-actions {
+    border-left:1px solid #000;
+    float:right;
+    padding:21px 22px;
+    position:relative;
+  }
+
+  .actions .header-actions:before {
+    border-left:1px solid #333;
+    bottom:1px;
+    content:" ";
+    left:0;
+    position:absolute;
+    right:1px;
+    top:1px;
+    z-index:-1;
+  }
+
+  #username-header {
+    color:#666;
+    cursor:pointer;
+  }
+
+  .header-actions #username-dropdown {
+    background:#efeff4;
+    border:1px solid #dddde0;
+    bottom:-60px;
+    color:#6d6d72;
+    display:none;
+    height:60px;
+    left:0;
+    padding:20px;
+    position:absolute;
+    width:100%;
+  }
+
+  .header-actions #username-dropdown a:hover {
+    color:#666;
+  }
+
+  .actions a {
+    color:#666;
+    text-decoration:none;
+  }
+
+  #username-header:hover #username-dropdown {
+    display: block;
+  }
+
+  #username-header:hover,
+  .actions a:hover {
+    color: #fff;
+  }
+}
+
+header #logo:before,
+.sub-header .menu li:before {
+  border-right: 1px solid #333;
+  bottom: 1px;
+  content: " ";
+  left: 1px;
+  position: absolute;
+  right: -2px;
+  top: 1px;
+  z-index: -1;
+}
+
+.sub-header {
+  background: #222;
+  height: 60px;
+  left: 217px;
+  position: fixed;
+  top: 0;
+  width: 414px;
+  z-index: 2001;
+
+  .menu {
+    bottom: 0;
+    display: block;
+    left: 0;
+    list-style: none;
+    position: absolute;
+    top: 0;
+  }
+
+  .menu li {
+    -webkit-transition: 400ms ease all;
+    border-right: 1px solid #000;
+    color: #fff;
+    float: left;
+    font-size: 13px;
+    height: 60px;
+    margin: 0;
+    padding-top: 22px;
+    position: relative;
+    text-align: center;
+    width: 138px;
+
+    &:hover {
+      background: #444;
+    }
+
+    &.active,
+    &.active:hover {
+      border-bottom: $mediate-light-blue 5px solid;
+    }
+  }
+}

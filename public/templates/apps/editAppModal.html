@@ -1,22 +1,22 @@
-<div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message app_modal_message">
+<div ng-hide="flashMessage.text() === ''" id="waterfall-edit-message" class="full-{{flashMessage.displayClass()}}-message app-modal-message">
     {{flashMessage.text()}}
 </div>
 <div class="app-form">
     <form id="edit-app" name="form.editAppForm" ng-submit="submitEditApp(form.editAppForm)">
         <h1>App Configuration</h1>
-        <div class="left_column">
-            <dl id="app_name">
-                <dt><label for="app_name">*App Name</label></dt>
+        <div class="left-column">
+            <dl id="app-name">
+                <dt><label for="app-name">*App Name</label></dt>
                 <dd ng-class="errors.appNameClass">
-                    <input required type="text" ng-model="data.appName" ng-model-options="{updateOn: 'blur'}" id="appName" name="appName" value="" placeholder="name" label="*App Name">
+                    <input required type="text" ng-model="data.appName" clear-error-on-change="data.appName" form-name="form.editAppForm" id="appName" name="appName" value="" placeholder="name" label="*App Name">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.appName.$touched">
-                    <dd class="error">{{errors.appName}}</dd>
-                    <dd class="error" ng-show="form.editAppForm.appName.$error.required">App Name is required.</dd>
+                    <dd id="edit-app-app-name-custom-error" class="error">{{errors.appName}}</dd>
                 </div>
+                <dd class="error" ng-show="form.editAppForm.appName.$error.required">App Name is required.</dd>
             </dl>
 
-            <dl class="switch-field onoff-field" id="serverToServerEnabled_field">
+            <dl class="switch-field onoff-field" id="serverToServerEnabled-field">
                 <dt>
                     <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>
                 </dt>
@@ -32,72 +32,65 @@
                 </dd>
             </dl>
 
-            <dl id="callback_url">
+            <dl id="callback-url">
                 <dt>
-                    <label for="callback_url">
+                    <label for="callback-url">
                         {{"Callback URL" | conditionalRequiredField: data.serverToServerEnabled}}
                     </label>
                     <h4 ng-mouseenter="hoverCallback=true" ng-mouseleave="hoverCallback=false" class="tooltip">
                         ?
-                        <div class="ngtooltip" ng-show="hoverCallback" ng-bind-html="'When a rewarded action is completed, our servers will make a POST request to a URL of your choosing, containing all the necessary reward information.  For more information, please see our <a href=\'http://documentation.hyprmx.com/display/ADMIN/Server+to+Server+Callbacks\' target=\'_blank\'>documentation</a>.' | escapeHtml"></div>
+                        <div id="callback-url-documentation-link" class="ngtooltip" ng-show="hoverCallback" ng-bind-html="'When a rewarded action is completed, our servers will make a POST request to a URL of your choosing, containing all the necessary reward information.  For more information, please see our <a href=\'http://documentation.hyprmx.com/display/ADMIN/Server+to+Server+Callbacks\' target=\'_blank\'>documentation</a>.' | escapeHtml"></div>
                     </h4>
                 </dt>
                 <dd ng-class="errors.callbackURLClass">
                     <input callback-validator="{{data.serverToServerEnabled}}" ng-disabled="!data.serverToServerEnabled" ng-class="{'inactive-input': !data.serverToServerEnabled}" type="text" ng-model="data.callbackURL" ng-model-options="{updateOn: 'blur'}" id="callbackURL" name="callbackURL" placeholder="callbackURL" label="Callback URL">
                 </dd>
                 <div ng-show="form.editAppForm.$submitted || form.editAppForm.callbackURL.$touched">
-                    <dd class="error" ng-show="form.editAppForm.callbackURL.$error.callbackValidator">A valid HTTP or HTTPS callback URL is required.</dd>
+                    <dd class="error" ng-show="form.editAppForm.callbackURL.$error.callbackValidator" id="valid-callback-url-error">A valid HTTP or HTTPS callback URL is required.</dd>
                 </div>
             </dl>
 
-            <dl id="currency_name">
-                <dt><label for="currency_name">*Reward Name</label></dt>
+            <dl id="currency-name">
+                <dt><label for="currency-name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">
-                    <input required type="text" ng-model="data.currencyName" ng-model-options="{updateOn: 'blur'}" id="currencyName" name="currencyName" placeholder="e.g. Gold or Silver" label="*Reward Name">
+                    <input required type="text" ng-model="data.currencyName" id="currencyName" name="currencyName" placeholder="e.g. Gold or Silver" label="*Reward Name">
                     <div class="tip">Reward Name is the name of your in-app reward.</div>
                 </dd>
-                <div ng-show="form.editAppForm.$submitted || form.editAppForm.currencyName.$touched">
-                    <dd class="error" ng-show="form.editAppForm.currencyName.$error.required">Reward Name is required.</dd>
-                </div>
+                <dd class="error" ng-show="form.editAppForm.currencyName.$error.required">Reward Name is required.</dd>
             </dl>
         </div>
-        <div class="right_column">
+        <div class="right-column">
 
-            <dl id="exchange_rate">
-                <dt><label for="exchange_rate">*Exchange Rate</label></dt>
+            <dl id="exchange-rate">
+                <dt><label for="exchange-rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
-                    <input required-integer type="text" ng-model="data.exchangeRate" ng-model-options="{updateOn: 'blur'}" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
+                    <input required-integer type="text" ng-model="data.exchangeRate" ng-maxlength="15" label="*Exchange Rate" id="exchangeRate" name="exchangeRate" value="" placeholder="e.g. 100">
                     <div class="tip">The amount to reward per $1.</div>
                 </dd>
-                <div ng-show="form.editAppForm.$submitted || form.editAppForm.exchangeRate.$touched">
-                    <dd class="error">{{errors.exchangeRate}}</dd>
-                    <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.requiredInteger">Exchange Rate must be a valid integer greater than or equal to 1.</dd>
-                </div>
+                <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.maxlength">Exchange Rate must be 15 characters or less.</dd>
+                <dd class="error" ng-show="form.editAppForm.exchangeRate.$error.requiredInteger">Exchange Rate must be a valid integer greater than or equal to 1.</dd>
             </dl>
 
-            <dl id="reward_min">
-                <dt><label for="reward_min">*Minimum to Reward per Completed Offer</label></dt>
+            <dl id="reward-min">
+                <dt><label for="reward-min">*Minimum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMinClass">
-                    <input required-integer less-than-or-equal-to="{{data.rewardMax}}" type="text" ng-model="data.rewardMin" ng-model-options="{updateOn: 'blur'}" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
+                    <input required-integer type="text" ng-model="data.rewardMin" ng-maxlength="15" ng-change="form.editAppForm.rewardMax.$setTouched()" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
-                <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMin.$touched">
-                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
-                    <dd class="error" ng-show="form.editAppForm.rewardMin.$error.lessThanOrEqualTo">Minimum Reward must be less than or equal to Maximum Reward.</dd>
-                </div>
+                <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
+                <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Reward Min must be 15 characters or less.</dd>
             </dl>
 
-            <dl id="reward_max">
-                <dt><label for="reward_max">Maximum to Reward per Completed Offer</label></dt>
+            <dl id="reward-max">
+                <dt><label for="reward-max">Maximum to Reward per Completed Offer</label></dt>
                 <dd ng-class="errors.rewardMaxClass">
-                    <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-model-options="{updateOn: 'blur'}" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
+                    <input reward-max-validator greater-than-or-equal-to="{{data.rewardMin}}" type="text" ng-model="data.rewardMax" ng-maxlength="15" label="Maximum Currency to Reward per Completed Offer" id="rewardMax" name="rewardMax" value="" placeholder="e.g. 10">
                 </dd>
-                <div ng-show="form.editAppForm.$submitted || form.editAppForm.rewardMax.$touched">
-                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
-                    <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
-                </div>
+                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
+                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo && !form.editAppForm.rewardMax.$error.rewardMaxValidator" id="reward-max-error">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
+                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
             </dl>
 
-            <dl class="switch-field" id="roundUp_field">
+            <dl class="switch-field" id="roundUp-field">
                 <dt>
                     <label for="roundUp">Round Up Reward</label>
                 </dt>

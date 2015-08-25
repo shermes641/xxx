@@ -14,8 +14,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
-        $scope.defaultStartDate = '-13d';
-        $scope.defaultEndDate = '0';
+        // utc(0, HH) current date at the following time: 0:00:00.000
+        $scope.defaultStartDate = new Date(moment.utc(0, "HH").subtract(13, 'days').format());
+        $scope.defaultEndDate = new Date(moment.utc(0, "HH").format());
         $scope.email = "";
 
         if($scope.debounceWait !== 0){
@@ -76,7 +77,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $scope.keenClient = new Keen( {
                     projectId: $scope.keenProject,
                     readKey: $scope.scopedKey,
-                    protocol: "http",
+                    protocol: "https",
                     requestType: "xhr"
             } );
 
@@ -88,9 +89,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          */
         $scope.startDatepicker = function() {
             $scope.elements = {
-                startDate: $( '#start_date' ),
-                endDate: $( '#end_date' ),
-                emailInput: $( '#export_email' )
+                startDate: $( '#start-date' ),
+                endDate: $( '#end-date' ),
+                emailInput: $( '#export-email' )
             };
 
             // Distributor ID to be used in AJAX calls.
@@ -102,9 +103,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 format: "M dd, yyyy"
             } ).on( "changeDate", $scope.updateAnalytics );
 
-            // Set initial start date to the last 30days
-            $scope.elements.startDate.datepicker('setDate', $scope.defaultStartDate);
-            $scope.elements.endDate.datepicker('setDate', $scope.defaultEndDate);
+            // Set initial start date to the last 2 weeks
+            $scope.elements.startDate.datepicker('setUTCDate', $scope.defaultStartDate);
+            $scope.elements.endDate.datepicker('setUTCDate', $scope.defaultEndDate);
         };
 
         /**
@@ -131,7 +132,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             if(filter.open === false){
                 filter.open = true;
                 $timeout(function() {
-                    document.getElementById('filter_' + filterType).focus();
+                    document.getElementById('filter-' + filterType).focus();
                 });
             }
         };
@@ -346,9 +347,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 return;
             }
 
-            // Return if start date after end date
+            // Update start date to be before the selected end date if it is not already
             if (config.end_date.getTime() < config.start_date.getTime()) {
-                return;
+                $scope.elements.startDate.datepicker('setDate', config.end_date);
+                config.start_date = $scope.elements.startDate.datepicker('getUTCDate');
             }
 
             $scope.updatingStatus = "Updating...";
@@ -598,7 +600,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 _.defer(function(){
                     $scope.$apply();
                     // Estimated Revenue Chart
-                    new Keen.Visualization({ result: chart_data }, document.getElementById("estimated_revenue_chart"), chartConfiguration);
+                    new Keen.Visualization({ result: chart_data }, document.getElementById("estimated-revenue-chart"), chartConfiguration);
                 });
             } );
         };
@@ -652,6 +654,12 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 apps = _.pluck($scope.filters.apps.available, 'id');
             }
 
+            // If ad providers are individually selected we use a different event collection
+            var ad_providers_selected = false;
+            if (_.pluck($scope.filters.ad_providers.selected, 'id').indexOf( "all" ) === -1) {
+                ad_providers_selected = true;
+            }
+
             // Build filters based on the dropdown selections
             var filters = $scope.buildFilters([],_.pluck($scope.filters.countries.selected, 'id'),
                 _.pluck($scope.filters.ad_providers.selected, 'id'));
@@ -662,7 +670,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 end: moment(dates.end_date).utc().add(1, 'days').format()
             };
 
-            return { apps: apps, filters: filters, timeframe: timeframe };
+            return { apps: apps, ad_providers_selected: ad_providers_selected, filters: filters, timeframe: timeframe };
         };
 
 

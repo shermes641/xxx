@@ -1,10 +1,10 @@
 <div class="content registration">
     <h1>Create An Account</h1>
     <hr />
-    <div class="modal_text">To begin, sign up below.  You will receive an email upon approval.</div>
-    <form name="newDistributorUserForm" ng-controller="SignupController" ng-submit="submit(newDistributorUserForm)" novalidate>
+    <div class="modal-text">To begin, sign up below.  You will receive an email upon approval.</div>
+    <form name="{{formName}}" ng-controller="SignupController" ng-submit="submit(newDistributorUserForm)" novalidate>
         <fieldset ng-disabled="waitForAuth">
-            <dl id="company_field">
+            <dl id="company-field">
                 <dt><label for="company"></label></dt>
                 <dd ng-class="errors.company">
                     <input ng-model="data.company" ng-model-options="{updateOn: 'default'}" type="text" id="company" name="company" value="" placeholder="Company Name" required/>
@@ -15,43 +15,47 @@
                 </div>
             </dl>
 
-            <dl id="email_field">
+            <dl id="email-field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
-                    <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
+                    <input ng-model="data.email" clear-error-on-change="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.email.$touched">
-                    <dd class="error">{{errors.email}}</dd>
-                    <dd class="error" ng-show="newDistributorUserForm.email.$error.required">Email address is required</dd>
+                    <dd class="error" id="email-custom-error">{{errors.email}}</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.email.$error.required" id="email-required-error">Email address is required</dd>
                     <dd class="error" ng-show="newDistributorUserForm.email.$error.email">The email you entered is invalid.</dd>
                 </div>
             </dl>
 
-            <dl id="password_field">
+            <dl id="password-field">
                 <dt><label for="password"></label></dt>
                 <dd ng-class="errors.passwordClass">
                     <input ng-minlength="8" ng-model="data.password" ng-model-options="{updateOn: 'blur'}" type="password" id="password" name="password" placeholder="Password" required/>
                 </dd>
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.password.$touched">
                     <dd class="error">{{errors.password}}</dd>
-                    <dd class="error" ng-show="newDistributorUserForm.password.$error.minlength">Password must be a minimum of 8 characters.</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.password.$error.minlength && !newDistributorUserForm.password.$error.required">
+                        Password must be a minimum of 8 characters.
+                    </dd>
                     <dd class="error" ng-show="newDistributorUserForm.password.$error.required">Password is required</dd>
                 </div>
             </dl>
 
-            <dl id="confirmation_field">
+            <dl id="confirmation-field">
                 <dt><label for="confirmation"></label></dt>
                 <dd ng-class="errors.confirmationClass">
                     <input password-confirmation="{{data.password}}" ng-model="data.confirmation" ng-model-options="{updateOn: 'default'}" type="password" id="confirmation" name="confirmation" placeholder="Password (confirm)" required/>
                 </dd>
                 <div id="confirmation-errors" ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
                     <dd class="error">{{errors.confirmation}}</dd>
-                    <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.passwordConfirmation">Password confirmation doesn't match Password.</dd>
+                    <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.passwordConfirmation && !newDistributorUserForm.confirmation.$error.required">
+                        Password confirmation doesn't match Password.
+                    </dd>
                     <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.required">Password confirmation is required</dd>
                 </div>
             </dl>
 
-            <dl id="terms_field">
+            <dl id="terms-field">
                 <dt><label for="terms"></label></dt>
                 <dd>
                     <input ng-model="data.terms" ng-model-options="{updateOn: 'default'}" type="checkbox" id="terms" name="terms" value="true" required/>
