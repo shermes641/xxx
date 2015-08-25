@@ -33,7 +33,7 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString(apiKey), "placementID" -> JsString(placementID), "appID" -> JsString(appID)))))
   val queryString = List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> date, "end_date" -> date, "hash_value" -> hashValue)
   val retrieveAPIDataResponse = mock[WSResponse]
-  var retrieveImpressionResponse: Option[Long] = Some(0)
+  var retrieveImpressionResponse: Option[String] = Some("")
   val hyprMarketplace = running(FakeApplication(additionalConfiguration = testDB)) { spy(new HyprMarketplaceReportingAPI(waterfallAdProvider1.id, configurationData)) }
 
   "calculateEcpm" should {
@@ -56,7 +56,7 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm must beNone
       Waterfall.update(waterfallAdProvider1.waterfallID, optimizedOrder = true, testMode = false, paused = false)
       waterfallAdProvider1.cpm must beNone
-      retrieveImpressionResponse = Some(1000)
+      retrieveImpressionResponse = Some("1000")
       val globalStats = JsObject(Seq("revenue" -> JsString("10.00"), "impressions" -> JsString("1000")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
       retrieveAPIDataResponse.body returns statsJson.toString
@@ -80,7 +80,7 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
     "sets the eCPM value of the WaterfallAdProvider to 0 if the HyprMarketplace API returns 0 impressions" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
-      retrieveImpressionResponse = Some(0)
+      retrieveImpressionResponse = Some("0")
       val globalStats = JsObject(Seq("revenue" -> JsString("0.00"), "impressions" -> JsString("0")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
       retrieveAPIDataResponse.body returns statsJson.toString

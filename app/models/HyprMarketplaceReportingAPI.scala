@@ -2,7 +2,7 @@ package models
 
 import play.api.libs.Codecs
 import play.api.libs.json._
-import play.api.Play
+import play.api.{Logger, Play}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
@@ -50,7 +50,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
    * Hack to fix Player reporting. From DPS, ecpm are inflated due to non reporting of errors, and
    * disqualification.
    */
-  def getImpressions(): Option[Long] = {
+  def getImpressions(): Option[String] = {
     app match {
       case Some(app) => {
         val adDisplayed = new KeenRequest().function("count")
@@ -71,9 +71,9 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
         } yield (Json.parse(displayed.body) \ ("result"), Json.parse(error.body) \ ("result"))
 
         Try(Await.result(impressionData, 50 seconds)) match {
-          case Success((dis: JsNumber, err: JsNumber)) => Some(dis.as[Long] - err.as[Long])
-          case Success(_) => println("Failed to parse response from keen"); None
-          case Failure(exception) => println("Failed to read impressions from keen"); throw exception
+          case Success((dis: JsNumber, err: JsNumber)) => Some((dis.as[Long] + err.as[Long]).toString)
+          case Success(_) => Logger.error("Failed to parse response from keen"); None
+          case Failure(exception) => Logger.error("Failed to read impressions from keen"); throw exception
         }
       }
       case None => None
@@ -94,8 +94,8 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
               case results: JsArray if results.value.nonEmpty => {
                 val result = results.value.last
                 (result \ "global_stats" \ "revenue", getImpressions) match {
-                  case (revenue: JsString, Some(impressions)) => {
-                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.toDouble, impressions.toDouble))
+                  case (revenue: JsValue, Some(impressions)) => {
+                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.toDouble))
                   }
                   case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
                 }

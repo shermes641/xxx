@@ -50,7 +50,7 @@ class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
     WS.url(base + action).withRequestTimeout(60000).withQueryString("api_key" -> KeenRequest.project.getReadKey).post(post)
   }
 
-  def debug = println("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
+  def debug = Logger.debug("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
 
 }
 
