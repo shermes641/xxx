@@ -54,7 +54,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val collection_name = "test_collection"
       val property_name = "property_name"
       val property_value = 123123
-      val createdFilters = models.KeenExport().createFilter(timeframe, filters, collection_name, "2", property_name)
+      val createdFilters = models.KeenExport.createFilter(timeframe, filters, collection_name, "2", property_name)
       (createdFilters \ "event_collection").as[String] must beEqualTo(collection_name)
       (createdFilters \ "target_property").as[String] must beEqualTo(property_name)
       ((createdFilters \ "filters").as[JsArray].as[List[JsObject]].head \ "property_value").as[String].toLong must beEqualTo(10)

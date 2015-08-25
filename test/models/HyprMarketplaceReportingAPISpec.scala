@@ -32,7 +32,8 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
   val hashValue = Codecs.sha1(hashableString)
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString(apiKey), "placementID" -> JsString(placementID), "appID" -> JsString(appID)))))
   val queryString = List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> date, "end_date" -> date, "hash_value" -> hashValue)
-  val response = mock[WSResponse]
+  val retrieveAPIDataResponse = mock[WSResponse]
+  var retrieveImpressionResponse: Option[Long] = Some(0)
   val hyprMarketplace = running(FakeApplication(additionalConfiguration = testDB)) { spy(new HyprMarketplaceReportingAPI(waterfallAdProvider1.id, configurationData)) }
 
   "calculateEcpm" should {
@@ -55,10 +56,11 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm must beNone
       Waterfall.update(waterfallAdProvider1.waterfallID, optimizedOrder = true, testMode = false, paused = false)
       waterfallAdProvider1.cpm must beNone
+      retrieveImpressionResponse = Some(1000)
       val globalStats = JsObject(Seq("revenue" -> JsNumber(10.00), "impressions" -> JsNumber(1000)))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
-      response.body returns statsJson.toString
-      response.status returns 200
+      retrieveAPIDataResponse.body returns statsJson.toString
+      retrieveAPIDataResponse.status returns 200
       callAPI
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(10.00)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
@@ -68,8 +70,8 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
       val jsonResponse = JsObject(Seq("message" -> JsString("Bad Request."), "details" -> JsString("Some error message")))
-      response.body returns jsonResponse.toString
-      response.status returns 401
+      retrieveAPIDataResponse.body returns jsonResponse.toString
+      retrieveAPIDataResponse.status returns 401
       callAPI
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
@@ -78,10 +80,11 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
     "sets the eCPM value of the WaterfallAdProvider to 0 if the HyprMarketplace API returns 0 impressions" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
+      retrieveImpressionResponse = Some(0)
       val globalStats = JsObject(Seq("revenue" -> JsNumber(0.00), "impressions" -> JsNumber(0)))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(JsObject(Seq("global_stats" -> globalStats))))))
-      response.body returns statsJson.toString
-      response.status returns 200
+      retrieveAPIDataResponse.body returns statsJson.toString
+      retrieveAPIDataResponse.status returns 200
       callAPI
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(0.00)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
@@ -93,7 +96,8 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
    * @return Response from mocked out API call.
    */
   def callAPI = {
-    hyprMarketplace.retrieveAPIData(queryString) returns Future { response }
-    Await.result(hyprMarketplace.updateRevenueData, Duration(5000, "millis"))
+    hyprMarketplace.getImpressions() returns retrieveImpressionResponse
+    hyprMarketplace.retrieveAPIData(queryString) returns Future { retrieveAPIDataResponse }
+    Await.result(hyprMarketplace.updateRevenueData, Duration(10000, "millis"))
   }
 }

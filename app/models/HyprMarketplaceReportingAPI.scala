@@ -5,6 +5,10 @@ import play.api.libs.json._
 import play.api.Play
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
+import scala.concurrent.Await
+
 
 /**
  * Encapsulates interactions with HyprMarketplace's reporting API.
@@ -28,6 +32,11 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
     List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> date, "end_date" -> date, "hash_value" -> hashValue)
   }
 
+  lazy val app: Option[App] = WaterfallAdProvider.find(wapID) match {
+    case Some(wap) => App.findByWaterfallID(wap.waterfallID)
+    case None => None
+  }
+
   /**
    * Calculates the new eCPM for a WatefallAdProvider.
    * @param revenue The revenue value retrieved from the reporting API.
@@ -36,6 +45,40 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
    */
   def calculateEcpm(revenue: Double, impressions: Double): Double = {
     if(impressions > 0) { (revenue/impressions) * 1000 } else { 0.00 }
+  }
+
+  /**
+   * Hack to fix Player reporting. From DPS, ecpm are inflated due to non reporting of errors, and
+   * disqualification.
+   */
+  def getImpressions(): Option[Long] = {
+    app match {
+      case Some(app) => {
+        val adDisplayed = new KeenRequest().function("count")
+          .select("ad_displayed")
+          .filterWith("app_id", "eq", app.id.toString)
+          .thisDays(1)
+
+        val adError = new KeenRequest().function("count")
+          .select("ad_error")
+          .filterWith("app_id", "eq", app.id.toString)
+          .filterWith("ad_provider_id", "eq", KeenRequest.HYPR_MARKETPLACE_PROVIDER_ID.toString)
+          .groupBy("error_title")
+          .thisDays(1)
+
+        val impressionData = for {
+          displayed <- adDisplayed.collect()
+          error <- adError.collect()
+        } yield (Json.parse(displayed.body) \ ("result"), Json.parse(error.body) \ ("result"))
+
+        Try(Await.result(impressionData, 50 seconds)) match {
+          case Success((dis: JsNumber, err: JsNumber)) => Some(dis.as[Long] - err.as[Long])
+          case Success(_) => println("Failed to parse response from keen"); None
+          case Failure(exception) => println("Failed to read impressions from keen"); throw exception
+        }
+      }
+      case None => None
+    }
   }
 
   /**
@@ -49,11 +92,11 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
           case 200 | 304 => {
             Json.parse(response.body) \ "results" match {
               case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
-              case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
-                val result = results.as[JsArray].as[List[JsValue]].last
-                (result \ "global_stats" \ "revenue", result \ "global_stats" \ "impressions") match {
-                  case (revenue: JsNumber, impressions: JsNumber) => {
-                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[Double], impressions.as[Double]))
+              case results: JsArray if results.value.nonEmpty => {
+                val result = results.value.last
+                (result \ "global_stats" \ "revenue", getImpressions) match {
+                  case (revenue: JsNumber, Some(impressions)) => {
+                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[Double], impressions.toDouble))
                   }
                   case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
                 }
