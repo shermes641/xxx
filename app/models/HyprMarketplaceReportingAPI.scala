@@ -47,8 +47,8 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
   }
 
   /**
-   * Attempt to fix Player reporting. From mediation reporting endpoint, ECPMs are inflated due to non reporting of errors, and
-   * disqualification.
+   * Attempt to fix Player reporting. From the mediation reporting endpoint, ECPMs are inflated due to non reporting of errors, and
+   * disqualification. We use keen ad_displayed events which contains ad_error events to get the impressions.
    */
   def getImpressions(): Option[String] = {
     app match {
