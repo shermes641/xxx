@@ -47,8 +47,8 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
   }
 
   /**
-   * Hack to fix Player reporting. From DPS, ecpm are inflated due to non reporting of errors, and
-   * disqualification.
+   * Attempt to fix Player reporting. From the mediation reporting endpoint, ECPMs are inflated due to non reporting of errors, and
+   * disqualification. We use keen ad_displayed events which contains ad_error events to get the impressions.
    */
   def getImpressions(): Option[String] = {
     app match {
@@ -56,7 +56,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
         val adDisplayed = new KeenRequest().function("count")
           .select("ad_displayed")
           .filterWith("app_id", "eq", app.id.toString)
-          .filterWith("ad_provider_id", "eq", KeenRequest.HYPR_MARKETPLACE_PROVIDER_ID.toString)
+          .filterWith("ad_provider_id", "eq", Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get.toString)
           .thisDays(1)
           .interval("daily")
 
