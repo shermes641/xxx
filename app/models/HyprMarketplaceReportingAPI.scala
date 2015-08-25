@@ -58,20 +58,12 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
           .filterWith("app_id", "eq", app.id.toString)
           .thisDays(1)
 
-        val adError = new KeenRequest().function("count")
-          .select("ad_error")
-          .filterWith("app_id", "eq", app.id.toString)
-          .filterWith("ad_provider_id", "eq", KeenRequest.HYPR_MARKETPLACE_PROVIDER_ID.toString)
-          .groupBy("error_title")
-          .thisDays(1)
-
         val impressionData = for {
           displayed <- adDisplayed.collect()
-          error <- adError.collect()
-        } yield (Json.parse(displayed.body) \ ("result"), Json.parse(error.body) \ ("result"))
+        } yield (Json.parse(displayed.body) \ ("result"))
 
         Try(Await.result(impressionData, 50 seconds)) match {
-          case Success((dis: JsNumber, err: JsNumber)) => Some((dis.as[Long] + err.as[Long]).toString)
+          case Success((dis: JsNumber)) => Some(dis.as[Long].toString)
           case Success(_) => Logger.error("Failed to parse response from keen"); None
           case Failure(exception) => Logger.error("Failed to read impressions from keen"); throw exception
         }
@@ -93,7 +85,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
               case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
               case results: JsArray if results.value.nonEmpty => {
                 val result = results.value.last
-                (result \ "global_stats" \ "revenue", getImpressions) match {
+                (result \ "global_stats" \ "revenue", getImpressions()) match {
                   case (revenue: JsValue, Some(impressions)) => {
                     updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.toDouble))
                   }
