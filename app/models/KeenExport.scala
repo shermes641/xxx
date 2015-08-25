@@ -57,13 +57,12 @@ class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
 object KeenRequest {
 
   // move this to startup.
+  val hypr_marketplace_provider_id: Long = Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get
   val client = new JavaKeenClientBuilder().build()
   val config = Play.current.configuration
   val project = new KeenProject(config.getString("keen.project").get, config.getString("keen.writeKey").get, config.getString("keen.readKey").get)
   client.setDefaultProject(project)
   KeenClient.initialize(client)
-
-  val HYPR_MARKETPLACE_PROVIDER_ID: Long = Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get
 
 }
 
