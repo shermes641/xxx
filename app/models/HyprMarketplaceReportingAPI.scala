@@ -57,6 +57,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
           .select("ad_displayed")
           .filterWith("app_id", "eq", app.id.toString)
           .thisDays(1)
+          .interval("daily")
 
         val impressionData = for {
           displayed <- adDisplayed.collect()
