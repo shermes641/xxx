@@ -56,17 +56,22 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
         val adDisplayed = new KeenRequest().function("count")
           .select("ad_displayed")
           .filterWith("app_id", "eq", app.id.toString)
+          .filterWith("ad_provider_id", "eq", KeenRequest.HYPR_MARKETPLACE_PROVIDER_ID.toString)
           .thisDays(1)
           .interval("daily")
 
         val impressionData = for {
           displayed <- adDisplayed.collect()
-        } yield (Json.parse(displayed.body) \ ("result"))
+        } yield (displayed.json)
 
         Try(Await.result(impressionData, 50 seconds)) match {
-          case Success((dis: JsNumber)) => Some(dis.as[Long].toString)
-          case Success(_) => Logger.error("Failed to parse response from keen"); None
-          case Failure(exception) => Logger.error("Failed to read impressions from keen"); throw exception
+          case Success(dis: JsValue) => {
+            Try(((dis \ "result").as[JsArray].value.last \ "value").as[JsNumber].toString) match {
+              case Success(impressions) => Some(impressions)
+              case Failure(exception) => Logger.error("Failed to parse response from keen: " + exception); None
+            }
+          }
+          case Failure(exception) => Logger.error("Failed to read impressions from keen"); None
         }
       }
       case None => None
