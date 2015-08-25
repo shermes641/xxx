@@ -57,6 +57,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
           .select("ad_displayed")
           .filterWith("app_id", "eq", app.id.toString)
           .thisDays(1)
+          .interval("daily")
 
         val adError = new KeenRequest().function("count")
           .select("ad_error")
@@ -64,6 +65,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
           .filterWith("ad_provider_id", "eq", KeenRequest.HYPR_MARKETPLACE_PROVIDER_ID.toString)
           .groupBy("error_title")
           .thisDays(1)
+          .interval("daily")
 
         val impressionData = for {
           displayed <- adDisplayed.collect()
