@@ -47,7 +47,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
   }
 
   /**
-   * Hack to fix Player reporting. From DPS, ecpm are inflated due to non reporting of errors, and
+   * Attempt to fix Player reporting. From mediation reporting endpoint, ECPMs are inflated due to non reporting of errors, and
    * disqualification.
    */
   def getImpressions(): Option[String] = {
