@@ -37,7 +37,7 @@ class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
       "property_value" -> JsString(propertyValue)))))
   }
 
-  def groupBy(group: String) = new KeenRequest(action, post + ("groupBy", JsString(group)))
+  def groupBy(group: String) = new KeenRequest(action, post + ("group_by", JsString(group)))
 
   def thisDays(daysAgo: Int): KeenRequest = new KeenRequest(action, post + ("timeframe", JsString("this_%s_days".format(daysAgo))))
 
@@ -47,7 +47,7 @@ class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
     if (Environment.isTest) {
       debug
     }
-    WS.url(base + action).withRequestTimeout(60000).withQueryString("api_key" -> KeenRequest.project.getReadKey).post(post)
+    WS.url(base + action).withRequestTimeout(300000).withQueryString("api_key" -> KeenRequest.project.getReadKey).post(post)
   }
 
   def debug = Logger.debug("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
@@ -101,7 +101,7 @@ object KeenExport {
    * @return Future[WSResponse]
    */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(60000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
+    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(300000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
   }
 
   /**

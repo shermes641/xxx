@@ -64,7 +64,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
         } yield (Json.parse(displayed.body) \ ("result"))
 
         Try(Await.result(impressionData, 50 seconds)) match {
-          case Success((dis: JsNumber)) => Some(dis.as[Long].toString)
+          case Success(dis: JsNumber) => Some(dis.as[Long].toString)
           case Success(_) => Logger.error("Failed to parse response from keen"); None
           case Failure(exception) => Logger.error("Failed to read impressions from keen"); throw exception
         }
