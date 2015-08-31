@@ -1765,15 +1765,17 @@ span#viewTerms:hover {
 }
 
 .waterfall-drag-1 {
-  background: #dddde0;
-  height: 2px;
+  background: #CCCCCC;
+  height: 3px;
+  width: 20px;
 }
 
 .waterfall-drag-2,
 .waterfall-drag-3 {
-  background: #dddde0;
-  height: 2px;
+  background: #CCCCCC;
+  height: 3px;
   margin-top: 6px;
+  width: 20px;
 }
 
 .inactive .inactive-waterfall {
