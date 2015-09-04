@@ -9,7 +9,7 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
-  val LogFullConfig = true
+  val LogFullConfig = true // This value must remain true to provide accurate analytics for ad providers
   val DefaultCanShowAdTimeout = 10 // This value represents seconds.
   val DefaultRewardTimeout = 10 // This value represents seconds.
 
