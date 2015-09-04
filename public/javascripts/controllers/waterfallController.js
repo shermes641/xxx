@@ -243,6 +243,9 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                                     apps[index].name = $scope.data.appName;
                                 }
                             }
+                            if($scope.appID === $scope.editAppID) {
+                                $scope.generationNumber = data.generationNumber;
+                            }
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
                             flashMessage.add(data);

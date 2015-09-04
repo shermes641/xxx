@@ -3,6 +3,7 @@ describe('WaterfallControllerSpec', function() {
 
     describe('waterfallPage', function() {
         beforeEach(inject(function($rootScope, $controller, $compile, $httpBackend) {
+            var appID = "62484878";
             scope = $rootScope.$new();
             httpBackend = $httpBackend;
 
@@ -11,7 +12,7 @@ describe('WaterfallControllerSpec', function() {
                 "distributorID":620798327,
                 "waterfall":{
                     "id":"62484878",
-                    "appID":"62484878",
+                    "appID":appID,
                     "name":"Test App 3",
                     "token":"4add175e-6a1e-4e33-adc8-f39492b953bc",
                     "optimizedOrder":true,
@@ -46,9 +47,11 @@ describe('WaterfallControllerSpec', function() {
                     '</form>'
             );
 
-            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: { distributorID: 456 }});
+            routeParams = { distributorID: 456 };
+            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
 
             scope.showModal = function(){};
+            scope.editAppID = appID;
             scope.data = { reportingActive: false };
             $compile(element)(scope);
             form = scope.form;
@@ -107,6 +110,32 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.waterfallAdProviderList[0].unconfigured).toEqual(false);
             expect(waterfallData.waterfallAdProviderList[0].waterfallAdProviderID).toEqual(40);
             expect(waterfallData.waterfallAdProviderList[0].waterfallOrder).toEqual(0);
+        });
+
+        describe('App Settings Modal', function() {
+            var updateApp = function(newGeneration) {
+                // Stub app update response
+                httpBackend.expectPOST("/distributors/" + routeParams.distributorID + "/apps/" + scope.editAppID).respond({
+                    "generationNumber":newGeneration,
+                    "status":"success",
+                    "message":"App updated successfully"
+                }, scope.data);
+                scope.submitEditApp(scope.form);
+                httpBackend.flush();
+            };
+
+            it('should persist the new generation number for the currently selected app when the app update response is successful', function() {
+                var newGeneration = scope.generationNumber + 1;
+                updateApp(newGeneration);
+                expect(scope.generationNumber).toEqual(newGeneration);
+            });
+
+            it('should not persist the new generation number when editing an app which is not currently selected on the waterfall page', function() {
+                var originalGeneration = scope.generationNumber;
+                scope.editAppID = 9876;
+                updateApp(originalGeneration + 1);
+                expect(scope.generationNumber).toEqual(originalGeneration);
+            });
         });
 
         describe('waterfall status updates', function() {
