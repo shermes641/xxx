@@ -1,20 +1,17 @@
 package models
 
 import akka.actor.{Props, Actor}
-import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import play.api.libs.ws._
 import play.api.{Logger, Play}
 import play.api.Play.current
-import scala.concurrent.duration.DurationInt
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
 import io.keen.client.java.{KeenClient, KeenProject, JavaKeenClientBuilder}
 import com.github.tototoshi.csv._
 import java.io.File
-import java.util.Date
 
 /**
  * Get data from keen
@@ -22,6 +19,51 @@ import java.util.Date
 case class GetDataFromKeen()
 
 case class KeenResult(value: JsValue, timeframe: JsObject)
+
+class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
+
+  val base = KeenClient.client().getBaseUrl + "/3.0/projects/" + Play.configuration.getString("keen.project").get + "/queries/"
+
+  def function(action: String): KeenRequest = new KeenRequest(action, post)
+
+  def select(collection: String): KeenRequest = new KeenRequest(action, post + ("event_collection", JsString(collection)))
+
+  def targetProperty(target: String): KeenRequest = new KeenRequest(action, post + ("target_property", JsString(target)))
+
+  def filterWith(property: String, operator: String, propertyValue: String): KeenRequest = {
+    val filters = (post \ "filters").asOpt[JsArray].getOrElse(JsArray())
+    new KeenRequest(action, post + ("filters", filters :+ JsObject( Seq( "property_name" -> JsString(property),
+      "operator" -> JsString(operator),
+      "property_value" -> JsString(propertyValue)))))
+  }
+
+  def groupBy(group: String) = new KeenRequest(action, post + ("group_by", JsString(group)))
+
+  def thisDays(daysAgo: Int): KeenRequest = new KeenRequest(action, post + ("timeframe", JsString("this_%s_days".format(daysAgo))))
+
+  def interval(interval: String): KeenRequest = new KeenRequest(action, post + ("interval", JsString(interval)))
+
+  def collect(): Future[WSResponse] = {
+    if (Environment.isTest) {
+      debug
+    }
+    WS.url(base + action).withRequestTimeout(300000).withQueryString("api_key" -> KeenRequest.project.getReadKey).post(post)
+  }
+
+  def debug = Logger.debug("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
+
+}
+
+object KeenRequest {
+
+  // move this to startup.
+  val client = new JavaKeenClientBuilder().build()
+  val config = Play.current.configuration
+  val project = new KeenProject(config.getString("keen.project").get, config.getString("keen.writeKey").get, config.getString("keen.readKey").get)
+  client.setDefaultProject(project)
+  KeenClient.initialize(client)
+
+}
 
 /**
  * Encapsulates interactions with Player.
@@ -44,6 +86,11 @@ case class KeenExport() {
     val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps, adProvidersSelected, scopedReadKey)))
     actor ! GetDataFromKeen()
   }
+}
+
+object KeenExport {
+
+  val config = Play.current.configuration
 
   /**
    * Creates requests to keen.
@@ -52,23 +99,21 @@ case class KeenExport() {
    * @return Future[WSResponse]
    */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
-    val config = Play.current.configuration
-    // Timeout set to 5 minutes (300000)
     WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(300000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
   }
 
   /**
-    * Creates requests to keen.
-    * @param collection The keen collection to query
-    * @param appID The app ID
-    * @return JsObject
-  */
+   * Creates requests to keen.
+   * @param collection The keen collection to query
+   * @param appID The app ID
+   * @return JsObject
+   */
   def createFilter(timeframe: JsObject, filters: JsArray, collection: String, appID: String, targetProperty: String = "") = {
     val allFilters = filters :+ JsObject(Seq(
-                      "property_name" -> JsString("app_id"),
-                      "operator" -> JsString("eq"),
-                      "property_value" -> JsString(appID)
-                    ))
+      "property_name" -> JsString("app_id"),
+      "operator" -> JsString("eq"),
+      "property_value" -> JsString(appID)
+    ))
 
     JsObject(
       Seq(
@@ -80,6 +125,7 @@ case class KeenExport() {
       )
     )
   }
+
 }
 
 /**
@@ -242,13 +288,13 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       val name = App.findAppWithVirtualCurrency(appID.toLong, distributorID).get.appName
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
-        requestsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, requestCollection, appID))
-        dauResponse <- KeenExport().createRequest("count_unique", KeenExport().createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
-        responsesResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, responseCollection, appID))
-        impressionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_displayed", appID))
-        completionsResponse <- KeenExport().createRequest("count", KeenExport().createFilter(timeframe, filters, "ad_completed", appID))
-        eCPMResponse <- KeenExport().createRequest("average", KeenExport().createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
-        earningsResponse <- KeenExport().createRequest("sum", KeenExport().createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
+        requestsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, requestCollection, appID))
+        dauResponse <- KeenExport.createRequest("count_unique", KeenExport.createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
+        responsesResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, responseCollection, appID))
+        impressionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_displayed", appID))
+        completionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_completed", appID))
+        eCPMResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
+        earningsResponse <- KeenExport.createRequest("sum", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
       } yield (requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse)
 
       futureResponse.recover {

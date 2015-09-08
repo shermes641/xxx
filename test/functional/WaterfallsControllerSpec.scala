@@ -147,7 +147,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val configKey = "some key"
       browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviders(1) + " updated!")
       val waterfallAdProviderParams = WaterfallAdProvider.find(wap2.id).get.configurationData \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configKey)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
@@ -280,8 +280,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
-      clickAndWaitForAngular("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
+      browser.click("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviders(0) + " updated!")
       browser.$(".waterfall-app-info").first().getText must contain(adProviders(1))
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
@@ -317,11 +317,12 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       newTopAdProviderText must contain("This Ad Network doesn't meet the minimum eCPM requirements")
 
       browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed
       browser.executeScript("$(':input[name=roundUp]').click();")
       browser.executeScript("$('button[name=submit]').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
 
-      browser.$(".waterfall-app-info").first().getText must not contain("This Ad Network doesn't meet the minimum eCPM requirements")
+      browser.$(".waterfall-app-info").first().getText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
 
     }
   }
@@ -435,13 +436,13 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      clickAndWaitForAngular("a[name=analytics]")
-      clickAndWaitForAngular("a[name=waterfalls]")
+      browser.executeScript("$('a[name=analytics]').click();")
+      browser.executeScript("$('a[name=waterfalls]').click();")
       browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
 
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
-      clickAndWaitForAngular("a[name=analytics]")
-      clickAndWaitForAngular("a[name=waterfalls]")
+      browser.goTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
+      browser.executeScript("$('a[name=analytics]').click();")
+      browser.executeScript("$('a[name=waterfalls]').click();")
       browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newWaterfall.id).url)
     }
 

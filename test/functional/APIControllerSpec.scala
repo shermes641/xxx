@@ -89,6 +89,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig = Json.parse(contentAsString(result))
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index)) }
     }
@@ -107,6 +108,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig: JsValue = Json.parse(contentAsString(result))
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index)) }
     }
@@ -127,6 +129,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig: JsValue = Json.parse(contentAsString(result))
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must contain(adProviders(0).name)
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
@@ -147,6 +150,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val jsonResponse: JsValue = Json.parse(contentAsString(result))
+      (jsonResponse \ "logFullConfig").as[Boolean] must beEqualTo(true)
       (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
     }
   }
