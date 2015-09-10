@@ -64,7 +64,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       verifyAnalyticsHaveLoaded
 
       clickAndWaitForAngular("#ad-providers-filter .add")
-      clickAndWaitForAngular("#filter-ad-providers")
+      clickAndWaitForAngular("#filter-ad_providers")
 
       // hyprMX must be part of dropdown
       waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
@@ -85,13 +85,14 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       verifyAnalyticsHaveLoaded
 
       clickAndWaitForAngular("#ad-providers-filter .add")
-      clickAndWaitForAngular("#filter-ad-providers")
+      clickAndWaitForAngular("#filter-ad_providers")
 
-      fillAndWaitForAngular("#filter-ad-providers", "Vungl")
+      fillAndWaitForAngular("#filter-ad_providers", "Vungl")
       waitUntilContainsText("#ad-providers-filter .add", "Vungle")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
-      fillAndWaitForAngular("#filter-ad-providers", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      fillAndWaitForAngular("#filter-ad_providers", "hyprMX")
       waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
@@ -110,13 +111,14 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       verifyAnalyticsHaveLoaded
 
       clickAndWaitForAngular("#ad-providers-filter .add")
-      clickAndWaitForAngular("#filter-ad-providers")
+      clickAndWaitForAngular("#filter-ad_providers")
 
-      fillAndWaitForAngular("#filter-ad-providers", "Vungl")
+      fillAndWaitForAngular("#filter-ad_providers", "Vungl")
       waitUntilContainsText("#ad-providers-filter .add", "Vungle")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
-      fillAndWaitForAngular("#filter-ad-providers", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      fillAndWaitForAngular("#filter-ad_providers", "hyprMX")
       waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
       // Verify analytics data has been loaded
