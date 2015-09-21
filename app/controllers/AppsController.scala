@@ -23,6 +23,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   )(NewAppMapping.apply _)
 
   implicit val editAppReads: Reads[EditAppMapping] = (
+    (JsPath \ "apiToken").read[String] and
     (JsPath \ "currencyID").read[Long] and
     (JsPath \ "active").readNullable[Boolean] and
     (JsPath \ "appName").read[String] and
@@ -37,6 +38,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   )(EditAppMapping.apply _)
 
   implicit val editAppWrites = (
+    (__ \ "apiToken").write[String] and
     (__ \ "currencyID").write[Long] and
     (__ \ "active").writeNullable[Boolean] and
     (__ \ "appName").write[String] and
@@ -130,7 +132,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
-        val editAppInfo = new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
+        val editAppInfo = new EditAppMapping(appInfo.apiToken, appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
           appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), appInfo.generationNumber)
         Ok(Json.toJson(editAppInfo))
       }
@@ -216,6 +218,7 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
 
 /**
  * Used for mapping App and VirtualCurrency attributes in editAppForm.
+ * @param apiToken The unique string identifier for an app.
  * @param currencyID Maps to the id field in the virtual_currencies table.
  * @param active Maps to the active field in the apps table.
  * @param appName Maps to the name field in the apps table
@@ -228,4 +231,4 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
  * @param serverToServerEnabled Maps to the server_to_server_enabled field in the apps table.
  * @param generationNumber The revision number which tracks the state of the corresponding AppConfig model at the time the page renders.
  */
-case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean], generationNumber: Option[Long])
+case class EditAppMapping(apiToken: String, currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean], generationNumber: Option[Long])
