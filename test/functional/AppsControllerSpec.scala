@@ -364,7 +364,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
       clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       val documentationLinkText = browser.find("#callback-url-documentation-link").getAttribute("ng-bind-html")
-      val urlPattern = new scala.util.matching.Regex("""http:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+      val urlPattern = new scala.util.matching.Regex("""https:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
       val documentationLink = urlPattern findFirstIn documentationLinkText match {
         case Some(url) => url
         case None => ""
