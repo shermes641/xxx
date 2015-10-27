@@ -376,7 +376,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       }, Duration(5000, "millis"))
     }
 
-    "display the API Token for the app to be edited" in new WithAppBrowser(user.distributorID.get) {
+    "display the API Token in the app configuration modal" in new WithAppBrowser(user.distributorID.get) {
       def checkAPIToken(testApp: App) = {
         browser.executeScript("$('.left-apps-list li[name=" + testApp.name + "] .settings-icon').click()")
         browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed
