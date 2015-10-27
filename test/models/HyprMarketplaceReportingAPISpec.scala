@@ -97,7 +97,7 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
    */
   def callAPI = {
     hyprMarketplace.getImpressions() returns retrieveImpressionResponse
-    hyprMarketplace.retrieveAPIData(queryString) returns Future { retrieveAPIDataResponse }
+    hyprMarketplace.retrieveAPIData returns Future { retrieveAPIDataResponse }
     Await.result(hyprMarketplace.updateRevenueData, Duration(10000, "millis"))
   }
 }

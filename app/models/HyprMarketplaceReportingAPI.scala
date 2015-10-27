@@ -82,26 +82,26 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
    * Receives data from the HyprMarketplace reporting API and updates the eCPM of the WaterfallAdProvider.
    * @return Future which updates the cpm field of WaterfallAdProvider.
    */
-  override def updateRevenueData = {
-    retrieveAPIData(queryString) map {
+  override def updateRevenueData() = {
+    retrieveAPIData map {
       case response => {
         response.status match {
           case 200 | 304 => {
             Json.parse(response.body) \ "results" match {
-              case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
+              case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response)
               case results: JsArray if results.value.nonEmpty => {
                 val result = results.value.last
                 (result \ "global_stats" \ "revenue", getImpressions()) match {
                   case (revenue: JsValue, Some(impressions)) => {
                     updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.toDouble))
                   }
-                  case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
+                  case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response)
                 }
               }
-              case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
+              case _ => logResponseDebug("eCPM was not updated", waterfallAdProviderID, response)
             }
           }
-          case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
+          case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
         }
       }
     }
