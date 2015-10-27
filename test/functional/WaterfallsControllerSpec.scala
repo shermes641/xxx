@@ -28,8 +28,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id).url)
-      browser.pageSource must contain("Edit Waterfall")
-      browser.pageSource must contain(currentWaterfall.name)
+      browser.find("#edit-top").getText must beEqualTo(currentApp.name + " Waterfall")
     }
   }
 
