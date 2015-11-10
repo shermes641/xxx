@@ -14,7 +14,7 @@ describe('AnalyticsController', function() {
         };
         var urlRoot = "https://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
         var apiKey = "api_key=D8DD8FDF000323000448F";
-        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-03T00%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-16T00%3A00%3A00%2B00%3A00%22%7D&timezone=-14400";
+        var timeframe = "timeframe=%7B%22start%22%3A%222015-04-03T00%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-16T00%3A00%3A00%2B00%3A00%22%7D&timezone=UTC";
         var listenForKeen = function(filter) {
             server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe,
                 [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": 5.01123595505618}) ]);
@@ -122,6 +122,7 @@ describe('AnalyticsController', function() {
         });
 
         it('should build the export CSV filters correctly', function(){
+            var filters;
             var dates = {
                 start_date: "Wed Feb 25 2015 16:00:00 GMT-0800 (PST)",
                 end_date: "Tue Mar 10 2015 17:00:00 GMT-0700 (PDT)"
@@ -130,7 +131,7 @@ describe('AnalyticsController', function() {
             scope.addToSelected("ad_providers", {"name":"HyprMarketplace","id":2});
             scope.addToSelected("countries", {"name":"Ireland","id":"Ireland"});
 
-            var filters = scope.getExportCSVFilters(dates);
+            filters = scope.getExportCSVFilters(dates);
             console.log(filters);
             expect(filters.apps[0]).toEqual("578021165");
             expect(filters.ad_providers_selected).toEqual(true);
@@ -145,7 +146,7 @@ describe('AnalyticsController', function() {
             scope.removeFromSelected("ad_providers", {"name":"AdColony","id":1}, 0);
             scope.removeFromSelected("ad_providers", {"name":"HyprMarketplace","id":2}, 0);
 
-            var filters = scope.getExportCSVFilters(dates);
+            filters = scope.getExportCSVFilters(dates);
             console.log(filters);
             expect(filters.apps[0]).toEqual("578021165");
             expect(filters.ad_providers_selected).toEqual(false);

@@ -7,6 +7,7 @@
  */
 mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage', 'sharedIDs',
     function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs) {
+        var defaultTimezone = "UTC";
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
@@ -269,7 +270,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 estimatedRevenueRequestComplete: false,
                 fillRateRequestComplete: false
             };
-        }
+        };
         $scope.setDefaultAnalyticsConfig();
 
         /**
@@ -377,7 +378,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 eventCollection: "ad_completed",
                 targetProperty: "ad_provider_eCPM",
                 filters: config.filters,
-                timeframe: config.timeframe
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
             });
 
             $scope.keenClient.run(ecpm_metric, function() {
@@ -426,7 +428,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
                 },
                 filters: config.filters,
-                timeframe: config.timeframe
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
             });
 
             var request_collection = "availability_requested";
@@ -443,7 +446,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 eventCollection: request_collection,
                 interval: "daily",
                 filters: config.filters,
-                timeframe: config.timeframe
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
             });
 
             // Calculate fill rate using inventory requests divided by inventory_available
@@ -451,7 +455,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 eventCollection: response_collection,
                 interval: "daily",
                 filters: config.filters,
-                timeframe: config.timeframe
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
             });
 
             // Impression count, metric
@@ -459,7 +464,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 eventCollection: "ad_displayed",
                 interval: "daily",
                 filters: config.filters,
-                timeframe: config.timeframe
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
             });
 
             // Calculate expected eCPM
@@ -670,7 +676,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 end: moment(dates.end_date).utc().add(1, 'days').format()
             };
 
-            return { apps: apps, ad_providers_selected: ad_providers_selected, filters: filters, timeframe: timeframe };
+            return { apps: apps, ad_providers_selected: ad_providers_selected, filters: filters, timeframe: timeframe, timezone: defaultTimezone };
         };
 
 
