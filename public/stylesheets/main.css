@@ -453,6 +453,12 @@
   text-align: left;
 }
 
+#api-token {
+  font-family: sans-serif;
+  color: #747378;
+  font-weight: 500;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -566,7 +572,7 @@ div [class^="col-"] {
 }
 
 .inactive-input {
-  background-color: #cccccc !important;
+  background-color: gainsboro !important;
 }
 
 hr {

@@ -31,6 +31,18 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     if(typeof callback !== "undefined"){
                         callback(data);
                     }
+                    $scope.waterfallData = data;
+                    $scope.appName = data.waterfall.appName;
+                    $scope.appID = data.waterfall.appID;
+                    sharedIDs.setAppID($scope.appID);
+                    $scope.distributorID = $routeParams.distributorID;
+                    sharedIDs.setDistributorID($scope.distributorID);
+                    $scope.generationNumber = data.generationNumber;
+                    $scope.appToken = data.waterfall.appToken;
+                    $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
+                    $scope.sortableOptions.containment = "#waterfall-edit";
+                    $scope.waterfallInfoCallComplete = true;
+                    $scope.orderOptimizedWaterfallList();
                 }).error(function(data) {
                     $scope.waterfallInfoCallComplete = true;
                     flashMessage.add(data);

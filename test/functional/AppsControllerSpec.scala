@@ -1,7 +1,7 @@
 package functional
 
-import models._
 import anorm._
+import models._
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WS}
@@ -364,7 +364,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
       clickAndWaitForAngular(".left-apps-list .active .settings-icon")
       val documentationLinkText = browser.find("#callback-url-documentation-link").getAttribute("ng-bind-html")
-      val urlPattern = new scala.util.matching.Regex("""http:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+      val urlPattern = new scala.util.matching.Regex("""https:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
       val documentationLink = urlPattern findFirstIn documentationLinkText match {
         case Some(url) => url
         case None => ""
@@ -374,6 +374,24 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
         response.status must beEqualTo(200)
         response.body must contain("Server to Server Callbacks")
       }, Duration(5000, "millis"))
+    }
+
+    "display the API Token in the app configuration modal" in new WithAppBrowser(user.distributorID.get) {
+      def checkAPIToken(testApp: App) = {
+        browser.executeScript("$('.left-apps-list li[name=" + testApp.name + "] .settings-icon').click()")
+        browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed
+        browser.find("#api-token").getValue must beEqualTo(testApp.token)
+      }
+      logInUser()
+      val (secondApp, _, _, _) = setUpApp(distributorID)
+      DB.withTransaction { implicit connection =>
+        AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
+        AppConfig.create(secondApp.id, secondApp.token, generationNumber(secondApp.id))
+      }
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      checkAPIToken(currentApp)
+      browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
+      checkAPIToken(secondApp)
     }
   }
 

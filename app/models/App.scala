@@ -43,6 +43,7 @@ case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, na
 
 /**
  * Encapsulates app and virtual currency information for a particular app.
+ * @param apiToken The unique string identifier for an app.
  * @param currencyID Maps to the id field in the virtual_currencies table.
  * @param active Maps to the active field in the apps table.
  * @param appName Maps to the name field in the apps table
@@ -55,7 +56,7 @@ case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, na
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  * @param generationNumber A number identifying the current AppConfig state.
  */
-case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Boolean, generationNumber: Option[Long])
+case class AppWithVirtualCurrency(apiToken: String, currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Boolean, generationNumber: Option[Long])
 
 object App {
   // Used to convert SQL row into an instance of the App class.
@@ -84,6 +85,7 @@ object App {
 
   // Used to convert SQL row into an instance of the AppWithVirtualCurrency class.
   val AppsWithVirtualCurrencyParser: RowParser[AppWithVirtualCurrency] = {
+    get[String]("apps.token") ~
     get[Long]("virtual_currencies.id") ~
     get[Boolean]("apps.active") ~
     get[String]("apps.name") ~
@@ -95,7 +97,7 @@ object App {
     get[Option[Long]]("virtual_currencies.reward_max") ~
     get[Boolean]("virtual_currencies.round_up") ~
     get[Option[Long]]("generation_number") map {
-      case currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber => AppWithVirtualCurrency(currencyID, active, appName, callbackURL, serverToServerEnabled, currencyName, exchangeRate, rewardMin, rewardMax, roundUp, generationNumber)
+      case apiToken ~ currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber => AppWithVirtualCurrency(apiToken, currencyID, active, appName, callbackURL, serverToServerEnabled, currencyName, exchangeRate, rewardMin, rewardMax, roundUp, generationNumber)
     }
   }
 
@@ -109,7 +111,7 @@ object App {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number
+          SELECT apps.token, apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number
           FROM apps
           JOIN virtual_currencies vc ON vc.app_id = apps.id
           JOIN app_configs ON app_configs.app_id = apps.id

@@ -140,7 +140,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     // collect descriptions for every param in the array so we can check each link individually
     val tooltipDescriptions: Seq[JsValue] = configurationParams.as[JsArray].value.map(param => param \ "description")
     tooltipDescriptions.foreach { description =>
-      val urlPattern = new scala.util.matching.Regex("""http:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+      val urlPattern = new scala.util.matching.Regex("""https:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
       val documentationLink = urlPattern findFirstIn description.as[String] match {
         case Some(url) => url
         case None => ""
