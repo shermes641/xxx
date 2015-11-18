@@ -1,24 +1,17 @@
 package functional
 
+import collection.JavaConversions._
+import com.github.nscala_time.time.Imports._
+import controllers.routes
+import io.keen.client.java.ScopedKeys
 import models._
+import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.Play
 import play.api.test._
 import play.api.test.Helpers._
-import com.github.nscala_time.time._
-import com.github.nscala_time.time.Imports._
+import play.api.test.FakeHeaders
 import play.api.test.FakeApplication
-import play.api.Play
-import io.keen.client.java.ScopedKeys
 import resources.DistributorUserSetup
-import collection.JavaConversions._
-import play.api.libs.json._
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.test.FakeApplication
-import play.api.test.FakeHeaders
-import scala.Some
-import play.api.test.FakeApplication
-import play.api.libs.json.{JsString, JsObject, Json}
-import controllers.routes
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
 
@@ -87,12 +80,12 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
-      var date = DateTime.now
+      var date = new DateTime(DateTimeZone.UTC)
       // End date must be todays date
-      browser.$("#end-date").getValue() must beEqualTo(date.toString("MMM dd, yyyy"))
+      browser.$("#end-date").getValue must beEqualTo(date.toString("MMM dd, yyyy"))
 
       // Start date must be todays date minus 1 month
-      browser.$("#start-date").getValue() must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
+      browser.$("#start-date").getValue must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
     }
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
