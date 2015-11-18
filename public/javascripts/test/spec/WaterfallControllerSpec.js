@@ -34,6 +34,9 @@ describe('WaterfallControllerSpec', function() {
             scope = $rootScope.$new();
             httpBackend = $httpBackend;
 
+            routeParams = { distributorID: 456, waterfallID: 1007066320 };
+            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
+
             // Mock waterfall_info response
             httpBackend.when("GET", "/distributors/" + routeParams.distributorID + "/waterfalls/" + routeParams.waterfallID + "/waterfall_info").respond(waterfallInfo);
 
@@ -49,9 +52,6 @@ describe('WaterfallControllerSpec', function() {
                     '<input reporting-required="{{data.reportingActive}}" name="reportKey" type="text" ng-model="data.reportKey"></input>' +
                     '</form>'
             );
-
-            routeParams = { distributorID: 456, waterfallID: 1007066320 };
-            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
 
             scope.showModal = function(){};
             scope.editAppID = appID;
