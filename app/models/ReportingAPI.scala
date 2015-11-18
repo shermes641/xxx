@@ -19,23 +19,26 @@ abstract class ReportingAPI {
   val currentTime = new DateTime(DateTimeZone.UTC)
   val BaseURL: String
   val waterfallAdProviderID: Long
-  val queryString: List[(String, String)]
+  val queryString: List[(String, String)] // Params to be included in the call to the reporting API.
+
+  lazy val targetURL: WSRequestHolder = {
+    WS.url(BaseURL).withQueryString(queryString: _*)
+  }
 
   /**
    * Make GET request to the reporting API of the Ad Provider.
-   * @param queryString Params to be included in the call to the reporting API.
    * @return Future HTTP response containing the results of the API call.
    */
-  def retrieveAPIData(queryString: List[(String, String)]): Future[WSResponse] = {
-    WS.url(BaseURL).withQueryString(queryString: _*).get()
+  def retrieveAPIData: Future[WSResponse] = {
+    targetURL.get()
   }
 
   /**
    * Receives data from the reporting API and updates the eCPM of the WaterfallAdProvider.
    * @return Future which updates the cpm field of WaterfallAdProvider.
    */
-  def updateRevenueData = {
-    retrieveAPIData(queryString) map {
+  def updateRevenueData() = {
+    retrieveAPIData map {
       case response => parseResponse(waterfallAdProviderID, response)
     }
   }
@@ -69,7 +72,7 @@ abstract class ReportingAPI {
     response.status match {
       case 200 | 304 => {
         Json.parse(response.body) \ "results" match {
-          case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
+          case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response)
           case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
             val result = results.as[JsArray].as[List[JsValue]].last
             result \ "ecpm" match {
@@ -79,25 +82,52 @@ abstract class ReportingAPI {
               case eCPM: JsNumber => {
                 updateEcpm(waterfallAdProviderID, eCPM.as[Double])
               }
-              case _ => logResponseError("ecpm key was not present in JSON response", waterfallAdProviderID, response.body)
+              case _ => logResponseError("ecpm key was not present in JSON response", waterfallAdProviderID, response)
             }
           }
-          case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
+          case _ => logResponseDebug("eCPM was not updated", waterfallAdProviderID, response)
         }
       }
-      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
+      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
     }
+  }
+
+  /**
+   * Formats message to be logged in Papertrail
+   * @param message The message to be logged
+   * @param waterfallAdProviderID The ID of the WaterfallAdProvider that was supposed to be updated
+   * @param response The JSON response from the reporting API
+   * @return String containing the message
+   */
+  def logMessage(message: String, waterfallAdProviderID: Long, response: WSResponse): String = {
+    message + ": " +
+    "\nReporting URL: " + targetURL.url + "?" + targetURL.queryString.toSeq.map(param => param._1 + "=" + param._2(0)).mkString("&") +
+    "\nWaterfallAdProvider ID: " + waterfallAdProviderID +
+    "\nResponse Status: " + response.status +
+    "\nResponse Body: " + response.body
   }
 
   /**
    * Logs reporting errors in Papertrail
    * @param errorMessage The message to be logged
    * @param waterfallAdProviderID The ID of the WaterfallAdProvider that was supposed to be updated
-   * @param responseBody The JSON response from the reporting API
+   * @param response The JSON response from the reporting API
    * @return None
    */
-  def logResponseError(errorMessage: String, waterfallAdProviderID: Long, responseBody: String) = {
-    Logger.error(errorMessage + " URL: " + BaseURL + " WaterfallAdProvider ID: " + waterfallAdProviderID + " Response Body: " + responseBody)
+  def logResponseError(errorMessage: String, waterfallAdProviderID: Long, response: WSResponse) = {
+    Logger.error(logMessage(errorMessage, waterfallAdProviderID, response))
+    None
+  }
+
+  /**
+   * Logs reporting errors in Papertrail
+   * @param debugMessage The message to be logged
+   * @param waterfallAdProviderID The ID of the WaterfallAdProvider that was supposed to be updated
+   * @param response The JSON response from the reporting API
+   * @return None
+   */
+  def logResponseDebug(debugMessage: String, waterfallAdProviderID: Long, response: WSResponse) = {
+    Logger.debug(logMessage(debugMessage, waterfallAdProviderID, response))
     None
   }
 }

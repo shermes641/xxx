@@ -36,7 +36,7 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
       val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
       val newEcpm = 5.0
       originalEcpm must not(beEqualTo(newEcpm))
-      val jsonResponse = JsObject(Seq("eCPM" -> JsNumber(newEcpm)))
+      val jsonResponse = JsArray(Seq(JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))
       response.body returns jsonResponse.toString
       response.status returns 200
       callAPI
@@ -48,7 +48,7 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
       val newEcpm = 10.0
-      val jsonResponse = JsObject(Seq("eCPM" -> JsNumber(newEcpm)))
+      val jsonResponse = JsArray(Seq(JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))
       response.body returns jsonResponse.toString
       response.status returns 400
       callAPI
@@ -60,7 +60,18 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
       val originalGeneration = generationNumber(waterfall.app_id)
       val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
       val newEcpm = 10.0
-      val jsonResponse = JsObject(Seq("stats" -> JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))
+      val jsonResponse = JsArray(Seq(JsObject(Seq("stats" -> JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))))
+      response.body returns jsonResponse.toString
+      response.status returns 200
+      callAPI
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
+      generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
+    }
+
+    "not update the eCPM if there are no events available" in new WithDB {
+      val originalGeneration = generationNumber(waterfall.app_id)
+      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val jsonResponse = JsArray(Seq())
       response.body returns jsonResponse.toString
       response.status returns 200
       callAPI
@@ -74,7 +85,7 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
    * @return Response from mocked out API call.
    */
   def callAPI = {
-    vungle.retrieveAPIData(queryString) returns Future { response }
+    vungle.retrieveAPIData returns Future { response }
     Await.result(vungle.updateRevenueData, Duration(5000, "millis"))
   }
 }

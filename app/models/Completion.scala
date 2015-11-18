@@ -83,7 +83,7 @@ class Completion extends JsonConversion {
           "reward_quantity" -> verificationInfo.rewardQuantity,
           "estimated_offer_profit" -> verificationInfo.offerProfit
         )
-        sendPost(url, data).map(response =>
+        sendPost(url, data).map { response =>
           response.status match {
             case status: Int if(status == 200) => true
             case status => {
@@ -92,7 +92,13 @@ class Completion extends JsonConversion {
               false
             }
           }
-        )
+        } recoverWith {
+          case exception => {
+            Logger.error("Server to server callback to Distributor's servers generated exception:\nURL: " + url +
+              "\nAPI Token: " + verificationInfo.appToken + "\nException: " + exception)
+            Future { false }
+          }
+        }
       }
       case _ => Future { false }
     }

@@ -2,9 +2,12 @@ package models
 
 import play.api.libs.Codecs
 import play.api.libs.json._
-import play.api.Play
+import play.api.{Logger, Play}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 /**
  * Encapsulates interactions with HyprMarketplace's reporting API.
@@ -28,6 +31,11 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
     List("app_id" -> appID, "placement_id" -> placementID, "start_date" -> date, "end_date" -> date, "hash_value" -> hashValue)
   }
 
+  lazy val app: Option[App] = WaterfallAdProvider.find(wapID) match {
+    case Some(wap) => App.findByWaterfallID(wap.waterfallID)
+    case None => None
+  }
+
   /**
    * Calculates the new eCPM for a WatefallAdProvider.
    * @param revenue The revenue value retrieved from the reporting API.
@@ -39,29 +47,61 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
   }
 
   /**
+   * Attempt to fix Player reporting. From the mediation reporting endpoint, ECPMs are inflated due to non reporting of errors, and
+   * disqualification. We use keen ad_displayed events which contains ad_error events to get the impressions.
+   */
+  def getImpressions(): Option[String] = {
+    app match {
+      case Some(app) => {
+        val adDisplayed = new KeenRequest().function("count")
+          .select("ad_displayed")
+          .filterWith("app_id", "eq", app.id.toString)
+          .filterWith("ad_provider_id", "eq", Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get.toString)
+          .thisDays(1)
+          .interval("daily")
+
+        val impressionData = for {
+          displayed <- adDisplayed.collect()
+        } yield (displayed.json)
+
+        Try(Await.result(impressionData, 50 seconds)) match {
+          case Success(dis: JsValue) => {
+            Try(((dis \ "result").as[JsArray].value.last \ "value").as[JsNumber].toString) match {
+              case Success(impressions) => Some(impressions)
+              case Failure(exception) => Logger.error("Failed to parse response from keen: " + exception); None
+            }
+          }
+          case Failure(exception) => Logger.error("Failed to read impressions from keen"); None
+        }
+      }
+      case None => None
+    }
+  }
+
+  /**
    * Receives data from the HyprMarketplace reporting API and updates the eCPM of the WaterfallAdProvider.
    * @return Future which updates the cpm field of WaterfallAdProvider.
    */
-  override def updateRevenueData = {
-    retrieveAPIData(queryString) map {
+  override def updateRevenueData() = {
+    retrieveAPIData map {
       case response => {
         response.status match {
           case 200 | 304 => {
             Json.parse(response.body) \ "results" match {
-              case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response.body)
-              case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
-                val result = results.as[JsArray].as[List[JsValue]].last
-                (result \ "global_stats" \ "revenue", result \ "global_stats" \ "impressions") match {
-                  case (revenue: JsValue, impressions: JsValue) => {
-                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.as[String].toDouble))
+              case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response)
+              case results: JsArray if results.value.nonEmpty => {
+                val result = results.value.last
+                (result \ "global_stats" \ "revenue", getImpressions()) match {
+                  case (revenue: JsValue, Some(impressions)) => {
+                    updateEcpm(waterfallAdProviderID, calculateEcpm(revenue.as[String].toDouble, impressions.toDouble))
                   }
-                  case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response.body)
+                  case (_, _) => logResponseError("stats keys were not present in JSON response", waterfallAdProviderID, response)
                 }
               }
-              case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response.body)
+              case _ => logResponseDebug("eCPM was not updated", waterfallAdProviderID, response)
             }
           }
-          case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response.body)
+          case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
         }
       }
     }

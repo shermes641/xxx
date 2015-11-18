@@ -13,7 +13,7 @@
             <dl id="email-field">
                 <dt><label for="email"></label></dt>
                 <dd ng-class="errors.emailClass">
-                    <input ng-model="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
+                    <input ng-model="data.email" clear-error-on-change="data.email" ng-model-options="{updateOn: 'default'}" type="email" id="email" name="email" value="" placeholder="Email" required/>
                 </dd>
                 <div ng-show="loginForm.$submitted || loginForm.email.$touched">
                     <dd class="error">{{errors.email}}</dd>

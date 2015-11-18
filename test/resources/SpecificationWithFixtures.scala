@@ -1,6 +1,7 @@
 package models
 
 import anorm._
+import org.openqa.selenium.chrome.ChromeDriver
 import org.specs2.mutable._
 import org.specs2.specification._
 import play.api.Play
@@ -19,6 +20,12 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   val DocumentationPassword = running(FakeApplication(additionalConfiguration = testDB)) {
     Play.current.configuration.getString("httpAuthPassword").getOrElse("")
   }
+
+  val webDriverType = running(FakeApplication(additionalConfiguration = testDB)) {
+    Play.current.configuration.getString("webDriverType").getOrElse("chromedriver")
+  }
+
+  System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir") + "/" + webDriverType)
 
   /**
    * Drops and recreates database schema after tests are run.
@@ -46,7 +53,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   /**
    * Creates application for functional tests using a test database and a Firefox web browser.
    */
-  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = WebDriverFactory(Helpers.FIREFOX)) with DefaultUserValues {
+  abstract class WithFakeBrowser extends WithBrowser(app = FakeApplication(additionalConfiguration = testDB), webDriver = new ChromeDriver()) with DefaultUserValues {
 
     /** makes it possible to use any f: => Boolean function with browser.await.until(f) */
     implicit def fixPredicate[E1, E2](p: => Boolean): Predicate[E2] = new Predicate[Any] {
@@ -156,7 +163,7 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
      */
     def verifyAnalyticsHaveLoaded = {
       // Extended wait for Keen to load
-      browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-header.loaded").isPresent
+      browser.await().atMost(120, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-header.loaded").isPresent
       // Average Revenue metric
       waitUntilContainsText("#unique-users", "$")
       // Revenue Table

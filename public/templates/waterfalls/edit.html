@@ -17,7 +17,7 @@
                 <h1 class="preserve-whitespace">{{appName}} Waterfall</h1>
             </div>
             <div id="waterfall-sub-header">
-                <modal-dialog show='modalShown'>
+                <modal-dialog id="modal" show='modalShown'>
                     <div id="edit-app" ng-show="showEditAppModal">
                         <div ng-include="editAppModal"></div>
                     </div>
@@ -65,7 +65,7 @@
                 Initialize hyprMediate in your SDK
                 <div class="code-block">
                     <div class="waterfall-edit-description" ng-click="$event.stopPropagation()">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a id="sdk-documentation-link" target="_blank" href="http://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
+                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a id="sdk-documentation-link" target="_blank" href="https://documentation.hyprmx.com/display/IS/iOS+SDK">documentation</a>.
                     </div>
                     <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
                         // See documentation for suggestions on how to define hyprUserId.

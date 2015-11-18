@@ -19,19 +19,19 @@ trait AdProviderHelper {
     val configuration = {
       val zoneIDDetails = {
         "Add a single zone or multiple zones separated by commas. Please note, we currently only support Value Exchange Zones. " +
-          "For more information on configuration, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>"
+          "For more information on configuration, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>"
       }
 
       val appIDDescription = {
-        "Your AdColony App ID can be found on the AdColony dashboard.  For more information on configuring AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>."
+        "Your AdColony App ID can be found on the AdColony dashboard.  For more information on configuring AdColony, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        "Your Read-Only API Key can be found on the AdColony dashboard.  For more information on configuring reporting for AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>."
+        "Your Read-Only API Key can be found on the AdColony dashboard.  For more information on configuring reporting for AdColony, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AdColony' target='_blank'>documentation</a>."
       }
 
       val callbackDescription = {
-        "Your V4VC Secret Key can be found on the AdColony dashboard.  For more information on configuring server to server callbacks for AdColony, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AdColony+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
+        "Your V4VC Secret Key can be found on the AdColony dashboard.  For more information on configuring server to server callbacks for AdColony, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AdColony+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
       }
 
       "{" +
@@ -90,19 +90,19 @@ trait AdProviderHelper {
 
     val configuration = {
       val appIDDescription = {
-        "Your App ID can be found on the Vungle dashboard.  For more information on configuring Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
+        "Your App ID can be found on the Vungle dashboard.  For more information on configuring Vungle, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
       }
 
       val reportingAPIKeyDescription = {
-        "Your Reporting API Key can be found on the Vungle dashboard.  For more information on configuring reporting for Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
+        "Your Reporting API Key can be found on the Vungle dashboard.  For more information on configuring reporting for Vungle, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
       }
 
       val reportingAPIIDDescription = {
-        "Your Reporting API ID can be found on the Vungle dashboard.  For more information on configuring reporting for Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
+        "Your Reporting API ID can be found on the Vungle dashboard.  For more information on configuring reporting for Vungle, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/Vungle' target='_blank'>documentation</a>."
       }
 
       val callbackDescription = {
-        "Your Secret Key for Secure Callback can be found on the Vungle dashboard.  For more information on configuring server to server callbacks for Vungle, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/Vungle+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
+        "Your Secret Key for Secure Callback can be found on the Vungle dashboard.  For more information on configuring server to server callbacks for Vungle, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/Vungle+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
       }
 
       "{" +
@@ -132,15 +132,15 @@ trait AdProviderHelper {
 
     val configuration = {
       val sdkKeyDescription = {
-        "Your SDK Key can be found on the AppLovin dashboard.  For more information on configuring AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
+        "Your SDK Key can be found on the AppLovin dashboard.  For more information on configuring AppLovin, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        "Your Report Key can be found on the AppLovin dashboard.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
+        "Your Report Key can be found on the AppLovin dashboard.  For more information on configuring reporting for AppLovin, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       val appLovinAppNameDescription = {
-        "Your application name can be found in AppLovin's dashboard.  This is the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='http://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
+        "Your application name can be found in AppLovin's dashboard.  This is the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       "{" +
