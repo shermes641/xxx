@@ -1,10 +1,9 @@
 package models
 
-import anorm._
-import play.api.libs.json._
-
-// Contains implicit conversions for dealing with JSON in PostgreSQL.
-trait WaterfallAdProviderHelper {
+/**
+ * Contains logic for determining whether an AdProvider should be included in the Waterfall or not.
+ */
+trait RewardThreshold {
   val roundUpVal: Option[Boolean]
   val cpmVal: Option[Double]
   val exchangeRateVal: Option[Long]

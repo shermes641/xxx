@@ -35,7 +35,7 @@ describe('WaterfallControllerSpec', function() {
             httpBackend = $httpBackend;
 
             // Mock waterfall_info response
-            httpBackend.when("GET", "/distributors/456/waterfalls/undefined/waterfall_info").respond(waterfallInfo);
+            httpBackend.when("GET", "/distributors/" + routeParams.distributorID + "/waterfalls/" + routeParams.waterfallID + "/waterfall_info").respond(waterfallInfo);
 
             element = angular.element(
                 '<form name="form">' +
@@ -50,7 +50,7 @@ describe('WaterfallControllerSpec', function() {
                     '</form>'
             );
 
-            routeParams = { distributorID: 456 };
+            routeParams = { distributorID: 456, waterfallID: 1007066320 };
             testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
 
             scope.showModal = function(){};

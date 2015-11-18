@@ -467,7 +467,7 @@ case class WaterfallAdProviderRevenueData(waterfallAdProviderID: Long, name: Str
  */
 case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long],
                                       unconfigured: Boolean, configurable: Boolean = true, roundUp: Option[Boolean], exchangeRate: Option[Long],
-                                      rewardMin: Long, pending: Boolean = false, newRecord: Boolean = false) extends WaterfallAdProviderHelper {
+                                      rewardMin: Long, pending: Boolean = false, newRecord: Boolean = false) extends RewardThreshold {
   override val roundUpVal = roundUp
   override val exchangeRateVal = exchangeRate
   override val rewardMinVal = rewardMin

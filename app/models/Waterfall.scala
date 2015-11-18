@@ -262,7 +262,7 @@ object Waterfall extends JsonConversion {
    */
   case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], sdkBlacklistRegex: Option[String], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
                             distributorName: Option[String], distributorID: Option[Long], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String],
-                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, paused: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) extends WaterfallAdProviderHelper {
+                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, paused: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) extends RewardThreshold {
     override val roundUpVal = roundUp
     override val exchangeRateVal = exchangeRate
     override val rewardMinVal = rewardMin
