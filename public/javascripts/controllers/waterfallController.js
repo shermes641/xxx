@@ -24,9 +24,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.flashMessage = flashMessage;
 
             // Retrieve Waterfall data
-            $scope.getWaterfallData = function() {
+            $scope.getWaterfallData = function(callback) {
                 $scope.waterfallInfoCallComplete = false;
                 $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
+                    $scope.setWaterfallData(data);
+                    if(typeof callback !== "undefined"){
+                        callback(data);
+                    }
                     $scope.waterfallData = data;
                     $scope.appName = data.waterfall.appName;
                     $scope.appID = data.waterfall.appID;
@@ -43,6 +47,20 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.waterfallInfoCallComplete = true;
                     flashMessage.add(data);
                 });
+            };
+
+            $scope.setWaterfallData = function(data) {
+                $scope.waterfallData = data;
+                $scope.appName = data.waterfall.appName;
+                $scope.appID = data.waterfall.appID;
+                sharedIDs.setAppID($scope.appID);
+                $scope.distributorID = $routeParams.distributorID;
+                sharedIDs.setDistributorID($scope.distributorID);
+                $scope.generationNumber = data.generationNumber;
+                $scope.appToken = data.waterfall.appToken;
+                $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
+                $scope.sortableOptions.containment = "#waterfall-edit";
+                $scope.waterfallInfoCallComplete = true;
             };
 
             $scope.getWaterfallData();
@@ -250,6 +268,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
                             flashMessage.add(data);
+                            $scope.getWaterfallData();
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
@@ -302,14 +321,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.generationNumber = data.newGenerationNumber;
-                        setWAPData(data)
+                        setWAPData(data);
+                        $scope.getWaterfallData();
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
-                        setWAPData(wapData);
+                        $scope.getWaterfallData();
+                        setWAPData(wapData)
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
@@ -345,13 +366,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                                 adProviders[i].unconfigured = false;
                             }
                         }
-                        $scope.orderOptimizedWaterfallList();
-                        $scope.updateWaterfall();
-                        $scope.showWaterfallAdProviderModal = false;
-                        $scope.showModal(false);
-                        var restartParams = Object.keys($scope.changedRestartParams);
-                        var successMessage = $scope.wapData.adProviderName + " updated!";
-                        flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                        $scope.getWaterfallData(function(){
+                            $scope.orderOptimizedWaterfallList();
+                            $scope.updateWaterfall();
+                            $scope.showWaterfallAdProviderModal = false;
+                            $scope.showModal(false);
+                            var restartParams = Object.keys($scope.changedRestartParams);
+                            var successMessage = $scope.wapData.adProviderName + " updated!";
+                            flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                        });
                     }).error(function(data) {
                         flashMessage.add(data);
                     });

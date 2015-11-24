@@ -2,13 +2,10 @@ describe('WaterfallControllerSpec', function() {
     beforeEach(module('MediationModule'));
 
     describe('waterfallPage', function() {
+        var waterfallInfo;
         beforeEach(inject(function($rootScope, $controller, $compile, $httpBackend) {
             var appID = "62484878";
-            scope = $rootScope.$new();
-            httpBackend = $httpBackend;
-
-            // Mock waterfall_info response
-            httpBackend.when("GET", "/distributors/456/waterfalls/undefined/waterfall_info").respond({
+            waterfallInfo = {
                 "distributorID":620798327,
                 "waterfall":{
                     "id":"62484878",
@@ -32,7 +29,16 @@ describe('WaterfallControllerSpec', function() {
                     {"id":"1007066320","active":true,"distributorID":620798327,"name":"Test App2","waterfallID":1007066320}
                 ],
                 "generationNumber":50
-            });
+            };
+
+            scope = $rootScope.$new();
+            httpBackend = $httpBackend;
+
+            routeParams = { distributorID: 456, waterfallID: 1007066320 };
+            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
+
+            // Mock waterfall_info response
+            httpBackend.when("GET", "/distributors/" + routeParams.distributorID + "/waterfalls/" + routeParams.waterfallID + "/waterfall_info").respond(waterfallInfo);
 
             element = angular.element(
                 '<form name="form">' +
@@ -46,9 +52,6 @@ describe('WaterfallControllerSpec', function() {
                     '<input reporting-required="{{data.reportingActive}}" name="reportKey" type="text" ng-model="data.reportKey"></input>' +
                     '</form>'
             );
-
-            routeParams = { distributorID: 456 };
-            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
 
             scope.showModal = function(){};
             scope.editAppID = appID;
@@ -126,12 +129,14 @@ describe('WaterfallControllerSpec', function() {
 
             it('should persist the new generation number for the currently selected app when the app update response is successful', function() {
                 var newGeneration = scope.generationNumber + 1;
+                waterfallInfo.generationNumber = newGeneration;
                 updateApp(newGeneration);
                 expect(scope.generationNumber).toEqual(newGeneration);
             });
 
             it('should not persist the new generation number when editing an app which is not currently selected on the waterfall page', function() {
                 var originalGeneration = scope.generationNumber;
+                waterfallInfo.generationNumber = originalGeneration;
                 scope.editAppID = 9876;
                 updateApp(originalGeneration + 1);
                 expect(scope.generationNumber).toEqual(originalGeneration);

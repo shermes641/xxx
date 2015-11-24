@@ -266,8 +266,11 @@ object WaterfallAdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       val sqlStatement =
         """
-          SELECT name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable, pending FROM ad_providers
+          SELECT ad_providers.name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable,
+            pending, vc.round_up, vc.exchange_rate, vc.reward_min FROM ad_providers
           JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
+          INNER JOIN waterfalls w on w.id = waterfall_ad_providers.waterfall_id
+          INNER JOIN virtual_currencies vc on vc.app_id = w.app_id
           WHERE waterfall_id = {waterfall_id}
           ORDER BY waterfall_order ASC;
         """
@@ -407,9 +410,12 @@ object WaterfallAdProvider extends JsonConversion {
       get[Option[Long]]("waterfall_order") ~
       get[JsValue]("configuration_data") ~
       get[Boolean]("configurable") ~
+      get[Option[Boolean]]("round_up") ~
+      get[Option[Long]]("exchange_rate") ~
+      get[Long]("reward_min") ~
       get[Boolean]("pending") map {
-      case name ~ id ~ cpm ~ active ~ waterfall_order ~ configuration_data ~ configurable ~ pending =>
-        OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, unconfigured(configuration_data.as[JsObject], "requiredParams"), false, configurable, pending)
+      case name ~ id ~ cpm ~ active ~ waterfall_order ~ configuration_data ~ configurable ~ round_up ~ exchange_rate ~ reward_min ~ pending =>
+        OrderedWaterfallAdProvider(name, id, cpm, active, waterfall_order, unconfigured(configuration_data.as[JsObject], "requiredParams"), configurable, round_up, exchange_rate, reward_min, pending, newRecord = false)
     }
   }
 
@@ -454,9 +460,19 @@ case class WaterfallAdProviderRevenueData(waterfallAdProviderID: Long, name: Str
  * @param unconfigured Determines if all required params have been filled in.
  * @param newRecord Determines if there is a corresponding WaterfallAdProvider record.
  * @param configurable Determines if a DistributorUser can edit the cpm value for the WaterfallAdProvider.
+ * @param roundUp Whether round up has been turned on for this App.
+ * @param exchangeRate Maps to the exchange_rate field of the virtual_currencies table.
+ * @param rewardMin Maps to the reward_min field of the virtual_currencies table.
  * @param pending Determines if the ad provider has been configured yet.  HyprMarketplace will remains in a pending state until we receive a response from Player with the distributor ID.
  */
-case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long], unconfigured: Boolean, newRecord: Boolean = false, configurable: Boolean = true, pending: Boolean = false)
+case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long, cpm: Option[Double], active: Boolean, waterfallOrder: Option[Long],
+                                      unconfigured: Boolean, configurable: Boolean = true, roundUp: Option[Boolean], exchangeRate: Option[Long],
+                                      rewardMin: Long, pending: Boolean = false, newRecord: Boolean = false) extends RewardThreshold {
+  override val roundUpVal = roundUp
+  override val exchangeRateVal = exchangeRate
+  override val rewardMinVal = rewardMin
+  override val cpmVal = cpm
+}
 
 /**
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
