@@ -2,6 +2,7 @@ package functional
 
 import anorm._
 import models._
+import org.fluentlenium.core.filter.FilterConstructor.withName
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WS}
@@ -15,21 +16,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
   val appName = "App 1"
 
   val user = running(FakeApplication(additionalConfiguration = testDB)) {
+    AdProvider.loadAll()
     DistributorUser.create(email, password, companyName)
     DistributorUser.findByEmail(email).get
   }
-
-  val adProviders = List("test ad provider 1", "test ad provider 2")
-
-  val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProviders(0), "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}], \"reportingParams\": [{\"description\": \"Your Mediation Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, {\"description\": \"Your Mediation Reporting Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}]}", None)
-  }
-
-  val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProviders(1), "{\"requiredParams\":[{\"description\": \"Your HyprMX Distributor ID\", \"key\": \"distributorID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}, {\"description\": \"Your HyprMX App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"true\"}], \"reportingParams\": [{\"description\": \"Your Mediation Reporting API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, {\"description\": \"Your Mediation Reporting Placement ID\", \"key\": \"placementID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}, {\"description\": \"Your App ID\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}], \"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\", \"refreshOnAppRestart\": \"false\"}]}", None)
-  }
-
-  val distributorID = user.distributorID.get
 
   "AppsController.newApp" should {
     "not create a new app with a virtual currency Reward Minimum that is greater than the Reward Maximum" in new WithFakeBrowser {
@@ -114,6 +104,24 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(currentApp.name + " Waterfall"))
       App.findAll(user.distributorID.get).size must beEqualTo(appCount + 1)
     }
+
+    "allow a new app to be created with the same name as an existing app, if the new app belongs to a different platform" in new WithFakeBrowser {
+      val (currentApp, _, _, _) = setUpApp(user.distributorID.get)
+      val appCount = App.findAll(user.distributorID.get).size
+
+      logInUser()
+
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      browser.$("button[id=create-app]").first.isEnabled must beEqualTo(false)
+      fillInAppValues(appName = currentApp.name, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+      clickAndWaitForAngular("#android-logo")
+      browser.find("button[id=create-app]").click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(currentApp.name + " Waterfall"))
+      val allApps = App.findAll(user.distributorID.get)
+      allApps.size must beEqualTo(appCount + 1)
+      val newApps = allApps.filter(app => app.name == currentApp.name)
+      newApps(0).platformID must not equalTo newApps(1).platformID
+    }
   }
 
   "AppsController.create" should {
@@ -181,6 +189,24 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       hyprMarketplace.pending must beEqualTo(true)
     }
 
+    "should create an app and HyprMarketplace WaterfallAdProvider instance with the appropriate platform" in new WithFakeBrowser {
+      logInUser()
+
+      val newAppName = "test android app"
+      goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
+      fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
+      clickAndWaitForAngular("#android-logo")
+      browser.$("button[id=create-app]").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(newAppName + " Waterfall"))
+      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
+      val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
+      val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
+      val hyprMarketplace = WaterfallAdProvider.find(waterfallAdProviders(0).waterfallAdProviderID).get
+
+      currentApp.platformID must beEqualTo(Platform.Android.PlatformID)
+      hyprMarketplace.adProviderID must beEqualTo(Platform.Android.hyprMarketplaceID)
+    }
+
     "new app on waterfall page should show new app in left column once created" in new WithFakeBrowser {
       logInUser()
 
@@ -196,6 +222,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val body = JsObject(
         Seq(
           "appName" -> JsString("New Unique App"),
+          "platformID" -> JsNumber(1),
           "currencyName" -> JsString("Coins"),
           "exchangeRate" -> JsNumber(100),
           "rewardMin" -> JsNumber(1),
@@ -383,7 +410,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
         browser.find("#api-token").getValue must beEqualTo(testApp.token)
       }
       logInUser()
-      val (secondApp, _, _, _) = setUpApp(distributorID)
+      val (secondApp, _, _, _) = setUpApp(user.distributorID.get)
       DB.withTransaction { implicit connection =>
         AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id))
         AppConfig.create(secondApp.id, secondApp.token, generationNumber(secondApp.id))
@@ -392,6 +419,64 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       checkAPIToken(currentApp)
       browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
       checkAPIToken(secondApp)
+    }
+
+    "display the appropriate platform icon for the device targeting field" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
+      browser.find(".device-targeting-icon").first.getAttribute("src") must contain("/assets/images/" + Platform.Ios.PlatformName + "_icon_white.png")
+    }
+
+    "display the appropriate platform icon in the Active Apps list" in new WithAppBrowser(user.distributorID.get) {
+      def imgSrcPath(platformName: String) = {
+        val srcBase = "/assets/images/" + platformName + "_icon_"
+        (srcBase + "white.png", srcBase + "grey.png")
+      }
+      val (activeAndroidImageSrc, inactiveAndroidImageSrc) = imgSrcPath(Platform.Android.PlatformName)
+      val (androidApp, _, _, _) = setUpApp(distributorID = user.distributorID.get,
+        appName = Some("New Android App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Android.PlatformID
+      )
+
+      val (activeIosImageSrc, inactiveIosImageSrc) = imgSrcPath(Platform.Ios.PlatformName)
+      val (iOSApp, _, _, _) = setUpApp(distributorID = user.distributorID.get,
+        appName = Some("New iOS App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Ios.PlatformID
+      )
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
+
+      val appListClass = ".app-list-name-container"
+      val platformLogoClass = ".platform-logo"
+
+      val inactiveIosAppListItem = browser.find(appListClass, withName(iOSApp.name)).first
+      inactiveIosAppListItem.find(platformLogoClass).first.getAttribute("src") must contain(inactiveIosImageSrc)
+
+      // Select iOS app
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, iOSApp.id).url)
+
+      val activeIosAppListItem = browser.find(appListClass, withName(iOSApp.name)).first
+      activeIosAppListItem.find(platformLogoClass).first.getAttribute("src") must contain(activeIosImageSrc)
+
+      val inactiveAndroidAppListItem = browser.find(appListClass, withName(androidApp.name)).first
+      inactiveAndroidAppListItem.find(platformLogoClass).first.getAttribute("src") must contain(inactiveAndroidImageSrc)
+
+      // Select Android app
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, androidApp.id).url)
+
+      val activeAndroidAppListItem = browser.find(appListClass, withName(androidApp.name)).first
+      activeAndroidAppListItem.find(platformLogoClass).first.getAttribute("src") must contain(activeAndroidImageSrc)
     }
   }
 
@@ -406,7 +491,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       "\"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}"
 
     val adProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-      AdProvider.create("test ad provider", adProviderConfig, None)
+      AdProvider.create("test ad provider", adProviderConfig, Platform.Ios.PlatformID, None)
     }
 
     "update the app record in the database" in new WithAppBrowser(user.distributorID.get) {

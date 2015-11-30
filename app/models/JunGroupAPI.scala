@@ -58,13 +58,13 @@ class JunGroupAPI {
   /**
    * Creates a JSON object of the adNetwork configuration
    * @param companyName The name of the Distributor to which the App belongs.
-   * @param appName The name of the App.
-   * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
+   * @param app The newly created App.
    * @return A JsObject with ad network information.
    */
-  def adNetworkConfiguration(companyName: String, appName: String, appToken: String): JsObject = {
-    val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
-    val adNetworkName = companyName + " - " + appName
+  def adNetworkConfiguration(companyName: String, app: App): JsObject = {
+    val hyprMarketplacePayoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(app.token)
+    val platformName = Platform.find(app.platformID).PlatformName
+    val adNetworkName = companyName + " - " + app.name + " - " + platformName
     val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
     val payoutURLEnvironment: String = {
       val playerURL: String = Play.current.configuration.getString("jungroup.url").getOrElse("")
@@ -83,8 +83,8 @@ class JunGroupAPI {
             "name" -> JsString(adNetworkName),
             // Always set to true due to mediation being SDK only
             "mobile" -> JsBoolean(true),
-            "mediation_reporting_api_key" -> JsString(appToken),
-            "mediation_reporting_placement_id" -> JsString(appToken),
+            "mediation_reporting_api_key" -> JsString(app.token),
+            "mediation_reporting_placement_id" -> JsString(app.token),
             "created_in_context" -> JsString(createdInContext),
             "is_test" -> JsBoolean(!Environment.isProd),
             "demographic_targeting_enabled" -> JsBoolean(true)
@@ -114,12 +114,11 @@ class JunGroupAPI {
  * Actor that creates requests and retries on failure up to RETRY_COUNT times every RETRY_FREQUENCY
  * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
  * @param hyprWaterfallAdProvider The HyprMarketplace WaterfallAdProvider instance that was just created.
- * @param appToken The unique identifier for the App to which the WaterfallAdProvider belongs.
- * @param appName The name of the newly created App.
+ * @param app The newly created App.
  * @param distributorID The ID of the Distributor to which the App belongs.
  * @param api Instance of the JunGroupAPI class.
  */
-class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, appToken: String, appName: String, distributorID: Long, api: JunGroupAPI) extends Actor {
+class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdProvider, app: App, distributorID: Long, api: JunGroupAPI) extends Actor {
   private var counter = 0
   private val RETRY_COUNT = 3
   private val RETRY_FREQUENCY = 60.seconds
@@ -139,10 +138,10 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
     case CreateAdNetwork(distributorUser: DistributorUser) => {
       if(counter > RETRY_COUNT) {
         val emailError = lastFailure
-        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, appToken, emailError)
+        api.sendFailureEmail(distributorUser, hyprWaterfallAdProvider.id, app.token, emailError)
         context.stop(self)
       } else {
-        val adNetwork = api.adNetworkConfiguration(companyName, appName, appToken)
+        val adNetwork = api.adNetworkConfiguration(companyName, app)
         api.createRequest(adNetwork) map {
           response => {
             if(response.status != 500) {
@@ -158,7 +157,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
                     if(success.as[JsBoolean] != JsBoolean(false)) {
                       DB.withTransaction { implicit connection =>
                         try {
-                          WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, appToken, appName)
+                          WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, app.token, app.name)
                           AppConfig.createWithWaterfallIDInTransaction(waterfallID, None)
                         } catch {
                           case error: org.postgresql.util.PSQLException => {
@@ -211,7 +210,7 @@ class JunGroupAPIActor(waterfallID: Long, hyprWaterfallAdProvider: WaterfallAdPr
    */
   def assembleAndLogError(errorMessage: String, responseBody: Option[String] = None): String = {
     val error =  errorMessage + " Response Body: " + responseBody.getOrElse("None")
-    Logger.error("JunGroupAPI Error for API Token: " + appToken + "\nWaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + "\n" + error)
+    Logger.error("JunGroupAPI Error for API Token: " + app.token + "\nWaterfallAdProvider ID: " + hyprWaterfallAdProvider.id + "\n" + error)
     error
   }
 }

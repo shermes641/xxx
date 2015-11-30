@@ -12,17 +12,57 @@ import scala.language.postfixOps
 
 object APIController extends Controller {
   val DefaultTimeout = 5000 // The default timeout for all server to server calls (in milliseconds).
+  /**
+   * Builds the error message for an AppConfig/Device mismatch.
+   * @param appPlatform The name of the platform to which the AppConfig belongs.
+   * @param platformParam The name of the platform param that was sent from the SDK.
+   * @return The appropriate error message, specifying which platform was sent/expected.
+   */
+  def platformError(appPlatform: String, platformParam: String): String = {
+    "Your " + platformParam + " device is using the API token for an app that is targeted to " +
+      appPlatform + " devices. Please check your HyprMediate dashboard for an app with the appropriate device targeting."
+  }
 
   /**
    * Responds with configuration JSON from the app_configs table.
    * @param appToken Random string which both authenticates the request and identifies the app.
+   * @param platformName The name of the device platform (e.g. iOS or Android).
    * @return If an AppConfig is found, return the configuration field.  Otherwise, return a JSON error message.
    */
-  def appConfigV1(appToken: String) = Action { implicit request =>
+  def appConfigV1(appToken: String, platformName: Option[String]) = Action { implicit request =>
     AppConfig.findLatest(appToken) match {
-      case Some(response) if((response.configuration \ "status").isInstanceOf[JsUndefined]) => Ok(response.configuration)
-      case Some(response) => BadRequest(response.configuration)
-      case None => NotFound(Json.obj("status" -> "error", "message" -> "App Configuration not found."))
+      case Some(response) => {
+        if((response.configuration \ "status").isInstanceOf[JsUndefined]) {
+          (platformName, response.configuration \ "platformID") match {
+            case (Some(platformParamName), platformID: JsNumber) => {
+              val appConfigPlatformName = Platform.find(platformID.as[Int]).PlatformName
+              if(platformParamName == appConfigPlatformName) {
+                Ok(response.configuration)
+              } else {
+                BadRequest(
+                  Json.obj(
+                    "status" -> "error",
+                    "message" -> platformError(appConfigPlatformName, platformParamName)
+                  )
+                )
+              }
+            }
+            case (_, _) => {
+              Ok(response.configuration)
+            }
+          }
+        } else {
+          BadRequest(response.configuration)
+        }
+      }
+      case None => {
+        NotFound(
+          Json.obj(
+            "status" -> "error",
+            "message" -> "App Configuration not found."
+          )
+        )
+      }
     }
   }
 

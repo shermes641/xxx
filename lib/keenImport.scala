@@ -32,7 +32,7 @@ if(Environment.isProd) {
 
   object AppHelper extends UpdateHyprMarketplace {
     def createApp(appName: String) = {
-      val appID = App.create(distributorID, appName).get
+      val appID = App.create(distributorID, appName, AdProvider.Ios.PlatformID).get
       val app = App.find(appID).get
 
       val wap = DB.withTransaction { implicit connection =>

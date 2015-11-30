@@ -16,6 +16,19 @@
                 <dd class="error" ng-show="form.editAppForm.appName.$error.required">App Name is required.</dd>
             </dl>
 
+            <dl id="app-platform" class="device-targeting-field">
+                <dt class="app-platform-display-label">
+                    <label for="app-platform">Device Targeting</label>
+                </dt>
+                <dd>
+                    <div id="edit-app-platform">
+                        <div class="device-targeting-container">
+                            <img class="device-targeting-icon" alt="" ng-src="{{platforms.logoSource(data.platformName)}}">
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+
             <dl class="switch-field onoff-field" id="serverToServerEnabled-field">
                 <dt>
                     <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>

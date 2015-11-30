@@ -12,10 +12,22 @@ import resources.JsonTesting
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallCreationHelper {
+  val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
+    DB.withConnection { implicit connection =>
+      AdProvider.create(name = "test ad provider 1", configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
+    }
+  }
+
+  val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
+    DB.withConnection { implicit connection =>
+      AdProvider.create(name = "test ad provider 2", configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
+    }
+  }
+
   val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
     val distributorID = Distributor.create("New Company").get
     val distributor = Distributor.find(distributorID).get
-    val id = App.create(distributorID, "New App").get
+    val id = App.create(distributorID, "New App", Platform.Ios.PlatformID).get
     App.find(id).get
   }
 
@@ -23,18 +35,6 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     VirtualCurrency.create(currentApp.id, "Coins", 100, 1, None, Some(true))
     val waterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, "New App Waterfall") }
     Waterfall.find(waterfallID, currentApp.distributorID).get
-  }
-
-  val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    DB.withConnection { implicit connection =>
-      SQL("insert into ad_providers (name, configuration_data) values ('test ad provider 1', cast({configuration_data} as json))").on("configuration_data" -> configurationData).executeInsert()
-    }
-  }
-
-  val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    DB.withConnection { implicit connection =>
-      SQL("insert into ad_providers (name) values ('test ad provider 2')").executeInsert()
-    }
   }
 
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -158,7 +158,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     }
 
     "convert WaterfallAdProvider configuration param values to Strings if they are not already" in new WithDB {
-      val newAppID = App.create(currentApp.distributorID, "New Test App").get
+      val newAppID = App.create(currentApp.distributorID, "New Test App", Platform.Ios.PlatformID).get
       VirtualCurrency.create(newAppID, "Coins", exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = Some(true))
       val newWaterfall = {
         val id = DB.withTransaction { implicit connection => createWaterfallWithConfig(newAppID, "New Waterfall") }

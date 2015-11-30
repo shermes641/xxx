@@ -13,7 +13,8 @@ describe('NewAppSpec', function() {
             httpBackend.when("GET", "/distributors/456/waterfalls/undefined/waterfall_info").respond({
                 waterfall: {
                     appName: "test app",
-                    appID: 123
+                    appID: 123,
+                    platformID: 1
                 },
                 generationNumber: 1,
                 waterfallAdProviderList: []
@@ -31,7 +32,7 @@ describe('NewAppSpec', function() {
                 '</form>'
             );
 
-            scope.newApp = {rewardMax: undefined, rewardMin: undefined, exchangeRate: undefined, appName: undefined};
+            scope.newApp = {rewardMax: undefined, rewardMin: undefined, exchangeRate: undefined, appName: undefined, platformID: 1};
             testCont = $controller('WaterfallController', {$scope: scope, $routeParams: { distributorID: 456 }});
 
             scope.showModal = function(){};
@@ -55,9 +56,10 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
-            newAppResponseMock.respond(200, { data: "" })
+            newAppResponseMock.respond(200, { data: "" });
 
             scope.submitNewApp(form);
             expect(form.submitting).toEqual(undefined);
@@ -77,6 +79,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
             scope.newApp.appName = "test";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(400, { data: "" });
@@ -95,6 +98,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(500, { data: "" });
@@ -114,6 +118,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
             scope.newApp.appName = "test";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(400, { status:"error", fieldName:"appName", message:"You already have an App with the same name.  Please choose a unique name for your new App." });
@@ -146,7 +151,7 @@ describe('NewAppSpec', function() {
                     '</form>'
             );
 
-            scope.newApp = {rewardMax: undefined, rewardMin: undefined, exchangeRate: undefined, appName: undefined};
+            scope.newApp = {rewardMax: undefined, rewardMin: undefined, exchangeRate: undefined, appName: undefined, platformID: 1};
             testCont = $controller('NewAppsController', {$scope: scope, $routeParams: { distributorID: 456 }});
 
             compile = $compile;
@@ -168,6 +173,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(200, { data: "" })
@@ -187,6 +193,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
             scope.newApp.appName = "test";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(400, { data: "" });
@@ -204,6 +211,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMax = "123";
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(500, { data: "" });
@@ -222,6 +230,7 @@ describe('NewAppSpec', function() {
             scope.newApp.rewardMin = "13";
             scope.newApp.exchangeRate = "1";
             scope.newApp.appName = "test";
+            scope.newApp.platformID = 1;
             scope.$digest();
 
             newAppResponseMock.respond(400, { status:"error", fieldName:"appName", message:"You already have an App with the same name.  Please choose a unique name for your new App." });

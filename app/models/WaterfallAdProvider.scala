@@ -305,7 +305,7 @@ object WaterfallAdProvider extends JsonConversion {
   def findConfigurationData(waterfallAdProviderID: Long)(implicit connection: Connection): Option[WaterfallAdProviderConfig] = {
     val query = SQL(
       """
-        SELECT ad_providers.name, reward_min, cpm, ad_providers.configuration_data as ad_provider_configuration,
+        SELECT ad_providers.name, ad_providers.platform_id, reward_min, cpm, ad_providers.configuration_data as ad_provider_configuration,
         ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active, wap.pending
         FROM waterfall_ad_providers wap
         INNER JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
@@ -422,6 +422,7 @@ object WaterfallAdProvider extends JsonConversion {
   // Used to convert result of findConfigurationData SQL query.
   val waterfallAdProviderConfigParser: RowParser[WaterfallAdProviderConfig] = {
       get[String]("name") ~
+      get[Long]("ad_providers.platform_id") ~
       get[Long]("reward_min") ~
       get[Option[Double]]("cpm") ~
       get[JsValue]("ad_provider_configuration") ~
@@ -429,7 +430,9 @@ object WaterfallAdProvider extends JsonConversion {
       get[JsValue]("wap_configuration") ~
       get[Boolean]("reporting_active") ~
       get[Boolean]("pending")  map {
-      case name ~ reward_min ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active ~ pending => WaterfallAdProviderConfig(name, reward_min, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active, pending)
+      case name ~ platform_id ~ reward_min ~ cpm ~ ad_provider_configuration ~ callback_url_format ~ wap_configuration ~ reporting_active ~ pending => {
+        WaterfallAdProviderConfig(name, platform_id, reward_min, cpm, ad_provider_configuration, callback_url_format, wap_configuration, reporting_active, pending)
+      }
     }
   }
 
@@ -477,6 +480,7 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
 /**
  * Encapsulates data configuration information from a WaterfallAdProvider and corresponding AdProvider record.
  * @param name name field from ad_providers table.
+ * @param platformID The ID of the platform to which the AdProvider belongs.
  * @param rewardMin The minimum reward from the virtual_currencies table.
  * @param cpm cpm field from waterfall_ad_providers table.
  * @param adProviderConfiguration Configuration data from AdProvider record.
@@ -485,7 +489,15 @@ case class OrderedWaterfallAdProvider(name: String, waterfallAdProviderID: Long,
  * @param reportingActive Boolean value indicating if we are collecting revenue data from third-parties.
  * @param pending A boolean that determines if the waterfall_ad_provider is able to be activated.  This is used only in the case of HyprMarketplace while we wait for a Distributor ID.
  */
-case class WaterfallAdProviderConfig(name: String, rewardMin: Long, cpm: Option[Double], adProviderConfiguration: JsValue, callbackUrlFormat: Option[String], waterfallAdProviderConfiguration: JsValue, reportingActive: Boolean, pending: Boolean) extends RequiredParamJsReader {
+case class WaterfallAdProviderConfig(name: String,
+                                     platformID: Long,
+                                     rewardMin: Long,
+                                     cpm: Option[Double],
+                                     adProviderConfiguration: JsValue,
+                                     callbackUrlFormat: Option[String],
+                                     waterfallAdProviderConfiguration: JsValue,
+                                     reportingActive: Boolean,
+                                     pending: Boolean) extends RequiredParamJsReader {
   /**
    * Converts an optional String value to a Boolean.
    * @param param The original optional String value.

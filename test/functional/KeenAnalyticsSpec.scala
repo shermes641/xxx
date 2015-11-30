@@ -58,7 +58,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Update Ad Provider drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
-      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
@@ -78,8 +78,8 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Add both HyprMX and Vungle to the filter list" in new WithAppBrowser(distributorID) {
       logInUser()
-      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
+      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
@@ -104,8 +104,8 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Clear all filters list" in new WithAppBrowser(distributorID) {
       logInUser()
-      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
+      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded

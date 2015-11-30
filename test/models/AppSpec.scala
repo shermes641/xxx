@@ -27,7 +27,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
   "App.findAllAppsWithWaterfalls" should {
     "return a list of Apps containing the Waterfall ID for each App" in new WithDB {
       val (newUser, newDistributor) = newDistributorUser("newemail@gmail.com")
-      val appID = App.create(newDistributor.id.get, "New App").get
+      val appID = App.create(newDistributor.id.get, "New App", Platform.Ios.PlatformID).get
       val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "New Waterfall") }.get
       val appWithWaterfallID = App.findAllAppsWithWaterfalls(newDistributor.id.get)(0)
       appWithWaterfallID.id must beEqualTo(appID)
@@ -55,12 +55,12 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
 
   "App.create" should {
     "properly save a new App in the database" in new WithDB {
-      val appID = App.create(distributor.id.get, appName).get
+      val appID = App.create(distributor.id.get, appName, Platform.Ios.PlatformID).get
       App.find(appID).get.name must beEqualTo(appName)
     }
 
     "should set the app_config_refresh_interval to 0 by default" in new WithDB {
-      val appID = App.create(distributor.id.get, randomAppName).get
+      val appID = App.create(distributor.id.get, randomAppName, Platform.Ios.PlatformID).get
       val appConfigRefreshInterval = DB.withConnection { implicit connection =>
         SQL(
           """
@@ -76,8 +76,8 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
     "return a list of all apps associated with the Distributor ID" in new WithDB {
       val newEmail = "testemail@mail.com"
       val (_, currentDistributor) = newDistributorUser(newEmail)
-      App.create(currentDistributor.id.get, "App 1")
-      App.create(currentDistributor.id.get, "App 2")
+      App.create(currentDistributor.id.get, "App 1", Platform.Ios.PlatformID)
+      App.create(currentDistributor.id.get, "App 2", Platform.Ios.PlatformID)
       val apps = App.findAll(currentDistributor.id.get)
       apps.size must beEqualTo(2)
     }

@@ -20,17 +20,17 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
   val response = mock[WSResponse]
   val junGroup = spy(new JunGroupAPI())
-  val appToken = "app-token"
-  val appName = "app-name"
+  val testApp: App = new App(id = 1, active = true, distributorID = 1, name = "app-name", callbackURL = None, serverToServerEnabled = true, token = "app-token", platformID = 1)
   val distributorName = "Company Name"
 
   "adNetworkConfiguration" should {
     "Build the correct configuration using the created distributor user" in new WithDB {
-      val payoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(appToken)
-      val config = junGroup.adNetworkConfiguration(distributorName, appName, appToken)
+      val payoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(testApp.token)
+      val config = junGroup.adNetworkConfiguration(distributorName, testApp)
       val networkJson = config \ "ad_network"
       val payoutUrlJson = config \ "payout_url"
-      val adNetworkName = distributorName + " - " + appName
+      val platformName = Platform.find(testApp.platformID).PlatformName
+      val adNetworkName = distributorName + " - " + testApp.name + " - " + platformName
       val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
 
       networkJson \ "name" must beEqualTo(JsString(adNetworkName))
@@ -38,8 +38,8 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       networkJson \ "created_in_context" must beEqualTo(JsString(createdInContext))
       networkJson \ "is_test" must beEqualTo(JsBoolean(true))
       networkJson \ "demographic_targeting_enabled" must beEqualTo(JsBoolean(true))
-      networkJson \ "mediation_reporting_api_key" must beEqualTo(JsString(appToken))
-      networkJson \ "mediation_reporting_placement_id" must beEqualTo(JsString(appToken))
+      networkJson \ "mediation_reporting_api_key" must beEqualTo(JsString(testApp.token))
+      networkJson \ "mediation_reporting_placement_id" must beEqualTo(JsString(testApp.token))
 
       payoutUrlJson \ "url" must beEqualTo(JsString(payoutUrl))
       payoutUrlJson \ "environment" must beEqualTo(JsString(Environment.mode))
@@ -48,7 +48,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
   "createRequest" should {
     "create a request correctly using the ad network configuration" in new WithDB {
-      val config = junGroup.adNetworkConfiguration(distributorName, appName, appToken)
+      val config = junGroup.adNetworkConfiguration(distributorName, testApp)
       val successResponse = JsObject(Seq("success" -> JsBoolean(true)))
       response.body returns Json.stringify(successResponse)
       response.status returns 200
@@ -64,9 +64,9 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       WaterfallAdProvider.find(id).get
     }
     api.createRequest(any[JsObject]) returns Future { playerResponse }
-    api.adNetworkConfiguration(any[String], any[String], any[String]) returns JsObject(Seq())
+    api.adNetworkConfiguration(any[String], any[App]) returns JsObject(Seq())
     val junActor = running(FakeApplication(additionalConfiguration = testDB)) {
-      TestActorRef(new JunGroupAPIActor(waterfall.id, hyprWaterfallAdProvider, appToken, appName, distributor.id.get, api)).underlyingActor
+      TestActorRef(new JunGroupAPIActor(waterfall.id, hyprWaterfallAdProvider, testApp, distributor.id.get, api)).underlyingActor
     }
 
     "exist and accept Create Ad Network message" in new WithDB {

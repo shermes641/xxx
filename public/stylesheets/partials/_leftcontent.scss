@@ -162,7 +162,7 @@
     position: absolute;
     right: 0px;
     top: 0px;
-    border-left: 1px solid #F7F7F7;
+    border-left: 1px solid #e1e1e1;
     width: 38px;
     cursor: pointer;
 
@@ -183,7 +183,7 @@
   }
 
   &.active .settings-icon {
-    border-left: 1px solid #2E73EA;
+    border-left: 1px solid #0056ea;
     background-position: -115px 3px;
 
     &:before {
@@ -362,4 +362,30 @@
 
 .input-group {
   display: block;
+}
+
+.platform-logo {
+  top: 9px;
+  height: 19px;
+  width: 15px;
+  position: absolute;
+}
+
+.app-name {
+  position: absolute;
+  margin-top: -9px;
+  margin-left: 25px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.app-list-name {
+  position: absolute;
+  top: 0;
+  left: -75px;
+}
+
+.app-list-name-container {
+  height: 38px;
 }
