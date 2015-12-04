@@ -1,10 +1,16 @@
 package functional
 
+import anorm._
+import com.github.nscala_time.time.Imports._
 import models._
+import play.api.db.DB
 import play.api.mvc.Session
 import play.api.test._
 import play.api.test.Helpers._
 import java.security.MessageDigest
+import resources.DistributorUserSetup
+
+import scala.concurrent.duration.Duration
 
 class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppCreationHelper {
   "DistributorUsersController.signup" should {
@@ -165,5 +171,142 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-custom-error").hasText("")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-required-error").areDisplayed
     }
+  }
+
+  "DistributorUsersController.sendPasswordResetEmail" should {
+    "create a new password reset record and alert the user of a password reset email" in new WithFakeBrowser {
+      val originalResetCount = tableCount("password_resets")
+      val newUser = {
+        val id = DistributorUser.create("UniqueUser4@gmail.com", password = "password", company = "new company").get
+        DistributorUser.find(id).get
+      }
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
+      clickAndWaitForAngular("#forgot-password-link")
+      browser.fill("#email").`with`(newUser.email)
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#login-message").containsText("Password reset email sent!")
+      tableCount("password_resets") must beEqualTo(originalResetCount + 1)
+    }
+  }
+
+  "DistributorUsersController.updatePassword" should {
+    "update the password for a distributor user if the token is valid" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser5@gmail.com")
+      setUpApp(newUser.distributorID.get)
+      val resetToken = PasswordReset.create(newUser.id.get)
+      val newPassword = "new password"
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.resetPassword(Some(newUser.email), resetToken, newUser.id).url)
+      browser.fill("#password").`with`(newPassword)
+      browser.fill("#confirmation").`with`(newPassword)
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-controller").isPresent
+      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(newUser.distributorID.get, None, None).url)
+      DistributorUser.find(newUser.id.get).get.hashedPassword must not equalTo newUser.hashedPassword
+    }
+
+    "respond with a 400 if the token is not valid" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser6@gmail.com")
+      val invalidToken = Some("some-invalid-token")
+      val Some(result) = passwordResetRequest(Some(newUser.email), invalidToken, newUser.id, POST)
+      status(result) must beEqualTo(400)
+    }
+
+    "respond with a 400 if the token has expired" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser7@gmail.com")
+      val resetToken = PasswordReset.create(newUser.id.get)
+      val newCreatedAt = (new DateTime(DateTimeZone.UTC) - PasswordReset.ResetPasswordWindow).toString(PasswordReset.dateFormatGeneration)
+      DB.withConnection { implicit connection =>
+        SQL(
+          """
+          UPDATE password_resets SET created_at = to_timestamp({new_created_at}, 'YYYY-MM-DD HH24:MI:SS')
+          WHERE token = {token};
+          """
+        ).on(
+            "token" -> resetToken,
+            "new_created_at" -> newCreatedAt
+          ).executeUpdate()
+      }
+      val Some(result) = passwordResetRequest(Some(newUser.email), resetToken, newUser.id, POST)
+      status(result) must beEqualTo(400)
+    }
+
+    "respond with a 400 if the token has already been used" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser8@gmail.com")
+      val resetToken = PasswordReset.create(newUser.id.get)
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      PasswordReset.complete(newUser.id.get, resetToken.get)
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(false).eventually(3, Duration(1000, "millis"))
+      val Some(result) = passwordResetRequest(Some(newUser.email), resetToken, newUser.id, POST)
+      status(result) must beEqualTo(400)
+    }
+
+    "allow a user to log in with the new password" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser9@gmail.com")
+      setUpApp(newUser.distributorID.get)
+      val resetToken = PasswordReset.create(newUser.id.get)
+      val newPassword = "new password"
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.resetPassword(Some(newUser.email), resetToken, newUser.id).url)
+      browser.fill("#password").`with`(newPassword)
+      browser.fill("#confirmation").`with`(newPassword)
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-controller").isPresent
+      browser.goTo(controllers.routes.DistributorUsersController.logout().url)
+
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
+      browser.fill("#email").`with`(newUser.email)
+      browser.fill("#password").`with`(newPassword)
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#analytics-controller").isPresent
+    }
+  }
+
+  "DistributorUsers.resetPassword" should {
+    "return a 200 if all query params are valid" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser10@gmail.com")
+      val resetToken = PasswordReset.create(newUser.id.get)
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      val Some(result) = passwordResetRequest(Some(newUser.email), resetToken, newUser.id)
+      status(result) must beEqualTo(200)
+    }
+
+    "redirect to 404 if the token is not valid" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser11@gmail.com")
+      val resetToken = PasswordReset.create(newUser.id.get)
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      PasswordReset.complete(newUser.id.get, resetToken.get)
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(false).eventually(3, Duration(1000, "millis"))
+      val Some(result) = passwordResetRequest(Some(newUser.email), resetToken, newUser.id)
+      redirectLocation(result).get must beEqualTo("/404")
+    }
+
+    "redirect to 404 if the distributor ID is invalid" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser12@gmail.com")
+      val resetToken = PasswordReset.create(newUser.id.get)
+      val unknownDistributorUserID = Some(9999L)
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      val Some(result) = passwordResetRequest(Some(newUser.email), resetToken, unknownDistributorUserID)
+      redirectLocation(result).get must beEqualTo("/404")
+    }
+
+    "redirect to a 404 if the email is invalid" in new WithFakeBrowser with DistributorUserSetup {
+      val (newUser, _) = newDistributorUser("UniqueUser13@gmail.com")
+      val resetToken = PasswordReset.create(newUser.id.get)
+      val unknownEmail = Some("some unknown email")
+      PasswordReset.isValid(newUser.id.get, resetToken.get) must beEqualTo(true).eventually(3, Duration(1000, "millis"))
+      val Some(result) = passwordResetRequest(unknownEmail, resetToken, newUser.id)
+      redirectLocation(result).get must beEqualTo("/404")
+    }
+  }
+
+  def passwordResetRequest(email: Option[String], token: Option[String], userID: Option[Long], requestType: String = GET) = {
+    val request = FakeRequest(
+      requestType,
+      controllers.routes.DistributorUsersController.resetPassword(email, token, userID).url,
+      FakeHeaders(Seq()),
+      ""
+    )
+    route(request)
   }
 }

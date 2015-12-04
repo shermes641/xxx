@@ -2,8 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
+# Application
 GET         /                                                                                          controllers.Application.index
+GET         /404                                                                                       controllers.Application.notFound
 
 # Login
 GET         /login                                                                                     controllers.DistributorUsersController.login(recently_logged_out: Option[Boolean])
@@ -13,6 +14,12 @@ GET         /logout                                                             
 # Sign up
 GET         /signup                                                                                    controllers.DistributorUsersController.signup
 POST        /distributor_users                                                                         controllers.DistributorUsersController.create
+
+# Password Reset
+GET         /distributor_users/reset_password                                                          controllers.DistributorUsersController.resetPassword(email: Option[String], token: Option[String], distributor_user_id: Option[Long])
+POST        /distributor_users/reset_password                                                          controllers.DistributorUsersController.updatePassword()
+POST        /distributor_users/send_password_reset_email                                               controllers.DistributorUsersController.sendPasswordResetEmail()
+GET         /distributor_users/reset_password_email                                                    controllers.DistributorUsersController.resetPasswordEmail()
 
 # Apps
 GET         /distributors/:distributor_id/apps/new                                                     controllers.AppsController.newApp(distributor_id: Long)
@@ -38,12 +45,12 @@ POST        /distributors/:distributor_id/waterfall_ad_providers/:waterfall_ad_p
 POST        /distributors/:distributor_id/waterfall_ad_providers                                       controllers.WaterfallAdProvidersController.create(distributor_id: Long)
 
 # API
-GET         /v1/app_configs/:app_token                                                                  controllers.APIController.appConfigV1(app_token: String)
-GET         /v1/reward_callbacks/:app_token/vungle                                                      controllers.APIController.vungleCompletionV1(app_token: String, transaction_id: Option[String], digest: Option[String], amount: Option[Int], uid: Option[String])
-GET         /v1/reward_callbacks/:app_token/ad_colony                                                   controllers.APIController.adColonyCompletionV1(app_token: String, id: Option[String], uid: Option[String], amount: Option[Int], currency: Option[String], open_udid: Option[String], udid: Option[String], odin1: Option[String], mac_sha1: Option[String], verifier: Option[String], custom_id: Option[String])
-GET         /v1/reward_callbacks/:app_token/app_lovin                                                   controllers.APIController.appLovinCompletionV1(app_token: String, event_id: Option[String], amount: Option[Double], idfa: Option[String], hadid: Option[String], currency: Option[String], user_id: Option[String])
-POST        /v1/reward_callbacks/:app_token/flurry                                                      controllers.APIController.flurryCompletionV1(app_token: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardquantity: Option[Int], fhash: Option[String], udid: Option[String])
-GET         /v1/reward_callbacks/:app_token/hyprmarketplace                                             controllers.APIController.hyprMarketplaceCompletionV1(app_token: String, time: Option[String], sig: Option[String], quantity: Option[Int], offer_profit: Option[Double], reward_id: Option[String], uid: Option[String], sub_id: Option[String])
+GET         /v1/app_configs/:app_token                                                                 controllers.APIController.appConfigV1(app_token: String)
+GET         /v1/reward_callbacks/:app_token/vungle                                                     controllers.APIController.vungleCompletionV1(app_token: String, transaction_id: Option[String], digest: Option[String], amount: Option[Int], uid: Option[String])
+GET         /v1/reward_callbacks/:app_token/ad_colony                                                  controllers.APIController.adColonyCompletionV1(app_token: String, id: Option[String], uid: Option[String], amount: Option[Int], currency: Option[String], open_udid: Option[String], udid: Option[String], odin1: Option[String], mac_sha1: Option[String], verifier: Option[String], custom_id: Option[String])
+GET         /v1/reward_callbacks/:app_token/app_lovin                                                  controllers.APIController.appLovinCompletionV1(app_token: String, event_id: Option[String], amount: Option[Double], idfa: Option[String], hadid: Option[String], currency: Option[String], user_id: Option[String])
+POST        /v1/reward_callbacks/:app_token/flurry                                                     controllers.APIController.flurryCompletionV1(app_token: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardquantity: Option[Int], fhash: Option[String], udid: Option[String])
+GET         /v1/reward_callbacks/:app_token/hyprmarketplace                                            controllers.APIController.hyprMarketplaceCompletionV1(app_token: String, time: Option[String], sig: Option[String], quantity: Option[Int], offer_profit: Option[Double], reward_id: Option[String], uid: Option[String], sub_id: Option[String])
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                                                               controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                                                              controllers.Assets.at(path="/public", file)

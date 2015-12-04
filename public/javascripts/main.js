@@ -30,6 +30,12 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
     }).when('/login', {
         controller: 'LoginController',
         templateUrl: 'assets/templates/distributor_users/login.html'
+    }).when('/distributor_users/reset_password_email', {
+        controller: 'PasswordResetEmailController',
+        templateUrl: 'assets/templates/distributor_users/password_reset_email.html'
+    }).when('/distributor_users/reset_password', {
+        controller: 'ResetPasswordController',
+        templateUrl: 'assets/templates/distributor_users/reset_password.html'
     });
     $locationProvider.html5Mode(true);
 }]);

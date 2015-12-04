@@ -1,5 +1,6 @@
 package models
 
+import controllers.DistributorUsersController.PasswordUpdate
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.test.Helpers._
@@ -101,6 +102,35 @@ class DistributorUserSpec extends SpecificationWithFixtures {
       val emailActor = TestActorRef(new WelcomeEmailActor()).underlyingActor
       emailActor.receive(sendUserCreationEmail("test@test.com", "company name", "some-ip-address"))
       emailActor must haveClass[WelcomeEmailActor]
+    }
+  }
+
+  "DistributorUser.updatePassword" should {
+    "not update the password if the distributor user ID of the argument does not match the distributor user ID found in the database" in new WithDB with DistributorUserSetup {
+      val (user, _) = newDistributorUser("newemail11@gmail.com")
+      val newPassword = "some new password"
+      val unknownDistributorUserID = 9999
+      val passwordUpdate = PasswordUpdate(user.email, unknownDistributorUserID, token = "token", password = newPassword, passwordConfirmation = newPassword)
+      DistributorUser.updatePassword(passwordUpdate) must beEqualTo(0)
+      DistributorUser.find(user.id.get).get.hashedPassword must beEqualTo(user.hashedPassword)
+    }
+
+    "not update the password if no user is found" in new WithDB with DistributorUserSetup {
+      val (user, _) = newDistributorUser("newemail12@gmail.com")
+      val newPassword = "some new password"
+      val unknownEmail = "some unknown email"
+      val passwordUpdate = PasswordUpdate(unknownEmail, user.id.get, token = "token", password = newPassword, passwordConfirmation = newPassword)
+      DistributorUser.updatePassword(passwordUpdate) must beEqualTo(0)
+      DistributorUser.find(user.id.get).get.hashedPassword must beEqualTo(user.hashedPassword)
+    }
+
+    "change the hashed password stored in the database" in new WithDB with DistributorUserSetup {
+      val (user, _) = newDistributorUser("newemail13@gmail.com")
+      val newPassword = "some new password"
+      val unknownEmail = "some unknown email"
+      val passwordUpdate = PasswordUpdate(user.email, user.id.get, token = "token", password = newPassword, passwordConfirmation = newPassword)
+      DistributorUser.updatePassword(passwordUpdate) must beEqualTo(1)
+      DistributorUser.find(user.id.get).get.hashedPassword must not equalTo user.hashedPassword
     }
   }
 }
