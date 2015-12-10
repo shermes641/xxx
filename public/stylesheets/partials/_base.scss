@@ -56,6 +56,7 @@ button[type="button"] {
   font-size: 13px;
   height: 35px;
   padding: 5px;
+  outline: none;
 }
 
 button[type="submit"],
@@ -71,6 +72,7 @@ button[type="button"] {
   padding: 15px;
   text-align: center;
   width: 100%;
+  outline: none;
 }
 
 .tip {
