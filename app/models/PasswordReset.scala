@@ -8,15 +8,6 @@ import play.api.Play.current
 import scala.util.{Failure, Success, Try}
 
 object PasswordReset {
-  /**
-   * Converts a DateTime to a prepared statement for use in Anorm queries
-   */
-  implicit val dateTimeToStatement = new ToStatement[DateTime] {
-    def set(s: java.sql.PreparedStatement, index: Int, aValue: DateTime): Unit = {
-      s.setTimestamp(index, new java.sql.Timestamp(aValue.withMillisOfSecond(0).getMillis()) )
-    }
-  }
-
   val ResetPasswordWindow = 1.hour // The amount of time a password reset token is valid
   val dateFormatGeneration: DateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SS")
 
