@@ -258,7 +258,8 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.find("button[name=submit]").first.isEnabled must beFalse
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#valid-callback-url-error").areDisplayed
       browser.executeScript("$(':input[id=serverToServerEnabled]').click();")
-      browser.executeScript("angular.element($('#waterfall-controller')).scope().hideModal();")
+      browser.executeScript("$('.close-button').click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal").areNotDisplayed
       clickAndWaitForAngular("#waterfall-app-settings-button")
       browser.find("button[name=submit]").first.isEnabled must beTrue
     }
