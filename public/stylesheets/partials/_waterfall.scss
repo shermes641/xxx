@@ -203,6 +203,7 @@
       overflow: hidden;
       cursor: pointer;
       font-family: $mediate-font;
+      outline: none;
 
       &.active:hover {
         .deactivate {
@@ -321,8 +322,8 @@
 
     .waterfall-app-info h3 {
       font-family: $mediate-font;
-      color: #000;
-      font-size: 18px;
+      color: #4f73e7;
+      font-size: 15px;
     }
 
     b {
@@ -621,4 +622,12 @@ button.cancel-button {
 button.confirm-button {
   @extend button.cancel-button;
   background: #ff6666;
+}
+
+.pending-status {
+  font-size: 15px;
+}
+
+.ecpm-display {
+  font-size: 13px;
 }
