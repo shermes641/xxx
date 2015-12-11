@@ -19,7 +19,7 @@ POST        /distributor_users                                                  
 GET         /distributor_users/reset_password                                                          controllers.DistributorUsersController.resetPassword(email: Option[String], token: Option[String], distributor_user_id: Option[Long])
 POST        /distributor_users/reset_password                                                          controllers.DistributorUsersController.updatePassword()
 POST        /distributor_users/send_password_reset_email                                               controllers.DistributorUsersController.sendPasswordResetEmail()
-GET         /distributor_users/reset_password_email                                                    controllers.DistributorUsersController.resetPasswordEmail()
+GET         /distributor_users/forgot_password                                                         controllers.DistributorUsersController.forgotPassword()
 
 # Apps
 GET         /distributors/:distributor_id/apps/new                                                     controllers.AppsController.newApp(distributor_id: Long)

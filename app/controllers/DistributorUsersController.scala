@@ -133,8 +133,8 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   /**
    * Renders view to initiate the password reset email
    */
-  def resetPasswordEmail() = Action { implicit request =>
-    Ok(views.html.DistributorUsers.password_reset_email())
+  def forgotPassword() = Action { implicit request =>
+    Ok(views.html.DistributorUsers.forgot_password())
   }
 
   lazy val resetPasswordActor = Akka.system.actorOf(Props(new PasswordResetActor))

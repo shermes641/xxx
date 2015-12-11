@@ -1,9 +1,9 @@
-distributorUsersControllers.controller('PasswordResetEmailController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage',
+distributorUsersControllers.controller('ForgotPasswordController', ['$scope', '$http', '$routeParams', '$window', 'flashMessage',
         function($scope, $http, $routeParams, $window, flashMessage) {
             $scope.waitForAuth = false;
             $scope.errors = {};
             $scope.flashMessage = flashMessage;
-            $scope.formName = 'passwordResetEmailForm';
+            $scope.formName = 'forgotPasswordForm';
 
             // Submit form if fields are valid.
             $scope.submit = function(form) {
