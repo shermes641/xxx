@@ -9,19 +9,23 @@ import play.api.Play
 
 /** Encapsulates methods which send email. */
 trait Mailer {
+  val PublishingEmail = "HyprMediate <publishing@hyprmx.com>"
+  val NoReplyEmail = "HyprMediate <noreply@hyprmx.com>"
+
   /**
    * Sends a generic email with a configurable subject and body.
    * @param recipient Email for recipient
+   * @param sender The 'from' email address
    * @param subject Email subject
    * @param body Email body
    * @param attachmentFileName Email attachment file name
    */
-  def sendEmail(recipient: String, subject: String, body: String, plainText: String = "", attachmentFileName: String = ""): Unit = {
+  def sendEmail(recipient: String, sender: String = PublishingEmail, subject: String, body: String, plainText: String = "", attachmentFileName: String = ""): Unit = {
     val host = Play.current.configuration.getString("app_domain").get
     if(Environment.isProdOrStaging) {
       val mail = use[MailerPlugin].email
       mail.setRecipient(recipient)
-      mail.setFrom("HyprMediate <publishing@hyprmx.com>")
+      mail.setFrom(sender)
       mail.setSubject(subject)
       if(attachmentFileName != "") {
         val dateFormat = DateTimeFormat.forPattern("y-M-d")

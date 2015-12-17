@@ -300,7 +300,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       futureResponse.recover {
         case e: Exception =>
           Logger.error("Error Exporting CSV for " + email + " Message: " + e.getMessage)
-          sendEmail(email, "Error Exporting CSV", "There was a problem exporting your data.  Please try again.")
+          sendEmail(recipient = email, sender = PublishingEmail, subject = "Error Exporting CSV", body = "There was a problem exporting your data.  Please try again.")
       }
 
       futureResponse.onSuccess {
@@ -312,7 +312,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
             println("Exported CSV: " + fileName)
             // Sends email after all apps have received their stats
             val content = "Attached is your requested CSV file."
-            sendEmail(email, "Exported CSV from HyprMediate", content, "", fileName)
+            sendEmail(recipient = email, sender = PublishingEmail, subject = "Exported CSV from HyprMediate", body = content, "", attachmentFileName = fileName)
             writer.close()
           }
         }

@@ -22,7 +22,7 @@ class PasswordResetActor extends Actor with Mailer {
         "The link below will remain active for 1 hour.\r\n\r\n" +
         link
       }
-      sendEmail(user.email, "Reset your HyprMediate password", body, plain)
+      sendEmail(recipient = user.email, sender = NoReplyEmail, subject = "Reset your HyprMediate password", body = body, plainText = plain)
     }
     case completedEmail: String => {
       val supportEmail = Play.current.configuration.getString("hyprmarketplace.team_email").getOrElse("")
@@ -32,7 +32,7 @@ class PasswordResetActor extends Actor with Mailer {
         "If you did not make this change and believe your HyprMediate account has been compromised, please contact support" +
         " at " + supportEmail
       }
-      sendEmail(completedEmail, "Your HyprMediate password has been changed", body, plain)
+      sendEmail(recipient = completedEmail, sender = NoReplyEmail, subject = "Your HyprMediate password has been changed", body = body, plainText = plain)
     }
   }
 
