@@ -455,7 +455,7 @@
 
 #api-token {
   font-family: sans-serif;
-  color: #747378;
+  color: #797979;
   font-weight: 500;
 }
 
@@ -605,7 +605,7 @@ dd.modal-error {
 
 :-moz-placeholder,
 ::-moz-placeholder {
-  color: #DEDEDE;
+  color: #b2b1b6;
   opacity: 1;
 }
 
