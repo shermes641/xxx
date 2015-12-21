@@ -35,7 +35,7 @@
                 <div ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.password.$touched">
                     <dd class="error">{{errors.password}}</dd>
                     <dd class="error" ng-show="newDistributorUserForm.password.$error.minlength && !newDistributorUserForm.password.$error.required">
-                        Password must be a minimum of 8 characters.
+                        Password must be a minimum of 8 characters
                     </dd>
                     <dd class="error" ng-show="newDistributorUserForm.password.$error.required">Password is required</dd>
                 </div>
@@ -49,7 +49,7 @@
                 <div id="confirmation-errors" ng-show="newDistributorUserForm.$submitted || newDistributorUserForm.confirmation.$touched">
                     <dd class="error">{{errors.confirmation}}</dd>
                     <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.passwordConfirmation && !newDistributorUserForm.confirmation.$error.required">
-                        Password confirmation doesn't match Password.
+                        Passwords do not match
                     </dd>
                     <dd class="error" ng-show="newDistributorUserForm.confirmation.$error.required">Password confirmation is required</dd>
                 </div>
