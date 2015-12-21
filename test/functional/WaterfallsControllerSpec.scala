@@ -322,7 +322,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
 
       browser.$(".waterfall-app-info").first().getText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
-
     }
   }
 
@@ -471,6 +470,20 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
         response.status must beEqualTo(200)
         response.body must contain("Welcome to HyprMediate iOS SDK documentation")
       }, Duration(5000, "millis"))
+    }
+
+    "not display the 'below reward threshold' notification if an ad provider is not fully configured" in new WithAppBrowser(distributor.id.get) {
+      val (newApp, waterfall, virtualCurrency, appConfig) = setUpApp(distributor.id.get, Some("No Notification Test"), "Coins",
+        exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = false)
+
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+
+      browser.$(".configure").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.executeScript("$('.close-button').click();")
+      browser.$(".waterfall-app-info").first().getText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
+      browser.$(".waterfall-app-info").first().getAttribute("class") must not contain "below-reward-threshold"
     }
   }
 

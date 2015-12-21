@@ -81,7 +81,7 @@
 
             <div class="waterfall ul">
                 <ul ui-sortable="sortableOptions" ng-model="waterfallData.waterfallAdProviderList" id="waterfall-list" class="waterfall-sort">
-                    <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="{{adProviderConfig.name}}" ng-class="{waterfall: adProviderConfig.active, inactive: '', 'below-reward-threshold': !adProviderConfig.meetsRewardThreshold && !adProviderConfig.pending}">
+                    <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="{{adProviderConfig.name}}" ng-class="{waterfall: adProviderConfig.active, inactive: '', 'below-reward-threshold': !adProviderConfig.meetsRewardThreshold && !adProviderConfig.pending && !adProviderConfig.unconfigured}">
                         <div ng-class="{'hideable hideable-wap-info': adProviderConfig.active, 'hideable hidden-wap-info': ''}">
                             <div class="waterfall-app-info">
                                 <div class="pending-status" ng-show="{{adProviderConfig.pending}}">
@@ -94,7 +94,7 @@
                                         <label>eCPM:</label>
                                         <div name="cpm" style="display: inline-block;">${{adProviderConfig.cpm | monetaryFormat}}</div>
                                     </span>
-                                    <span class="below-reward-threshold-message" ng-hide="adProviderConfig.meetsRewardThreshold">
+                                    <span class="below-reward-threshold-message" ng-hide="adProviderConfig.meetsRewardThreshold || adProviderConfig.unconfigured">
                                         This Ad Network doesn't meet the minimum eCPM requirements
                                     </span>
                                 </div>
