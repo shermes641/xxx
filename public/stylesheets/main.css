@@ -620,6 +620,10 @@ dd.modal-error {
   -ms-user-select: none;
 }
 
+input:invalid, select:invalid {
+  box-shadow: none;
+}
+
 #browser-support {
   display: none;
   position: fixed;
