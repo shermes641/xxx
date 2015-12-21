@@ -145,17 +145,21 @@ dd.modal-error {
 
 :-moz-placeholder,
 ::-moz-placeholder {
-  color: #DEDEDE;
+  color: #b2b1b6;
   opacity: 1;
 }
 .preserve-whitespace {
   white-space: pre;
 }
 
-.unselectable
-{
+.unselectable {
   display:inline;
   -webkit-user-select:none;
   -moz-user-select:none;
   -ms-user-select:none;
+}
+
+// Disable box shadow to fix problem with AngularJS form validation in Firefox
+input:invalid, select:invalid {
+  box-shadow: none;
 }
