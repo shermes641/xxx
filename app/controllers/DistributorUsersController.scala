@@ -206,7 +206,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
             case None => BadRequest(Json.obj("status" -> "error", "message" -> "Could not find user."))
           }
         } else {
-          BadRequest(Json.obj("status" -> "error", "message" -> "Password reset token is no longer valid. Please generate a new forgotten password request."))
+          BadRequest(Json.obj("status" -> "error", "message" -> "Your password reset link has expired. Please generate a new password reset request."))
         }
       }.recoverTotal {
         error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
