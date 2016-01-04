@@ -30,6 +30,12 @@ mediationModule.config(['$routeProvider', '$locationProvider', '$httpProvider', 
     }).when('/login', {
         controller: 'LoginController',
         templateUrl: 'assets/templates/distributor_users/login.html'
+    }).when('/distributor_users/forgot_password', {
+        controller: 'ForgotPasswordController',
+        templateUrl: 'assets/templates/distributor_users/forgot_password.html'
+    }).when('/distributor_users/reset_password', {
+        controller: 'ResetPasswordController',
+        templateUrl: 'assets/templates/distributor_users/reset_password.html'
     });
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('httpErrorInterceptor');

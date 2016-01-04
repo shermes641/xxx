@@ -3,6 +3,7 @@ package models
 import anorm._
 import anorm.SqlParser._
 import com.github.t3hnar.bcrypt._
+import controllers.DistributorUsersController.PasswordUpdate
 import play.api.db.DB
 import play.api.Play.current
 import scala.language.postfixOps
@@ -135,6 +136,23 @@ object DistributorUser {
           WHERE id = {id};
         """
       ).on("email" -> user.email, "hashed_password" -> user.hashedPassword, "distributor_id" -> user.distributorID, "id" -> user.id).executeUpdate()
+    }
+  }
+
+  /**
+   * Updates a DistributorUser's password if possible
+   * @param updateInfo Encapsulates the required information for resetting a user's password
+   * @return The number of records updated
+   */
+  def updatePassword(updateInfo: PasswordUpdate): Int = {
+    DistributorUser.findByEmail(updateInfo.email) match {
+      case Some(user) if(user.id.get == updateInfo.distributorUserID) => {
+        val salt = generateSalt
+        val hashedPassword = updateInfo.password.bcrypt(salt)
+        val updatedUser = new DistributorUser(user.id, user.email, hashedPassword, user.distributorID)
+        DistributorUser.update(updatedUser)
+      }
+      case _ => 0
     }
   }
 }

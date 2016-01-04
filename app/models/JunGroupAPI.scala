@@ -234,6 +234,6 @@ class JunGroupEmailActor(toAddress: String, subject: String, body: String) exten
    * @param description Description of failure
    */
   def sendJunGroupEmail(description: String): Unit = {
-    sendEmail(toAddress, subject, body)
+    sendEmail(recipient = toAddress, sender = PublishingEmail, subject = subject, body = body)
   }
 }

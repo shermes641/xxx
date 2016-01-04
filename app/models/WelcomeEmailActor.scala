@@ -34,7 +34,7 @@ class WelcomeEmailActor extends Actor with Mailer {
       "If you have any questions, feel free to contact us by replying to this email.\r\n\r\n" +
       "We're looking forward to working with you!\r\n\r\nSincerely,\r\nYour HyprMediate\r\nPublisher Accounts Team" }
 
-    sendEmail(email, subject, body, plain)
+    sendEmail(recipient = email, sender = PublishingEmail, subject = subject, body = body, plainText = plain)
   }
 
   /**
@@ -47,6 +47,6 @@ class WelcomeEmailActor extends Actor with Mailer {
     val email = Play.current.configuration.getString("hyprmarketplace.team_email").get
     val subject = "hyprMediate user has signed up - " + userEmail
     val body = userEmail + " has signed up for hyprMediate.\r\n\r\nCompany: " + userCompany + "\r\n\r\nIP Address: " + userIPAddress
-    sendEmail(email, subject, body)
+    sendEmail(recipient = email, sender = PublishingEmail, subject = subject, body = body)
   }
 }

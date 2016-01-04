@@ -9,6 +9,13 @@ object Application extends Controller with Secured {
     Redirect(routes.AnalyticsController.show(user.distributorID.get, None, None))
   }
 
+  /**
+   * Renders the 404 - Not Found page
+   * @return The view for our 404 page
+   */
+  def notFound = Action { implicit request =>
+    NotFound(views.html.not_found())
+  }
 }
 
 trait CustomFormValidation {
