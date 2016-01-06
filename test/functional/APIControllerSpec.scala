@@ -299,6 +299,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val sig = Some("b6125341cbd0393e5b5ab67169964c63aba583982cb44f0bc75a48f2587ab870")
     val time = Some("1419972045")
     val subID = Some("1111")
+    val partnerCode = Some("")
     val quantity = Some(1)
 
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -306,12 +307,28 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.find(id).get
     }
 
+    "respond with a 200 when all necessary params are present and transaction_id is not blank" in new WithFakeBrowser {
+      val partnerCodeSig = Some("8d611bff0d42df4e9e194181fe22c1798013f126ce961eef6aaeb326468d8a64")
+      val nonBlankPartnerCode = Some("partner_code")
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, partnerCodeSig, quantity, None, None, uid, subID, nonBlankPartnerCode).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      tableCount("completions") must beEqualTo(completionCount + 1)
+    }
+
     "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, subID).url,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, subID, partnerCode).url,
         FakeHeaders(),
         ""
       )
@@ -326,7 +343,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, badSignature, quantity, None, None, uid, subID).url,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, badSignature, quantity, None, None, uid, subID, partnerCode).url,
         FakeHeaders(),
         ""
       )
@@ -339,7 +356,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val completionCount = tableCount("completions")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, None).url,
+        controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, None, partnerCode).url,
         FakeHeaders(),
         ""
       )
@@ -352,7 +369,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   "APIController.requestBuilder" should {
     val time = "some time"
     val sig = "some sig"
-    val route = controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, Some(time), Some(sig), None, None, None, None, None)
+    val route = controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, Some(time), Some(sig), None, None, None, None, None, None)
     val getRequest = FakeRequest(
       GET,
       route.url,

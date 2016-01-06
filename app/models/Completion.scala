@@ -77,12 +77,7 @@ class Completion extends JsonConversion {
   def postCallback(callbackURL: Option[String], adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo): Future[Boolean] = {
     callbackURL match {
       case Some(url: String) => {
-        val data: JsValue = Json.obj(
-          "original_postback" -> adProviderRequest,
-          "ad_provider" -> verificationInfo.adProviderName,
-          "reward_quantity" -> verificationInfo.rewardQuantity,
-          "estimated_offer_profit" -> verificationInfo.offerProfit
-        )
+        val data = postbackData(adProviderRequest, verificationInfo)
         sendPost(url, data).map(response =>
           response.status match {
             case status: Int if(status == 200) => true
@@ -96,6 +91,22 @@ class Completion extends JsonConversion {
       }
       case _ => Future { false }
     }
+  }
+
+  /**
+   * Builds the JSON that we POST to the distributor's servers on a successful sever to server callback
+   * @param adProviderRequest The original postback from the ad provider.
+   * @param verificationInfo Class containing information to verify the postback and create a new Completion.
+   * @return JSON containing all necessary postback params from our documentation
+   */
+  def postbackData(adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo): JsObject = {
+    Json.obj(
+      "original_postback"      -> adProviderRequest,
+      "ad_provider"            -> verificationInfo.adProviderName,
+      "reward_quantity"        -> verificationInfo.rewardQuantity,
+      "estimated_offer_profit" -> verificationInfo.offerProfit,
+      "transaction_id"         -> verificationInfo.transactionID
+    )
   }
 
   /**
