@@ -48,5 +48,19 @@ describe('HttpInterceptorSpec', function() {
             injectInterceptor();
             factory.responseError({status: 500});
         });
+
+        it('should not add message to flashMessage on responses with status codes other than 0 and 5XX', function() {
+            var addFlashMessageSpy = jasmine.createSpy();
+            module(function ($provide) {
+                $provide.value('flashMessage', {
+                    add: addFlashMessageSpy
+                });
+            });
+            injectInterceptor();
+            [100, 200, 300, 400].map(function(statusCode) {
+                factory.responseError({status: statusCode})
+            });
+            expect(addFlashMessageSpy).not.toHaveBeenCalled();
+        });
     });
 });
