@@ -1178,6 +1178,7 @@ header #logo:before,
 
 #export-as-csv {
   margin-top: 30px;
+  outline: none;
 }
 #export-as-csv .icon {
   display: inline-block;
