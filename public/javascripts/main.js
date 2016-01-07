@@ -80,12 +80,13 @@ mediationModule.factory('httpErrorInterceptor', ['$q', 'flashMessage', function(
     return {
         // handle response Error
         'responseError': function(rejection) {
-            if(rejection.status === 503){
+            if(rejection.status === 503) {
                 flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
-            } else if(rejection.status === 0) {
+            } else if(rejection.status === 0 || rejection.status.toString()[0] === "5") {
                 flashMessage.add({message: "There was a problem with the request.  Please try again later.", status: "error"});
             }
 
+            console.log("Intercepted HTTP response error with status code: " + rejection.status);
             return $q.reject(rejection);
         }
     };
@@ -99,22 +100,24 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
 
     // Iterate through the message queue, showing each message for 5 seconds.
     var displayMessages = function() {
-        var lastMessage = messageQueue.shift();
-        currentMessage = lastMessage.message;
-        messageClass = lastMessage.status;
+        if(messageQueue.length > 0) {
+            var lastMessage = messageQueue.shift();
+            currentMessage = lastMessage.message;
+            messageClass = lastMessage.status;
 
-        $timeout(function() {
-            currentMessage = '';
-            messageClass = '';
-            if(messageQueue.length > 0) {
+            $timeout(function() {
+                currentMessage = '';
+                messageClass = '';
                 displayMessages();
-            }
-        }, 5000);
+            }, 5000);
+        }
     };
 
     return {
         add: function(data) {
-            messageQueue.push(data);
+            if(typeof data === 'object' && typeof data.message === 'string') {
+                messageQueue.push(data);
+            }
             if(currentMessage === '') {
                 displayMessages();
             }
