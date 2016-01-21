@@ -9,12 +9,11 @@ import play.api.Play
  * @param userID A unique ID for a user in HyprMarketplace's network.
  * @param signature A hashed value to authenticate the origin of the request.
  * @param time The timestamp for the callback.
- * @param subID A unique ID to verify the completion (corresponds to the sub_id in Player).
  * @param offerProfit The amount earned from the completion.
  * @param quantity The amount of virtual currency earned.
  * @param transactionID A unique ID to verify the completion (corresponds to the partner_code in Player).
  */
-class HyprMarketplaceCallback(appToken: String, userID: String, signature: String, time: String, subID: String, offerProfit: Option[Double], quantity: Int, transactionID: Option[String]) extends CallbackVerificationHelper {
+class HyprMarketplaceCallback(appToken: String, userID: String, signature: String, time: String, offerProfit: Option[Double], quantity: Int, transactionID: Option[String]) extends CallbackVerificationHelper {
   val defaultTransactionID = ""
   override val adProviderName = "HyprMarketplace"
   override val token = appToken
@@ -28,7 +27,7 @@ class HyprMarketplaceCallback(appToken: String, userID: String, signature: Strin
    */
   override def generatedVerification: String = {
     val md = MessageDigest.getInstance("SHA-256")
-    val transactionString = List(userID, subID, transactionID.getOrElse(defaultTransactionID), time, Play.current.configuration.getString("jungroup.token").get).mkString("")
+    val transactionString = List(userID, transactionID.getOrElse(defaultTransactionID), time, Play.current.configuration.getString("jungroup.token").get).mkString("")
     md.digest(transactionString.getBytes).map("%02x".format(_)).mkString
   }
 }

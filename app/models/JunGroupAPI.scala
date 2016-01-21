@@ -25,7 +25,7 @@ class JunGroupAPI {
   val PlayerStagingURL: String = "staging.hyprmx.com"
   val PlayerProdURL: String = "live.hyprmx.com"
   val PlayerSignature = {
-    val params = List("UID", "SID", "PARTNER_CODE", "EPOCH_SECONDS", Play.current.configuration.getString("jungroup.token").get)
+    val params = List("UID", "PARTNER_CODE", "EPOCH_SECONDS", Play.current.configuration.getString("jungroup.token").get)
     JsArray(Seq(params.map(param => JsString(param)): _*))
   }
 
