@@ -48,7 +48,7 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
     val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=None, serverToServerEnabled=false, generationNumber=1)
     val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", offerProfit=None, rewardQuantity=1, Some(rewardInfo)))
     val callbackURL = Some("http://someurl.com")
-    val data = JsObject(Seq("original_postback" -> JsNull, "ad_provider" -> JsString("ad provider name"), "reward_quantity" -> JsNumber(1), "estimated_offer_profit" -> JsNull))
+    val data = (new Completion).postbackData(JsNull, verification)
     val response = mock[WSResponse]
     response.body returns ""
     val completion = spy(new Completion)
@@ -69,6 +69,21 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       response.status returns 400
       completion.sendPost(callbackURL.get, data) returns Future { response }
       Await.result(completion.postCallback(callbackURL, JsNull, verification), Duration(5000, "millis")) must beFalse
+    }
+  }
+
+  "postbackData" should {
+    "include all necessary params from our server to server callback documentation" in new WithDB {
+      val rewardInfo = Some(mock[AdProviderRewardInfo])
+      val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", offerProfit=Some(0.5), rewardQuantity=1, rewardInfo))
+      val adProviderRequest = Json.obj()
+      val postbackData = (new Completion).postbackData(adProviderRequest, verification)
+
+      (postbackData \ "original_postback") must beEqualTo(adProviderRequest)
+      (postbackData \ "ad_provider").as[String] must beEqualTo(verification.adProviderName)
+      (postbackData \ "reward_quantity").as[Long] must beEqualTo(verification.rewardQuantity)
+      (postbackData \ "estimated_offer_profit").as[Double] must beEqualTo(verification.offerProfit.get)
+      (postbackData \ "transaction_id").as[String] must beEqualTo(verification.transactionID)
     }
   }
 }

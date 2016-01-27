@@ -24,6 +24,10 @@ case class CreateAdNetwork(distributorUser: DistributorUser)
 class JunGroupAPI {
   val PlayerStagingURL: String = "staging.hyprmx.com"
   val PlayerProdURL: String = "live.hyprmx.com"
+  val PlayerSignature = {
+    val params = List("UID", "PARTNER_CODE", "EPOCH_SECONDS", Play.current.configuration.getString("jungroup.token").get)
+    JsArray(Seq(params.map(param => JsString(param)): _*))
+  }
 
   /**
    * Creates the request using the config passed.
@@ -95,14 +99,7 @@ class JunGroupAPI {
             "url" -> JsString(hyprMarketplacePayoutUrl),
             "method" -> JsString("get"),
             "environment" -> JsString(payoutURLEnvironment),
-            "signature" -> JsArray(
-              Seq(
-                JsString("UID"),
-                JsString("SID"),
-                JsString("EPOCH_SECONDS"),
-                JsString(Play.current.configuration.getString("jungroup.token").get)
-              )
-            )
+            "signature" -> PlayerSignature
           )
         )
       )
