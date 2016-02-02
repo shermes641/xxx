@@ -382,7 +382,7 @@
   font-family: "Helvetica Neue Light", Helvetica, sans-serif;
 }
 .app-form .switch-field {
-  height: 30px;
+  height: 36px;
   margin-bottom: 10px;
 }
 .app-form .switch-field dt {
@@ -514,18 +514,27 @@
 }
 
 #edit-app-platform {
-  background: url(../images/grey_selected.png);
   height: 38px;
   width: 60px;
   float: left;
-  margin-top: -10px;
+  margin-top: -5px;
+}
+
+.logo-background {
+  height: 30px;
+  width: 40px;
+}
+
+#logo-background {
+  height: 100%;
+  width: auto;
 }
 
 .device-targeting-container {
-  width: 20px;
-  height: 20px;
-  margin-left: 20px;
-  margin-top: 5px;
+  width: 16px;
+  height: 19px;
+  margin-left: 15px;
+  margin-top: -27px;
 }
 
 .device-targeting-icon {
@@ -543,12 +552,12 @@
 }
 
 #app-platform {
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 }
 
 .app-platform-display-label {
   float: left;
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 * {
