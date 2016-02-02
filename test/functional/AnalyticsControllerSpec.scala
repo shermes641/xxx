@@ -5,7 +5,7 @@ import com.github.nscala_time.time.Imports._
 import controllers.routes
 import io.keen.client.java.ScopedKeys
 import models._
-import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.libs.json._
 import play.api.Play
 import play.api.test._
 import play.api.test.Helpers._
@@ -229,6 +229,28 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
       browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
+    }
+  }
+
+  "AnalyticsController.info" should {
+    "include only unique ad provider names" in new WithAppBrowser(distributorID) {
+      AdProvider.loadAll()
+
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AnalyticsController.info(distributorID).url,
+        FakeHeaders(),
+        ""
+      )
+
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(200)
+      val response = Json.parse(contentAsString(result))
+
+      val adProviders = (response \ "adProviders").as[JsArray].as[List[JsValue]]
+      adProviders
+        .foldLeft(Set[String]())((providerNames, provider) => providerNames + (provider \ "id").as[String])
+        .toList.length must beEqualTo(adProviders.length)
     }
   }
 }

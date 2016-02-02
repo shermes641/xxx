@@ -34,14 +34,14 @@ describe('AnalyticsController', function() {
 
         };
         listenForKeen("");
-        listenForKeen("%7B%22property_name%22%3A%22ad_provider_id%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B1%2C2%5D%7D");
+        listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22AdColony%22%2C%22HyprMarketplace%22%5D%7D");
 
         beforeEach(inject(function($rootScope, $controller, _$window_, _$httpBackend_) {
             // Set up the mock http service responses
             $httpBackend = _$httpBackend_;
 
             configRequestHandler = $httpBackend.when('GET', '/distributors/undefined/analytics/info')
-                .respond({"distributorID":620798327,"adProviders":[{"name":"AdColony","id":1},{"name":"HyprMarketplace","id":2},{"name":"Vungle","id":3},{"name":"AppLovin","id":4}],"apps":[{"id":"578021165","distributorID":620798327,"name":"Zombie Game"}],"keenProject":"5512efa246f9a74b786bc7d1","scopedKey":"D8DD8FDF000323000448F"});
+                .respond({"distributorID":620798327,"adProviders":[{"name":"AdColony","id":"AdColony"},{"name":"HyprMarketplace","id":"HyprMarketplace"},{"name":"Vungle","id":"Vungle"},{"name":"AppLovin","id":"AppLovin"}],"apps":[{"id":"578021165","distributorID":620798327,"name":"Zombie Game"}],"keenProject":"5512efa246f9a74b786bc7d1","scopedKey":"D8DD8FDF000323000448F"});
 
             scope = $rootScope.$new();
             $window = _$window_;
@@ -114,8 +114,8 @@ describe('AnalyticsController', function() {
         });
 
         it('should have the fill rate set to N/A when multiple ad providers are selected', function(){
-            scope.addToSelected("ad_providers", {"name":"AdColony","id":1});
-            scope.addToSelected("ad_providers", {"name":"HyprMarketplace","id":2});
+            scope.addToSelected("ad_providers", {"name":"AdColony","id":"AdColony"});
+            scope.addToSelected("ad_providers", {"name":"HyprMarketplace","id":"HyprMarketplace"});
             scope.updateCharts();
             expect(scope.analyticsData.fillRateMetric).toEqual("N/A");
             expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("N/A");
@@ -127,8 +127,12 @@ describe('AnalyticsController', function() {
                 start_date: "Wed Feb 25 2015 16:00:00 GMT-0800 (PST)",
                 end_date: "Tue Mar 10 2015 17:00:00 GMT-0700 (PDT)"
             };
-            scope.addToSelected("ad_providers", {"name":"AdColony","id":1});
-            scope.addToSelected("ad_providers", {"name":"HyprMarketplace","id":2});
+            var adColony = {"name":"AdColony","id":"AdColony"};
+            var hyprMarketplace = {"name":"HyprMarketplace","id":"HyprMarketplace"};
+            var adProvidersFilterName = "ad_providers";
+
+            scope.addToSelected(adProvidersFilterName, adColony);
+            scope.addToSelected(adProvidersFilterName, hyprMarketplace);
             scope.addToSelected("countries", {"name":"Ireland","id":"Ireland"});
 
             filters = scope.getExportCSVFilters(dates);
@@ -139,12 +143,12 @@ describe('AnalyticsController', function() {
             expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
             expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
             expect(filters.filters[0].property_value[0]).toEqual("Ireland");
-            expect(filters.filters[1].property_name).toEqual("ad_provider_id");
-            expect(filters.filters[1].property_value[0]).toEqual(1);
-            expect(filters.filters[1].property_value[1]).toEqual(2);
+            expect(filters.filters[1].property_name).toEqual("ad_provider_name");
+            expect(filters.filters[1].property_value[0]).toEqual(adColony.id);
+            expect(filters.filters[1].property_value[1]).toEqual(hyprMarketplace.id);
 
-            scope.removeFromSelected("ad_providers", {"name":"AdColony","id":1}, 0);
-            scope.removeFromSelected("ad_providers", {"name":"HyprMarketplace","id":2}, 0);
+            scope.removeFromSelected(adProvidersFilterName, adColony, 0);
+            scope.removeFromSelected(adProvidersFilterName, hyprMarketplace, 0);
 
             filters = scope.getExportCSVFilters(dates);
             console.log(filters);
