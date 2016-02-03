@@ -226,6 +226,44 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.url must beEqualTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, None, None).url)
     }
 
+    "include the platform logo in the 'Filter By App' list" in new WithFakeBrowser {
+      val (currentDistributorUser, currentDistributor) = newDistributorUser("NewUser2@gmail.com")
+      val (androidApp, _, _, _) = setUpApp(
+        distributorID = currentDistributor.id.get,
+        appName = Some("Android Test App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Android.PlatformID
+      )
+      val (iosApp, _, _, _) = setUpApp(
+        distributorID = currentDistributor.id.get,
+        appName = Some("iOS Test App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Ios.PlatformID
+      )
+
+      logInUser(currentDistributorUser.email, password)
+      browser.goTo(controllers.routes.AnalyticsController.show(currentDistributor.id.get, None, None).url)
+      clickAndWaitForAngular("#apps-filter .add")
+      clickAndWaitForAngular("#filter-apps")
+      fillAndWaitForAngular("#filter-apps", "App")
+
+      List(Platform.Ios.PlatformName, Platform.Android.PlatformName)
+        .map(platformName =>
+          browser.find(
+            "#apps-filter li a span",
+            org.fluentlenium.core.filter.FilterConstructor.withClass().contains(platformName + "-app-list-logo")
+          ).length must beEqualTo(1)
+        )
+    }
+
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
       browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
@@ -251,6 +289,36 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       adProviders
         .foldLeft(Set[String]())((providerNames, provider) => providerNames + (provider \ "id").as[String])
         .toList.length must beEqualTo(adProviders.length)
+    }
+
+    "must include a platform name for each app" in new WithAppBrowser(distributorID) {
+      val (_, _, _, _) = setUpApp(
+        distributorID = distributorID,
+        appName = Some("Android Test App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Android.PlatformID
+      )
+
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AnalyticsController.info(distributorID).url,
+        FakeHeaders(),
+        ""
+      )
+
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(200)
+      val response = Json.parse(contentAsString(result))
+
+      val platformNames = List(Platform.Android.PlatformName, Platform.Ios.PlatformName)
+      val apps = (response \ "apps").as[JsArray].as[List[JsValue]]
+      apps.map(appInfo =>
+        platformNames must contain((appInfo \ "platformName").as[String])
+      )
     }
   }
 }

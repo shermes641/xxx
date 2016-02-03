@@ -5,8 +5,8 @@
  *
  * Creates a datepicker to be used for date filtering.  Binds country and adprovider dropdown for data filtering.
  */
-mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage', 'sharedIDs',
-    function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs) {
+mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage', 'sharedIDs', 'platforms',
+    function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs, platforms) {
         var defaultTimezone = "UTC";
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
@@ -19,6 +19,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.defaultStartDate = new Date(moment.utc(0, "HH").subtract(13, 'days').format());
         $scope.defaultEndDate = new Date(moment.utc(0, "HH").format());
         $scope.email = "";
+        $scope.platforms = platforms.all();
 
         if($scope.debounceWait !== 0){
             $scope.debounceWait = 2000;

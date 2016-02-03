@@ -21,6 +21,7 @@
     font-size: 13px;
     cursor: pointer;
     margin-bottom: 25px;
+    width: 90px;
   }
 
   ul {
@@ -39,6 +40,35 @@
       padding: 10px;
       position: relative;
 
+      .Android-app-list-logo, .iOS-app-list-logo {
+        height: 60px;
+        width: 50px;
+      }
+
+      .Android-app-list-logo {
+        background: url(../images/android_icon_grey.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
+      &.active .Android-app-list-logo {
+        background: url(../images/android_icon_white.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
+      .iOS-app-list-logo {
+        background: url(../images/iOS_icon_grey.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
+      &.active .iOS-app-list-logo {
+        background: url(../images/iOS_icon_white.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
       &:hover {
         background: #ccc;
       }
@@ -53,6 +83,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         padding-right: 12px;
+        height: 40px;
       }
 
       &.active.removable:before {
@@ -215,6 +246,7 @@
   border-radius: 0;
   padding: 8px 10px;
   border-bottom: #e0e0e9 1px solid;
+  max-height: 40px;
 }
 
 .left-apps-list .dropdown-menu li:hover {
@@ -389,3 +421,30 @@
 .app-list-name-container {
   height: 38px;
 }
+
+.analytics-platform-logo {
+  height: 19px;
+  width: 15px;
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+
+.app-filter-name {
+  top: 10px;
+  position: absolute;
+  left: 35px;
+  max-width: 115px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.removable-app-filter {
+  left: -53px;
+  position: absolute;
+  top: -8px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
