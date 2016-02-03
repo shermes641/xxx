@@ -63,12 +63,19 @@
         <div class="left-apps-list">
             <h2>Filter By App</h2>
             <ul id="apps-filter">
-                <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)" title="{{appInfo.name}}">{{appInfo.name}}</li>
+                <li ng-repeat="appInfo in filters.apps.selected" ng-class="{removable: appInfo.id != 'all'}" class="active" ng-click="removeFromSelected('apps', appInfo, $index)" title="{{appInfo.name}}">
+                    <img alt="" ng-hide="{{!appInfo.platformName}}" ng-src="{{platforms.logoSource(appInfo.platformName)}}" class="analytics-platform-logo">
+                    <span ng-class="{'removable-app-filter': appInfo.name !== 'All Apps'}">
+                        {{appInfo.name}}
+                    </span>
+                </li>
                 <li class="add" ng-click="openDropdown('apps')" ng-class="{open: filters.apps.open}">
                     <span class="dropdown-label">Add App</span>
                     <input type="text" ng-model="filters.apps.input" class="dropdown-filter input-sm form-control" name="filter_apps" id="filter-apps"
-                           typeahead="name as app.name for app in filters.apps.available | filter:$viewValue:emptyOrMatch | limitTo:8" typeahead-focus
+                           typeahead="name as app.name for app in filters.apps.available | filter:$viewValue:emptyOrMatch | limitTo:8"
+                           typeahead-focus
                            typeahead-on-select="addToSelected('apps', $item)"
+                           typeahead-template-url="assets/templates/analytics/app-filter-dropdown.html"
                            ng-blur="closeDropdown('apps')"/>
                 </li>
             </ul>
