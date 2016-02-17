@@ -58,26 +58,40 @@ trait AdProviderManagement {
    * This is used solely for environment setup and testing.
    */
   def loadAll(): Unit = {
-    if(AdProvider.findAllByPlatform(Platform.Ios.PlatformID).size == 0) {
-      val adColonyResult = AdProvider.create(Platform.Ios.AdColony.name, Platform.Ios.AdColony.configurationData, Platform.Ios.PlatformID, Platform.Ios.AdColony.callbackURLFormat, Platform.Ios.AdColony.configurable, Platform.Ios.AdColony.defaultEcpm)
-      val hyprResult = AdProvider.create(Platform.Ios.HyprMarketplace.name, Platform.Ios.HyprMarketplace.configurationData, Platform.Ios.PlatformID, Platform.Ios.HyprMarketplace.callbackURLFormat, Platform.Ios.HyprMarketplace.configurable, Platform.Ios.HyprMarketplace.defaultEcpm)
-      val vungleResult = AdProvider.create(Platform.Ios.Vungle.name, Platform.Ios.Vungle.configurationData, Platform.Ios.PlatformID, Platform.Ios.Vungle.callbackURLFormat, Platform.Ios.Vungle.configurable, Platform.Ios.Vungle.defaultEcpm)
-      val appLovinResult = AdProvider.create(Platform.Ios.AppLovin.name, Platform.Ios.AppLovin.configurationData, Platform.Ios.PlatformID, Platform.Ios.AppLovin.callbackURLFormat, Platform.Ios.AppLovin.configurable, Platform.Ios.AppLovin.defaultEcpm)
-      (adColonyResult, hyprResult, vungleResult, appLovinResult) match {
-        case (Some(adColonyID), Some(hyprID), Some(vungleID), Some(appLovinID)) => Logger.debug("All iOS ad providers created successfully!")
-        case (_, _, _, _) => Logger.error("Something went wrong and one or more of the iOS ad providers were not created properly.")
-      }
-    } else {
-      Logger.warn("Running this script without an empty ad_providers table may result in duplicate ad providers.  If you need to create one or more of these ad providers, you should do it manually.")
-    }
+    if(AdProvider.findAllByPlatform(Platform.Ios.PlatformID).isEmpty &&
+      AdProvider.findAllByPlatform(Platform.Android.PlatformID).isEmpty) {
+      val adColonyResultIos = AdProvider.create(Platform.Ios.AdColony.name, Platform.Ios.AdColony.configurationData, Platform.Ios.PlatformID, Platform.Ios.AdColony.callbackURLFormat, Platform.Ios.AdColony.configurable, Platform.Ios.AdColony.defaultEcpm)
+      val hyprResultIos = AdProvider.create(Platform.Ios.HyprMarketplace.name, Platform.Ios.HyprMarketplace.configurationData, Platform.Ios.PlatformID, Platform.Ios.HyprMarketplace.callbackURLFormat, Platform.Ios.HyprMarketplace.configurable, Platform.Ios.HyprMarketplace.defaultEcpm)
+      val vungleResultIos = AdProvider.create(Platform.Ios.Vungle.name, Platform.Ios.Vungle.configurationData, Platform.Ios.PlatformID, Platform.Ios.Vungle.callbackURLFormat, Platform.Ios.Vungle.configurable, Platform.Ios.Vungle.defaultEcpm)
+      val appLovinResultIos = AdProvider.create(Platform.Ios.AppLovin.name, Platform.Ios.AppLovin.configurationData, Platform.Ios.PlatformID, Platform.Ios.AppLovin.callbackURLFormat, Platform.Ios.AppLovin.configurable, Platform.Ios.AppLovin.defaultEcpm)
 
-    if(AdProvider.findAllByPlatform(Platform.Android.PlatformID).size == 0) {
       val adColonyResult = AdProvider.create(Platform.Android.AdColony.name, Platform.Android.AdColony.configurationData, Platform.Android.PlatformID, Platform.Android.AdColony.callbackURLFormat, Platform.Android.AdColony.configurable, Platform.Android.AdColony.defaultEcpm)
       val hyprResult = AdProvider.create(Platform.Android.HyprMarketplace.name, Platform.Android.HyprMarketplace.configurationData, Platform.Android.PlatformID, Platform.Android.HyprMarketplace.callbackURLFormat, Platform.Android.HyprMarketplace.configurable, Platform.Android.HyprMarketplace.defaultEcpm)
       val appLovinResult = AdProvider.create(Platform.Android.AppLovin.name, Platform.Android.AppLovin.configurationData, Platform.Android.PlatformID, Platform.Android.AppLovin.callbackURLFormat, Platform.Android.AppLovin.configurable, Platform.Android.AppLovin.defaultEcpm)
-      (adColonyResult, hyprResult, appLovinResult) match {
-        case (Some(adColonyID), Some(hyprID), Some(appLovinID)) => Logger.debug("All Android ad providers created successfully!")
-        case (_, _, _) => Logger.error("Something went wrong and one or more of the Android ad providers were not created properly.")
+
+      val unityAdsResultIos = AdProvider.create(Platform.Ios.UnityAds.name,
+        Platform.Ios.UnityAds.configurationData,
+        Platform.Ios.PlatformID,
+        Platform.Ios.UnityAds.callbackURLFormat,
+        Platform.Ios.UnityAds.configurable,
+        Platform.Ios.UnityAds.defaultEcpm)
+      val unityAdsResult = AdProvider.create(Platform.Android.UnityAds.name,
+        Platform.Android.UnityAds.configurationData,
+        Platform.Android.PlatformID,
+        Platform.Android.UnityAds.callbackURLFormat,
+        Platform.Android.UnityAds.configurable,
+        Platform.Android.UnityAds.defaultEcpm)
+
+      // Add more AdProviders here
+
+      (adColonyResult, hyprResult, appLovinResult, unityAdsResult) match {
+        case (Some(adColonyID), Some(hyprID), Some(vungleID), Some(appLovinID), Some(unityAdsID)) => Logger.debug("All Android ad providers created successfully!")
+        case (_, _, _, _) => Logger.error("Something went wrong and one or more of the Android ad providers were not created properly.")
+      }
+
+      (adColonyResultIos, hyprResultIos, vungleResultIos, appLovinResultIos, unityAdsResultIos) match {
+        case (Some(adColonyID), Some(hyprID), Some(vungleID), Some(appLovinID), Some(unityAdsID)) => Logger.debug("All iOS ad providers created successfully!")
+        case (_, _, _, _, _) => Logger.error("Something went wrong and one or more of the iOS ad providers were not created properly.")
       }
     } else {
       Logger.warn("Running this script without an empty ad_providers table may result in duplicate ad providers.  If you need to create one or more of these ad providers, you should do it manually.")

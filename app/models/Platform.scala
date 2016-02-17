@@ -4,7 +4,8 @@ import play.api.Play
 
 /**
  * Base class for Android and Ios AdProvider classes.
- * @param id Maps to the id column in the platforms table.
+  *
+  * @param id Maps to the id column in the platforms table.
  * @param name Maps to the name column in the platforms table.
  */
 abstract class Platform(id: Long, name: String) {
@@ -170,7 +171,70 @@ abstract class Platform(id: Long, name: String) {
     new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
-  val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin)
+  val UnityAds = {
+    val name = "UnityAds"
+
+    val callbackURLFormat = Some("/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]")
+
+    val configurable = true
+
+    val defaultEcpm: Option[Double] = Some(10)
+
+    val configuration = {
+      //TODO support zones and campaigns ?
+      val zoneIDDetails = {
+        "Add a single zone or multiple zones separated by commas. " +
+          "For more information on configuration, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>"
+      }
+
+      //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
+      val appIDDescription = {
+        "Your Unity Ads App ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+      }
+
+      val reportingDescription = {
+        "Your API Key can be found on the Unity Ads dashboard.  For more information on configuring reporting for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+      }
+
+      val callbackDescription = {
+        "Your Secret Key for Secure Callback can be found on the Unity Ads dashboard. For more information on configuring server to server callbacks for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
+      }
+      s"""{ "requiredParams":[{"description": "$appIDDescription",
+         |  "displayKey": "Unity Adds App ID",
+         |  "key": "appID",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": true,
+         |  "minLength": 1
+         |  },
+         |  {"description": "$zoneIDDetails",
+         |  "displayKey": "Zone IDs",
+         |  "key": "zoneIds",
+         |  "value": "",
+         |  "dataType": "Array",
+         |  "refreshOnAppRestart": true,
+         |  "minLength": 1
+         |  }],
+         |  "reportingParams": [{"description": "$reportingDescription",
+         |  "displayKey": "API Key",
+         |  "key": "APIKey",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": false
+         |  }],
+         |  "callbackParams": [{"description": "$callbackDescription",
+         |  "displayKey": "Secret Key",
+         |  "key": "APIKey",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": false
+         |  }]}""".stripMargin.replaceAll("[\r]","").replaceAll("[\n]","")
+
+    }
+    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+  }
+
+  val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }
 
 object Platform {
@@ -191,7 +255,8 @@ object Platform {
 
   /**
    * Finds the platform based on the ID
-   * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
+    *
+    * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
    * @return The Android or iOS object depending on the platform ID
    */
   def find(platformID: Long): Platform = {
