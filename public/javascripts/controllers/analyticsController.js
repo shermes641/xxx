@@ -8,6 +8,17 @@
 mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage', 'sharedIDs', 'platforms',
     function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs, platforms) {
         var defaultTimezone = "UTC";
+
+        /**
+         * Convenience function for selecting the correct value when we have to query two different collections
+         * for the same data. For example, querying ad_completed might return a null averageeCPM, but reward_completed might return a valid averageeCPM.
+         * This function will return 0 in the case that all potential collections return null for a specific query.
+         **/
+        var selectNonNullOrZero = function() {
+            var compactedValues = _.compact(arguments); // remove all nulls and 0s
+            return compactedValues.length > 0 ? _.max(compactedValues) : 0;
+        };
+
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
@@ -374,8 +385,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 end: moment(config.end_date).utc().add(1, 'days').format()
             };
 
-            // Ad Provider eCPM
-            var ecpm_metric = new Keen.Query("average", {
+            // Ad Provider eCPM for SDK versions sending events to the ad_completed collection
+            var adCompletedEcpmMetric = new Keen.Query("average", {
                 eventCollection: "ad_completed",
                 targetProperty: "ad_provider_eCPM",
                 filters: config.filters,
@@ -383,7 +394,19 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 timezone: defaultTimezone
             });
 
-            $scope.keenClient.run(ecpm_metric, function() {
+            // Ad Provider eCPM for SDK versions sending events to the reward_delivered collection
+            var rewardDeliveredEcpmMetric = new Keen.Query("average", {
+                eventCollection: "reward_delivered",
+                targetProperty: "ad_provider_eCPM",
+                filters: config.filters,
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
+            });
+
+            $scope.keenClient.run([adCompletedEcpmMetric, rewardDeliveredEcpmMetric], function() {
+                var adCompletedEcpm = this.data[0].result;
+                var rewardDeliveredEcpm = this.data[1].result;
+
                 if($scope.updateTimeStamp !== config.currentTimeStamp) {
                     $scope.resetUpdate(config);
                     return;
@@ -391,13 +414,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 // Update request status to complete
                 $scope.analyticsRequestStatus.ecpmMetricRequestComplete = true;
                 config.eCPM = 0;
-                if ( this.data.result === null ) {
+                if ( adCompletedEcpm === null && rewardDeliveredEcpm === null ) {
                     $scope.analyticsData.ecpmMetric = "N/A";
                 } else {
-                    var ecpmSplit = $filter("monetaryFormat")(this.data.result).split(".");
+                    var eCPM = selectNonNullOrZero(adCompletedEcpm, rewardDeliveredEcpm);
+                    var ecpmSplit = $filter("monetaryFormat")(eCPM).split(".");
                     $scope.analyticsData.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
 
-                    config.eCPM = this.data.result;
+                    config.eCPM = eCPM;
                 }
                 _.defer(function(){$scope.$apply();});
                 $scope.getEstimatedRevenue(config);
@@ -415,9 +439,27 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Get Estimated revenue data from Keen.  Update Request Complete object once Keen has responded.
          */
         $scope.getEstimatedRevenue = function(config) {
-            // Estimated Revenue query
-            var estimated_revenue = new Keen.Query("multi_analysis", {
+            // Estimated Revenue query for SDK versions sending events to the ad_completed collection
+            var adCompletedRevenue = new Keen.Query("multi_analysis", {
                 eventCollection: "ad_completed",
+                interval: "daily",
+                analyses: {
+                    "completedCount": {
+                        "analysis_type": "count"
+                    },
+                    "averageeCPM" : {
+                        "analysis_type": "average",
+                        "target_property": "ad_provider_eCPM"
+                    }
+                },
+                filters: config.filters,
+                timeframe: config.timeframe,
+                timezone: defaultTimezone
+            });
+
+            // Estimated Revenue query for SDK versions sending events to the reward_delivered collection
+            var rewardDeliveredRevenue = new Keen.Query("multi_analysis", {
+                eventCollection: "reward_delivered",
                 interval: "daily",
                 analyses: {
                     "completedCount": {
@@ -470,7 +512,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             });
 
             // Calculate expected eCPM
-            $scope.keenClient.run([estimated_revenue, inventory_request, available_count, impression_count], function() {
+            $scope.keenClient.run([adCompletedRevenue, inventory_request, available_count, impression_count, rewardDeliveredRevenue], function() {
                 // If this update is not longer the latest then reset and do nothing.
                 if($scope.updateTimeStamp !== config.currentTimeStamp) {
                     $scope.resetUpdate(config);
@@ -479,19 +521,21 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 // Update request status to complete
                 $scope.analyticsRequestStatus.estimatedRevenueRequestComplete = true;
 
+                var adCompletedRequests = this.data[0].result;
                 var inventoryRequests = this.data[1].result;
                 var availableCount = this.data[2].result;
                 var impressionCount = this.data[3].result;
+                var rewardDeliveredRequests = this.data[4].result;
 
                 var table_data = [];
                 var chart_data = [];
                 var cumulativeRevenue = 0;
                 var cumulativeRequests = 0;
                 var cumulativeAvailable = 0;
-                _.each(this.data[0].result, function (day, i) {
-                    if(day.value.averageeCPM === null){
-                        day.value.averageeCPM = 0;
-                    }
+                _.each(adCompletedRequests, function (day, i) {
+                    var rewardDeliveredRequest = rewardDeliveredRequests[i];
+                    var averageeCPM = selectNonNullOrZero(day.value.averageeCPM, rewardDeliveredRequest.value.averageeCPM);
+                    var completedCount = selectNonNullOrZero(day.value.completedCount, rewardDeliveredRequest.value.completedCount);
 
                     var fillRate = "0%";
                     if (inventoryRequests[i].value !== 0) {
@@ -503,7 +547,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         fillRate = "N/A";
                     }
 
-                    var days_revenue = $scope.calculateDayRevenue(day.value.completedCount, day.value.averageeCPM);
+                    var days_revenue = $scope.calculateDayRevenue(completedCount, averageeCPM);
                     var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
                     var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {
@@ -511,8 +555,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         "requests": inventoryRequests[i].value,
                         "fillRate": fillRate,
                         "impressions": impressionCount[i].value,
-                        "completedCount": day.value.completedCount,
-                        "averageeCPM": '$' + $filter("monetaryFormat")(day.value.averageeCPM),
+                        "completedCount": completedCount,
+                        "averageeCPM": '$' + $filter("monetaryFormat")(averageeCPM),
                         "estimatedRevenue": '$' + $filter("monetaryFormat")(days_revenue)
 
                     } );
@@ -526,7 +570,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 } );
 
                 var averageRevenue = {
-                    result: cumulativeRevenue / this.data[0].result.length
+                    result: cumulativeRevenue / adCompletedRequests.length
                 };
 
                 var revenueSplit = $filter("monetaryFormat")(averageRevenue.result).split(".");
