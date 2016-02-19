@@ -1,10 +1,18 @@
-appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'flashMessage',
-        function( $scope, $window, $http, $routeParams, flashMessage ) {
+appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http', '$routeParams', 'flashMessage', 'platforms',
+        function( $scope, $window, $http, $routeParams, flashMessage, platforms ) {
             $('body').addClass('new-app-page');
 
+            $scope.platforms = platforms.all();
             $scope.newAppModalTitle = "Welcome to hyprMediate!";
             $scope.newAppPage = true;
-            $scope.newApp = {appName: null, currencyName: null, rewardMin: null, rewardMax: null, roundUp: true};
+            $scope.newApp = {
+                appName: null,
+                currencyName: null,
+                rewardMin: null,
+                rewardMax: null,
+                roundUp: true,
+                platformID: $scope.platforms.ios.id
+            };
             $scope.flashMessage = flashMessage;
             if($routeParams["recently_signed_up"] === "true") {
                 flashMessage.add({message: "Your confirmation email will arrive shortly.", status: "success"});
@@ -26,7 +34,7 @@ appsControllers.controller( 'NewAppsController', [ '$scope', '$window', '$http',
                             if($scope.testing){
                                 return;
                             }
-                            window.location.href = "/distributors/"+$routeParams.distributorID+"/waterfalls/edit";
+                            window.location.href = "/distributors/" + $routeParams.distributorID + "/waterfalls/edit";
                         }).
                         error(function(data, status, headers, config) {
                             form.submitting = false;

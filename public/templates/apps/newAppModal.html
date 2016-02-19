@@ -24,6 +24,19 @@
                 </div>
             </dl>
 
+            <dl id="new-app-platform" class="device-targeting-field">
+                <dt class="device-targeting-label">
+                    <label for="new-app-platform">Device Targeting</label>
+                </dt>
+                <div class="app-platform">
+                    <div class="app-platform-container">
+                        <div id="status-toggle" ng-class="{ios: newApp.platformID === platforms.ios.id, android: newApp.platformID === platforms.android.id}"></div>
+                        <img alt="" ng-src="{{platforms.logoSource('Android')}}" id="android-logo" ng-click="newApp.platformID = platforms.android.id"/>
+                        <img alt="" ng-src="{{platforms.logoSource('iOS')}}" id="apple-logo" ng-click="newApp.platformID = platforms.ios.id"/>
+                    </div>
+                </div>
+            </dl>
+
             <dl id="new-app-currency-name">
                 <dt><label for="new-app-currency-name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">

@@ -2,18 +2,26 @@ package functional
 
 import models._
 import play.api.test.Helpers._
-import resources.DistributorUserSetup
-import scala.Some
 import play.api.test.FakeApplication
-import io.keen.client.scala.Client
-import play.api.Play
-import com.github.nscala_time.time._
-import com.github.nscala_time.time.Imports._
-import play.api.test.FakeApplication
-import scala.Some
-import play.api.libs.json.{JsValue, Json}
 
 class KeenAnalyticsSpec extends SpecificationWithFixtures {
+
+  // Load AdProviders required for tests
+  running(FakeApplication(additionalConfiguration = testDB)) {
+    AdProvider.create(
+      name = "hyprMX",
+      configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
+      platformID = Platform.Ios.PlatformID,
+      callbackUrlFormat = None
+    )
+
+    AdProvider.create(
+      name = "Vungle",
+      configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
+      platformID = Platform.Ios.PlatformID,
+      callbackUrlFormat = None
+    )
+  }
 
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
@@ -58,7 +66,6 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Update Ad Provider drop down and verify content begins updating" in new WithAppBrowser(distributorID) {
       logInUser()
-      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
@@ -78,8 +85,6 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Add both HyprMX and Vungle to the filter list" in new WithAppBrowser(distributorID) {
       logInUser()
-      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded
@@ -104,8 +109,6 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
     tag("keen")
     "Clear all filters list" in new WithAppBrowser(distributorID) {
       logInUser()
-      AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
-      AdProvider.create("Vungle", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       verifyAnalyticsHaveLoaded

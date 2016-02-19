@@ -1,5 +1,7 @@
-mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs',
-        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs ) {
+mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs', 'platforms',
+        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs, platforms ) {
+            $scope.platforms = platforms.all();
+
             // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
             $scope.subHeader = 'assets/templates/sub_header.html';
@@ -41,6 +43,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     $scope.appToken = data.waterfall.appToken;
                     $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                     $scope.sortableOptions.containment = "#waterfall-edit";
+                    $scope.platform = $scope.platforms[$scope.waterfallData.waterfall.platformID];
+                    $scope.codeSnippet = 'assets/templates/waterfalls/' + $scope.platform.name + '_code_snippet.html';
                     $scope.waterfallInfoCallComplete = true;
                     $scope.orderOptimizedWaterfallList();
                 }).error(function(data) {
@@ -193,7 +197,17 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
                 $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + appID + '/edit').success(function(data) {
-                    $scope.data = _.defaults(data, {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true});
+                    var appData = {
+                        appName: null,
+                        currencyName: null,
+                        exchangeRate: null,
+                        rewardMin: null,
+                        rewardMax: null,
+                        roundUp: true,
+                        platformID: $scope.platforms.ios.id,
+                        platformName: $scope.platforms.ios.name
+                    };
+                    $scope.data = _.defaults(data, appData);
                     $scope.editAppID = appID;
 
                     $scope.form.editAppForm.$setPristine();
@@ -209,7 +223,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleNewAppModal = function() {
                 ga('send', 'event', 'toggle_new_app_modal', 'click', 'waterfalls');
                 $scope.errors = {};
-                $scope.newApp = {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true};
+                $scope.newApp = {
+                    appName: null,
+                    currencyName: null,
+                    exchangeRate: null,
+                    rewardMin: null,
+                    rewardMax: null,
+                    roundUp: true,
+                    platformID: $scope.platforms.ios.id,
+                    platformName: $scope.platforms.ios.name
+                };
                 $scope.showNewAppModal = !$scope.showNewAppModal;
                 $scope.form.newAppForm.$setPristine();
                 $scope.form.newAppForm.$setUntouched();

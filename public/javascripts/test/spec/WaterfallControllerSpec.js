@@ -6,17 +6,19 @@ describe('WaterfallControllerSpec', function() {
         beforeEach(inject(function($rootScope, $controller, $compile, $httpBackend) {
             var appID = "62484878";
             waterfallInfo = {
-                "distributorID":620798327,
-                "waterfall":{
-                    "id":"62484878",
-                    "appID":appID,
-                    "name":"Test App 3",
-                    "token":"4add175e-6a1e-4e33-adc8-f39492b953bc",
-                    "optimizedOrder":true,
-                    "testMode":false,
-                    "paused":false,
-                    "appName":"Test App 3",
-                    "appToken":"49126db4-876a-4513-9ed3-8f080eb6afb8"},
+                "distributorID": 620798327,
+                "waterfall": {
+                    "id": "62484878",
+                    "appID": appID,
+                    "name": "Test App 3",
+                    "token": "4add175e-6a1e-4e33-adc8-f39492b953bc",
+                    "optimizedOrder": true,
+                    "testMode": false,
+                    "paused": false,
+                    "appName": "Test App 3",
+                    "appToken": "49126db4-876a-4513-9ed3-8f080eb6afb8",
+                    "platformID": 1
+                },
                 "waterfallAdProviderList":[
                     {"name":"AdColony","waterfallAdProviderID":40,"cpm":1.0,"active":true,"waterfallOrder":0,"unconfigured":false,"newRecord":false,"configurable":true,"pending":false},
                     {"name":"Vungle","waterfallAdProviderID":41,"cpm":0.5,"active":true,"waterfallOrder":1,"unconfigured":false,"newRecord":false,"configurable":true,"pending":false},
@@ -24,9 +26,9 @@ describe('WaterfallControllerSpec', function() {
                     {"name":"AppLovin","waterfallAdProviderID":4,"cpm":null,"active":false,"waterfallOrder":null,"unconfigured":true,"newRecord":true,"configurable":true,"pending":false}
                 ],
                 "appsWithWaterfalls":[
-                    {"id":"62484878","active":true,"distributorID":620798327,"name":"Test App 3","waterfallID":62484878},
-                    {"id":"265019496","active":true,"distributorID":620798327,"name":"Really really really really long app name","waterfallID":1000471524},
-                    {"id":"1007066320","active":true,"distributorID":620798327,"name":"Test App2","waterfallID":1007066320}
+                    {"id":"62484878","active":true,"distributorID":620798327,"name":"Test App 3","waterfallID":62484878,"platformID": 1},
+                    {"id":"265019496","active":true,"distributorID":620798327,"name":"Really really really really long app name","waterfallID":1000471524,"platformID": 1},
+                    {"id":"1007066320","active":true,"distributorID":620798327,"name":"Test App2","waterfallID":1007066320,"platformID": 2}
                 ],
                 "generationNumber":50
             };
@@ -92,6 +94,7 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.appsWithWaterfalls[0].distributorID).toEqual(620798327);
             expect(waterfallData.appsWithWaterfalls[0].id).toEqual("62484878");
             expect(waterfallData.appsWithWaterfalls[0].active).toEqual(true);
+            expect(waterfallData.appsWithWaterfalls[0].platformID).toEqual(1);
             expect(waterfallData.appsWithWaterfalls[0].waterfallID).toEqual(62484878);
 
             expect(waterfallData.waterfall.appName).toEqual("Test App 3");
@@ -113,6 +116,22 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.waterfallAdProviderList[0].unconfigured).toEqual(false);
             expect(waterfallData.waterfallAdProviderList[0].waterfallAdProviderID).toEqual(40);
             expect(waterfallData.waterfallAdProviderList[0].waterfallOrder).toEqual(0);
+        });
+
+        it('should set the platform name correctly', function() {
+            expect(scope.platform.name).toEqual('iOS');
+            waterfallInfo.waterfall.platformID = 2;
+            scope.getWaterfallData();
+            httpBackend.flush();
+            expect(scope.platform.name).toEqual('Android');
+        });
+
+        it('should set the code snippet correctly', function() {
+            expect(scope.codeSnippet).toEqual('assets/templates/waterfalls/iOS_code_snippet.html');
+            waterfallInfo.waterfall.platformID = 2;
+            scope.getWaterfallData();
+            httpBackend.flush();
+            expect(scope.codeSnippet).toEqual('assets/templates/waterfalls/Android_code_snippet.html');
         });
 
         describe('App Settings Modal', function() {

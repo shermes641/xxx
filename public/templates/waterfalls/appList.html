@@ -4,7 +4,13 @@
         <ul>
             <a class="app-list-link" ng-repeat="appInfo in waterfallData.appsWithWaterfalls" href="/distributors/{{distributorID}}/waterfalls/{{appInfo.waterfallID}}/edit" target="_self">
                 <div class="ngtooltip configure-tooltip" ng-show="hoverApp">Configure</div>
-                <li class="preserve-whitespace" ng-class="{active: appInfo.id == appID}" name="{{appInfo.name}}" title="{{appInfo.name}}">{{appInfo.name}}<div ng-mouseenter="hoverApp=true" ng-mouseleave="hoverApp=false" ng-click="$event.stopPropagation(); $event.preventDefault(); toggleEditAppModal(appInfo.id);"  class="settings-icon"></div></li>
+                <li class="app-list-name-container preserve-whitespace" ng-class="{active: appInfo.id === appID}" name="{{appInfo.name}}" title="{{appInfo.name}}">
+                    <span class="app-list-name">
+                        <span class="app-name">{{appInfo.name}}</span>
+                        <img alt="" ng-src="{{platforms.logoSource(appInfo.platformName, appInfo.id !== appID)}}" class="platform-logo"><img>
+                    </span>
+                    <div ng-mouseenter="hoverApp=true" ng-mouseleave="hoverApp=false" ng-click="$event.stopPropagation(); $event.preventDefault(); toggleEditAppModal(appInfo.id);" class="settings-icon"/>
+                </li>
             </a>
         </ul>
     </div>

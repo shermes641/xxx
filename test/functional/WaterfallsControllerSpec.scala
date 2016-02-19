@@ -2,8 +2,9 @@ package functional
 
 import anorm.SQL
 import models._
-import org.specs2.runner._
+import org.fluentlenium.core.filter.FilterConstructor.{withName, withId}
 import org.junit.runner._
+import org.specs2.runner._
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WS}
@@ -328,12 +329,13 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   "WaterfallsController.edit" should {
     "display default eCPM values for Ad Providers" in new WithAppBrowser(distributor.id.get) {
       val defaultEcpm = "20.00"
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfigData, None, true, Some(defaultEcpm.toDouble)).get
+      val adProviderName = "Test Ad Provider With Default eCPM"
+      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, adProviderConfigData, Platform.Ios.PlatformID, None, true, Some(defaultEcpm.toDouble)).get
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.$("div[name=cpm]", 2).getText must contain(defaultEcpm)
+      browser.find(".waterfall li", withId(adProviderName)).findFirst("div", withName("cpm")).getText must contain(defaultEcpm)
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit a Waterfall they do not own" in new WithAppBrowser(distributor.id.get) {
@@ -397,7 +399,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.executeScript("$('.configure').first().click()")
+      browser.find(".waterfall li", withId(adProviders(0))).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", "some key")
       browser.executeScript("$('button[name=update-ad-provider]').click();")

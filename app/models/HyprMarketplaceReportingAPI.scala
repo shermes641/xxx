@@ -56,7 +56,7 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
         val adDisplayed = new KeenRequest().function("count")
           .select("ad_displayed")
           .filterWith("app_id", "eq", app.id.toString)
-          .filterWith("ad_provider_id", "eq", Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get.toString)
+          .filterWith("ad_provider_id", "eq", Platform.find(app.platformID).hyprMarketplaceID.toString)
           .thisDays(1)
           .interval("daily")
 

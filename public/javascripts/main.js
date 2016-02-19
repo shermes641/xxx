@@ -75,6 +75,34 @@ mediationModule.service('sharedIDs', [function() {
     }
 }]);
 
+// Service for platform-specific IDs, names, and assets
+mediationModule.service('platforms', [function() {
+    var iosID = 1;
+    var androidID = 2;
+    var iOSPlatform = {id: iosID, name: "iOS", documentationPath: "IS/iOS+SDK"};
+    var androidPlatform = {id: androidID, name: "Android", documentationPath: "AS/Android+SDK"};
+    var logoSource = function(platformName, deactivated) {
+        if(platformName) {
+            var iconColor = deactivated ? 'grey' : 'white';
+            return '/assets/images/' + platformName + '_icon_' + iconColor + '.png';
+        } else {
+            return '';
+        }
+    };
+    var platforms = {
+        ios: iOSPlatform,
+        android: androidPlatform,
+        logoSource: logoSource
+    };
+    platforms[iosID] = iOSPlatform;
+    platforms[androidID] = androidPlatform;
+    return {
+        all: function() {
+            return platforms;
+        }
+    }
+}]);
+
 // Register HTTP error interceptor as service
 mediationModule.factory('httpErrorInterceptor', ['$q', 'flashMessage', function($q, flashMessage) {
     return {

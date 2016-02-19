@@ -243,7 +243,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             }
             if (adProvider.indexOf("all" ) === -1 && adProvider.length !== 0) {
                 filters.push( {
-                    property_name: "ad_provider_id",
+                    property_name: "ad_provider_name",
                     operator: "in",
                     property_value: adProvider
                 } );
