@@ -119,11 +119,13 @@ object AnalyticsController extends Controller with Secured {
    * @return A JSON object.
    */
   implicit def appWrites(app: App): JsObject = {
+    val platformName = Platform.find(app.platformID).PlatformName
     JsObject(
       Seq(
         "id" -> JsString(app.id.toString),
         "distributorID" -> JsNumber(app.distributorID),
-        "name" -> JsString(app.name)
+        "name" -> JsString(app.name),
+        "platformName" -> JsString(platformName)
       )
     )
   }

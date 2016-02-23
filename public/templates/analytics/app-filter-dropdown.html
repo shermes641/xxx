@@ -1,0 +1,5 @@
+<div class="typeahead-group-header" ng-click="$event.stopPropagation()"></div>
+<a class="analytics-app-filter-container">
+    <span ng-class="match.model.platformName + '-app-list-logo'" class="analytics-platform-logo"></span>
+    <span class="app-filter-name" ng-bind-html="match.label | typeaheadHighlight:query"></span>
+</a>
