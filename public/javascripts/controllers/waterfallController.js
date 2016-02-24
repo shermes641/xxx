@@ -257,6 +257,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                flashMessage.add(data);
                             }
                         });
                 }
