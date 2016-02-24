@@ -1043,12 +1043,12 @@ header #logo:before,
   width: 50px;
 }
 .left-apps-list ul li .Android-app-list-logo {
-  background: url(../images/android_icon_grey.png);
+  background: url(../images/Android_icon_grey.png);
   background-repeat: no-repeat;
   background-size: 15px 19px;
 }
 .left-apps-list ul li.active .Android-app-list-logo {
-  background: url(../images/android_icon_white.png);
+  background: url(../images/Android_icon_white.png);
   background-repeat: no-repeat;
   background-size: 15px 19px;
 }
