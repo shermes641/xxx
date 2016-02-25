@@ -134,6 +134,25 @@ describe('WaterfallControllerSpec', function() {
             expect(scope.codeSnippet).toEqual('assets/templates/waterfalls/Android_code_snippet.html');
         });
 
+        describe('App Creation Modal', function() {
+            it('should render a flash error message when there is a non-field specific error', function() {
+                var error = {
+                    status: "error",
+                    message: "There was a problem creating your app"
+                };
+                scope.newApp = {
+                    exchangeRate: 100,
+                    rewardMin: 10,
+                    rewardMax: 100
+                };
+                scope.form['newAppForm'] = scope.form;
+                httpBackend.expectPOST("/distributors/" + routeParams.distributorID + "/apps").respond(400, error);
+                scope.submitNewApp(scope.form);
+                httpBackend.flush();
+                expect(scope.flashMessage.text()).toEqual(error.message);
+            });
+        });
+
         describe('App Settings Modal', function() {
             var updateApp = function(newGeneration) {
                 // Stub app update response
