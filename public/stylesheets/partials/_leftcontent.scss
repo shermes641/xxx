@@ -6,6 +6,12 @@
   width: 220px;
 }
 
+#start-date {
+  margin-top: 10px;
+  cursor: pointer !important;
+  background-color: #FFFFFF !important;
+}
+
 .left-apps-list {
   padding: 30px 20px 20px 20px;
 
@@ -119,7 +125,7 @@
 
       &.arrowdown {
         padding: 0;
-        width: 180px;
+        width: 190px;
         background: #fff;
       }
 

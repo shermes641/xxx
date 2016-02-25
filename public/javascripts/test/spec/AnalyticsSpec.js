@@ -7,6 +7,49 @@ describe('AnalyticsController', function() {
 
     beforeEach(module('MediationModule'));
 
+    describe('AnalyticsController', function(){
+        var scope, testCont, $window, $httpBackend, configRequestHandler, server;
+        server = sinon.fakeServer.create();
+        server.respondImmediately = true;
+        sinon.format = function(object){
+            return JSON.stringify(object);
+        };
+        sinon.log = function(message) {
+            console.log(message);
+        };
+
+        var urlRoot = "https://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
+        var apiKey = "api_key=D8DD8FDF000323000448F";
+
+        var startOfDay = moment().startOf('day');
+        var endDate = startOfDay.clone().add(1, 'days');
+        var tzOffset = (Math.abs(startOfDay.utcOffset()) / 60)+"";
+        if (tzOffset.length < 2)
+            tzOffset = "0" + tzOffset;
+        var timeframe = 'timeframe=%7B%22start%22%3A%22'+startOfDay.format('YYYY-MM-DD')+"T00%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%22" +
+            endDate.format('YYYY-MM-DD')+"T00%3A00%3A00%2B00%3A00%22%7D&timezone=UTC";
+
+        var listenForKeen = function(filter) {
+            server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": 5.01123595505618}) ]);
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=mediate_availability_response_true&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 173, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            server.respondWith("GET", urlRoot + "multi_analysis?"+apiKey+"&event_collection=ad_completed&interval=daily&analyses=%7B%22completedCount%22%3A%7B%22analysis_type%22%3A%22count%22%7D%2C%22averageeCPM%22%3A%7B%22analysis_type%22%3A%22average%22%2C%22target_property%22%3A%22ad_provider_eCPM%22%7D%7D&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": {"averageeCPM": 4.63265306122449, "completedCount": 49}, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": {"averageeCPM": 5.475, "completedCount": 40}, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=mediate_availability_requested&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 400, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 597, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_requested&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 400, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 597, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=ad_displayed&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 203, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            server.respondWith("GET", urlRoot + "count?"+apiKey+"&event_collection=availability_response_true&interval=daily&filters=%5B"+filter+"%5D&"+timeframe,
+                [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": [{"value": 147, "timeframe": {"start": "2015-04-10T00:00:00.000Z", "end": "2015-04-11T00:00:00.000Z"}}, {"value": 173, "timeframe": {"start": "2015-04-11T00:00:00.000Z", "end": "2015-04-12T00:00:00.000Z"}}]}) ]);
+            console.log(urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe);
+
+        };
+        listenForKeen("");
+        listenForKeen("%7B%22property_name%22%3A%22ad_provider_id%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B1%2C2%5D%7D");
+
     describe('analytics controller and landing page', function(){
         beforeEach(inject(function($rootScope, $controller, _$window_, _$httpBackend_) {
             server = sinon.fakeServer.create();
@@ -50,12 +93,8 @@ describe('AnalyticsController', function() {
             scope = $rootScope.$new();
             $window = _$window_;
             scope.debounceWait = 0;
+            angular.element(document.body).append('<input id="start-date" />');
             testCont = $controller('AnalyticsController', {$scope: scope});
-
-            scope.defaultStartDate = new Date(moment.utc("2015-04-03T00:00:00.000Z").format());
-            scope.defaultEndDate = new Date(moment.utc("2015-04-15T00:00:00.000Z").format());
-            angular.element(document.body).append('<input id="start-date" /><input id="end-date" />');
-
             $httpBackend.flush();
         }));
 
@@ -70,8 +109,7 @@ describe('AnalyticsController', function() {
         afterEach(function() {
             $httpBackend.verifyNoOutstandingExpectation();
             $httpBackend.verifyNoOutstandingRequest();
-            server.restore();
-            angular.element('#start-date, #end-date').remove();
+            angular.element('#start-date').remove();
         });
 
         it('should be defined', function(){
@@ -144,11 +182,6 @@ describe('AnalyticsController', function() {
             expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
             expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
             expect(filters.filters[0].property_value[0]).toEqual("Ireland");
-        });
-
-        it('should reject invalid dates', function(){
-            expect(scope.isValidDate(new Date("FAKE DATE"))).toEqual(false);
-            expect(scope.isValidDate(new Date)).toEqual(true);
         });
 
         it('should have moment.js available', function(){
