@@ -1,5 +1,7 @@
-mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs',
-        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs ) {
+mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs', 'platforms',
+        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs, platforms ) {
+            $scope.platforms = platforms.all();
+
             // Angular Templates
             $scope.appList = 'assets/templates/waterfalls/appList.html';
             $scope.subHeader = 'assets/templates/sub_header.html';
@@ -24,9 +26,13 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.flashMessage = flashMessage;
 
             // Retrieve Waterfall data
-            $scope.getWaterfallData = function() {
+            $scope.getWaterfallData = function(callback) {
                 $scope.waterfallInfoCallComplete = false;
                 $http.get('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID + '/waterfall_info').success(function(data) {
+                    $scope.setWaterfallData(data);
+                    if(typeof callback !== "undefined"){
+                        callback(data);
+                    }
                     $scope.waterfallData = data;
                     $scope.appName = data.waterfall.appName;
                     $scope.appID = data.waterfall.appID;
@@ -35,14 +41,30 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     sharedIDs.setDistributorID($scope.distributorID);
                     $scope.generationNumber = data.generationNumber;
                     $scope.appToken = data.waterfall.appToken;
-                    $scope.disableTestModeToggle = checkTestModeToggle();
                     $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
                     $scope.sortableOptions.containment = "#waterfall-edit";
+                    $scope.platform = $scope.platforms[$scope.waterfallData.waterfall.platformID];
+                    $scope.codeSnippet = 'assets/templates/waterfalls/' + $scope.platform.name + '_code_snippet.html';
                     $scope.waterfallInfoCallComplete = true;
+                    $scope.orderOptimizedWaterfallList();
                 }).error(function(data) {
                     $scope.waterfallInfoCallComplete = true;
                     flashMessage.add(data);
                 });
+            };
+
+            $scope.setWaterfallData = function(data) {
+                $scope.waterfallData = data;
+                $scope.appName = data.waterfall.appName;
+                $scope.appID = data.waterfall.appID;
+                sharedIDs.setAppID($scope.appID);
+                $scope.distributorID = $routeParams.distributorID;
+                sharedIDs.setDistributorID($scope.distributorID);
+                $scope.generationNumber = data.generationNumber;
+                $scope.appToken = data.waterfall.appToken;
+                $scope.sortableOptions.disabled = $scope.waterfallData.waterfall.optimizedOrder;
+                $scope.sortableOptions.containment = "#waterfall-edit";
+                $scope.waterfallInfoCallComplete = true;
             };
 
             $scope.getWaterfallData();
@@ -59,39 +81,10 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 $scope.showCodeBlock = !$scope.showCodeBlock;
             };
 
-            // Checks status of WaterfallAdProviders to determine if the test mode toggle should be disabled
-            var checkTestModeToggle = function() {
-                var activeAdProviders = $scope.providersByActive(true);
-                return (activeAdProviders.length < 1 && $scope.waterfallData.waterfall.testMode);
-            };
-
-            // Toggles paused on/off
-            $scope.togglePaused = function() {
-                $scope.waterfallData.waterfall.paused = !$scope.waterfallData.waterfall.paused;
-                $scope.updateWaterfall();
-            };
-
-            // Toggles test mode on/off
-            $scope.toggleTestMode = function(testMode) {
-                ga('send', 'event', 'testmode_toggle', 'click', 'waterfalls');
-                if(!$scope.disableTestModeToggle) {
-                    if(testMode) {
-                        $scope.waterfallData.waterfall.testMode = false;
-                        $scope.showTestModeConfirmationModal = true;
-                        $scope.showModal(!$scope.modalShown);
-                    } else {
-                        $scope.updateWaterfall();
-                    }
-                    $scope.disableTestModeToggle = checkTestModeToggle();
-                } else {
-                    $scope.waterfallData.waterfall.testMode = false;
-                    $scope.updateWaterfall();
-                }
-            };
-
             $scope.confirmTestMode = function() {
                 ga('send', 'event', 'testmode_toggle_confirm', 'click', 'waterfalls');
                 $scope.waterfallData.waterfall.testMode = true;
+                $scope.waterfallData.waterfall.paused = false;
                 $scope.updateWaterfall();
                 closeTestModeModal();
             };
@@ -106,6 +99,30 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 ga('send', 'event', 'testmode_toggle_close', 'click', 'waterfalls');
                 $scope.showModal(false);
                 $scope.showTestModeConfirmationModal = false;
+            };
+
+            $scope.activateTestMode = function() {
+                if(!$scope.waterfallData.waterfall.testMode) {
+                    ga('send', 'event', 'testmode_toggle', 'click', 'waterfalls');
+                    $scope.showTestModeConfirmationModal = true;
+                    $scope.showModal(!$scope.modalShown);
+                }
+            };
+
+            $scope.activateLiveMode = function() {
+                if($scope.waterfallData.waterfall.testMode || $scope.waterfallData.waterfall.paused) {
+                    $scope.waterfallData.waterfall.paused = false;
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.updateWaterfall();
+                }
+            };
+
+            $scope.activatePausedMode = function() {
+                if(!$scope.waterfallData.waterfall.paused) {
+                    $scope.waterfallData.waterfall.paused = true;
+                    $scope.waterfallData.waterfall.testMode = false;
+                    $scope.updateWaterfall();
+                }
             };
 
             // Toggles optimized mode on/off
@@ -158,7 +175,6 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 };
                 $http.post('/distributors/' + $routeParams.distributorID + '/waterfalls/' + $routeParams.waterfallID, params).success(function(data) {
                     $scope.generationNumber = data.newGenerationNumber;
-                    $scope.disableTestModeToggle = checkTestModeToggle();
                     flashMessage.add(data);
                 }).error(function(data) {
                     flashMessage.add(data);
@@ -168,19 +184,32 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             // Toggles active/inactive status for an AdProvider
             $scope.toggleWAPStatus = function(adProviderConfig) {
                 ga('send', 'event', 'toggle_wap_status', 'click', 'waterfalls');
+
                 adProviderConfig.active = !adProviderConfig.active;
+                adProviderConfig.loading = true;
                 $scope.updateWaterfall();
-                $scope.disableTestModeToggle = checkTestModeToggle();
                 $scope.orderOptimizedWaterfallList();
             };
 
             /* App logic */
             // Open the App settings page
-            $scope.toggleEditAppModal = function() {
+            $scope.toggleEditAppModal = function(appID) {
                 ga('send', 'event', 'toggle_edit_app_modal', 'click', 'waterfalls');
                 // Retrieve App data
-                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID + '/edit').success(function(data) {
-                    $scope.data = _.defaults(data, {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true});
+                $http.get('/distributors/' + $routeParams.distributorID + '/apps/' + appID + '/edit').success(function(data) {
+                    var appData = {
+                        appName: null,
+                        currencyName: null,
+                        exchangeRate: null,
+                        rewardMin: null,
+                        rewardMax: null,
+                        roundUp: true,
+                        platformID: $scope.platforms.ios.id,
+                        platformName: $scope.platforms.ios.name
+                    };
+                    $scope.data = _.defaults(data, appData);
+                    $scope.editAppID = appID;
+
                     $scope.form.editAppForm.$setPristine();
                     $scope.form.editAppForm.$setUntouched();
                     $scope.showEditAppModal = !$scope.showEditAppModal;
@@ -194,7 +223,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
             $scope.toggleNewAppModal = function() {
                 ga('send', 'event', 'toggle_new_app_modal', 'click', 'waterfalls');
                 $scope.errors = {};
-                $scope.newApp = {appName: null, currencyName: null, exchangeRate: null, rewardMin: null, rewardMax: null, roundUp: true};
+                $scope.newApp = {
+                    appName: null,
+                    currencyName: null,
+                    exchangeRate: null,
+                    rewardMin: null,
+                    rewardMax: null,
+                    roundUp: true,
+                    platformID: $scope.platforms.ios.id,
+                    platformName: $scope.platforms.ios.name
+                };
                 $scope.showNewAppModal = !$scope.showNewAppModal;
                 $scope.form.newAppForm.$setPristine();
                 $scope.form.newAppForm.$setUntouched();
@@ -219,6 +257,8 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
                                 $scope.errors[data.fieldName + "Class"] = "error";
+                            } else {
+                                flashMessage.add(data);
                             }
                         });
                 }
@@ -236,22 +276,24 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                 if(form.$valid) {
                     ga('send', 'event', 'submit_edit_app', 'click', 'waterfalls');
                     setNumberValues("data");
-                    $scope.data.generationNumber = $scope.generationNumber;
-                    $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.appID, $scope.data).
+                    $http.post('/distributors/' + $routeParams.distributorID + '/apps/' + $scope.editAppID, $scope.data).
                         success(function(data, status, headers, config) {
-                            if($scope.appName !== $scope.data.appName) {
-                                var apps = $scope.waterfallData.appsWithWaterfalls;
+                            var apps = $scope.waterfallData.appsWithWaterfalls;
+                            if($scope.appName !== $scope.data.appName && $scope.appID === $scope.editAppID) {
                                 $scope.appName = $scope.data.appName;
-                                for(index in apps) {
-                                    if(apps[index].id === $scope.appID) {
-                                        apps[index].name = $scope.data.appName;
-                                    }
+                            }
+                            for(index in apps) {
+                                if(apps[index].id === $scope.editAppID) {
+                                    apps[index].name = $scope.data.appName;
                                 }
                             }
-                            $scope.generationNumber = data.generationNumber;
+                            if($scope.appID === $scope.editAppID) {
+                                $scope.generationNumber = data.generationNumber;
+                            }
                             $scope.showEditAppModal = false;
                             $scope.showModal(false);
                             flashMessage.add(data);
+                            $scope.getWaterfallData();
                         }).error(function(data, status, headers, config) {
                             if(data.fieldName) {
                                 $scope.errors[data.fieldName] = data.message;
@@ -304,14 +346,16 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             }
                         }
                         $scope.generationNumber = data.newGenerationNumber;
-                        setWAPData(data)
+                        setWAPData(data);
+                        $scope.getWaterfallData();
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
                 } else {
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
-                        setWAPData(wapData);
+                        $scope.getWaterfallData();
+                        setWAPData(wapData)
                     }).error(function(data) {
                         flashMessage.add(data);
                     });
@@ -347,13 +391,15 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                                 adProviders[i].unconfigured = false;
                             }
                         }
-                        $scope.orderOptimizedWaterfallList();
-                        $scope.updateWaterfall();
-                        $scope.showWaterfallAdProviderModal = false;
-                        $scope.showModal(false);
-                        var restartParams = Object.keys($scope.changedRestartParams);
-                        var successMessage = $scope.wapData.adProviderName + " updated!";
-                        flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                        $scope.getWaterfallData(function(){
+                            $scope.orderOptimizedWaterfallList();
+                            $scope.updateWaterfall();
+                            $scope.showWaterfallAdProviderModal = false;
+                            $scope.showModal(false);
+                            var restartParams = Object.keys($scope.changedRestartParams);
+                            var successMessage = $scope.wapData.adProviderName + " updated!";
+                            flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                        });
                     }).error(function(data) {
                         flashMessage.add(data);
                     });

@@ -9,7 +9,7 @@ import play.api.libs.json._
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
-  val LogFullConfig = true
+  val LogFullConfig = true // This value must remain true to provide accurate analytics for ad providers
   val DefaultCanShowAdTimeout = 10 // This value represents seconds.
   val DefaultRewardTimeout = 10 // This value represents seconds.
 
@@ -49,7 +49,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
         )
       )
     }
-    val configurationsList = List(analyticsConfiguration, errorReportingConfiguration, virtualCurrencyConfiguration(configInfo), appNameConfiguration(configInfo),
+    val configurationsList = List(analyticsConfiguration, errorReportingConfiguration, virtualCurrencyConfiguration(configInfo), appConfiguration(configInfo),
       distributorConfiguration(configInfo), sdkConfiguration(configInfo.appConfigRefreshInterval), testModeConfiguration, pausedConfiguration(configInfo), timeoutConfigurations, adProviderBelowRewardThreshold)
     configurationsList.foldLeft(adProviderConfigurations)((jsObject, el) =>
       jsObject.deepMerge(el)
@@ -106,13 +106,14 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   /**
    * Creates a JSON object for app information.
    * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
-   * @return A JsObject containing app name and ID.
+   * @return A JsObject containing app name, ID, and platform ID.
    */
-  def appNameConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
+  def appConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
         "appName" -> adProviderInfo.appName,
-        "appID" -> adProviderInfo.appID
+        "appID" -> adProviderInfo.appID,
+        "platformID" -> adProviderInfo.platformID
       )
     )
   }

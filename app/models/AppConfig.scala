@@ -19,11 +19,11 @@ case class AppConfig(generationNumber: Long, configuration: JsValue)
 object AppConfig extends JsonConversion {
   val TestModeDistributorID = "111"
   val TestModeProviderName = "HyprMarketplace"
-  val TestModeProviderID = 0.toLong
+  val TestModeProviderID = 0L
   val TestModeSdkBlacklistRegex = ".^"
   val TestModeHyprMediateDistributorName = "Test Distributor"
-  val TestModeHyprMediateDistributorID = 0.toLong
-  val TestModeHyprMediateAppID = 0.toLong
+  val TestModeHyprMediateDistributorID = 0L
+  val TestModeHyprMediateAppID = 0L
   val TestModeAppName = "Test App"
   val TestModePropertyID = " "
   val TestModeVirtualCurrency = new VirtualCurrency(id=0, appID=0, name="Coins", exchangeRate=100, rewardMin=1, rewardMax=Some(100), roundUp=true)
@@ -183,7 +183,7 @@ object AppConfig extends JsonConversion {
       }
       // Waterfall is in test mode.
       case adProviders: List[AdProviderInfo] if adProviders(0).testMode => {
-        testResponseV1
+        testResponseV1(adProviders(0).platformID)
       }
       // Waterfall is in "Optimized" mode.
       case adProviders: List[AdProviderInfo] if adProviders(0).optimizedOrder => {
@@ -206,11 +206,12 @@ object AppConfig extends JsonConversion {
 
   /**
    * Returns the JSON for an AppConfig when a Waterfall is in test mode.
+   * @param platformID The ID of the platform to which the AppConfig belongs.
    * @return A JSON object containing the test mode AppConfig info.
    */
-  def testResponseV1: JsValue = {
+  def testResponseV1(platformID: Option[Long]): JsValue = {
     val testConfigData: JsValue = JsObject(Seq("requiredParams" -> JsObject(Seq("distributorID" -> JsString(TestModeDistributorID), "propertyID" -> JsString(TestModePropertyID)))))
-    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TestModeProviderName), Some(TestModeProviderID), Some(TestModeSdkBlacklistRegex),
+    val testAdProviderConfig: AdProviderInfo = new AdProviderInfo(Some(TestModeProviderName), Some(TestModeProviderID), platformID, Some(TestModeSdkBlacklistRegex),
       Some(TestModeAppName), Some(TestModeHyprMediateAppID), TestModeAppConfigRefreshInterval, Some(TestModeHyprMediateDistributorName),
       Some(TestModeHyprMediateDistributorID), Some(testConfigData), Some(5.0), Some(TestModeVirtualCurrency.name), Some(TestModeVirtualCurrency.exchangeRate),
       TestModeVirtualCurrency.rewardMin, TestModeVirtualCurrency.rewardMax, Some(TestModeVirtualCurrency.roundUp), testMode = true, paused = false, optimizedOrder = false, active = Some(false))

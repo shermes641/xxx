@@ -34,11 +34,11 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
   val adProviders = List("test ad provider 1", "test ad provider 2")
 
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProviders(0), adProviderConfigData, None, true)
+    AdProvider.create(adProviders(0), adProviderConfigData, Platform.Ios.PlatformID, None, true)
   }
 
   val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProviders(1), adProviderConfigData, None, true)
+    AdProvider.create(adProviders(1), adProviderConfigData, Platform.Ios.PlatformID, None, true)
   }
 
   /**

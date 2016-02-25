@@ -24,6 +24,19 @@
                 </div>
             </dl>
 
+            <dl id="new-app-platform" class="device-targeting-field">
+                <dt class="device-targeting-label">
+                    <label for="new-app-platform">Device Targeting</label>
+                </dt>
+                <div class="app-platform">
+                    <div class="app-platform-container">
+                        <div id="status-toggle" ng-class="{ios: newApp.platformID === platforms.ios.id, android: newApp.platformID === platforms.android.id}"></div>
+                        <img alt="" ng-src="{{platforms.logoSource('Android')}}" id="android-logo" ng-click="newApp.platformID = platforms.android.id"/>
+                        <img alt="" ng-src="{{platforms.logoSource('iOS')}}" id="apple-logo" ng-click="newApp.platformID = platforms.ios.id"/>
+                    </div>
+                </div>
+            </dl>
+
             <dl id="new-app-currency-name">
                 <dt><label for="new-app-currency-name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">
@@ -57,7 +70,7 @@
                 <div ng-show="form.newAppForm.$submitted || form.newAppForm.rewardMin.$touched">
                     <dd class="error">{{errors.rewardMin}}</dd>
                     <dd class="error" ng-show="form.newAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
-                    <dd class="error" ng-show="form.newAppForm.rewardMin.$error.maxlength">Reward Min must be 15 characters or less.</dd>
+                    <dd class="error" ng-show="form.newAppForm.rewardMin.$error.maxlength">Minimum Reward must be 15 characters or less.</dd>
                 </div>
             </dl>
 
@@ -69,7 +82,7 @@
                 <dd class="error">{{errors.rewardMax}}</dd>
                 <dd class="error" ng-show="form.newAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
                 <dd class="error" ng-show="form.newAppForm.rewardMax.$error.greaterThanOrEqualTo && !form.newAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
-                <dd class="error" ng-show="form.newAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
+                <dd class="error" ng-show="form.newAppForm.rewardMax.$error.maxlength">Maximum Reward must be 15 characters or less.</dd>
             </dl>
 
             <dl class="switch-field" id="roundUp-field">

@@ -56,6 +56,7 @@ button[type="button"] {
   font-size: 13px;
   height: 35px;
   padding: 5px;
+  outline: none;
 }
 
 button[type="submit"],
@@ -71,6 +72,7 @@ button[type="button"] {
   padding: 15px;
   text-align: center;
   width: 100%;
+  outline: none;
 }
 
 .tip {
@@ -80,11 +82,6 @@ button[type="button"] {
 .center {
   display: block;
   text-align: center;
-}
-
-#create-new-app:hover,
-#export-as-csv:hover {
-  background: $mediate-light-blue;
 }
 
 .settings dl {
@@ -117,7 +114,7 @@ div [class^="col-"] {
 }
 
 .inactive-input {
-  background-color: #CCC!important;
+  background-color: #DCDCDC!important;
 }
 
 hr {
@@ -148,17 +145,21 @@ dd.modal-error {
 
 :-moz-placeholder,
 ::-moz-placeholder {
-  color: #DEDEDE;
+  color: #b2b1b6;
   opacity: 1;
 }
 .preserve-whitespace {
   white-space: pre;
 }
 
-.unselectable
-{
+.unselectable {
   display:inline;
   -webkit-user-select:none;
   -moz-user-select:none;
   -ms-user-select:none;
+}
+
+// Disable box shadow to fix problem with AngularJS form validation in Firefox
+input:invalid, select:invalid {
+  box-shadow: none;
 }

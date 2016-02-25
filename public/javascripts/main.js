@@ -12,7 +12,7 @@ var distributorUsersControllers = angular.module('distributorUsersControllers', 
 var appsControllers = angular.module('appsControllers', ['ngRoute']);
 
 // Routing
-mediationModule.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+mediationModule.config(['$routeProvider', '$locationProvider', '$httpProvider', function($routeProvider, $locationProvider, $httpProvider) {
     $routeProvider.when('/distributors/:distributorID/apps/new', {
         controller: 'NewAppsController',
         templateUrl: 'assets/templates/apps/newAppModal.html'
@@ -38,6 +38,7 @@ mediationModule.config(['$routeProvider', '$locationProvider', function($routePr
         templateUrl: 'assets/templates/distributor_users/reset_password.html'
     });
     $locationProvider.html5Mode(true);
+    $httpProvider.interceptors.push('httpErrorInterceptor');
 }]);
 
 // Factories
@@ -74,6 +75,51 @@ mediationModule.service('sharedIDs', [function() {
     }
 }]);
 
+// Service for platform-specific IDs, names, and assets
+mediationModule.service('platforms', [function() {
+    var iosID = 1;
+    var androidID = 2;
+    var iOSPlatform = {id: iosID, name: "iOS", documentationPath: "IS/iOS+SDK"};
+    var androidPlatform = {id: androidID, name: "Android", documentationPath: "AS/Android+SDK"};
+    var logoSource = function(platformName, deactivated) {
+        if(platformName) {
+            var iconColor = deactivated ? 'grey' : 'white';
+            return '/assets/images/' + platformName + '_icon_' + iconColor + '.png';
+        } else {
+            return '';
+        }
+    };
+    var platforms = {
+        ios: iOSPlatform,
+        android: androidPlatform,
+        logoSource: logoSource
+    };
+    platforms[iosID] = iOSPlatform;
+    platforms[androidID] = androidPlatform;
+    return {
+        all: function() {
+            return platforms;
+        }
+    }
+}]);
+
+// Register HTTP error interceptor as service
+mediationModule.factory('httpErrorInterceptor', ['$q', 'flashMessage', function($q, flashMessage) {
+    return {
+        // handle response Error
+        'responseError': function(rejection) {
+            if(rejection.status === 503) {
+                flashMessage.add({message: "We are currently down for maintenance.  Please try again later.", status: "error"});
+            } else if(rejection.status === 0 || rejection.status.toString()[0] === "5") {
+                flashMessage.add({message: "There was a problem with the request.  Please try again later.", status: "error"});
+            }
+
+            console.log("Intercepted HTTP response error with status code: " + rejection.status);
+            return $q.reject(rejection);
+        }
+    };
+}]);
+
 // All controllers use this factory to display flash messages in the UI.
 mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
     var currentMessage = '';
@@ -82,22 +128,24 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
 
     // Iterate through the message queue, showing each message for 5 seconds.
     var displayMessages = function() {
-        var lastMessage = messageQueue.shift();
-        currentMessage = lastMessage.message;
-        messageClass = lastMessage.status;
+        if(messageQueue.length > 0) {
+            var lastMessage = messageQueue.shift();
+            currentMessage = lastMessage.message;
+            messageClass = lastMessage.status;
 
-        $timeout(function() {
-            currentMessage = '';
-            messageClass = '';
-            if(messageQueue.length > 0) {
+            $timeout(function() {
+                currentMessage = '';
+                messageClass = '';
                 displayMessages();
-            }
-        }, 5000);
+            }, 5000);
+        }
     };
 
     return {
         add: function(data) {
-            messageQueue.push(data);
+            if(typeof data === 'object' && typeof data.message === 'string') {
+                messageQueue.push(data);
+            }
             if(currentMessage === '') {
                 displayMessages();
             }
@@ -162,7 +210,7 @@ mediationModule.directive('modalDialog', function($rootScope) {
 
             // Add body class to prevent scrolling when modal open
             scope.showModal = function(display) {
-                scope.dialogStyle.overflowY = scope.showEditAppModal ? "visible" : "auto";
+                scope.dialogStyle.overflowY = (scope.showEditAppModal || scope.showNewAppModal) ? "visible" : "auto";
                 $rootScope.bodyClass = display ? "modal-active" : "";
                 scope.modalShown = display;
             };
@@ -395,7 +443,7 @@ angular.module('eCPMFilter', []).filter('monetaryFormat', function() {
 
 angular.module('waterfallFilters', []).filter('waterfallStatus', function() {
     return function(status) {
-        return status ? "Deactivate" : "Activate";
+        return status ? "Active" : "Inactive";
     };
 });
 

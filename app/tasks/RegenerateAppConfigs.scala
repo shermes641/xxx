@@ -14,7 +14,7 @@ object RegenerateAppConfigs {
    * Script to update AppConfigs for all Waterfalls.
    */
   def run() = {
-    if(AdProvider.updateAll == AdProvider.allProviders.size) {
+    if(AdProvider.updateAll == (Platform.Ios.allAdProviders ++ Platform.Android.allAdProviders).size) {
       var unsuccessfulWaterfallIDs: Set[Long] = Set()
       var unsuccessfulWaterfallAdProviderIDs: Vector[Long] = Vector()
 

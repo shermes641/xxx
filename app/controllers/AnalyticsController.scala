@@ -46,13 +46,20 @@ object AnalyticsController extends Controller with Secured {
   }
 
   def info(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-        Ok(Json.obj(
-          "distributorID" -> JsNumber(distributorID),
-          "adProviders" -> adProviderListJs(AdProvider.findAll),
-          "apps" -> appListJs(App.findAll(distributorID)),
-          "keenProject" -> Play.current.configuration.getString("keen.project").get,
-          "scopedKey" -> getScopedReadKey(distributorID)
-        ))
+    // There are duplicate records in the ad_providers table for iOS and Android-based AdProviders.
+    // To prevent showing duplicate ad provider names in the analytics dashboard, we only select unique ad provider names.
+    val adProviders = AdProvider.findAll
+      .foldLeft(Set[AdProvider]())((providers, provider) =>
+        if(providers.count(e => e.name == provider.name) > 0) providers else providers + provider
+      ).toList
+
+    Ok(Json.obj(
+      "distributorID" -> JsNumber(distributorID),
+      "adProviders" -> adProviderListJs(adProviders),
+      "apps" -> appListJs(App.findAll(distributorID)),
+      "keenProject" -> Play.current.configuration.getString("keen.project").get,
+      "scopedKey" -> getScopedReadKey(distributorID)
+    ))
   }
 
   // Uses the keen library to get a scoped read key
@@ -93,7 +100,7 @@ object AnalyticsController extends Controller with Secured {
     JsObject(
       Seq(
         "name" -> JsString(provider.name),
-        "id" -> JsNumber(provider.id)
+        "id" -> JsString(provider.name)
       )
     )
   }
@@ -112,11 +119,13 @@ object AnalyticsController extends Controller with Secured {
    * @return A JSON object.
    */
   implicit def appWrites(app: App): JsObject = {
+    val platformName = Platform.find(app.platformID).PlatformName
     JsObject(
       Seq(
         "id" -> JsString(app.id.toString),
         "distributorID" -> JsNumber(app.distributorID),
-        "name" -> JsString(app.name)
+        "name" -> JsString(app.name),
+        "platformName" -> JsString(platformName)
       )
     )
   }

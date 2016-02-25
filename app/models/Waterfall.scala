@@ -20,8 +20,21 @@ import scala.language.postfixOps
  * @param appName The name of the App to which the Waterfall belongs.
  * @param appToken A unique identifier used to identify an App in API calls.
  * @param generationNumber A number which indicates how many times the Waterfall and associated elements have been edited.  This number is retrieved from the app_configs table.
+ * @param platformID Indicates the ID of the platform to which this Waterfall belongs.
+ * @param platformName Indicates the name of the platform to which this Waterfall belongs (e.g. iOS or Android).
  */
-case class Waterfall(id: Long, app_id: Long, name: String, token: String, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean, appName: String, generationNumber: Option[Long], appToken: String)
+case class Waterfall(id: Long,
+                     app_id: Long,
+                     name: String,
+                     token: String,
+                     optimizedOrder: Boolean,
+                     testMode: Boolean,
+                     paused: Boolean,
+                     appName: String,
+                     generationNumber: Option[Long],
+                     appToken: String,
+                     platformID: Long,
+                     platformName: String)
 
 object Waterfall extends JsonConversion {
   // Used to convert SQL row into an instance of the Waterfall class.
@@ -35,8 +48,12 @@ object Waterfall extends JsonConversion {
     get[Boolean]("paused") ~
     get[String]("app_name") ~
     get[Option[Long]]("generation_number") ~
-    get[String]("app_token") map {
-      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ paused ~ app_name ~ generation_number ~ app_token => Waterfall(id, app_id, name, token, optimized_order, test_mode, paused, app_name, generation_number, app_token)
+    get[String]("app_token") ~
+    get[Long]("apps.platform_id") ~
+    get[String]("platform_name") map {
+      case id ~ app_id ~ name  ~ token ~ optimized_order ~ test_mode ~ paused ~ app_name ~ generation_number ~ app_token ~ platform_id ~ platform_name => {
+        Waterfall(id, app_id, name, token, optimized_order, test_mode, paused, app_name, generation_number, app_token, platform_id, platform_name)
+      }
     }
   }
 
@@ -110,9 +127,10 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, generation_number
+          SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, apps.platform_id, platforms.name as platform_name, generation_number
           FROM waterfalls
           JOIN apps ON apps.id = waterfalls.app_id
+          JOIN platforms ON platforms.id = apps.platform_id
           JOIN app_configs ON app_configs.app_id = waterfalls.app_id
           WHERE waterfalls.id = {waterfall_id} AND apps.distributor_id = {distributor_id}
           ORDER BY generation_number DESC
@@ -135,9 +153,10 @@ object Waterfall extends JsonConversion {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, generation_number
+          SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, apps.platform_id, platforms.name as platform_name, generation_number
           FROM waterfalls
           JOIN apps ON apps.id = waterfalls.app_id
+          JOIN platforms ON platforms.id = apps.platform_id
           JOIN app_configs ON app_configs.app_id = waterfalls.app_id
           WHERE waterfalls.app_id={app_id}
           ORDER BY generation_number DESC
@@ -193,7 +212,7 @@ object Waterfall extends JsonConversion {
   def order(appToken: String)(implicit connection: Connection): List[AdProviderInfo] = {
     val query = SQL(
       """
-        SELECT ap.name provider_name, ap.id as provider_id, ap.sdk_blacklist_regex, apps.id as app_id, apps.name as app_name,
+        SELECT ap.name provider_name, ap.id as provider_id, ap.sdk_blacklist_regex, apps.platform_id, apps.id as app_id, apps.name as app_name,
         apps.app_config_refresh_interval, distributors.id as distributor_id, distributors.name as distributor_name, wap.configuration_data,
         wap.cpm, vc.name as vc_name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, w.test_mode, w.paused, w.optimized_order, wap.active
         FROM waterfalls w
@@ -213,6 +232,7 @@ object Waterfall extends JsonConversion {
   val adProviderParser: RowParser[AdProviderInfo] = {
     get[Option[String]]("provider_name") ~
     get[Option[Long]]("provider_id") ~
+    get[Option[Long]]("apps.platform_id") ~
     get[Option[String]]("sdk_blacklist_regex") ~
     get[Option[String]]("app_name") ~
     get[Option[Long]]("app_id") ~
@@ -230,9 +250,9 @@ object Waterfall extends JsonConversion {
     get[Boolean]("paused") ~
     get[Boolean]("optimized_order") ~
     get[Option[Boolean]]("active") map {
-      case provider_name ~ provider_id ~ sdk_blacklist_regex ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
+      case provider_name ~ provider_id ~ platform_id ~ sdk_blacklist_regex ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
            configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ paused ~ optimized_order ~ active => {
-        AdProviderInfo(provider_name, provider_id, sdk_blacklist_regex, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
+        AdProviderInfo(provider_name, provider_id, platform_id, sdk_blacklist_regex, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
                        configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, paused, optimized_order, active)
       }
     }
@@ -242,6 +262,7 @@ object Waterfall extends JsonConversion {
    * Encapsulates necessary information returned from SQL query in Waterfall.order.
    * @param providerName Maps to the name field in the ad_providers table.
    * @param providerID Maps to the id field in the ad_providers table.
+   * @param platformID Indicates the platform to which the App belongs (e.g. iOS or Android)
    * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider. This value will be used to create an NSRegularExpression in the SDK.
    * @param appName Maps to the name field in the apps table.
    * @param appID Maps to the id field in the apps table.
@@ -260,20 +281,30 @@ object Waterfall extends JsonConversion {
    * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
    * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
    */
-  case class AdProviderInfo(providerName: Option[String], providerID: Option[Long], sdkBlacklistRegex: Option[String], appName: Option[String], appID: Option[Long], appConfigRefreshInterval: Long,
-                            distributorName: Option[String], distributorID: Option[Long], configurationData: Option[JsValue], cpm: Option[Double], virtualCurrencyName: Option[String],
-                            exchangeRate: Option[Long], rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], testMode: Boolean, paused: Boolean, optimizedOrder: Boolean, active: Option[Boolean]) {
-    lazy val meetsRewardThreshold: Boolean = {
-      (roundUp, cpm) match {
-        case (Some(roundUpValue: Boolean), _) if(roundUpValue) => true
-        case (Some(roundUpValue: Boolean), Some(cpmVal: Double)) if(!roundUpValue) => {
-          cpmVal * exchangeRate.get >= rewardMin * 1000.0
-        }
-        // If there is no cpm value for an ad provider and the virtual currency does not roundUp, this will ensure it is excluded from the waterfall.
-        case (Some(roundUpValue: Boolean), None) if(!roundUpValue) => false
-        case (_, _) => true
-      }
-    }
+  case class AdProviderInfo(providerName: Option[String],
+                            providerID: Option[Long],
+                            platformID: Option[Long],
+                            sdkBlacklistRegex: Option[String],
+                            appName: Option[String],
+                            appID: Option[Long],
+                            appConfigRefreshInterval: Long,
+                            distributorName: Option[String],
+                            distributorID: Option[Long],
+                            configurationData: Option[JsValue],
+                            cpm: Option[Double],
+                            virtualCurrencyName: Option[String],
+                            exchangeRate: Option[Long],
+                            rewardMin: Long,
+                            rewardMax: Option[Long],
+                            roundUp: Option[Boolean],
+                            testMode: Boolean,
+                            paused: Boolean,
+                            optimizedOrder: Boolean,
+                            active: Option[Boolean]) extends RewardThreshold {
+    override val roundUpVal = roundUp
+    override val exchangeRateVal = exchangeRate
+    override val rewardMinVal = rewardMin
+    override val cpmVal = cpm
   }
 
   /**

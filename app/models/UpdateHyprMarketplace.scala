@@ -73,7 +73,8 @@ trait UpdateHyprMarketplace extends JsonConversion {
    */
   def updateHyprMarketplaceDistributorID(wap: WaterfallAdProviderWithAppData) = {
     val api = new JunGroupAPI
-    val adNetwork = api.adNetworkConfiguration(wap.companyName, wap.appName, wap.appToken)
+    val newApp = App.findByWaterfallID(wap.waterfallID).get
+    val adNetwork = api.adNetworkConfiguration(wap.companyName, newApp)
     Await.result(
       api.createRequest(adNetwork) map {
         response => {

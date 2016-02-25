@@ -19,10 +19,12 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     (JsPath \ "exchangeRate").read[Long] and
     (JsPath \ "rewardMin").read[Long] and
     (JsPath \ "rewardMax").readNullable[Long] and
-    (JsPath \ "roundUp").readNullable[Boolean]
+    (JsPath \ "roundUp").readNullable[Boolean] and
+    (JsPath \ "platformID").read[Long]
   )(NewAppMapping.apply _)
 
   implicit val editAppReads: Reads[EditAppMapping] = (
+    (JsPath \ "apiToken").read[String] and
     (JsPath \ "currencyID").read[Long] and
     (JsPath \ "active").readNullable[Boolean] and
     (JsPath \ "appName").read[String] and
@@ -33,10 +35,13 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     (JsPath \ "roundUp").readNullable[Boolean] and
     (JsPath \ "callbackURL").readNullable[String] and
     (JsPath \ "serverToServerEnabled").readNullable[Boolean] and
+    (JsPath \ "platformID").read[Long] and
+    (JsPath \ "platformName").read[String] and
     (JsPath \ "generationNumber").readNullable[Long]
   )(EditAppMapping.apply _)
 
   implicit val editAppWrites = (
+    (__ \ "apiToken").write[String] and
     (__ \ "currencyID").write[Long] and
     (__ \ "active").writeNullable[Boolean] and
     (__ \ "appName").write[String] and
@@ -47,6 +52,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     (__ \ "roundUp").writeNullable[Boolean] and
     (__ \ "callbackURL").writeNullable[String] and
     (__ \ "serverToServerEnabled").writeNullable[Boolean] and
+    (__ \ "platformID").write[Long] and
+    (__ \ "platformName").write[String] and
     (__ \ "generationNumber").writeNullable[Long]
     )(unlift(EditAppMapping.unapply))
 
@@ -64,7 +71,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   }
 
   val duplicateAppNameException = {
-    "duplicate key value violates unique constraint \"active_distributor_app_name\""
+    "duplicate key value violates unique constraint \"active_distributor_app_name_platform_id\""
   }
 
   /**
@@ -78,7 +85,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
         DB.withTransaction { implicit connection =>
           val createErrorMessage = "App could not be created."
           try {
-            App.createWithTransaction(distributorID, newApp.appName) match {
+            App.createWithTransaction(distributorID, newApp.appName, newApp.platformID) match {
               case Some(appID) => {
                 val waterfallID = Waterfall.create(appID, newApp.appName)
                 val virtualCurrencyID = VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
@@ -86,13 +93,22 @@ object AppsController extends Controller with Secured with CustomFormValidation 
                 (waterfallID, virtualCurrencyID, persistedApp) match {
                   case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
                     // Set up HyprMarketplace ad provider
-                    val hyprMarketplace = AdProvider.HyprMarketplace
-                    val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallIDVal, Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get, Option(0), hyprMarketplace.defaultEcpm, hyprMarketplace.configurable, active = false, pending = true)
+                    val platform = Platform.find(app.platformID)
+                    val hyprMarketplace = platform.HyprMarketplace
+                    val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(
+                      waterfallID = waterfallIDVal,
+                      adProviderID = platform.hyprMarketplaceID,
+                      waterfallOrder = Option(0),
+                      cpm = hyprMarketplace.defaultEcpm,
+                      configurable = hyprMarketplace.configurable,
+                      active = false,
+                      pending = true
+                    )
                     val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
                     AppConfig.create(appID, app.token, 0)
                     (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
                       case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
-                        val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app.token, app.name, distributorID, new JunGroupAPI)))
+                        val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app, distributorID, new JunGroupAPI)))
                         actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
                         Ok(Json.obj("status" -> "success", "message" -> "App Created!", "waterfallID" -> waterfallIDVal))
                       }
@@ -130,8 +146,22 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     App.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
-        val editAppInfo = new EditAppMapping(appInfo.currencyID, Some(appInfo.active), appInfo.appName, appInfo.currencyName,
-          appInfo.exchangeRate, appInfo.rewardMin, appInfo.rewardMax, Some(appInfo.roundUp), appInfo.callbackURL, Some(appInfo.serverToServerEnabled), None)
+        val editAppInfo = new EditAppMapping(
+          appInfo.apiToken,
+          appInfo.currencyID,
+          Some(appInfo.active),
+          appInfo.appName,
+          appInfo.currencyName,
+          appInfo.exchangeRate,
+          appInfo.rewardMin,
+          appInfo.rewardMax,
+          Some(appInfo.roundUp),
+          appInfo.callbackURL,
+          Some(appInfo.serverToServerEnabled),
+          appInfo.platformID,
+          appInfo.platformName,
+          appInfo.generationNumber
+        )
         Ok(Json.toJson(editAppInfo))
       }
       case None => {
@@ -211,11 +241,19 @@ object AppsController extends Controller with Secured with CustomFormValidation 
  * @param rewardMin Maps to the reward_min field in the virtual_currencies table.
  * @param rewardMax Maps to the reward_max field in the virtual_currencies table.
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
+ * @param platformID Indicates the platform to which the app belongs (e.g. iOS or Android).
  */
-case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean])
+case class NewAppMapping(appName: String,
+                         currencyName: String,
+                         exchangeRate: Long,
+                         rewardMin: Long,
+                         rewardMax: Option[Long],
+                         roundUp: Option[Boolean],
+                         platformID: Long)
 
 /**
  * Used for mapping App and VirtualCurrency attributes in editAppForm.
+ * @param apiToken The unique string identifier for an app.
  * @param currencyID Maps to the id field in the virtual_currencies table.
  * @param active Maps to the active field in the apps table.
  * @param appName Maps to the name field in the apps table
@@ -226,6 +264,21 @@ case class NewAppMapping(appName: String, currencyName: String, exchangeRate: Lo
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  * @param callbackURL Maps to the callback_url field in the apps table.
  * @param serverToServerEnabled Maps to the server_to_server_enabled field in the apps table.
+ * @param platformID The ID of the Platform to which the app belongs.
+ * @param platformName Indicates the platform to which the app belongs (e.g. iOS or Android).
  * @param generationNumber The revision number which tracks the state of the corresponding AppConfig model at the time the page renders.
  */
-case class EditAppMapping(currencyID: Long, active: Option[Boolean], appName: String, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean], callbackURL: Option[String], serverToServerEnabled: Option[Boolean], generationNumber: Option[Long])
+case class EditAppMapping(apiToken: String,
+                          currencyID: Long,
+                          active: Option[Boolean],
+                          appName: String,
+                          currencyName: String,
+                          exchangeRate: Long,
+                          rewardMin: Long,
+                          rewardMax: Option[Long],
+                          roundUp: Option[Boolean],
+                          callbackURL: Option[String],
+                          serverToServerEnabled: Option[Boolean],
+                          platformID: Long,
+                          platformName: String,
+                          generationNumber: Option[Long])

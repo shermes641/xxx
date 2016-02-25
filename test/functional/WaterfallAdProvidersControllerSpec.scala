@@ -1,6 +1,7 @@
 package functional
 
 import models._
+import org.fluentlenium.core.filter.FilterConstructor.withId
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.db.DB
@@ -13,12 +14,12 @@ import resources._
 class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with JsonTesting with DistributorUserSetup {
   val adProvider1Name = "test ad provider 1"
   val adProvider1ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProvider1Name, configurationData, None, true, None).get
+    AdProvider.create(adProvider1Name, configurationData, Platform.Ios.PlatformID, None, true, None).get
   }
 
   val adProvider2Name = "test ad provider 2"
   val adProvider2ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProvider2Name, configurationData, None, true, None).get
+    AdProvider.create(adProvider2Name, configurationData, Platform.Ios.PlatformID, None, true, None).get
   }
 
   val (distributorUser, _) = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -126,11 +127,11 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
           "], \"reportingParams\": [], \"callbackParams\": []" +
         "}"
       }
-      val hyprID = AdProvider.create("HyprMarketplace", hyprMarketplaceConfiguration, None, false, Some(20)).get
+      val hyprID = AdProvider.create("HyprMarketplace", hyprMarketplaceConfiguration, Platform.Ios.PlatformID, None, false, Some(20)).get
       val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, hyprID, None, None, true).get
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal").areDisplayed
       browser.find(".edit-waterfall-ad-provider-field").first().isDisplayed must beFalse
     }
@@ -180,12 +181,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.find(".waterfall li", withId(adProvider2Name)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       browser.fill("input").`with`(validEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider1Name + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2Name + " updated!")
       val updatedWap = WaterfallAdProvider.find(newWap.id).get
       updatedWap.cpm.get.toString must beEqualTo(validEcpm)
     }
@@ -197,7 +198,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
       Waterfall.find(currentWaterfall.id, distributorUser.distributorID.get).get.testMode must beEqualTo(true)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       invalidEcpms.map { eCPM =>
@@ -219,7 +220,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
@@ -237,7 +238,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.find(wap1ID).get
       newWap.reportingActive must beEqualTo(false)
@@ -256,11 +257,11 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.find(".waterfall li", withId(adProvider2Name)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
       browser.executeScript("$('button[name=update-ad-provider]').click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider1Name + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2Name + " updated!")
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
       wap.active.get must beEqualTo(false)
       (wap.configurationData \ "requiredParams" \ configurationParams(0)).as[String] must beEqualTo(configKey)
@@ -272,12 +273,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val originalGeneration = generationNumber(currentApp.id)
       val defaultEcpm = Some(20.0)
       val adProviderName = "Test Ad Provider With Default eCPM"
-      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, configurationData, None, false, defaultEcpm).get
+      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, configurationData, Platform.Ios.PlatformID, None, true, defaultEcpm).get
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('.waterfall li').last().children().children('.wap-buttons').children('button[name=configure-wap]').click()")
+      browser.find(".waterfall li", withId(adProviderName)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.findFirst("input[name=eCPM]").getValue must beEqualTo("20.00")
       browser.fill("input").`with`("20.00", "12345")
@@ -293,14 +294,14 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("$('.waterfall li[id=\\'" + adProvider1Name + "\\']').children().children('.wap-buttons').children('.configure').click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`(" ")
       browser.fill("input[name=eCPM]").`with`("5.0")
       browser.find("button[name=update-ad-provider]").first().isEnabled must beEqualTo(false)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".required-params-errors").areDisplayed()
       browser.click("button[name=update-ad-provider]")
-      val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
+      val wap = WaterfallAdProvider.find(adProvider1ID).get
       wap.cpm must beNone
       wap.configurationData must beEqualTo(JsObject(Seq()))
     }
@@ -316,7 +317,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click();")
+      browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.find(wap1ID).get
       newWap.reportingActive must beEqualTo(false)
@@ -343,12 +344,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
         "}"
       }
       val adProviderName = "Test Ad Provider 3"
-      AdProvider.create(adProviderName, adProviderConfigData, None, true, None)
+      AdProvider.create(adProviderName, adProviderConfigData, Platform.Ios.PlatformID, None, true, None)
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').last().click();")
+      browser.find(".waterfall li", withId(adProviderName)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "123")
       browser.fill("input").`with`("2.0")

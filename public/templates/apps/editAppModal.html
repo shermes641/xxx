@@ -16,6 +16,22 @@
                 <dd class="error" ng-show="form.editAppForm.appName.$error.required">App Name is required.</dd>
             </dl>
 
+            <dl id="app-platform" class="device-targeting-field">
+                <dt class="app-platform-display-label">
+                    <label for="app-platform">Device Targeting</label>
+                </dt>
+                <dd>
+                    <div id="edit-app-platform">
+                        <div class="logo-background">
+                            <img id="logo-background" alt="" src="/assets/images/grey_selected.png">
+                        </div>
+                        <div class="device-targeting-container">
+                            <img class="device-targeting-icon" alt="" ng-src="{{platforms.logoSource(data.platformName)}}">
+                        </div>
+                    </div>
+                </dd>
+            </dl>
+
             <dl class="switch-field onoff-field" id="serverToServerEnabled-field">
                 <dt>
                     <label for="serverToServerEnabled">Server to Server Callbacks Enabled</label>
@@ -61,6 +77,13 @@
         </div>
         <div class="right-column">
 
+            <dl id="api-token-field">
+                <dt><label for="api-token-field">API Token</label></dt>
+                <dd>
+                    <input type="text" ng-model="data.apiToken" class="inactive-input" id="api-token" name="apiToken" readonly="readonly">
+                </dd>
+            </dl>
+
             <dl id="exchange-rate">
                 <dt><label for="exchange-rate">*Exchange Rate</label></dt>
                 <dd ng-class="errors.exchangeRateClass">
@@ -77,7 +100,7 @@
                     <input required-integer type="text" ng-model="data.rewardMin" ng-maxlength="15" ng-change="form.editAppForm.rewardMax.$setTouched()" label="*Minimum Currency to Reward per Completed Offer" id="rewardMin" name="rewardMin" value="" placeholder="e.g. 1">
                 </dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMin.$error.requiredInteger">Minimum Reward must be a valid integer greater than or equal to 1.</dd>
-                <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Reward Min must be 15 characters or less.</dd>
+                <dd class="error" ng-show="form.editAppForm.rewardMin.$error.maxlength">Minimum Reward must be 15 characters or less.</dd>
             </dl>
 
             <dl id="reward-max">
@@ -87,7 +110,7 @@
                 </dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMax.$error.rewardMaxValidator">Maximum Reward must be a valid integer greater than or equal to 1.</dd>
                 <dd class="error" ng-show="form.editAppForm.rewardMax.$error.greaterThanOrEqualTo && !form.editAppForm.rewardMax.$error.rewardMaxValidator" id="reward-max-error">Maximum Reward must be greater than or equal to Minimum Reward.</dd>
-                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Reward Max must be 15 characters or less.</dd>
+                <dd class="error" ng-show="form.editAppForm.rewardMax.$error.maxlength">Maximum Reward must be 15 characters or less.</dd>
             </dl>
 
             <dl class="switch-field" id="roundUp-field">

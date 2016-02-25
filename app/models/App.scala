@@ -17,8 +17,15 @@ import scala.language.postfixOps
  * @param callbackURL Maps to the callback_url column in the apps table
  * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
  * @param token The unique identifier for an App.  This is used for API calls.
+ * @param platformID Indicates the platform to which this App belongs (e.g. iOS or Android).
  */
-case class App(id: Long, active: Boolean, distributorID: Long, name: String, callbackURL: Option[String], serverToServerEnabled: Boolean, token: String)
+case class App(id: Long,
+               active: Boolean,
+               distributorID: Long,
+               name: String,
+               callbackURL: Option[String],
+               serverToServerEnabled: Boolean,
+               token: String, platformID: Long)
 
 /**
  * Maps to the apps table in the database.
@@ -29,25 +36,41 @@ case class App(id: Long, active: Boolean, distributorID: Long, name: String, cal
  * @param callbackURL Maps to the callback_url column in the apps table
  * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
  */
-case class UpdatableApp(id: Long, active: Boolean, distributorID: Long, name: String, callbackURL: Option[String], serverToServerEnabled: Boolean)
+case class UpdatableApp(id: Long,
+                        active: Boolean,
+                        distributorID: Long,
+                        name: String,
+                        callbackURL: Option[String],
+                        serverToServerEnabled: Boolean)
 
 /**
  * Maps to App table in the database.
  * @param id Maps to id column in App table
  * @param active Maps to the active column in App table
  * @param distributorID Maps to distributor_id column in App table
- * @param waterfallID ID of the Waterfall to which the app belongs
  * @param name Maps to name column in App table
+ * @param platformID Indicates the platform to which this App/Waterfall belongs
+ * @param platformName The name of the Platform to which the App/Waterfall belongs (e.g. iOS or Android)
+ * @param waterfallID ID of the Waterfall to which the app belongs
  */
-case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, name: String, waterfallID: Long)
+case class AppWithWaterfallID(id: Long,
+                              active: Boolean,
+                              distributorID: Long,
+                              name: String,
+                              platformID: Long,
+                              platformName: String,
+                              waterfallID: Long)
 
 /**
  * Encapsulates app and virtual currency information for a particular app.
+ * @param apiToken The unique string identifier for an app.
  * @param currencyID Maps to the id field in the virtual_currencies table.
  * @param active Maps to the active field in the apps table.
  * @param appName Maps to the name field in the apps table
  * @param callbackURL Maps to the callback_url field in the apps table
  * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
+ * @param platformID The ID of the Platform to which the App/VirtualCurrency belongs.
+ * @param platformName Indicates the platform to which this App/VirtualCurrency belongs (e.g. iOS or Android).
  * @param currencyName Maps to the name field in the virtual_currencies table.
  * @param exchangeRate Maps the the exchange_rate field in the virtual_currencies table.
  * @param rewardMin Maps to the reward_min field in the virtual_currencies table.
@@ -55,7 +78,20 @@ case class AppWithWaterfallID(id: Long, active: Boolean, distributorID: Long, na
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  * @param generationNumber A number identifying the current AppConfig state.
  */
-case class AppWithVirtualCurrency(currencyID: Long, active: Boolean, appName: String, callbackURL: Option[String], serverToServerEnabled: Boolean, currencyName: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Boolean, generationNumber: Option[Long])
+case class AppWithVirtualCurrency(apiToken: String,
+                                  currencyID: Long,
+                                  active: Boolean,
+                                  appName: String,
+                                  callbackURL: Option[String],
+                                  serverToServerEnabled: Boolean,
+                                  platformID: Long,
+                                  platformName: String,
+                                  currencyName: String,
+                                  exchangeRate: Long,
+                                  rewardMin: Long,
+                                  rewardMax: Option[Long],
+                                  roundUp: Boolean,
+                                  generationNumber: Option[Long])
 
 object App {
   // Used to convert SQL row into an instance of the App class.
@@ -66,8 +102,11 @@ object App {
       get[String]("apps.name") ~
       get[Option[String]]("apps.callback_url") ~
       get[Boolean]("apps.server_to_server_enabled") ~
+      get[Long]("apps.platform_id") ~
       get[String]("apps.token") map {
-      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ token => App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token)
+      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ platform_id ~ token => {
+        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token, platform_id)
+      }
     }
   }
 
@@ -77,25 +116,49 @@ object App {
     get[Boolean]("apps.active") ~
     get[Long]("apps.distributor_id") ~
     get[String]("apps.name") ~
+    get[Long]("apps.platform_id") ~
+    get[String]("platforms.name") ~
     get[Long]("waterfall_id") map {
-      case id ~ active ~ distributor_id ~ name ~ waterfall_id => AppWithWaterfallID(id, active, distributor_id, name, waterfall_id)
+      case id ~ active ~ distributor_id ~ name ~ platform_id ~ platform_name ~ waterfall_id => {
+        AppWithWaterfallID(id, active, distributor_id, name, platform_id, platform_name, waterfall_id)
+      }
     }
   }
 
   // Used to convert SQL row into an instance of the AppWithVirtualCurrency class.
   val AppsWithVirtualCurrencyParser: RowParser[AppWithVirtualCurrency] = {
+    get[String]("apps.token") ~
     get[Long]("virtual_currencies.id") ~
     get[Boolean]("apps.active") ~
     get[String]("apps.name") ~
     get[Option[String]]("apps.callback_url") ~
     get[Boolean]("apps.server_to_server_enabled") ~
+    get[Long]("apps.platform_id") ~
+    get[String]("platforms.name") ~
     get[String]("virtual_currencies.name") ~
     get[Long]("virtual_currencies.exchange_rate") ~
     get[Long]("virtual_currencies.reward_min") ~
     get[Option[Long]]("virtual_currencies.reward_max") ~
     get[Boolean]("virtual_currencies.round_up") ~
     get[Option[Long]]("generation_number") map {
-      case currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber => AppWithVirtualCurrency(currencyID, active, appName, callbackURL, serverToServerEnabled, currencyName, exchangeRate, rewardMin, rewardMax, roundUp, generationNumber)
+      case apiToken ~ currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ platform_id ~ platform_name ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber => {
+        AppWithVirtualCurrency(
+          apiToken,
+          currencyID,
+          active,
+          appName,
+          callbackURL,
+          serverToServerEnabled,
+          platform_id,
+          platform_name,
+          currencyName,
+          exchangeRate,
+          rewardMin,
+          rewardMax,
+          roundUp,
+          generationNumber
+        )
+      }
     }
   }
 
@@ -109,10 +172,12 @@ object App {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number
+          SELECT apps.token, apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, platforms.name,
+          apps.platform_id, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number
           FROM apps
           JOIN virtual_currencies vc ON vc.app_id = apps.id
           JOIN app_configs ON app_configs.app_id = apps.id
+          JOIN platforms ON platforms.id = apps.platform_id
           WHERE apps.id = {app_id} AND apps.distributor_id = {distributor_id}
           ORDER BY generation_number DESC
           LIMIT 1;
@@ -134,8 +199,9 @@ object App {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT apps.*, waterfalls.id as waterfall_id
+          SELECT apps.*, platforms.name, waterfalls.id as waterfall_id
           FROM apps
+          JOIN platforms ON platforms.id = apps.platform_id
           JOIN waterfalls ON waterfalls.app_id = apps.id
           WHERE distributor_id = {distributor_id};
         """
@@ -154,8 +220,9 @@ object App {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT apps.*, waterfalls.id as waterfall_id
+          SELECT apps.*, platforms.name, waterfalls.id as waterfall_id
           FROM apps
+          JOIN platforms ON platforms.id = apps.platform_id
           JOIN waterfalls ON waterfalls.app_id = apps.id
           WHERE apps.id = {app_id} AND apps.distributor_id = {distributor_id};
         """
@@ -287,26 +354,28 @@ object App {
    * SQL statement for inserting a new record into the apps table.
    * @param distributorID ID of current Distributor
    * @param name Maps to name column in the apps table
+   * @param platformID Indicated the platform to which the App belongs (e.g. iOS or Android).
    * @return A SQL statement to be executed by create or createWithTransaction methods.
    */
-  def insert(distributorID: Long, name: String): SimpleSql[Row] = {
+  def insert(distributorID: Long, name: String, platformID: Long): SimpleSql[Row] = {
     SQL(
       """
-      INSERT INTO apps (name, distributor_id, token)
-      VALUES ({name}, {distributor_id}, uuid_generate_v4());
+      INSERT INTO apps (name, distributor_id, platform_id, token)
+      VALUES ({name}, {distributor_id}, {platform_id}, uuid_generate_v4());
       """
-    ).on("name" -> name, "distributor_id" -> distributorID)
+    ).on("name" -> name, "distributor_id" -> distributorID, "platform_id" -> platformID)
   }
 
   /**
    * Creates a new record in the App table
    * @param distributorID ID of current Distributor
    * @param name Maps to name column in the apps table
+   * @param platformID Indicated the platform to which the App belongs (e.g. iOS or Android).
    * @return ID of newly created record
    */
-  def create(distributorID: Long, name: String): Option[Long] = {
+  def create(distributorID: Long, name: String, platformID: Long): Option[Long] = {
     DB.withConnection{ implicit connection =>
-      insert(distributorID, name).executeInsert()
+      insert(distributorID, name, platformID).executeInsert()
     }
   }
 
@@ -314,11 +383,12 @@ object App {
    * Executes SQL from insert method within a database transaction.
    * @param distributorID ID of current Distributor
    * @param name Maps to name column in the apps table
+   * @param platformID Indicated the platform to which the App belongs (e.g. iOS or Android).
    * @param connection Database transaction
    * @return ID of newly created record
    */
-  def createWithTransaction(distributorID: Long, name: String)(implicit connection: Connection): Option[Long] = {
-    insert(distributorID, name).executeInsert()
+  def createWithTransaction(distributorID: Long, name: String, platformID: Long)(implicit connection: Connection): Option[Long] = {
+    insert(distributorID, name, platformID).executeInsert()
   }
 
   /**

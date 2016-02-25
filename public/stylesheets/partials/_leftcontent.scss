@@ -3,16 +3,16 @@
   left: 0;
   position: absolute;
   top: 60px;
-  width: 215px;
+  width: 220px;
 }
 
 .left-apps-list {
-  border-bottom: 1px solid #c8c7cc;
-  padding: 20px;
+  padding: 30px 20px 20px 20px;
 
   h2 {
     color: #6d6d72;
     font-size: 13px;
+    margin-bottom: 20px;
   }
 
   .reset-filters {
@@ -21,6 +21,7 @@
     font-size: 13px;
     cursor: pointer;
     margin-bottom: 25px;
+    width: 90px;
   }
 
   ul {
@@ -30,14 +31,43 @@
     li {
       -webkit-transition: 150ms ease background;
       background: #fff;
-      border-bottom: #c8c7cc 1px solid;
+      border-bottom: #b4b3b8 1px solid;
       border-radius: 2px;
       cursor: pointer;
       display: block;
       font-size: 13px;
       margin-top: 10px;
-      padding: 8px 10px;
+      padding: 10px;
       position: relative;
+
+      .Android-app-list-logo, .iOS-app-list-logo {
+        height: 60px;
+        width: 50px;
+      }
+
+      .Android-app-list-logo {
+        background: url(../images/Android_icon_grey.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
+      &.active .Android-app-list-logo {
+        background: url(../images/Android_icon_white.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
+      .iOS-app-list-logo {
+        background: url(../images/iOS_icon_grey.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
+
+      &.active .iOS-app-list-logo {
+        background: url(../images/iOS_icon_white.png);
+        background-repeat: no-repeat;
+        background-size: 15px 19px;
+      }
 
       &:hover {
         background: #ccc;
@@ -53,6 +83,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         padding-right: 12px;
+        height: 40px;
       }
 
       &.active.removable:before {
@@ -88,7 +119,7 @@
 
       &.arrowdown {
         padding: 0;
-        width: 175px;
+        width: 180px;
         background: #fff;
       }
 
@@ -114,6 +145,10 @@
         background: none;
         text-align: left;
       }
+    }
+
+    a li {
+      color: #000;
     }
   }
 }
@@ -141,9 +176,55 @@
   text-decoration: none;
 }
 
+.app-list-link {
+  position: relative;
+  display: block;
+}
+
 #waterfall-controller .left-apps-list ul li {
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 42px;
+
+  .settings-icon {
+    background: url(../images/icons.png);
+    background-position: -143px 3px;
+    height: 38px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border-left: 1px solid #e1e1e1;
+    width: 38px;
+    cursor: pointer;
+
+    &:before {
+      content: " ";
+      position: absolute;
+      z-index: 0;
+      top: 0px;
+      left: -2px;
+      right: 4px;
+      bottom: 0px;
+      border-left: 0px;
+    }
+  }
+
+  &:hover .settings-icon {
+    border-left: 1px solid #bbb;
+  }
+
+  &.active .settings-icon {
+    border-left: 1px solid #0056ea;
+    background-position: -115px 3px;
+
+    &:before {
+      border-left: 1px solid #4E84E0;
+    }
+  }
+}
+
+#analytics-controller .left-apps-list {
+  border-bottom: 1px solid #c8c7cc;
 }
 
 .left-apps-list .dropdown-menu {
@@ -165,6 +246,7 @@
   border-radius: 0;
   padding: 8px 10px;
   border-bottom: #e0e0e9 1px solid;
+  max-height: 40px;
 }
 
 .left-apps-list .dropdown-menu li:hover {
@@ -226,16 +308,44 @@
 #create-new-app, #export-as-csv {
   -webkit-transition: 150ms ease all;
   -webkit-appearance: none;
-  background: #333;
   border: 0;
-  border-radius: 3px;
-  color: #fff;
-  font-size: 14px;
-  height: 58px;
-  margin: 20px;
-  padding: 15px;
+  background: $background-color;
+  color: #6e6d72;
+  font-size: 12px;
+  margin: 0 30px;
   text-align: center;
-  width: 173px;
+  width: 160px;
+  cursor: pointer;
+  vertical-align: middle;
+
+  &:hover {
+    color: #000;
+  }
+
+  .icon {
+    display: inline-block;
+    margin-right: 5px;
+    background: url(../images/icons.png);
+    background-position: -94px -81px;
+    height: 22px;
+    width: 22px;
+    vertical-align: middle;
+  }
+}
+
+#export-as-csv {
+  margin-top: 30px;
+  outline: none;
+
+  .icon {
+    display: inline-block;
+    margin-right: 5px;
+    background: url(../images/icons.png);
+    background-position: -120px -80px;
+    height: 25px;
+    width: 27px;
+    vertical-align: middle;
+  }
 }
 
 #apps-list {
@@ -279,4 +389,62 @@
 .app-list ul.full-list, .waterfall ul {
   list-style: none;
   width: 100%;
+  margin-bottom: 0;
 }
+
+.input-group {
+  display: block;
+}
+
+.platform-logo {
+  top: 9px;
+  height: 19px;
+  width: 15px;
+  position: absolute;
+}
+
+.app-name {
+  position: absolute;
+  margin-top: -9px;
+  margin-left: 25px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.app-list-name {
+  position: absolute;
+  top: 0;
+  left: -75px;
+}
+
+.app-list-name-container {
+  height: 38px;
+}
+
+.analytics-platform-logo {
+  height: 19px;
+  width: 15px;
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+
+.app-filter-name {
+  top: 10px;
+  position: absolute;
+  left: 35px;
+  max-width: 115px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.removable-app-filter {
+  left: -53px;
+  position: absolute;
+  top: -8px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

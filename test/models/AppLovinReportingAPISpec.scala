@@ -61,7 +61,7 @@ class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallS
    * @return Response from mocked out API call.
    */
   def callAPI = {
-    appLovin.retrieveAPIData(queryString) returns Future { response }
+    appLovin.retrieveAPIData returns Future { response }
     Await.result(appLovin.updateRevenueData, Duration(5000, "millis"))
   }
 }

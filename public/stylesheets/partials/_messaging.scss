@@ -5,7 +5,7 @@
 }
 
 #login-message {
-  margin-left: -200px;
+  margin-left: -185px;
   margin-top: -88px;
 }
 
@@ -78,6 +78,9 @@
   padding: 14px;
   text-align: center;
   font-family: $mediate-font-light;
+  margin-bottom: 20px;
+
+  animation: splash 500ms normal forwards ease-in-out;
 }
 
 .system-message {
