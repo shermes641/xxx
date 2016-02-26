@@ -56,7 +56,7 @@ class RevenueDataActor(waterfallAdProviderID: Long, configurationData: JsValue) 
     case "Vungle" =>
       new VungleReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData()
 
-    case "UnityAds" =>
+    case Constants.UnityAdsName =>
       new UnityAdsReportingAPI(waterfallAdProviderID, configurationData).unityUpdateRevenueData()
   }
 }

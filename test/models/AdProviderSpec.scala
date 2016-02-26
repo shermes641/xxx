@@ -39,17 +39,17 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "return only the AdProviders that do not have a corresponding WaterfallAdProvider for a given Waterfall ID" in new WithAppDB(distributor.id.get) {
-      WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true)
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true)
       val nonIntegratedAdProviders = AdProvider.findNonIntegrated(currentWaterfall.id, Platform.Ios.PlatformID)
       val allAdProvidersCount = AdProvider.findAllByPlatform(Platform.Ios.PlatformID).size
       val waterfallAdProvidersCount = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).size
       nonIntegratedAdProviders.size must beEqualTo(allAdProvidersCount - waterfallAdProvidersCount)
       nonIntegratedAdProviders.map(provider => provider.id must not equalTo adProviderID1.get)
     }
-    
+
     "return only the AdProviders of a particular platform" in new WithAppDB(distributor.id.get) {
-      val androidProvderID = androidAdProviderIDs(0).get
-      WaterfallAdProvider.create(currentWaterfall.id, androidProvderID, None, None, true, true)
+      val androidProvderID = androidAdProviderIDs.head.get
+      WaterfallAdProvider.create(currentWaterfall.id, androidProvderID, None, None, configurable = true, active = true)
       val nonIntegratedAdProviders = AdProvider.findNonIntegrated(currentWaterfall.id, Platform.Android.PlatformID)
       val allAdProvidersCount = AdProvider.findAllByPlatform(Platform.Android.PlatformID).size
       val waterfallAdProvidersCount = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).size
@@ -79,7 +79,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         callbackUrlFormat = None,
         configurable = false
       ).get
-      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }(0)
+      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
       adProvider.configurationData must beEqualTo(Json.parse(adProviderConfigData))
     }
 
@@ -91,12 +91,12 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = callbackUrl
       ).get
-      val wapID = WaterfallAdProvider.create(currentWaterfall.id, newProviderID, None, None, true, true).get
+      val wapID = WaterfallAdProvider.create(currentWaterfall.id, newProviderID, None, None, configurable = true, active = true).get
       val config = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(wapID).get }
       config.callbackUrlFormat must beEqualTo(callbackUrl)
     }
 
-    "set an AdProvider to not be configurable if the configurable argument is false" in new  WithAppDB(distributor.id.get) {
+    "set an AdProvider to not be configurable if the configurable argument is false" in new WithAppDB(distributor.id.get) {
       val newProviderID = AdProvider.create(
         name = "New AdProvider 3",
         configurationData = adProviderConfigData,
@@ -104,7 +104,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         callbackUrlFormat = None,
         configurable = false
       ).get
-      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }(0)
+      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
       adProvider.configurable must beEqualTo(false)
     }
 
@@ -117,7 +117,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         callbackUrlFormat = None,
         configurable = false,
         defaultEcpm = defaultEcpm).get
-      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }(0)
+      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
       adProvider.defaultEcpm must beEqualTo(defaultEcpm)
     }
 
@@ -130,7 +130,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         configurable = false,
         defaultEcpm = Some(10)
       ).get
-      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }(0)
+      val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
       adProvider.platformID must beEqualTo(Platform.Ios.PlatformID)
     }
   }
@@ -139,7 +139,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     val adColonyConfigurationData = List(Platform.Ios.AdColony.configurationData, Platform.Android.AdColony.configurationData)
 
     "include working links to documentation for general configuration" in new WithDB {
-      adColonyConfigurationData.map { adProviderConfig =>
+      adColonyConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val requiredParams = configurationData \ "requiredParams"
         checkDocumentationLinks(requiredParams, "Configuring AdColony")
@@ -147,7 +147,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "include working links to documentation for reporting configuration" in new WithDB {
-      adColonyConfigurationData.map { adProviderConfig =>
+      adColonyConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val reportingParams = configurationData \ "reportingParams"
         checkDocumentationLinks(reportingParams, "Configuring AdColony")
@@ -155,7 +155,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "include working links to documentation for server to server callback configuration" in new WithDB {
-      adColonyConfigurationData.map { adProviderConfig =>
+      adColonyConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val callbackParams = configurationData \ "callbackParams"
         checkDocumentationLinks(callbackParams, "AdColony Server to Server Callbacks Setup")
@@ -167,7 +167,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     val vungleConfigurationData = List(Platform.Ios.Vungle.configurationData, Platform.Android.Vungle.configurationData)
 
     "include working links to documentation for general configuration" in new WithDB {
-      vungleConfigurationData.map { adProviderConfig =>
+      vungleConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val requiredParams = configurationData \ "requiredParams"
         checkDocumentationLinks(requiredParams, "Configuring Vungle")
@@ -175,7 +175,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "include working links to documentation for reporting configuration" in new WithDB {
-      vungleConfigurationData.map { adProviderConfig =>
+      vungleConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val reportingParams = configurationData \ "reportingParams"
         checkDocumentationLinks(reportingParams, "Configuring Vungle")
@@ -183,7 +183,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "include working links to documentation for server to server callback configuration" in new WithDB {
-      vungleConfigurationData.map { adProviderConfig =>
+      vungleConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val callbackParams = configurationData \ "callbackParams"
         checkDocumentationLinks(callbackParams, "Vungle Server to Server Callbacks Setup")
@@ -195,7 +195,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     val appLovinConfigurationData = List(Platform.Ios.AppLovin.configurationData, Platform.Android.AppLovin.configurationData)
 
     "include working links to documentation for general configuration" in new WithDB {
-      appLovinConfigurationData.map { adProviderConfig =>
+      appLovinConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val requiredParams = configurationData \ "requiredParams"
         checkDocumentationLinks(requiredParams, "Configuring AppLovin")
@@ -203,7 +203,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "include working links to documentation for reporting configuration" in new WithDB {
-      appLovinConfigurationData.map { adProviderConfig =>
+      appLovinConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val reportingParams = configurationData \ "reportingParams"
         checkDocumentationLinks(reportingParams, "Configuring AppLovin")
@@ -211,7 +211,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "include working links to documentation for server to server callback configuration" in new WithDB {
-      appLovinConfigurationData.map { adProviderConfig =>
+      appLovinConfigurationData.foreach { adProviderConfig =>
         val configurationData: JsValue = Json.parse(adProviderConfig)
         val callbackParams = configurationData \ "callbackParams"
         checkDocumentationLinks(callbackParams, "AppLovin Server to Server Callbacks Setup")
@@ -232,24 +232,28 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
   }
 
   /**
-   * Verifies that the documentation page exists and contains certain content.
-   * @param configurationParams WaterfallAdProvider JSON configuration containing documentation links
-   * @param expectedPageHeader Text we expect to be present when we visit the documentation link
-   */
+    * Verifies that the documentation page exists and contains certain content.
+    *
+    * @param configurationParams WaterfallAdProvider JSON configuration containing documentation links
+    * @param expectedPageHeader  Text we expect to be present when we visit the documentation link
+    */
   def checkDocumentationLinks(configurationParams: JsValue, expectedPageHeader: String) = {
     // collect descriptions for every param in the array so we can check each link individually
     val tooltipDescriptions: Seq[JsValue] = configurationParams.as[JsArray].value.map(param => param \ "description")
-    tooltipDescriptions.foreach { description =>
-      val urlPattern = new scala.util.matching.Regex("""https:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
-      val documentationLink = urlPattern findFirstIn description.as[String] match {
-        case Some(url) => url
-        case None => ""
-      }
-      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
-      Await.result(request.get().map { response =>
-        response.status must beEqualTo(200)
-        response.body must contain(expectedPageHeader)
-      }, Duration(5000, "millis"))
+    tooltipDescriptions.foreach {
+      description =>
+        val urlPattern = new scala.util.matching.Regex("""https:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+        val documentationLink = urlPattern findFirstIn description.as[String] match {
+          case Some(url) => url
+          case None => ""
+        }
+        val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+        Await.result(request.get().map {
+          response =>
+            response.status must beEqualTo(200)
+            response.body must contain(expectedPageHeader)
+        }, Duration(10000, "millis"))
     }
   }
 }
+

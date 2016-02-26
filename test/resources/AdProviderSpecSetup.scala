@@ -50,6 +50,14 @@ trait AdProviderSpecSetup extends SpecificationWithFixtures {
     AdProvider.create("Vungle", vungleConfig, Platform.Ios.PlatformID, vungleCallbackUrl).get
   }
 
+  val unityAdsID = running(FakeApplication(additionalConfiguration = testDB)) {
+    val unityAdsConfig = buildAdProviderConfig(
+      Array((Constants.AdProviderConfig.AppID, None, None, Some("true"))),
+      Array((Constants.AdProviderConfig.APIKey, None, None, None)),
+      Array((Constants.AdProviderConfig.APIKey, None, None, None)))
+    AdProvider.create(Constants.UnityAdsName, unityAdsConfig, Platform.Ios.PlatformID, Some(Constants.UnityAdsCallbackUrlSpec)).get
+  }
+
   val hyprMarketplaceID = running(FakeApplication(additionalConfiguration = testDB)) {
     val hyprMarketplaceConfig = buildAdProviderConfig(Array(("distributorID", None, None, None), ("appID", None, None, None)),
       Array(("APIKey", None, None, None), ("placementID", None, None, None), ("appID", None, None, None)), Array(("APIKey", None, None, None)))

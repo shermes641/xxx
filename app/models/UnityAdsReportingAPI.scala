@@ -13,7 +13,7 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 /**
-  * Encapsulates interactions with Vungle's reporting API.
+  * Encapsulates interactions with Unity Ad's reporting API.
   *
   * @param wapID             The ID of the WaterfallAdProvider to be updated.
   * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
@@ -33,18 +33,20 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
     "start" -> startDate,
     "end" -> endDate,
     "scale" -> "day",
-    "sourceIds" -> (configurationData \ "requiredParams" \ "appID").as[String]) //"1038305")
+    "sourceIds" -> (configurationData \ "requiredParams" \ "appID").as[String])
 
   /**
+    * Update eCPM and generation number based on reporting data
     *
-    *
-    * @param url Reporting url, allows tests to specify non default value
-    * @param qs  Query string, allows tests to specify non default value
+    * @param url      Reporting url, allows tests to specify non default value
+    * @param qs       Query string, allows tests to specify non default value
+    * @param timeOut  Set request time out, used in testing
     * @return Future(true) on success
     */
   def unityUpdateRevenueData(url: String = BaseURL,
-                             qs: List[(String, String)] = queryString): Future[Boolean] = {
-    WS.url(url).withRequestTimeout(10000).withQueryString(qs: _*).get.map { response =>
+                             qs: List[(String, String)] = queryString,
+                            timeOut: Int = Constants.DefaultReportingTimeoutMs): Future[Boolean] = {
+    WS.url(url).withRequestTimeout(timeOut).withQueryString(qs: _*).get.map { response =>
       response.status match {
         case 200 | 304 =>
           val bodyArray = response.body.replaceAll("\"", "").split("\n").map(_.trim)

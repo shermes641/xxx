@@ -17,6 +17,10 @@ describe('AnalyticsController', function() {
             sinon.log = function(message) {
                 console.log(message);
             };
+            var urlRoot = "https://api.keen.io/3.0/projects/5512efa246f9a74b786bc7d1/queries/";
+            var apiKey = "api_key=D8DD8FDF000323000448F";
+            var timeframe = "timeframe=%7B%22start%22%3A%222015-04-03T00%3A00%3A00%2B00%3A00%22%2C%22end%22%3A%222015-04-16T00%3A00%3A00%2B00%3A00%22%7D&timezone=UTC";
+        
             var listenForKeen = function(filter) {
                 server.respondWith("GET", urlRoot + "average?"+apiKey+"&event_collection=ad_completed&target_property=ad_provider_eCPM&filters=%5B"+filter+"%5D&"+timeframe,
                     [ 200, { "Content-Type": "application/json" }, JSON.stringify({"result": 5.01123595505618}) ]);

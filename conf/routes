@@ -51,6 +51,7 @@ GET         /v1/reward_callbacks/:app_token/ad_colony                           
 GET         /v1/reward_callbacks/:app_token/app_lovin                                                  controllers.APIController.appLovinCompletionV1(app_token: String, event_id: Option[String], amount: Option[Double], idfa: Option[String], hadid: Option[String], currency: Option[String], user_id: Option[String])
 POST        /v1/reward_callbacks/:app_token/flurry                                                     controllers.APIController.flurryCompletionV1(app_token: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardquantity: Option[Int], fhash: Option[String], udid: Option[String])
 GET         /v1/reward_callbacks/:app_token/hyprmarketplace                                            controllers.APIController.hyprMarketplaceCompletionV1(app_token: String, time: Option[String], sig: Option[String], quantity: Option[Int], offer_profit: Option[Double], reward_id: Option[String], uid: Option[String], sub_id: Option[String])
+GET         /v1/reward_callbacks/:app_token/unity_ads                                                  controllers.APIController.unityAdsCompletionV1(app_token: String, sid: Option[String], oid: Option[String], hmac: Option[String])
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                                              controllers.Assets.at(path="/public", file)

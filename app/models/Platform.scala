@@ -172,24 +172,18 @@ abstract class Platform(id: Long, name: String) {
   }
 
   val UnityAds = {
-    val name = "UnityAds"
+    val name = Constants.UnityAdsName
 
-    val callbackURLFormat = Some("/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]")
+    val callbackURLFormat = Some(Constants.UnityAdsCallbackUrl)
 
     val configurable = true
 
     val defaultEcpm: Option[Double] = Some(10)
 
     val configuration = {
-      //TODO support zones and campaigns ?
-      val zoneIDDetails = {
-        "Add a single zone or multiple zones separated by commas. " +
-          "For more information on configuration, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>"
-      }
-
       //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
       val appIDDescription = {
-        "Your Unity Ads App ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+        "Your Unity Ads Game ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
@@ -197,21 +191,13 @@ abstract class Platform(id: Long, name: String) {
       }
 
       val callbackDescription = {
-        "Your Secret Key for Secure Callback can be found on the Unity Ads dashboard. For more information on configuring server to server callbacks for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
+        "Your Shared Hash Key for Secure Callbacks must be obtained from Unity Ads support via email. For more information on configuring server to server callbacks for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
       }
       s"""{ "requiredParams":[{"description": "$appIDDescription",
-         |  "displayKey": "Unity Adds App ID",
+         |  "displayKey": "Unity Ads Game ID",
          |  "key": "appID",
          |  "value": "",
          |  "dataType": "String",
-         |  "refreshOnAppRestart": true,
-         |  "minLength": 1
-         |  },
-         |  {"description": "$zoneIDDetails",
-         |  "displayKey": "Zone IDs",
-         |  "key": "zoneIds",
-         |  "value": "",
-         |  "dataType": "Array",
          |  "refreshOnAppRestart": true,
          |  "minLength": 1
          |  }],
@@ -223,7 +209,7 @@ abstract class Platform(id: Long, name: String) {
          |  "refreshOnAppRestart": false
          |  }],
          |  "callbackParams": [{"description": "$callbackDescription",
-         |  "displayKey": "Secret Key",
+         |  "displayKey": "Shared Hash Key",
          |  "key": "APIKey",
          |  "value": "",
          |  "dataType": "String",
@@ -233,7 +219,6 @@ abstract class Platform(id: Long, name: String) {
     }
     new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
-
   val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }
 

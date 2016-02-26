@@ -66,7 +66,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
           FROM ad_providers;
         """
       )
-      query.as(adProviderParser*).toList
+      query.as(adProviderParser*)
     }
   }
 
@@ -84,10 +84,21 @@ object AdProvider extends JsonConversion with AdProviderManagement {
           WHERE platform_id = {platform_id};
         """
       ).on("platform_id" -> platformID)
-      query.as(adProviderParser*).toList
+      query.as(adProviderParser*)
     }
   }
 
+  /**
+    * Find a single ad provider
+    *
+    * @param platformID either Android or Ios
+    * @param name       Ad provider name
+    * @return           Some(AdProvider) or None
+    */
+  def findByPlatformAndName(platformID: Long, name: String): Option[AdProvider] = {
+    val res = findAllByPlatform(platformID)
+    res.find {e => e.name == name}
+  }
   /**
    * Retrieves a list of AdProviders who do not currently have an existing WaterfallAdProvider record for a given Waterfall ID.
    * @param waterfallID The Waterfall ID to which all integrated WaterfallAdProviders belong.
@@ -106,7 +117,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
            WHERE wap.waterfall_id={waterfall_id})
         """
       ).on("waterfall_id" -> waterfallID, "platform_id" -> platformID)
-      query.as(adProviderParser*).toList
+      query.as(adProviderParser*)
     }
   }
 

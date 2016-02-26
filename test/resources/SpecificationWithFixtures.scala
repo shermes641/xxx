@@ -13,6 +13,8 @@ import resources._
 import com.google.common.base.Predicate
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
+  sequential
+
   val DocumentationUsername = running(FakeApplication(additionalConfiguration = testDB)) {
     Play.current.configuration.getString("httpAuthUser").getOrElse("")
   }
