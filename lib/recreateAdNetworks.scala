@@ -6,9 +6,10 @@ import anorm._
 import java.sql.Connection
 import models._
 import play.api.db.DB
-import play.api.{Play, Logger}
+import play.api.Logger
 import play.api.Play.current
 import scala.language.postfixOps
+import scala.util.{Failure, Try, Success}
 
 new play.core.StaticApplication(new java.io.File("."))
 
@@ -27,17 +28,17 @@ object Script extends JsonConversion with UpdateHyprMarketplace {
           JOIN waterfalls w ON w.id = wap.waterfall_id
           JOIN apps ON apps.id = w.app_id
           JOIN distributors d ON d.id = apps.distributor_id
-          WHERE wap.id = {wap_id} AND wap.ad_provider_id = {hypr_ad_provider_id};
+          WHERE wap.id = {wap_id};
         """
-      ).on("wap_id" -> waterfallAdProviderID, "hypr_ad_provider_id" -> Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get)
+      ).on("wap_id" -> waterfallAdProviderID)
 
       query.as(parser*) match {
-        case List(waterfallAdProvider) => updateHyprMarketplaceDistributorID(waterfallAdProvider)
-        case _ => Logger.error("HyprMarketplace WaterfallAdProvider could not be found!")
+        case List(waterfallAdProvider) =>
+          updateHyprMarketplaceDistributorID(waterfallAdProvider)
+        case _ =>
+          Logger.error("HyprMarketplace WaterfallAdProvider could not be found!")
       }
     }
-    unsuccessfulWaterfallAdProviderIDs = List()
-    successfulWaterfallAdProviderIDs = List()
   }
 
   /**
@@ -54,50 +55,74 @@ object Script extends JsonConversion with UpdateHyprMarketplace {
       connection.rollback()
     }
 
-    DB.withTransaction { implicit connection =>
-      try {
-        val currentApp = {
-          SQL(
-            """
-              SELECT * FROM apps WHERE apps.token = {token} FOR UPDATE;
-            """
-          ).on("token" -> apiToken).as(App.AppParser*) match {
-            case List(app) => app
-            case _ => throw new RecordNotFoundException(recordType = "App")
-          }
+    val currentApp = {
+      DB.withConnection { implicit connection =>
+        SQL(
+          """
+              SELECT * FROM apps WHERE apps.token = {token};
+          """
+        ).on("token" -> apiToken).as(App.AppParser*) match {
+          case List(app) =>
+            app
+          case _ =>
+            throw new RecordNotFoundException(recordType = "App")
         }
+      }
+    }
 
-        val hyprWaterfallAdProvider = {
-          SQL(
-            """
+    DB.withTransaction { implicit connection =>
+      val hyprWaterfallAdProvider = {
+        SQL(
+          """
               SELECT waterfall_ad_providers.*
               FROM waterfall_ad_providers
               JOIN waterfalls ON waterfalls.id = waterfall_ad_providers.waterfall_id
               JOIN apps ON apps.id = waterfalls.app_id
               WHERE apps.id = {app_id} AND ad_provider_id = {hypr_ad_provider_id}
               FOR UPDATE;
-            """
-          ).on(
-              "app_id" -> currentApp.id, "hypr_ad_provider_id" -> Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get
-            ).as(WaterfallAdProvider.waterfallAdProviderParser*) match {
-            case List(waterfallAdProvider) => waterfallAdProvider
-            case _ => throw new RecordNotFoundException(recordType = "HyprMarketplace WaterfallAdProvider")
-          }
+          """
+        ).on(
+            "app_id"              -> currentApp.id,
+            "hypr_ad_provider_id" -> Platform.find(currentApp.platformID).hyprMarketplaceID
+          ).as(WaterfallAdProvider.waterfallAdProviderParser*) match {
+          case List(waterfallAdProvider) =>
+            waterfallAdProvider
+          case _ =>
+            throw new RecordNotFoundException(recordType = "HyprMarketplace WaterfallAdProvider")
         }
+      }
 
-        WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, apiToken, currentApp.name) match {
-          case 1 => {
-            AppConfig.createWithWaterfallIDInTransaction(hyprWaterfallAdProvider.waterfallID, currentGenerationNumber = None) match {
-              case Some(generationNumber) => Logger.debug("The HyprMarketplace WaterfallAdProvider was updated successfully!")
-              case _ => rollback("The App Config was not generated correctly.")
+      Try(
+        WaterfallAdProvider.updateHyprMarketplaceConfig(
+          hyprWaterfallAdProvider,
+          adNetworkID,
+          apiToken,
+          currentApp.name
+        )
+      ) match {
+        case Success(rowsUpdated: Int) =>
+          if(rowsUpdated == 1) {
+            AppConfig.createWithWaterfallIDInTransaction(
+              hyprWaterfallAdProvider.waterfallID,
+              currentGenerationNumber = None
+            ) match {
+              case Some(generationNumber) =>
+                Logger.debug("The HyprMarketplace WaterfallAdProvider was updated successfully!")
+              case _ =>
+                rollback("The App Config was not generated correctly.")
             }
+          } else {
+            rollback("The HyprMarketplace WaterfallAdProvider was not updated properly.")
           }
-          case _ => rollback("The HyprMarketplace WaterfallAdProvider was not updated properly.")
-        }
-      } catch {
-        case error: RecordNotFoundException => rollback(error.recordType + " could not be found. Make sure you have the right API Token.")
-        case error: org.postgresql.util.PSQLException => rollback("Received the following Postgres exception while updating: " + error.getServerErrorMessage)
-        case error: IllegalArgumentException => rollback("There was a problem with the current generation number. Please retry the script.")
+        case Failure(errorReceived) =>
+          errorReceived match {
+            case error: RecordNotFoundException =>
+              rollback(error.recordType + " could not be found. Make sure you have the right API Token.")
+            case error: org.postgresql.util.PSQLException =>
+              rollback("Received the following Postgres exception while updating: " + error.getServerErrorMessage)
+            case error: IllegalArgumentException =>
+              rollback("There was a problem with the current generation number. Please retry the script.")
+          }
       }
     }
   }
