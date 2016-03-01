@@ -135,6 +135,7 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
     var currentMessage = '';
     var messageClass = '';
     var currentPriority;
+    var timeOut = 5000;
     var messageQueue = [];
 
     // do not allow duplicate messages with the same status and priority on the messageQueue
@@ -157,6 +158,7 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
             currentMessage = lastMessage.message;
             currentPriority = lastMessage.priority;
             messageClass = lastMessage.status;
+            timeOut = currentPriority === "HIGH" ? 5000 : 3000;
             if(messageQueue.length > 0)
                 removeDuplicates(currentMessage, messageClass, currentPriority);
 
@@ -166,9 +168,11 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
             currentTimer = $timeout(function() {
                 currentMessage = '';
                 messageClass = '';
+                currentPriority = '';
                 displayMessages();
-            }, 5000);
+            }, timeOut);
         }
+
     };
 
     return {
@@ -183,6 +187,9 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
                     currentPriority !== data.priority) {
                     if (data.priority === "HIGH") {
                         messageQueue.unshift(data);
+                        // if a "HIGH" priority message is not displaying, display this message
+                        if (currentPriority !== "HIGH")
+                            displayMessages();
                     } else{
                         messageQueue.push(data);
                     }
@@ -204,6 +211,9 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
         },
         queue: function() {
             return messageQueue
+        },
+        getTimeOut: function() {
+            return timeOut
         }
     }
 }]);
