@@ -13,7 +13,7 @@ import scala.util.{Failure, Try, Success}
 
 new play.core.StaticApplication(new java.io.File("."))
 
-object Script extends JsonConversion with UpdateHyprMarketplace {
+object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
   /**
    * Recreates the ad network for a single WaterfallAdProvider.  This can be used to properly configure the HyprMarketplace
    * WaterfallAdProvider instance when the original call to Player fails.
