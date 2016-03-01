@@ -51,11 +51,11 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
       contentAsString(result) must contain("1")
     }
 
-    "respond status 400 to request with extra query params" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
+    "respond status 200 to request with extra query params" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
       val token = App.findAll(waterfall.id).head.token
       val Some(result) = route(FakeRequest(GET, s"/v1/reward_callbacks/$token/unity_ads?sid=$sid&oid=$oid&hmac=$hmac&dummy=123456"))
 
-      status(result) must equalTo(BAD_REQUEST)
+      status(result) must equalTo(OK)
       contentType(result) must beSome("text/plain")
       charset(result) must beSome("utf-8")
       contentAsString(result) must contain("1")
