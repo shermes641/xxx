@@ -183,7 +183,7 @@ abstract class Platform(id: Long, name: String) {
     val configuration = {
       //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
       val appIDDescription = {
-        "Your Unity Ads Game ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+        "Your GAME ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
@@ -194,7 +194,7 @@ abstract class Platform(id: Long, name: String) {
         "Your Shared Hash Key for Secure Callbacks must be obtained from Unity Ads support via email. For more information on configuring server to server callbacks for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
       }
       s"""{ "requiredParams":[{"description": "$appIDDescription",
-         |  "displayKey": "Unity Ads Game ID",
+         |  "displayKey": "GAME ID",
          |  "key": "appID",
          |  "value": "",
          |  "dataType": "String",

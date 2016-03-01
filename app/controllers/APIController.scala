@@ -99,7 +99,7 @@ object APIController extends Controller {
       sid.getOrElse(Constants.NoValue),
       oid.getOrElse(Constants.NoValue),
       hmac.getOrElse(Constants.NoValue))
-    callback.isValid && request.queryString.size == Constants.UnityAdsNumberOfCallbackQueryParams match {
+    callback.isValid match {
       case true =>
         callbackResponse(callback, request)
 
