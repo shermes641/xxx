@@ -73,11 +73,10 @@ trait AdProviderManagement {
     if(AdProvider.findAllByPlatform(Platform.Android.PlatformID).size == 0) {
       val adColonyResult = AdProvider.create(Platform.Android.AdColony.name, Platform.Android.AdColony.configurationData, Platform.Android.PlatformID, Platform.Android.AdColony.callbackURLFormat, Platform.Android.AdColony.configurable, Platform.Android.AdColony.defaultEcpm)
       val hyprResult = AdProvider.create(Platform.Android.HyprMarketplace.name, Platform.Android.HyprMarketplace.configurationData, Platform.Android.PlatformID, Platform.Android.HyprMarketplace.callbackURLFormat, Platform.Android.HyprMarketplace.configurable, Platform.Android.HyprMarketplace.defaultEcpm)
-      val vungleResult = AdProvider.create(Platform.Android.Vungle.name, Platform.Android.Vungle.configurationData, Platform.Android.PlatformID, Platform.Android.Vungle.callbackURLFormat, Platform.Android.Vungle.configurable, Platform.Android.Vungle.defaultEcpm)
       val appLovinResult = AdProvider.create(Platform.Android.AppLovin.name, Platform.Android.AppLovin.configurationData, Platform.Android.PlatformID, Platform.Android.AppLovin.callbackURLFormat, Platform.Android.AppLovin.configurable, Platform.Android.AppLovin.defaultEcpm)
-      (adColonyResult, hyprResult, vungleResult, appLovinResult) match {
-        case (Some(adColonyID), Some(hyprID), Some(vungleID), Some(appLovinID)) => Logger.debug("All Android ad providers created successfully!")
-        case (_, _, _, _) => Logger.error("Something went wrong and one or more of the Android ad providers were not created properly.")
+      (adColonyResult, hyprResult, appLovinResult) match {
+        case (Some(adColonyID), Some(hyprID), Some(appLovinID)) => Logger.debug("All Android ad providers created successfully!")
+        case (_, _, _) => Logger.error("Something went wrong and one or more of the Android ad providers were not created properly.")
       }
     } else {
       Logger.warn("Running this script without an empty ad_providers table may result in duplicate ad providers.  If you need to create one or more of these ad providers, you should do it manually.")
