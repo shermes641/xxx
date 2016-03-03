@@ -21,14 +21,15 @@ trait AdProviderManagement {
           UPDATE ad_providers
           SET configuration_data=CAST({configuration_data} AS json), callback_url_format={callback_url_format},
           configurable={configurable}, default_ecpm={default_ecpm}
-          WHERE name={name};
+          WHERE name={name} AND platform_id={platform_id};
         """
       ).on(
           "name" -> adProvider.name,
           "configuration_data" -> adProvider.configurationData,
           "callback_url_format" -> adProvider.callbackURLFormat,
           "configurable" -> adProvider.configurable,
-          "default_ecpm" -> adProvider.defaultEcpm
+          "default_ecpm" -> adProvider.defaultEcpm,
+          "platform_id" -> adProvider.platformID
         ).executeUpdate()
     }
   }
