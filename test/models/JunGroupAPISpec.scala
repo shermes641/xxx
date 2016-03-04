@@ -20,7 +20,15 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
   val response = mock[WSResponse]
   val junGroup = spy(new JunGroupAPI())
-  val testApp: App = new App(id = 1, active = true, distributorID = 1, name = "app-name", callbackURL = None, serverToServerEnabled = true, token = "app-token", platformID = 1)
+  val testApp: App = new App(id = 1,
+    active = true,
+    distributorID = 1,
+    name = "app-name",
+    callbackURL = None,
+    serverToServerEnabled = true,
+    token = "app-token",
+    platformID = 1,
+    hmacSecret = "")
   val distributorName = "Company Name"
 
   "adNetworkConfiguration" should {
@@ -60,7 +68,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
     val api = mock[JunGroupAPI]
     val playerResponse = mock[WSResponse]
     val hyprWaterfallAdProvider = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, false, true).get
+      val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = false, pending = true).get
       WaterfallAdProvider.find(id).get
     }
     api.createRequest(any[JsObject]) returns Future { playerResponse }
