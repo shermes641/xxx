@@ -163,7 +163,7 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
                 removeDuplicates(currentMessage, messageClass, currentPriority);
 
             if (typeof currentTimer != 'undefined')
-                clearTimeout(currentTimer);
+                $timeout.cancel(currentTimer);
 
             currentTimer = $timeout(function() {
                 currentMessage = '';
