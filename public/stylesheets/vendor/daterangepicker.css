@@ -115,9 +115,7 @@
 .daterangepicker.dropdown-menu {
   max-width: none;
   z-index: 1000;
-  -webkit-box-shadow: -3px 3px 30px 16px rgba(0, 0, 0, 0.35);
-  -moz-box-shadow:    -3px 3px 30px 16px rgba(0, 0, 0, 0.35);
-  box-shadow:         -3px 3px 30px 16px rgba(0, 0, 0, 0.35);
+  border: 1px solid #cecdd2;
 }
 
 .daterangepicker.single .ranges, .daterangepicker.single .calendar {
@@ -132,6 +130,7 @@
 
 .daterangepicker.show-calendar .calendar {
   display: block;
+  border: 1px solid #cecdd2;
 }
 
 .daterangepicker .calendar.single .calendar-table {
@@ -147,15 +146,14 @@
 }
 
 .daterangepicker .calendar-table {
-  border: 1px solid #b8b8b8;
   padding: 4px;
-  border-radius: 4px;
   background: #fff;
 }
 
 .daterangepicker table {
   width: 100%;
   margin: 0;
+  height: 276px;
 }
 
 .daterangepicker td, .daterangepicker th {
@@ -235,12 +233,12 @@
 .daterangepicker th.month {
   width: auto;
   font-size: 14px;
-  color: #a9a9a9;
+  color: #000000;
 }
 
 #range-apply {
   background: #3c7cea;
-  bottom-border: 1px solid #1e55b4;
+  border-bottom: 1px solid #1e55b4;
   font-size: 14px;
   padding: 0;
   color: #ffffff;
@@ -250,8 +248,8 @@
 /* Text Input Above Each Calendar */
 
 .daterangepicker .input-mini {
-  border: 1px solid #b8b8b8;
-  border-radius: 4px;
+  border: 0px solid !important;
+  background: #FFFFFF !important;
   color: #000000;
   display: block;
   height: 25px;
@@ -261,6 +259,7 @@
   width: 100%;
   font-size: 14px;
   text-align: center;
+  display: none;
 }
 
 .daterangepicker .input-mini.active {
@@ -322,9 +321,9 @@
 }
 
 .daterangepicker .ranges li {
-  font-size: 14px;
+  font-size: 10px;
   background: #f0eff5;
-  border: 1px solid #bfbfbf;
+  border-bottom: 1px solid #bfbfbf;
   color: #000000;
   padding: 3px 12px;
   margin-bottom: 8px;
@@ -334,7 +333,7 @@
 
 .daterangepicker .ranges li.active, .daterangepicker .ranges li:hover {
   background: #5e5e5e;
-  border: 1px solid #404141;
+  border-bottom: 1px solid #404141;
   color: #fff;
 }
 
@@ -354,12 +353,6 @@
     border-right: none;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-  }
-
-  .daterangepicker .calendar.right .calendar-table {
-    border-left: none;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
   }
 
   .daterangepicker .calendar.left {

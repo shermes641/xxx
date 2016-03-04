@@ -101,7 +101,6 @@
                 '<div class="calendar left">' +
                 '<div class="daterangepicker_input">' +
                 '<input class="input-mini" type="text" name="daterangepicker_start" value="" />' +
-                '<i class="fa fa-calendar"></i>' +
                 '<div class="calendar-time">' +
                 '<div></div>' +
                 '<i class="fa fa-clock-o glyphicon glyphicon-time"></i>' +
@@ -112,7 +111,6 @@
                 '<div class="calendar right">' +
                 '<div class="daterangepicker_input">' +
                 '<input class="input-mini" type="text" name="daterangepicker_end" value="" />' +
-                '<i class="fa fa-calendar"></i>' +
                 '<div class="calendar-time">' +
                 '<div></div>' +
                 '<i class="fa fa-clock-o glyphicon glyphicon-time"></i>' +
@@ -1007,7 +1005,7 @@
         },
 
         move: function() {
-            var parentOffset = { top: 0, left: 0 },
+            var parentOffset = { top: -5, left: 0 },
                 containerTop;
             var parentRightEdge = $(window).width();
             if (!this.parentEl.is('body')) {
