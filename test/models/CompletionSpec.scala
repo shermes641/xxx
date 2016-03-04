@@ -42,15 +42,15 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
     val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm=Some(20.0), exchangeRate=100, rewardMin=1, rewardMax=Some(10), roundUp=true, callbackURL=None, serverToServerEnabled=false, generationNumber=1)
     val verification = spy(new CallbackVerificationInfo(true, "ad provider name", "transaction ID", "app token", offerProfit=None, rewardQuantity=1, Some(rewardInfo)))
     val callbackURL = Some("http://someurl.com")
-    val data = JsObject(Seq("original_postback" -> JsNull, "ad_provider" -> JsString("ad provider name"), "reward_quantity" -> JsNumber(1), "estimated_offer_profit" -> JsNull))
     val response = mock[WSResponse]
     response.body returns ""
     val completion = spy(new Completion)
+    val data = completion.postbackData(JsNull, verification)
 
     "not POST to a callback URL if one does not exist" in new WithDB {
       val callbackURL = None
-      val completion = new Completion
-      Await.result(completion.postCallback(callbackURL, JsObject(Seq()), verification), Duration(5000, "millis")) must beFalse
+      val myCompletion = new Completion
+      Await.result(myCompletion.postCallback(callbackURL, JsObject(Seq()), verification), Duration(5000, "millis")) must beFalse
     }
 
     "return true if the Distributor's servers respond with a status code of 200" in new WithDB {
@@ -60,9 +60,8 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
     }
 
     "return false if the Distributor's servers respond with a status code other than 200" in new WithDB {
-      val data1 = completion.postbackData(JsNull, verification)
       response.status returns 500
-      completion.sendPost(callbackURL.get, data1, None) returns Future(response)
+      completion.sendPost(callbackURL.get, data, None) returns Future(response)
       Await.result(completion.postCallback(callbackURL, JsNull, verification, None), Duration(5000, "millis")) must beFalse
       response.status returns 400
       Await.result(completion.postCallback(callbackURL, JsNull, verification, None), Duration(5000, "millis")) must beFalse
