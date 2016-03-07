@@ -131,27 +131,6 @@ object APIController extends Controller {
   }
 
   /**
-   * Accepts server to server callback info from Flurry, then starts the reward completion process.
-   * @param appToken The token for the App to which the completion will belong.
-   * @param idfa Advertising ID.
-   * @param sha1Mac SHA1 hash of MAC address.
-   * @param fguid A unique ID that verifies the completion.
-   * @param rewardQuantity The amount of virtual currency to be rewarded.
-   * @param fhash A hashed value to authenticate the origin of the request.
-   * @param udid A unique device ID.
-   * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
-   */
-  def flurryCompletionV1(appToken: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardQuantity: Option[Int], fhash: Option[String], udid: Option[String]) = Action { implicit request =>
-    (fguid, rewardQuantity, fhash) match {
-      case (Some(fguidValue: String), Some(rewardQuantityValue: Int), Some(fhashValue: String)) => {
-        val callback = new FlurryCallback(appToken, fguidValue, rewardQuantityValue, fhashValue)
-        callbackResponse(callback, request)
-      }
-      case (_, _, _) => BadRequest
-    }
-  }
-
-  /**
    * Accepts server to server callback info from HyprMarketplace, then starts the reward completion process.
    * @param appToken The token for the App to which the completion will belong.
    * @param time The timestamp for the callback.
