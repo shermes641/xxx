@@ -14,7 +14,7 @@ lazy val root = (project in file("."))
   .configs(UnitTest).settings(inConfig(UnitTest)(Defaults.testTasks): _*)
   .configs(NoKeenTest).settings(inConfig(NoKeenTest)(Defaults.testTasks): _*)
 
-javaOptions in Test += "-Dconfig.file=conf/ci-test.conf"
+javaOptions in Test += "-Dconfig.file=conf/test.conf"
 
 lazy val FunTest = config("fun") extend Test
 
