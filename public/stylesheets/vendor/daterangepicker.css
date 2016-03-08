@@ -19,15 +19,19 @@
   width:278px;
 }
 
+.dropdown-menu > *:nth-child(3) {
+  border-left: solid #cecdd2 1px;
+}
+
 .daterangepicker.opensleft:before {
   position: absolute;
   top: -7px;
   right: 9px;
   display: inline-block;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid #b8b8b8;
+  border-bottom: 7px solid #FFFFFF;
   border-left: 7px solid transparent;
-  border-bottom-color: #b8b8b8;
+  border-bottom-color: #FFFFFF;
   content: '';
 }
 
@@ -37,7 +41,7 @@
   right: 10px;
   display: inline-block;
   border-right: 6px solid transparent;
-  border-bottom: 6px solid #b8b8b8;
+  border-bottom: 6px solid #FFFFFF;
   border-left: 6px solid transparent;
   content: '';
 }
@@ -52,9 +56,9 @@
   margin-right: auto;
   display: inline-block;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid #b8b8b8;
+  border-bottom: 7px solid #FFFFFF;
   border-left: 7px solid transparent;
-  border-bottom-color: #b8b8b8;
+  border-bottom-color: #FFFFFF;
   content: '';
 }
 
@@ -68,7 +72,7 @@
   margin-right: auto;
   display: inline-block;
   border-right: 6px solid transparent;
-  border-bottom: 6px solid #b8b8b8;
+  border-bottom: 6px solid #FFFFFF;
   border-left: 6px solid transparent;
   content: '';
 }
@@ -79,9 +83,9 @@
   left: 9px;
   display: inline-block;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid #b8b8b8;
+  border-bottom: 7px solid #FFFFFF;
   border-left: 7px solid transparent;
-  border-bottom-color: #b8b8b8;
+  border-bottom-color: #FFFFFF;
   content: '';
 }
 
@@ -91,7 +95,7 @@
   left: 10px;
   display: inline-block;
   border-right: 6px solid transparent;
-  border-bottom: 6px solid #b8b8b8;
+  border-bottom: 6px solid #FFFFFF;
   border-left: 6px solid transparent;
   content: '';
 }
@@ -130,7 +134,6 @@
 
 .daterangepicker.show-calendar .calendar {
   display: block;
-  border: 1px solid #cecdd2;
 }
 
 .daterangepicker .calendar.single .calendar-table {
@@ -298,12 +301,6 @@
   float: none;
   margin: 4px;
   text-align: left;
-}
-
-.fa-calendar {
-  width:12px; /*width of your image*/
-  height:12px;
-  background:url(../../images/calendar_icon_sm.png);
 }
 
 .daterangepicker .ranges ul {
