@@ -242,6 +242,7 @@
   padding: 0;
   color: #ffffff;
   margin-bottom: 5px;
+  height: 24px;
 }
 
 /* Text Input Above Each Calendar */
@@ -315,7 +316,7 @@
 .note {
   font-size: 9px;
   color: #000000;
-  text-align: center;
+  text-align: left;
   readonly: true;
 }
 
@@ -392,4 +393,8 @@
   .daterangepicker .calendar.left {
     clear: none;
   }
+}
+
+#daterange-arrow {
+  border-radius: 4px
 }

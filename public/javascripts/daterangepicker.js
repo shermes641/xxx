@@ -55,7 +55,7 @@
         this.linkedCalendars = true;
         this.autoUpdateInput = true;
         this.ranges = {};
-
+        this.startDateElement = $("#start-date");
         this.opens = 'right';
         if (this.element.hasClass('pull-right'))
             this.opens = 'left';
@@ -155,7 +155,7 @@
         // clicking the arrow pops up the date range picker
         $("#daterange-arrow").click(function() {
             if (!$(".daterangepicker").is(':visible'))
-                $("#start-date").click();
+                this.startDateElement.click();
         });
 
         if (typeof options.locale === 'object') {
@@ -1096,7 +1096,8 @@
             if (!this.isShowing) return;
 
             //incomplete date selection, revert to last values
-            if (!this.endDate) {
+            if (!this.endDate || this.notSubmitted) {
+                this.notSubmitted = false;
                 this.startDate = this.oldStartDate.clone();
                 this.endDate = this.oldEndDate.clone();
             }
@@ -1105,8 +1106,8 @@
             if (!this.startDate.isSame(this.oldStartDate) || !this.endDate.isSame(this.oldEndDate))
                 this.callback(this.startDate, this.endDate, this.chosenLabel);
 
-            //if picker is attached to a text input, update it
-            this.updateElement();
+                //if picker is attached to a text input, update it
+                this.updateElement();
 
             $(document).off('.daterangepicker');
             $(window).off('.daterangepicker');
@@ -1134,8 +1135,16 @@
             target.closest(this.container).length ||
             target.closest('.calendar-table').length ||
             target.closest('#daterange-arrow').length
-            ) return;
-            this.hide();
+            ) {
+                this.startDateElement.css('box-shadow', 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)');
+                this.startDateElement.css('-webkit-box-shadow:', 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)');
+
+            } else {
+                this.startDateElement.css('box-shadow', '');
+                this.startDateElement.css('-webkit-box-shadow:', '');
+                this.notSubmitted = true;
+                this.hide();
+            }
         },
 
         showCalendars: function() {
@@ -1328,6 +1337,8 @@
         },
 
         clickApply: function(e) {
+            this.startDateElement.css('box-shadow', '');
+            this.startDateElement.css('-webkit-box-shadow:', '');
             this.hide();
             this.element.trigger('apply.daterangepicker', this);
         },
