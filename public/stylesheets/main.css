@@ -1006,12 +1006,6 @@ header #logo:before,
   width: 220px;
 }
 
-#start-date {
-  margin-top: 10px;
-  cursor: pointer !important;
-  background-color: #FFFFFF !important;
-}
-
 .left-apps-list {
   padding: 30px 20px 20px 20px;
 }

@@ -35,7 +35,7 @@
 }(this || {}, function(root, daterangepicker, moment, $) { // 'this' doesn't exist on a server
 
     var DateRangePicker = function(element, options, cb) {
-
+        var self = this;
         //default settings for options
         this.parentEl = 'body';
         this.element = $(element);
@@ -98,6 +98,7 @@
         //html template for the picker UI
         if (typeof options.template !== 'string')
             options.template = '<div class="daterangepicker dropdown-menu">' +
+                '<hr id="calendar-divider" style="width: 0px; border-style: solid; height:100%; position: absolute; left: 412px;top: -21px; display: block;">' +
                 '<div class="calendar left">' +
                 '<div class="daterangepicker_input">' +
                 '<input class="input-mini" type="text" name="daterangepicker_start" value="" />' +
@@ -152,10 +153,16 @@
         //change this to left for ranges to be on the right
         options.opens = 'right';
 
-        // clicking the arrow pops up the date range picker
-        $("#daterange-arrow").click(function() {
-            if (!$(".daterangepicker").is(':visible'))
-                this.startDateElement.click();
+        //clicking the arrow or textbox shows or hides the date range picker
+        $("#daterange-arrow").click(function(e) {
+            e.stopPropagation();
+            self.toggle(); //$("#start-date").click();
+
+        });
+
+        $("#start-date").click(function(e) {
+            e.stopPropagation();
+            self.toggle();
         });
 
         if (typeof options.locale === 'object') {
@@ -434,8 +441,6 @@
 
         if (this.element.is('input')) {
             this.element.on({
-                'click.daterangepicker': $.proxy(this.show, this),
-                'focus.daterangepicker': $.proxy(this.show, this),
                 'keyup.daterangepicker': $.proxy(this.elementChanged, this),
                 'keydown.daterangepicker': $.proxy(this.keydown, this)
             });
@@ -1003,7 +1008,17 @@
             }
 
         },
-
+        setDivider: function(cw) {
+            if (cw > 0) {
+                if (cw < 300) {
+                    $("#calendar-divider").offset({left: -100});
+                } else {
+                    var divLeft = this.container.width() - 215;
+                    if (divLeft > 100)
+                        $("#calendar-divider").offset({left: divLeft});
+                }
+            }
+        },
         move: function() {
             var parentOffset = { top: -5, left: 0 },
                 containerTop;
@@ -1060,10 +1075,12 @@
                     });
                 }
             }
+            this.setDivider(this.container.width());
         },
 
-        show: function(e) {
-            if (this.isShowing) return;
+        show: function(e, noMove) {
+            if (this.isShowing)
+                this.hide();
 
             // Create a click proxy that is private to this instance of datepicker, for unbinding
             this._outsideClickProxy = $.proxy(function(e) { this.outsideClick(e); }, this);
@@ -1087,9 +1104,11 @@
 
             this.updateView();
             this.container.show();
-            this.move();
+            if (!noMove)
+                this.move();
             this.element.trigger('show.daterangepicker', this);
             this.isShowing = true;
+            this.addGlow();
         },
 
         hide: function(e) {
@@ -1114,6 +1133,7 @@
             this.container.hide();
             this.element.trigger('hide.daterangepicker', this);
             this.isShowing = false;
+            this.removeGlow();
         },
 
         toggle: function(e) {
@@ -1123,7 +1143,16 @@
                 this.show();
             }
         },
-
+        addGlow: function(){
+            var el = $("#start-date");
+            el.css('box-shadow', 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)');
+            el.css('-webkit-box-shadow:', 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)');
+        },
+        removeGlow: function(){
+            var el = $("#start-date");
+            el.css('box-shadow', '');
+            el.css('-webkit-box-shadow:', '');
+        },
         outsideClick: function(e) {
             var target = $(e.target);
             // if the page is clicked anywhere except within the daterangerpicker/button
@@ -1136,12 +1165,10 @@
             target.closest('.calendar-table').length ||
             target.closest('#daterange-arrow').length
             ) {
-                this.startDateElement.css('box-shadow', 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)');
-                this.startDateElement.css('-webkit-box-shadow:', 'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6)');
+                this.addGlow();
 
             } else {
-                this.startDateElement.css('box-shadow', '');
-                this.startDateElement.css('-webkit-box-shadow:', '');
+                this.removeGlow();
                 this.notSubmitted = true;
                 this.hide();
             }
@@ -1337,8 +1364,6 @@
         },
 
         clickApply: function(e) {
-            this.startDateElement.css('box-shadow', '');
-            this.startDateElement.css('-webkit-box-shadow:', '');
             this.hide();
             this.element.trigger('apply.daterangepicker', this);
         },
