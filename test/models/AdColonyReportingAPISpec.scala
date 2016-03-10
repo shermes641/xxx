@@ -86,7 +86,7 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     "return a list including a single JsValue thats belong to a zone ID" in new WithDB {
       val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
       val zoneList = List(zone1Stats, zone2Stats, zone3Stats)
-      val relevantZones = adColony.getZoneData(JsString(zone1ID), zoneList)
+      val relevantZones = adColony.getZoneData(zone1ID, zoneList)
 
       relevantZones.length must beEqualTo(1)
       (relevantZones(0) \ "zone_id").as[String] must beEqualTo(zone1ID)
@@ -95,16 +95,40 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     "return a list of JsValues that belong to a zone ID" in new WithDB {
       val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
       val zoneList = List(zone1Stats, zone2Stats, zone3Stats, zone1Stats)
-      val relevantZones = adColony.getZoneData(JsString(zone1ID), zoneList)
+      val relevantZones = adColony.getZoneData(zone1ID, zoneList)
 
       relevantZones.length must beEqualTo(2)
       relevantZones.map(zone => (zone \ "zone_id").as[String] must beEqualTo(zone1ID))
     }
 
+    "not be case sensitive when matching zone IDs" in new WithDB {
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val zoneList = List(zone1Stats, zone2Stats, zone3Stats)
+      List(zone1ID.toUpperCase, zone1ID.toLowerCase, zone1ID.capitalize).map { zoneID =>
+        adColony.getZoneData(zoneID, zoneList).length must beEqualTo(1)
+      }
+    }
+
+    "trim whitespace from incoming zone ID data when comparing zone IDs" in new WithDB {
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val untrimmedZoneStats = generateZoneData(" " + zone1ID + " ", zone1eCPM, zone1Impressions)
+      val zoneList = List(untrimmedZoneStats, zone2Stats, zone3Stats)
+
+      (untrimmedZoneStats \ "zone_id").as[String] must not equalTo zone1ID
+      adColony.getZoneData(zone1ID, zoneList).length must beEqualTo(1)
+    }
+
+    "not return any JsValues that are missing the zone_id param in AdColony's API response" in new WithDB {
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val missingZoneJson = Json.obj()
+      val zoneList = List(zone1Stats, missingZoneJson, zone3Stats)
+      adColony.getZoneData(zone1ID, zoneList).length must beEqualTo(1)
+    }
+
     "return an empty list if the zone ID is not found" in new WithDB {
       val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
       val zoneList = List(zone2Stats, zone3Stats)
-      val relevantZones = adColony.getZoneData(JsString(zone1ID), zoneList)
+      val relevantZones = adColony.getZoneData(zone1ID, zoneList)
 
       relevantZones must beEqualTo(List())
     }

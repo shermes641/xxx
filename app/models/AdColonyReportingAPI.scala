@@ -32,8 +32,8 @@ case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends
   }
 
   // The list of zone IDs the user has entered into the HyprMediate dashboard.
-  val zoneIDs: List[JsString] = {
-    (configurationData \ RequiredParamsKey \ "zoneIds").as[List[JsString]]
+  val zoneIDs: List[String] = {
+    (configurationData \ RequiredParamsKey \ "zoneIds").as[List[String]]
   }
 
   /**
@@ -42,8 +42,13 @@ case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends
    * @param apiResults The full list of zones from AdColony's API.
    * @return           List containing JsValues with zone data if the zone ID is found; otherwise, an empty list.
    */
-  def getZoneData(zoneID: JsString, apiResults: List[JsValue]): List[JsValue] = {
-    apiResults.filter(result => (result \ "zone_id").as[JsString] == zoneID)
+  def getZoneData(zoneID: String, apiResults: List[JsValue]): List[JsValue] = {
+    apiResults.filter(result =>
+      result \ "zone_id" match {
+        case id: JsString => id.as[String].trim.equalsIgnoreCase(zoneID.trim)
+        case _ => false
+      }
+    )
   }
 
   /**
