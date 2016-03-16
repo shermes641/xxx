@@ -34,7 +34,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "respond with 404 if token is not valid" in new WithFakeBrowser {
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appConfigV1("some-fake-token").url,
+        controllers.routes.APIController.appConfigV1("some-fake-token", None).url,
         FakeHeaders(),
         ""
       )
@@ -48,7 +48,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appConfigV1(app1.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token, None).url,
         FakeHeaders(),
         ""
       )
@@ -82,13 +82,14 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appConfigV1(app1.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token, None).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig = Json.parse(contentAsString(result))
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index)) }
     }
@@ -100,13 +101,14 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appConfigV1(app1.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token, None).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig: JsValue = Json.parse(contentAsString(result))
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.zipWithIndex.map { case(provider, index) => (provider \ "providerName").as[String] must beEqualTo(adProviders(index)) }
     }
@@ -120,13 +122,14 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appConfigV1(completionApp.token).url,
+        controllers.routes.APIController.appConfigV1(completionApp.token, None).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig: JsValue = Json.parse(contentAsString(result))
+      (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must contain(adProviders(0).name)
       adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
@@ -140,14 +143,59 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appConfigV1(app1.token).url,
+        controllers.routes.APIController.appConfigV1(app1.token, None).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val jsonResponse: JsValue = Json.parse(contentAsString(result))
+      (jsonResponse \ "logFullConfig").as[Boolean] must beEqualTo(true)
       (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
+    }
+
+    "respond with an error if the platform param conflicts with the platformID found in the AppConfig" in new WithFakeBrowser {
+      def verifyBadRequest(appToken: String, correctPlatformName: String, incorrectPlatformName: String) = {
+        val request = FakeRequest(
+          GET,
+          controllers.routes.APIController.appConfigV1(appToken, Some(incorrectPlatformName)).url,
+          FakeHeaders(),
+          ""
+        )
+        val Some(result) = route(request)
+        status(result) must equalTo(400)
+        val jsonResponse: JsValue = Json.parse(contentAsString(result))
+        (jsonResponse \ "message").as[String] must beEqualTo(APIController.platformError(correctPlatformName, incorrectPlatformName))
+      }
+
+      List((Platform.Android, Platform.Ios), (Platform.Ios, Platform.Android)).map { platforms =>
+        val appPlatform = platforms._1
+        val incorrectPlatform = platforms._2
+
+        val (currentApp, currentWaterfall, _, _) = setUpApp(
+          distributorID = distributor.id.get,
+          appName = Some("platform test app" + appPlatform.PlatformName),
+          currencyName = "Coins",
+          exchangeRate = 100,
+          rewardMin = 1,
+          rewardMax = None,
+          roundUp = true,
+          platformID = appPlatform.PlatformID
+        )
+        WaterfallAdProvider.create(waterfallID = currentWaterfall.id, adProviderID = adProviderID1.get, waterfallOrder = None, cpm = Some(5.0), configurable = true, active = true, pending = false)
+        DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+
+        // Verify we get a platform error when in test mode
+        Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beTrue
+        verifyBadRequest(currentApp.token, appPlatform.PlatformName, incorrectPlatform.PlatformName)
+
+        Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+        DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+
+        // Verify we get a platform error when in live mode
+        Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beFalse
+        verifyBadRequest(currentApp.token, appPlatform.PlatformName, incorrectPlatform.PlatformName)
+      }
     }
   }
 

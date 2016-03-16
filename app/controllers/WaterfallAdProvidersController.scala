@@ -82,9 +82,17 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           }
           case None => None
         }
-        val response = Json.obj("distributorID" -> JsString(distributorID.toString), "waterfallAdProviderID" -> JsNumber(waterfallAdProviderID),
-          "adProviderName" -> JsString(configData.name), "reportingActive" -> JsBoolean(configData.reportingActive), "callbackUrl" -> JsString(callbackUrl.getOrElse("")),
-          "cpm" -> configData.cpm, "appDomain" -> JsString(Play.current.configuration.getString("server_to_server_callback_domain").get)).deepMerge(JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForUI, configData))
+        val appDomain: String = Platform.find(configData.platformID).serverToServerDomain
+        val response = Json.obj(
+          "distributorID" -> JsString(distributorID.toString),
+          "waterfallAdProviderID" -> JsNumber(waterfallAdProviderID),
+          "adProviderName" -> JsString(configData.name),
+          "reportingActive" -> JsBoolean(configData.reportingActive),
+          "callbackUrl" -> JsString(callbackUrl.getOrElse("")),
+          "cpm" -> configData.cpm,
+          "appDomain" -> JsString(appDomain)
+        )
+          .deepMerge(JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForUI, configData))
         jsonParams match {
           case Some(params) => Ok(response.deepMerge(params))
           case None => Ok(response)

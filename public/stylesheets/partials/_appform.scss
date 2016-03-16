@@ -31,7 +31,7 @@
   }
 
   .switch-field {
-    height: 30px;
+    height: 36px;
     margin-bottom: 10px;
   }
 
@@ -94,7 +94,7 @@
   border: 1px solid #dddde0;
   margin: 0 auto 10px;
   padding: 30px;
-  width: 740px;
+  width: 743px;
 }
 
 #new-app-page-header .modal-text {
@@ -107,4 +107,130 @@
   font-size: 11px;
   font-style: italic;
   text-align: left;
+}
+
+#api-token {
+  font-family: sans-serif;
+  color: #797979;
+  font-weight: 500;
+}
+
+.device-targeting-field {
+  padding-top: 10px;
+}
+
+.app-platform {
+  position: relative;
+  top: -6px;
+
+  .app-platform-container {
+    position: relative;
+    border-radius: 15px;
+    width: 80px;
+    height: 30px;
+    padding-top: 4px;
+    float: left;
+    text-align: center;
+    background: #6e6d72;
+    box-shadow: inset 1px 2px 2px 1px rgba(0, 0, 0, 0.25);
+
+    span {
+      position: relative;
+      color: #fff;
+      font-size: 11px;
+      margin: 0 10px;
+      z-index: 10;
+
+      cursor: pointer;
+    }
+
+    #status-toggle {
+      border-radius: 12px;
+      height: 24px;
+      width: 38px;
+      background: #3c7cea;
+
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      z-index: 0;
+      -webkit-transition: 200ms ease all;
+      box-shadow: 1px 2px 2px 1px rgba(0, 0, 0, 0.25);
+
+      &.android {
+        background: #3c7cea;
+        left: 3px;
+        width: 38px
+      }
+
+      &.ios {
+        background: #3c7cea;
+        left: 39px;
+        width: 38px
+      }
+    }
+  }
+}
+
+#android-logo {
+  height: 19px;
+  width: 15px;
+  left: 13px;
+  position: absolute;
+  cursor: pointer;
+}
+
+#apple-logo {
+  height: 19px;
+  width: 16px;
+  margin-left: 11px;
+  position: absolute;
+  cursor: pointer;
+}
+
+#edit-app-platform {
+  height: 38px;
+  width: 60px;
+  float: left;
+  margin-top: -5px;
+}
+
+.logo-background {
+  height: 30px;
+  width: 40px;
+}
+
+#logo-background {
+  height: 100%;
+  width: auto;
+}
+
+.device-targeting-container {
+  width: 16px;
+  height: 19px;
+  margin-left: 15px;
+  margin-top: -27px;
+}
+
+.device-targeting-icon {
+  width: 100%;
+  height: auto;
+}
+
+.device-targeting-label {
+  float: left;
+  margin-right: 10px;
+}
+
+#new-app-platform {
+  margin-bottom: 40px;
+}
+
+#app-platform {
+  margin-bottom: 35px;
+}
+
+.app-platform-display-label {
+  float: left;
+  margin-right: 5px;
 }

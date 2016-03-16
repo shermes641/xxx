@@ -37,8 +37,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
   def edit(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
-        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
-            new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
+        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
+            new OrderedWaterfallAdProvider(name = adProvider.name, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
+                                          configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
@@ -52,8 +53,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
   def waterfallInfo(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
-        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID).map { adProvider =>
-          new OrderedWaterfallAdProvider(adProvider.name, adProvider.id, adProvider.defaultEcpm, false, None, true, true, adProvider.configurable)
+        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
+          new OrderedWaterfallAdProvider(name = adProvider.name, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
+                                          configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
         val generationNumber: Long = waterfall.generationNumber.getOrElse(0)
@@ -94,6 +96,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "unconfigured" -> JsBoolean(wap.unconfigured),
         "newRecord" -> JsBoolean(wap.newRecord),
         "configurable" -> JsBoolean(wap.configurable),
+        "meetsRewardThreshold" -> JsBoolean(wap.meetsRewardThreshold),
         "pending" -> JsBoolean(wap.pending)
       )
     )
@@ -124,7 +127,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "testMode" -> JsBoolean(waterfall.testMode),
         "paused" -> JsBoolean(waterfall.paused),
         "appName" -> JsString(waterfall.appName),
-        "appToken" -> JsString(waterfall.appToken)
+        "appToken" -> JsString(waterfall.appToken),
+        "platformID" -> JsNumber(waterfall.platformID),
+        "platformName" -> JsString(waterfall.platformName)
       )
     )
   }
@@ -141,7 +146,9 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         "active" -> JsBoolean(app.active),
         "distributorID" -> JsNumber(app.distributorID),
         "name" -> JsString(app.name),
-        "waterfallID" -> JsNumber(app.waterfallID)
+        "waterfallID" -> JsNumber(app.waterfallID),
+        "platformName" -> JsString(app.platformName),
+        "platformID" -> JsNumber(app.platformID)
       )
     )
   }
@@ -259,4 +266,3 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
  * @param pending Determines if we are still waiting for a response from Player with the appropriate configuration info.
  */
 case class ConfigInfo(id: Long, newRecord: Boolean, active: Boolean, waterfallOrder: Long, cpm: Option[Double], configurable: Boolean, pending: Boolean)
-

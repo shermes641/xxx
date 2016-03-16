@@ -70,6 +70,11 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       completion.sendPost(callbackURL.get, data) returns Future { response }
       Await.result(completion.postCallback(callbackURL, JsNull, verification), Duration(5000, "millis")) must beFalse
     }
+
+    "return false if the hostname of the callback URL is nonexistent" in new WithDB {
+      val nonExistentCallbackURL = Some("https://your-reward-callback-goes-here.com")
+      Await.result(completion.postCallback(nonExistentCallbackURL, JsNull, verification), Duration(5000, "millis")) must beFalse
+    }
   }
 
   "postbackData" should {

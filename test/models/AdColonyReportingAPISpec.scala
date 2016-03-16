@@ -58,7 +58,7 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
    * @return Response from mocked out API call.
    */
   def callAPI = {
-    adColony.retrieveAPIData(queryString) returns Future { response }
+    adColony.retrieveAPIData returns Future { response }
     Await.result(adColony.updateRevenueData, Duration(5000, "millis"))
   }
 }

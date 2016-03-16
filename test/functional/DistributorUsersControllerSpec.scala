@@ -35,8 +35,8 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.$("#viewTerms").click()
       val terms = browser.find("#termsContainer").first().getText
       // Gets MD5 of agreements and compares to last approved version
-      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("bbf7b618f70a77dddac2e4ca570b8122")
-      terms must contain("Updated: 06/08/2015 Revision: 4")
+      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("399d0be6511845c449c1418b3df26be2")
+      terms must contain("Updated: 03/11/2016 Revision: 5.1")
     }
 
     "render an error when the password does not match the confirmation" in new WithFakeBrowser {

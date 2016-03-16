@@ -23,9 +23,9 @@ trait AppCreationHelper extends WaterfallCreationHelper {
    * @return A tuple consisting of an App, VirtualCurrency, Waterfall, and AppConfig.
    */
   def setUpApp(distributorID: Long, appName: Option[String] = None, currencyName: String = "Coins",
-               exchangeRate: Long = 100, rewardMin: Long = 1, rewardMax: Option[Long] = None, roundUp: Boolean = true): (App, Waterfall, VirtualCurrency, AppConfig) = {
+               exchangeRate: Long = 100, rewardMin: Long = 1, rewardMax: Option[Long] = None, roundUp: Boolean = true, platformID: Long = Platform.Ios.PlatformID): (App, Waterfall, VirtualCurrency, AppConfig) = {
     val currentApp = {
-      val id = App.create(distributorID, appName.getOrElse(randomAppName)).get
+      val id = App.create(distributorID, appName.getOrElse(randomAppName), platformID).get
       App.find(id).get
     }
     val virtualCurrency = {

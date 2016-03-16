@@ -2,23 +2,23 @@ describe('WaterfallControllerSpec', function() {
     beforeEach(module('MediationModule'));
 
     describe('waterfallPage', function() {
+        var waterfallInfo;
         beforeEach(inject(function($rootScope, $controller, $compile, $httpBackend) {
-            scope = $rootScope.$new();
-            httpBackend = $httpBackend;
-
-            // Mock waterfall_info response
-            httpBackend.when("GET", "/distributors/456/waterfalls/undefined/waterfall_info").respond({
-                "distributorID":620798327,
-                "waterfall":{
-                    "id":"62484878",
-                    "appID":"62484878",
-                    "name":"Test App 3",
-                    "token":"4add175e-6a1e-4e33-adc8-f39492b953bc",
-                    "optimizedOrder":true,
-                    "testMode":false,
-                    "paused":false,
-                    "appName":"Test App 3",
-                    "appToken":"49126db4-876a-4513-9ed3-8f080eb6afb8"},
+            var appID = "62484878";
+            waterfallInfo = {
+                "distributorID": 620798327,
+                "waterfall": {
+                    "id": "62484878",
+                    "appID": appID,
+                    "name": "Test App 3",
+                    "token": "4add175e-6a1e-4e33-adc8-f39492b953bc",
+                    "optimizedOrder": true,
+                    "testMode": false,
+                    "paused": false,
+                    "appName": "Test App 3",
+                    "appToken": "49126db4-876a-4513-9ed3-8f080eb6afb8",
+                    "platformID": 1
+                },
                 "waterfallAdProviderList":[
                     {"name":"AdColony","waterfallAdProviderID":40,"cpm":1.0,"active":true,"waterfallOrder":0,"unconfigured":false,"newRecord":false,"configurable":true,"pending":false},
                     {"name":"Vungle","waterfallAdProviderID":41,"cpm":0.5,"active":true,"waterfallOrder":1,"unconfigured":false,"newRecord":false,"configurable":true,"pending":false},
@@ -26,12 +26,21 @@ describe('WaterfallControllerSpec', function() {
                     {"name":"AppLovin","waterfallAdProviderID":4,"cpm":null,"active":false,"waterfallOrder":null,"unconfigured":true,"newRecord":true,"configurable":true,"pending":false}
                 ],
                 "appsWithWaterfalls":[
-                    {"id":"62484878","active":true,"distributorID":620798327,"name":"Test App 3","waterfallID":62484878},
-                    {"id":"265019496","active":true,"distributorID":620798327,"name":"Really really really really long app name","waterfallID":1000471524},
-                    {"id":"1007066320","active":true,"distributorID":620798327,"name":"Test App2","waterfallID":1007066320}
+                    {"id":"62484878","active":true,"distributorID":620798327,"name":"Test App 3","waterfallID":62484878,"platformID": 1},
+                    {"id":"265019496","active":true,"distributorID":620798327,"name":"Really really really really long app name","waterfallID":1000471524,"platformID": 1},
+                    {"id":"1007066320","active":true,"distributorID":620798327,"name":"Test App2","waterfallID":1007066320,"platformID": 2}
                 ],
                 "generationNumber":50
-            });
+            };
+
+            scope = $rootScope.$new();
+            httpBackend = $httpBackend;
+
+            routeParams = { distributorID: 456, waterfallID: 1007066320 };
+            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: routeParams});
+
+            // Mock waterfall_info response
+            httpBackend.when("GET", "/distributors/" + routeParams.distributorID + "/waterfalls/" + routeParams.waterfallID + "/waterfall_info").respond(waterfallInfo);
 
             element = angular.element(
                 '<form name="form">' +
@@ -46,9 +55,8 @@ describe('WaterfallControllerSpec', function() {
                     '</form>'
             );
 
-            testCont = $controller('WaterfallController', {$scope: scope, $routeParams: { distributorID: 456 }});
-
             scope.showModal = function(){};
+            scope.editAppID = appID;
             scope.data = { reportingActive: false };
             $compile(element)(scope);
             form = scope.form;
@@ -86,6 +94,7 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.appsWithWaterfalls[0].distributorID).toEqual(620798327);
             expect(waterfallData.appsWithWaterfalls[0].id).toEqual("62484878");
             expect(waterfallData.appsWithWaterfalls[0].active).toEqual(true);
+            expect(waterfallData.appsWithWaterfalls[0].platformID).toEqual(1);
             expect(waterfallData.appsWithWaterfalls[0].waterfallID).toEqual(62484878);
 
             expect(waterfallData.waterfall.appName).toEqual("Test App 3");
@@ -109,25 +118,138 @@ describe('WaterfallControllerSpec', function() {
             expect(waterfallData.waterfallAdProviderList[0].waterfallOrder).toEqual(0);
         });
 
-        it('should update paused when toggled', function() {
-            scope.togglePaused();
-            expect(scope.waterfallData.waterfall.paused).toEqual(true);
-            scope.togglePaused();
-            expect(scope.waterfallData.waterfall.paused).toEqual(false);
+        it('should set the platform name correctly', function() {
+            expect(scope.platform.name).toEqual('iOS');
+            waterfallInfo.waterfall.platformID = 2;
+            scope.getWaterfallData();
+            httpBackend.flush();
+            expect(scope.platform.name).toEqual('Android');
         });
 
-        it('should update code block when toggled', function() {
-            scope.toggleCodeBlock();
-            expect(scope.showCodeBlock).toEqual(true);
-            scope.toggleCodeBlock();
-            expect(scope.showCodeBlock).toEqual(false);
+        it('should set the code snippet correctly', function() {
+            expect(scope.codeSnippet).toEqual('assets/templates/waterfalls/iOS_code_snippet.html');
+            waterfallInfo.waterfall.platformID = 2;
+            scope.getWaterfallData();
+            httpBackend.flush();
+            expect(scope.codeSnippet).toEqual('assets/templates/waterfalls/Android_code_snippet.html');
         });
 
-        it('should modal cancel and confirm should toggle test mode correctly', function() {
-            scope.confirmTestMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(true);
-            scope.cancelTestMode();
-            expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+        describe('App Creation Modal', function() {
+            it('should render a flash error message when there is a non-field specific error', function() {
+                var error = {
+                    status: "error",
+                    message: "There was a problem creating your app"
+                };
+                scope.newApp = {
+                    exchangeRate: 100,
+                    rewardMin: 10,
+                    rewardMax: 100
+                };
+                scope.form['newAppForm'] = scope.form;
+                httpBackend.expectPOST("/distributors/" + routeParams.distributorID + "/apps").respond(400, error);
+                scope.submitNewApp(scope.form);
+                httpBackend.flush();
+                expect(scope.flashMessage.text()).toEqual(error.message);
+            });
+        });
+
+        describe('App Settings Modal', function() {
+            var updateApp = function(newGeneration) {
+                // Stub app update response
+                httpBackend.expectPOST("/distributors/" + routeParams.distributorID + "/apps/" + scope.editAppID).respond({
+                    "generationNumber":newGeneration,
+                    "status":"success",
+                    "message":"App updated successfully"
+                }, scope.data);
+                scope.submitEditApp(scope.form);
+                httpBackend.flush();
+            };
+
+            it('should persist the new generation number for the currently selected app when the app update response is successful', function() {
+                var newGeneration = scope.generationNumber + 1;
+                waterfallInfo.generationNumber = newGeneration;
+                updateApp(newGeneration);
+                expect(scope.generationNumber).toEqual(newGeneration);
+            });
+
+            it('should not persist the new generation number when editing an app which is not currently selected on the waterfall page', function() {
+                var originalGeneration = scope.generationNumber;
+                waterfallInfo.generationNumber = originalGeneration;
+                scope.editAppID = 9876;
+                updateApp(originalGeneration + 1);
+                expect(scope.generationNumber).toEqual(originalGeneration);
+            });
+        });
+
+        describe('waterfall status updates', function() {
+            it('should update to paused mode when toggled', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.activatePausedMode();
+                expect(scope.waterfallData.waterfall.paused).toEqual(true);
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                scope.activateLiveMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.updateWaterfall).toHaveBeenCalled();
+            });
+
+            it('should not toggle into paused mode when the waterfall is currently paused', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.waterfallData.waterfall.paused = true;
+                scope.activatePausedMode();
+                expect(scope.updateWaterfall).not.toHaveBeenCalled();
+            });
+
+            it('should update to test mode when toggled', function() {
+                spyOn(scope, 'showModal');
+                scope.confirmTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                scope.activateLiveMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.showModal).toHaveBeenCalled();
+            });
+
+            it('should not toggle into test mode when the waterfall is currently in test mode', function() {
+                spyOn(scope, 'showModal');
+                scope.waterfallData.waterfall.testMode = true;
+                scope.activateTestMode();
+                expect(scope.showModal).not.toHaveBeenCalled();
+            });
+
+            it('should update live mode  when toggled', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.activateLiveMode();
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+                scope.confirmTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+                expect(scope.waterfallData.waterfall.paused).toEqual(false);
+                expect(scope.updateWaterfall).toHaveBeenCalled();
+            });
+
+            it('should not toggle into live mode when the waterfall is currently in live mode', function() {
+                spyOn(scope, 'updateWaterfall');
+                scope.waterfallData.waterfall.testMode = false;
+                scope.waterfallData.waterfall.paused = false;
+                scope.activateLiveMode();
+                expect(scope.updateWaterfall).not.toHaveBeenCalled();
+            });
+
+            it('should update code block when toggled', function() {
+                scope.toggleCodeBlock();
+                expect(scope.showCodeBlock).toEqual(true);
+                scope.toggleCodeBlock();
+                expect(scope.showCodeBlock).toEqual(false);
+            });
+
+            it('should modal cancel and confirm should toggle test mode correctly', function() {
+                scope.confirmTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(true);
+                scope.cancelTestMode();
+                expect(scope.waterfallData.waterfall.testMode).toEqual(false);
+            });
         });
 
         it('should active and deactive ad providers correctly', function() {

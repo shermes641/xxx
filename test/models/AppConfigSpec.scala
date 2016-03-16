@@ -131,12 +131,12 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     "return the test mode response when the Waterfall is in test mode" in new WithAppDB(distributor.id.get) {
       DB.withTransaction { implicit connection =>
         WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, true, true).get
-        AppConfig.responseV1(currentApp.token) must beEqualTo(AppConfig.testResponseV1)
+        AppConfig.responseV1(currentApp.token) must beEqualTo(AppConfig.testResponseV1(Some(Platform.Ios.PlatformID)))
       }
     }
 
     "return an empty adProviderConfigurations array when all ad providers are below the minimum eCPM" in new WithDB {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, appName = None, "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, appName = None, currencyName = "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
       Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
@@ -147,7 +147,7 @@ class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     }
 
     "return the list of ad providers below the minimum eCPM" in new WithDB {
-      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, appName = None, "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
+      val (currentApp, currentWaterfall, _, _) = setUpApp(distributor.id.get, appName = None, currencyName = "Coins", exchangeRate = 25, rewardMin = 1, rewardMax = None, roundUp = false)
       val wap1ID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, currentWaterfall.id, adProviderID1.get, waterfallOrder = Some(0), cpm = Some(25.0), active = Some(true), fillRate = None, configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()))), reportingActive = false))
       Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)

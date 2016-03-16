@@ -2,8 +2,9 @@ package functional
 
 import anorm.SQL
 import models._
-import org.specs2.runner._
+import org.fluentlenium.core.filter.FilterConstructor.{withName, withId}
 import org.junit.runner._
+import org.specs2.runner._
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.{WSAuthScheme, WS}
@@ -28,8 +29,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(distributor.id.get, currentApp.id).url)
-      browser.pageSource must contain("Edit Waterfall")
-      browser.pageSource must contain(currentWaterfall.name)
+      browser.find("#edit-top").getText must beEqualTo(currentApp.name + " Waterfall")
     }
   }
 
@@ -142,7 +142,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val configKey = "some key"
       browser.fill("input").`with`("5.0", configKey)
@@ -177,7 +177,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
-      browser.executeScript("$('#test-mode-switch').click();")
+      browser.executeScript("$('#live-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
       Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
@@ -231,7 +231,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
     }
 
     "waterfall UI not should not start paused if waterfall is not paused" in new WithFakeBrowser {
@@ -243,7 +243,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
     }
 
     "toggle paused mode should show message above waterfall" in new WithFakeBrowser {
@@ -255,14 +255,14 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
-      clickAndWaitForAngular(".pause")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
+      clickAndWaitForAngular("#pause-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areDisplayed()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause").isPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
-      clickAndWaitForAngular(".pause")
+      clickAndWaitForAngular("#live-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areNotDisplayed()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(".pause.play").isNotPresent
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
       Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
     }
 
@@ -277,7 +277,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val topAdProviderText = browser.$(".waterfall-app-info").first().getText
       topAdProviderText must contain(adProviders(0))
       topAdProviderText must contain("$5.00")
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
       browser.click("button[name=update-ad-provider]")
@@ -288,17 +288,54 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       newTopAdProviderText must contain(adProviders(1))
       newTopAdProviderText must contain("$5.00")
     }
+
+    "ad providers should notify user if they do not meet the eCPM requirements" in new WithAppBrowser(distributor.id.get) {
+      val (newApp, waterfall, virtualCurrency, appConfig) = setUpApp(distributor.id.get, Some("Round Up Test"), "Coins",
+                        exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = false)
+
+      createWaterfallAdProvider(waterfall.id, adProviderID1.get, waterfallOrder = None, cpm = Some(500.0), configurable = true, active = true)
+      waterfall.optimizedOrder must beTrue
+
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+
+      val topAdProviderText = browser.$(".waterfall-app-info").first().getText
+      topAdProviderText must contain(adProviders(0))
+      topAdProviderText must contain("$500.00")
+      topAdProviderText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
+
+      browser.$(".configure").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.fill("input").`with`("1.0", "some key")
+      clickAndWaitForAngular("button[name=update-ad-provider]")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
+      browser.$(".waterfall-app-info").first().getText must contain(adProviders(0))
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+      val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
+      newTopAdProviderText must contain(adProviders(0))
+      newTopAdProviderText must contain("$1.00")
+      newTopAdProviderText must contain("This Ad Network doesn't meet the minimum eCPM requirements")
+
+      browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed
+      browser.executeScript("$(':input[name=roundUp]').click();")
+      browser.executeScript("$('button[name=submit]').click();")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("App updated successfully.")
+
+      browser.$(".waterfall-app-info").first().getText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
+    }
   }
 
   "WaterfallsController.edit" should {
     "display default eCPM values for Ad Providers" in new WithAppBrowser(distributor.id.get) {
       val defaultEcpm = "20.00"
-      val adProviderWithDefaultEcpmID = AdProvider.create("Test Ad Provider With Default eCPM", adProviderConfigData, None, true, Some(defaultEcpm.toDouble)).get
+      val adProviderName = "Test Ad Provider With Default eCPM"
+      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, adProviderConfigData, Platform.Ios.PlatformID, None, true, Some(defaultEcpm.toDouble)).get
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.$("div[name=cpm]", 2).getText must contain(defaultEcpm)
+      browser.find(".waterfall li", withId(adProviderName)).findFirst("div", withName("cpm")).getText must contain(defaultEcpm)
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit a Waterfall they do not own" in new WithAppBrowser(distributor.id.get) {
@@ -352,7 +389,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.findFirst("button[name=status]").getText must not contain "Activate"
-      browser.$("button[name=configure-wap]").first().click()
+      browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.executeScript("$('.close-button').click();")
       browser.find("button[name=status]").getText must not contain "Activate"
@@ -362,7 +399,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.executeScript("$('button[name=configure-wap]').first().click()")
+      browser.find(".waterfall li", withId(adProviders(0))).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", "some key")
       browser.executeScript("$('button[name=update-ad-provider]').click();")
@@ -382,7 +419,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(currentDistributor.id.get, newWaterfall.id).url)
       val oldAppName = newApp.name
       val newAppName = "Some Different App Name"
-      browser.executeScript("$('button[id=waterfall-app-settings-button]').first().click()")
+      browser.executeScript("$('.left-apps-list .active .settings-icon').first().click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-app").areDisplayed()
       browser.fill("input[name=appName]").`with`(newAppName)
       browser.executeScript("$('button[name=submit]').click();")
@@ -435,6 +472,20 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
         response.status must beEqualTo(200)
         response.body must contain("Welcome to HyprMediate iOS SDK documentation")
       }, Duration(5000, "millis"))
+    }
+
+    "not display the 'below reward threshold' notification if an ad provider is not fully configured" in new WithAppBrowser(distributor.id.get) {
+      val (newApp, waterfall, virtualCurrency, appConfig) = setUpApp(distributor.id.get, Some("No Notification Test"), "Coins",
+        exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = false)
+
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
+
+      browser.$(".configure").first().click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
+      browser.executeScript("$('.close-button').click();")
+      browser.$(".waterfall-app-info").first().getText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
+      browser.$(".waterfall-app-info").first().getAttribute("class") must not contain "below-reward-threshold"
     }
   }
 

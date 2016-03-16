@@ -5,7 +5,7 @@ import com.github.nscala_time.time.Imports._
 import controllers.routes
 import io.keen.client.java.ScopedKeys
 import models._
-import play.api.libs.json.{JsString, JsObject, Json}
+import play.api.libs.json._
 import play.api.Play
 import play.api.test._
 import play.api.test.Helpers._
@@ -43,7 +43,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "populate ad networks and verify that All ad providers is default" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", None)
+      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Ad Providers should be selected
@@ -226,9 +226,99 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.url must beEqualTo(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, None, None).url)
     }
 
+    "include the platform logo in the 'Filter By App' list" in new WithFakeBrowser {
+      val (currentDistributorUser, currentDistributor) = newDistributorUser("NewUser2@gmail.com")
+      val (androidApp, _, _, _) = setUpApp(
+        distributorID = currentDistributor.id.get,
+        appName = Some("Android Test App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Android.PlatformID
+      )
+      val (iosApp, _, _, _) = setUpApp(
+        distributorID = currentDistributor.id.get,
+        appName = Some("iOS Test App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Ios.PlatformID
+      )
+
+      logInUser(currentDistributorUser.email, password)
+      browser.goTo(controllers.routes.AnalyticsController.show(currentDistributor.id.get, None, None).url)
+      clickAndWaitForAngular("#apps-filter .add")
+      clickAndWaitForAngular("#filter-apps")
+      fillAndWaitForAngular("#filter-apps", "App")
+
+      List(Platform.Ios.PlatformName, Platform.Android.PlatformName)
+        .map(platformName =>
+          browser.find(
+            "#apps-filter li a span",
+            org.fluentlenium.core.filter.FilterConstructor.withClass().contains(platformName + "-app-list-logo")
+          ).length must beEqualTo(1)
+        )
+    }
+
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
       browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
       browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
+    }
+  }
+
+  "AnalyticsController.info" should {
+    "include only unique ad provider names" in new WithAppBrowser(distributorID) {
+      AdProvider.loadAll()
+
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AnalyticsController.info(distributorID).url,
+        FakeHeaders(),
+        ""
+      )
+
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(200)
+      val response = Json.parse(contentAsString(result))
+
+      val adProviders = (response \ "adProviders").as[JsArray].as[List[JsValue]]
+      adProviders
+        .foldLeft(Set[String]())((providerNames, provider) => providerNames + (provider \ "id").as[String])
+        .toList.length must beEqualTo(adProviders.length)
+    }
+
+    "must include a platform name for each app" in new WithAppBrowser(distributorID) {
+      val (_, _, _, _) = setUpApp(
+        distributorID = distributorID,
+        appName = Some("Android Test App"),
+        currencyName = "Coins",
+        exchangeRate = 100,
+        rewardMin = 1,
+        rewardMax = None,
+        roundUp = true,
+        platformID = Platform.Android.PlatformID
+      )
+
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AnalyticsController.info(distributorID).url,
+        FakeHeaders(),
+        ""
+      )
+
+      val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
+      status(result) must equalTo(200)
+      val response = Json.parse(contentAsString(result))
+
+      val platformNames = List(Platform.Android.PlatformName, Platform.Ios.PlatformName)
+      val apps = (response \ "apps").as[JsArray].as[List[JsValue]]
+      apps.map(appInfo =>
+        platformNames must contain((appInfo \ "platformName").as[String])
+      )
     }
   }
 }

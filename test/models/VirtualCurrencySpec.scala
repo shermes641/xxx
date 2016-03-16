@@ -13,7 +13,7 @@ class VirtualCurrencySpec extends SpecificationWithFixtures with DistributorUser
   }
 
   val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = App.create(distributorUser.distributorID.get, "App 1").get
+    val id = App.create(distributorUser.distributorID.get, "App 1", Platform.Ios.PlatformID).get
     App.find(id).get
   }
 
