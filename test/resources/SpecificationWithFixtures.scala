@@ -8,8 +8,8 @@ import org.specs2.specification._
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
-import play.api.test._
 import play.api.test.Helpers._
+import play.api.test._
 
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {

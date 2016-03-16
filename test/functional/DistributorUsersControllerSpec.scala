@@ -13,6 +13,23 @@ import resources.{AppCreationHelper, SpecificationWithFixtures, DistributorUserS
 import scala.concurrent.duration.Duration
 
 class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppCreationHelper {
+  "DistributorUsersController.sendPasswordResetEmail" should {
+    "create a new password reset record and alert the user of a password reset email" in new WithFakeBrowser {
+      val originalResetCount = tableCount("password_resets")
+      val newUser = {
+        val id = DistributorUser.create("UniqueUser4@gmail.com", password = "password", company = "new company").get
+        DistributorUser.find(id).get
+      }
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
+      clickAndWaitForAngular("#forgot-password-link")
+      browser.fill("#email").`with`(newUser.email)
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#login-message").containsText("Password reset email sent!")
+      Thread.sleep(5000)
+      tableCount("password_resets") must beEqualTo(originalResetCount+1)
+    }
+  }
+
   "DistributorUsersController.signup" should {
     "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
       goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
@@ -170,22 +187,6 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.fill("#password").`with`("")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-custom-error").hasText("")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-required-error").areDisplayed
-    }
-  }
-
-  "DistributorUsersController.sendPasswordResetEmail" should {
-    "create a new password reset record and alert the user of a password reset email" in new WithFakeBrowser {
-      val originalResetCount = tableCount("password_resets")
-      val newUser = {
-        val id = DistributorUser.create("UniqueUser4@gmail.com", password = "password", company = "new company").get
-        DistributorUser.find(id).get
-      }
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
-      clickAndWaitForAngular("#forgot-password-link")
-      browser.fill("#email").`with`(newUser.email)
-      browser.find("button").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#login-message").containsText("Password reset email sent!")
-      tableCount("password_resets") must beEqualTo(originalResetCount+1)
     }
   }
 

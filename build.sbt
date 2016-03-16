@@ -51,6 +51,13 @@ def notKeenTestFilter(name: String): Boolean = {
     true
 }
 
+def notApplicationSpecFilter(name: String): Boolean = {
+  if (name startsWith "functional.ApplicationSpec") {
+    false
+  } else
+    true
+}
+
 def itTestFilter(name: String): Boolean = {
   if ((name startsWith "integration.") && notKeenTestFilter(name)) {
     println("INTEGRATION test: " + name)
@@ -60,7 +67,7 @@ def itTestFilter(name: String): Boolean = {
 }
 
 def funTestFilter(name: String): Boolean = {
-  if ((name startsWith "functional.") && notKeenTestFilter(name)) {
+  if ((name startsWith "functional.") && notKeenTestFilter(name) && notApplicationSpecFilter(name)) {
     println("FUNCTIONAL test: " + name)
     true
   } else
@@ -85,8 +92,6 @@ def noKeenTestFilter(name: String): Boolean = {
 
 testOptions in ItTest := Seq(Tests.Filter(s => itTestFilter(s)))
 
-logLevel in ItTest := Level.Info
-
 testOptions in FunTest := Seq(Tests.Filter(s => funTestFilter(s)))
 
 testOptions in KeenTest := Seq(Tests.Filter(keenTestFilter))
@@ -99,6 +104,8 @@ testOptions in NoKeenTest := Seq(Tests.Filter(noKeenTestFilter))
 
 logLevel in Test := Level.Info
 
+logLevel in ItTest := Level.Info
+
 logLevel in FunTest := Level.Info
 
 logLevel in KeenTest := Level.Info
@@ -108,8 +115,6 @@ logLevel in HmacTest := Level.Info
 logLevel in UnitTest := Level.Info
 
 logLevel in NoKeenTest := Level.Info
-
-val kamonVersion = "0.5.2"
 
 libraryDependencies ++= Seq(
   jdbc,

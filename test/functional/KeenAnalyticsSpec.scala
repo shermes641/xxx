@@ -1,8 +1,8 @@
 package functional
 
 import models._
-import play.api.test.Helpers._
 import play.api.test.FakeApplication
+import play.api.test.Helpers._
 import resources.SpecificationWithFixtures
 
 class KeenAnalyticsSpec extends SpecificationWithFixtures {

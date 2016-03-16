@@ -5,10 +5,11 @@ import models._
 import org.fluentlenium.core.filter.FilterConstructor.withName
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.libs.ws.{WSAuthScheme, WS}
-import play.api.test._
+import play.api.libs.ws.{WS, WSAuthScheme}
 import play.api.test.Helpers._
-import resources.{AppCreationHelper, SpecificationWithFixtures, DistributorUserSetup}
+import play.api.test._
+import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 

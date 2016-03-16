@@ -3,29 +3,27 @@ package functional
 import controllers.APIController
 import models._
 import org.specs2.mock.Mockito
-import org.specs2.runner._
-import org.junit.runner._
+import play.api.Play.current
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
-import resources.{SpecificationWithFixtures, AdProviderSpecSetup, WaterfallSpecSetup}
+import resources.{AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
+
 import scala.concurrent.Future
 
-@RunWith(classOf[JUnitRunner])
 class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup with Mockito {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
+    WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
   }
 
   val wap2ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, true, true).get
+    WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, configurable = true, active = true).get
   }
 
   val (completionApp, completionWaterfall, _, _) = running(FakeApplication(additionalConfiguration = testDB)) {
     val (completionApp, completionWaterfall, _, _) = setUpApp(distributor.id.get)
-    WaterfallAdProvider.create(completionWaterfall.id, adProviderID1.get, None, None, true, true).get
+    WaterfallAdProvider.create(completionWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
     DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(completionWaterfall.id, None)}
     (completionApp, completionWaterfall, None, None)
   }
@@ -131,8 +129,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val appConfig: JsValue = Json.parse(contentAsString(result))
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
-      adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must contain(adProviders(0).name)
-      adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must not contain(adProviders(1).name)
+      adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must contain(adProviders.head.name)
+      adProviderConfigs.map( provider => (provider \ "providerName").as[String]) must not contain adProviders(1).name
     }
 
     "respond with an empty adProviderConfigurations array when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
@@ -202,7 +200,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   "APIController.vungleCompletionV1" should {
     val transactionID = Some("0123456789")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleID, None, None, true, true).get
+      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleID, None, None, configurable = true, active = true).get
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
@@ -291,7 +289,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val transactionID = Some("0123456789")
     val customID = Some("testuser")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyID, None, None, true, true).get
+      val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyID, None, None, configurable = true, active = true).get
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
@@ -350,7 +348,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val quantity = Some(1)
 
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, hyprMarketplaceID, None, None, true, true).get
+      val id = WaterfallAdProvider.create(completionWaterfall.id, hyprMarketplaceID, None, None, configurable = true, active = true).get
       WaterfallAdProvider.find(id).get
     }
 

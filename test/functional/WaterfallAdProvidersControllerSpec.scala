@@ -2,15 +2,12 @@ package functional
 
 import models._
 import org.fluentlenium.core.filter.FilterConstructor.withId
-import org.junit.runner._
-import org.specs2.runner._
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.test._
 import play.api.test.Helpers._
+import play.api.test._
 import resources._
 
-@RunWith(classOf[JUnitRunner])
 class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with JsonTesting with DistributorUserSetup {
   val adProvider1Name = "test ad provider 1"
   val adProvider1ID = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -159,12 +156,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val Some(result) = route(postRequest.withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
       status(result) must equalTo(200)
       val wap = WaterfallAdProvider.find(waterfallAdProviderID).get
-      (wap.configurationData \ "requiredParams" \ configurationParams(0)).as[String] must beEqualTo(updatedParam)
+      (wap.configurationData \ "requiredParams" \ configurationParams.head).as[String] must beEqualTo(updatedParam)
       generationNumber(currentApp.id) must beEqualTo(originalGeneration + 1)
     }
 
     "respond with a 400 if proper JSON is not received" in new WithAppBrowser(distributorUser.distributorID.get) {
-      val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true).get
+      val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, configurable = true).get
       val postRequest = FakeRequest(
         POST,
         controllers.routes.WaterfallAdProvidersController.update(distributorUser.distributorID.get, waterfallAdProviderID).url,
@@ -183,7 +180,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
       browser.find(".waterfall li", withId(adProvider2Name)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
-      val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
+      val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).head
       browser.fill("input").`with`(validEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2Name + " updated!")
@@ -200,7 +197,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       Waterfall.find(currentWaterfall.id, distributorUser.distributorID.get).get.testMode must beEqualTo(true)
       browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
-      val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id)(0)
+      val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).head
       invalidEcpms.map { eCPM =>
         browser.fill("input").`with`(eCPM, "Some key")
         browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
@@ -209,7 +206,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
     }
 
     "notify the user if the app must be restarted for AppConfig changes to take effect" in new WithAppBrowser(distributorUser.distributorID.get) {
-      val wapID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, true).get
+      val wapID = WaterfallAdProvider.create(currentWaterfall.id, adProvider1ID, None, None, true, active = true).get
       val wap = WaterfallAdProvider.find(wapID).get
       WaterfallAdProvider.update(new WaterfallAdProvider(wapID, currentWaterfall.id, wap.adProviderID, None, None, Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), false))
       Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)

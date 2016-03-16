@@ -1,20 +1,18 @@
 package functional
 
-import collection.JavaConversions._
 import com.github.nscala_time.time.Imports._
 import controllers.routes
 import io.keen.client.java.ScopedKeys
 import models._
-import play.api.libs.json._
 import play.api.Play
-import play.api.test._
+import play.api.libs.json._
 import play.api.test.Helpers._
-import play.api.test.FakeHeaders
-import play.api.test.FakeApplication
-import resources.{AppCreationHelper, SpecificationWithFixtures, DistributorUserSetup}
+import play.api.test.{FakeApplication, FakeHeaders, _}
+import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
+
+import scala.collection.JavaConversions._
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
-
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
     DistributorUser.findByEmail(email).get

@@ -1,15 +1,29 @@
 package functional
 
 import models._
-import org.junit.runner._
-import org.specs2.runner._
-import play.api.libs.json.{Json, JsBoolean, JsString}
+import play.api.libs.json.{JsBoolean, JsString, Json}
+import play.api.libs.ws.{WS, WSAuthScheme}
 import play.api.test.Helpers._
 import play.api.test._
 import resources.{AppCreationHelper, SpecificationWithFixtures}
 
-@RunWith(classOf[JUnitRunner])
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
+  "Checking page loads" should {
+    "include a working link to documentation in the navigation bar" in new WithFakeBrowser {
+      goToAndWaitForAngular("http://localhost:" + port + "/login")
+      val documentationLink = browser.find("#main-documentation-link").getAttribute("href")
+      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      Await.result(request.get().map { response =>
+        response.status must beEqualTo(OK)
+        response.body must contain("Welcome")
+        response.body must contain("iOS SDK")
+        response.body must contain("Administration")
+      }, Duration(5000, "millis"))
+    }
+
     "redirect a logged in user to the Analytics index page" in new WithFakeBrowser {
       val distributorID = DistributorUser.create(email, password, companyName).get
       val user = DistributorUser.findByEmail(email).get
@@ -36,15 +50,15 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       redirectLocation(logout).get must contain("/login?recently_logged_out=true")
     }
 
-  "display signup page" in new WithFakeBrowser {
-    val user = DistributorUser.findByEmail(email).get
-    setUpApp(user.id.get)
-    val signup = route(FakeRequest(GET, "/signup")).get
-    status(signup) must equalTo(OK)
-    contentType(signup) must equalTo(Some("text/html"))
-    contentAsString(signup).contains("<title>Sign up - hyprMediate</title>") must equalTo(true)
+    "display signup page" in new WithFakeBrowser {
+      val user = DistributorUser.findByEmail(email).get
+      setUpApp(user.id.get)
+      val signup = route(FakeRequest(GET, "/signup")).get
+      status(signup) must equalTo(OK)
+      contentType(signup) must equalTo(Some("text/html"))
+      contentAsString(signup).contains("<title>Sign up - hyprMediate</title>") must equalTo(true)
+    }
   }
-
   "Through Router /distributor_users" should {
     "create user fails with missing terms" in new WithFakeBrowser {
       val createUser = route(FakeRequest(POST, "/distributor_users")
@@ -118,7 +132,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
 
     "fail with email not found" in new WithFakeBrowser {
       val pw = route(FakeRequest(POST, "/distributor_users/send_password_reset_email")
-          .withJsonBody(Json.obj("email" -> JsString("steveee@gmail.com")))).get
+        .withJsonBody(Json.obj("email" -> JsString("steveee@gmail.com")))).get
       status(pw) must equalTo(BAD_REQUEST)
       contentType(pw) must equalTo(Some("application/json"))
       contentAsString(pw).contains("""{"status":"error","message":"Email not found. Please Sign up.","fieldName":"email"}""") must equalTo(true)
@@ -132,19 +146,4 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       contentAsString(pw).contains("""{"status":"success","message":"Password reset email sent!"}""") must equalTo(true)
     }
   }
-
-
-  /*
-    "include a working link to documentation in the navigation bar" in new WithFakeBrowser {
-      goToAndWaitForAngular("http://localhost:" + port + "/login")
-      val documentationLink = browser.find("#main-documentation-link").getAttribute("href")
-      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
-      Await.result(request.get().map { response =>
-        response.status must beEqualTo(OK)
-        response.body must contain("Welcome")
-        response.body must contain("iOS SDK")
-        response.body must contain("Administration")
-      }, Duration(5000, "millis"))
-    }
-  */
 }
