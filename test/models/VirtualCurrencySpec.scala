@@ -4,7 +4,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.test._
 import play.api.test.Helpers._
-import resources.DistributorUserSetup
+import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 @RunWith(classOf[JUnitRunner])
 class VirtualCurrencySpec extends SpecificationWithFixtures with DistributorUserSetup {

@@ -4,6 +4,7 @@ import akka.actor.Props
 import org.specs2.mock.Mockito
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
+import resources.SpecificationWithFixtures
 import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
 
@@ -37,7 +38,7 @@ class AppLovinReportingActorSpec extends SpecificationWithFixtures with Mockito 
         appLovinActor ! apiCall
       }
       eventually {
-        there was one(apiCalls(0)).updateRevenueData andThen(there was one(apiCalls(1)).updateRevenueData) andThen(there was one(apiCalls(2)).updateRevenueData)
+        there was one(apiCalls.head).updateRevenueData andThen(there was one(apiCalls(1)).updateRevenueData) andThen(there was one(apiCalls(2)).updateRevenueData)
       }
       (0 until 2).map(i => completedCalls(i) must beEqualTo(apiCalls(i)))
     }

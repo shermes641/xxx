@@ -8,7 +8,7 @@ import play.api.libs.ws.{WSAuthScheme, WS}
 import play.api.Play.current
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 

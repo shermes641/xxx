@@ -6,7 +6,7 @@ import org.specs2.mock.Mockito
 import org.specs2.runner._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
@@ -74,6 +74,6 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
     "return false if the hostname of the callback URL is nonexistent" in new WithDB {
       val nonExistentCallbackURL = Some("https://your-reward-callback-goes-here.com")
       Await.result(completion.postCallback(nonExistentCallbackURL, JsNull, verification), Duration(5000, "millis")) must beFalse
-    }
+    }   
   }
 }

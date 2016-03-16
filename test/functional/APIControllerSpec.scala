@@ -10,7 +10,7 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test._
-import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
+import resources.{SpecificationWithFixtures, AdProviderSpecSetup, WaterfallSpecSetup}
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])

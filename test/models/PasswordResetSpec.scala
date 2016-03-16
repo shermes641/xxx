@@ -8,7 +8,7 @@ import org.specs2.runner._
 import play.api.db.DB
 import play.api.test._
 import play.api.test.Helpers._
-import resources.DistributorUserSetup
+import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 import scala.concurrent.duration.Duration
 

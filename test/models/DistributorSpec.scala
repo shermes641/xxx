@@ -2,7 +2,7 @@ package models
 
 import org.junit.runner._
 import org.specs2.runner._
-import resources.DistributorUserSetup
+import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 @RunWith(classOf[JUnitRunner])
 class DistributorSpec extends SpecificationWithFixtures {

@@ -1,6 +1,8 @@
-package models
+package resources
 
 import java.sql.Connection
+
+import models.{AppConfig, App, Waterfall}
 
 trait WaterfallCreationHelper extends GenerationNumberHelper {
   /**

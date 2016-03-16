@@ -1,11 +1,10 @@
 package models
 
-import play.api._
-import play.api.mvc._
-import play.api.Play.current
 import models.Waterfall.AdProviderInfo
+import play.api._
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+
 import scala.language.implicitConversions
 
 object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
@@ -26,12 +25,12 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
           "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
               array ++ JsArray(adProviderJson(el).deepMerge(
                 el.configurationData match {
-                  case Some(data) => {
-                    (data \ "requiredParams") match {
+                  case Some(data) =>
+                    data \ "requiredParams" match {
                       case _: JsUndefined => JsObject(Seq())
                       case json: JsValue => json.as[JsObject]
                     }
-                  }
+
                   case None => JsObject(Seq())
                 }
               ) :: Nil
@@ -261,17 +260,16 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
           Seq(
             param.key.get -> {
               param.dataType match {
-                case Some(dataTypeVal) if(dataTypeVal == "Array") => {
+                case Some(dataTypeVal) if dataTypeVal == "Array" =>
                   param.value match {
-                    case Some(arrayElements) => {
+                    case Some(arrayElements) =>
                       arrayElements.split(",").foldLeft(JsArray(Seq()))((array, element) => array :+ JsString(element.trim))
-                    }
+
                     case _ => JsArray(Seq())
                   }
-                }
-                case _ => {
+
+                case _ =>
                   JsString(param.value.getOrElse(""))
-                }
               }
             }
           )
@@ -359,7 +357,7 @@ trait JsonToValueHelper {
   implicit def jsValueToOptionalDouble(param: JsValue): Option[Double] = {
     param match {
       case value: JsUndefined => None
-      case value: JsValue if(value.as[String] == "") => None
+      case value: JsValue if value.as[String] == "" => None
       case value: JsValue => Some(value.as[String].toDouble)
       case _ => None
     }
@@ -373,7 +371,7 @@ trait JsonToValueHelper {
   implicit def jsValueToOptionalLong(param: JsValue): Option[Long] = {
     param match {
       case value: JsUndefined => None
-      case value: JsValue if(value.as[String] == "") => None
+      case value: JsValue if value.as[String] == "" => None
       case value: JsValue => Some(value.as[String].toLong)
       case _ => None
     }

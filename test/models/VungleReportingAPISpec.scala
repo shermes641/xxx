@@ -8,7 +8,7 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
@@ -86,6 +86,6 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
    */
   def callAPI = {
     vungle.retrieveAPIData returns Future { response }
-    Await.result(vungle.updateRevenueData, Duration(5000, "millis"))
+    Await.result(vungle.updateRevenueData(), Duration(5000, "millis"))
   }
 }

@@ -11,7 +11,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.test.FakeHeaders
 import play.api.test.FakeApplication
-import resources.DistributorUserSetup
+import resources.{AppCreationHelper, SpecificationWithFixtures, DistributorUserSetup}
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
 
@@ -265,8 +265,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     }
 
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
-      browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
-      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
+      browser.goTo(routes.Assets.at("""/javascripts/test/SpecRunner.html""").url)
+      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent
     }
   }
 

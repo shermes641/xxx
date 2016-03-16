@@ -1,25 +1,18 @@
 package models
 
+import akka.actor.ActorSystem
+import akka.testkit.TestActorRef
+import com.typesafe.config.ConfigFactory
 import controllers.AnalyticsController
+import io.keen.client.java.{JavaKeenClientBuilder, KeenClient, KeenProject}
+import org.specs2.mock.Mockito
+import play.api.Play
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
-import org.junit.runner._
-import org.specs2.mock.Mockito
-import org.specs2.runner._
-import com.github.tototoshi.csv._
-import scala.io._
-import java.io.File
-import play.api.libs.json._
-import akka.testkit.TestActorRef
-import resources.{DistributorUserSetup}
-import akka.actor.ActorSystem
-import com.typesafe.config.ConfigFactory
-import io.keen.client.java.{KeenClient, KeenProject, JavaKeenClientBuilder}
-import play.api.Play
+import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
 
-@RunWith(classOf[JUnitRunner])
+import scala.io._
+
 class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
@@ -96,10 +89,10 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       setUpApp(newDistributor.id.get)
 
       val sampleResult = new KeenResult(Json.toJson(123456), JsObject(Seq(("start", Json.toJson("2015-04-02T00:00:00.000Z")))))
-      keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}")(0) must beEqualTo(sampleResult)
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}").head must beEqualTo(sampleResult)
 
       val sampleResult2 = new KeenResult(Json.toJson(3333333), JsObject(Seq(("start", Json.toJson("2015-04-03T00:00:00.000Z")))))
-      keenExportActor.parseResponse("{\"result\": [{\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}")(0) must beEqualTo(sampleResult2)
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}").head must beEqualTo(sampleResult2)
 
       // Test multiple days
       keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}, {\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}") must beEqualTo(List(sampleResult, sampleResult2))

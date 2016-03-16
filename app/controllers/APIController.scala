@@ -141,6 +141,7 @@ object APIController extends Controller {
    * @param udid A unique device ID.
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
+  // $COVERAGE-OFF$
   def flurryCompletionV1(appToken: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardQuantity: Option[Int], fhash: Option[String], udid: Option[String]) = Action { implicit request =>
     (fguid, rewardQuantity, fhash) match {
       case (Some(fguidValue: String), Some(rewardQuantityValue: Int), Some(fhashValue: String)) => {
@@ -150,6 +151,7 @@ object APIController extends Controller {
       case (_, _, _) => BadRequest
     }
   }
+  // $COVERAGE-ON$
 
   /**
    * Accepts server to server callback info from HyprMarketplace, then starts the reward completion process.

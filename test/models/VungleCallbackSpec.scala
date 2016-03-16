@@ -11,7 +11,7 @@ import org.specs2.runner.JUnitRunner
 class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, vungleID, None, None, true, true).get
+    val id = WaterfallAdProvider.create(waterfall.id, vungleID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))

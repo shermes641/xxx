@@ -18,3 +18,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.0.0")
 
 addSbtPlugin("com.gu" % "sbt-teamcity-test-reporting-plugin" % "1.5")
+
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.5")
+
+

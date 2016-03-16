@@ -1,6 +1,7 @@
-package models
+package resources
 
 import anorm._
+import models.App
 import play.api.db.DB
 import play.api.Play.current
 

@@ -11,7 +11,7 @@ import play.api.libs.ws.WSResponse
 import play.api.Play
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
@@ -60,7 +60,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
     val api = mock[JunGroupAPI]
     val playerResponse = mock[WSResponse]
     val hyprWaterfallAdProvider = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, false, true).get
+      val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = false, pending = true).get
       WaterfallAdProvider.find(id).get
     }
     api.createRequest(any[JsObject]) returns Future { playerResponse }

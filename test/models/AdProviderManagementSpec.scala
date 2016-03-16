@@ -3,6 +3,7 @@ package models
 import play.api.libs.json.{JsObject, JsArray, Json}
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
+import resources.SpecificationWithFixtures
 
 class AdProviderManagementSpec extends SpecificationWithFixtures with AdProviderManagement {
   running(FakeApplication(additionalConfiguration = testDB)) {
@@ -11,7 +12,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
 
   "update" should {
     "update values for only the ad provider passed as an argument" in new WithDB {
-      val adProvider = AdProvider.findAllByPlatform(Platform.Ios.PlatformID)(0)
+      val adProvider = AdProvider.findAllByPlatform(Platform.Ios.PlatformID).head
       val newDefaultEcpm = Some(25.00)
       val newConfigurationData = adProvider.configurationData.as[JsObject]
         .deepMerge(Json.obj("requiredParams" -> JsArray()))
@@ -28,7 +29,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
 
       AdProvider.update(updatableAdProvider) must beEqualTo(1)
       val updatedAdProvider = AdProvider.findAllByPlatform(updatableAdProvider.platformID)
-        .filter(_.name == adProvider.name)(0)
+        .filter(_.name == adProvider.name).head
       updatedAdProvider.configurationData must beEqualTo(newConfigurationData)
       updatedAdProvider.configurable must beEqualTo(!adProvider.configurable)
       updatedAdProvider.defaultEcpm must beEqualTo(newDefaultEcpm)

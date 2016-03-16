@@ -11,7 +11,7 @@ import org.specs2.runner.JUnitRunner
 class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, appLovinID, None, None, true, true).get
+    val id = WaterfallAdProvider.create(waterfall.id, appLovinID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq()),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))

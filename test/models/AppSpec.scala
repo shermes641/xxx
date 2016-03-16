@@ -5,7 +5,7 @@ import org.junit.runner._
 import org.specs2.runner._
 import play.api.db.DB
 import play.api.libs.json.{JsNumber, JsObject}
-import resources.{DistributorUserSetup, WaterfallSpecSetup}
+import resources.{SpecificationWithFixtures, DistributorUserSetup, WaterfallSpecSetup}
 
 @RunWith(classOf[JUnitRunner])
 class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with DistributorUserSetup {
@@ -29,7 +29,7 @@ class AppSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Dis
       val (newUser, newDistributor) = newDistributorUser("newemail@gmail.com")
       val appID = App.create(newDistributor.id.get, "New App", Platform.Ios.PlatformID).get
       val waterfallID = DB.withTransaction { implicit connection => Waterfall.create(appID, "New Waterfall") }.get
-      val appWithWaterfallID = App.findAllAppsWithWaterfalls(newDistributor.id.get)(0)
+      val appWithWaterfallID = App.findAllAppsWithWaterfalls(newDistributor.id.get).head
       appWithWaterfallID.id must beEqualTo(appID)
       appWithWaterfallID.waterfallID must beEqualTo(waterfallID)
     }

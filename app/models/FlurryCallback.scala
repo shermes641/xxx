@@ -1,7 +1,7 @@
 package models
 
 import java.security.MessageDigest
-
+// $COVERAGE-OFF$ Flurry is not currently used MED-2111 will remove it
 /**
  * Encapsulates callback information for Flurry.
  * @param appToken The token of the App to which this completion will belong.
@@ -26,3 +26,4 @@ class FlurryCallback(appToken: String, transactionID: String, rewardQuantity: In
     digest.digest(hashableString.getBytes).map("%02x".format(_)).mkString
   }
 }
+// $COVERAGE-ON$
