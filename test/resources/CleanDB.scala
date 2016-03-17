@@ -25,6 +25,5 @@ trait CleanDB {
       }
     }
   }
-  //tom //TODO See any reason to not clean before tests ?
   clean
 }

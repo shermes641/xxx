@@ -1,9 +1,9 @@
 package models
 
 import anorm._
+import play.api.db.DB
 import play.api.Logger
 import play.api.Play.current
-import play.api.db.DB
 
 /**
   * Encapsulates AdProvider functions that are used outside of application code.
