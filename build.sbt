@@ -51,13 +51,6 @@ def notKeenTestFilter(name: String): Boolean = {
     true
 }
 
-def notApplicationSpecFilter(name: String): Boolean = {
-  if (name startsWith "functional.ApplicationSpec") {
-    false
-  } else
-    true
-}
-
 def itTestFilter(name: String): Boolean = {
   if ((name startsWith "integration.") && notKeenTestFilter(name)) {
     println("INTEGRATION test: " + name)
@@ -67,7 +60,7 @@ def itTestFilter(name: String): Boolean = {
 }
 
 def funTestFilter(name: String): Boolean = {
-  if ((name startsWith "functional.") && notKeenTestFilter(name) && notApplicationSpecFilter(name)) {
+  if ((name startsWith "functional.") && notKeenTestFilter(name)) {
     println("FUNCTIONAL test: " + name)
     true
   } else
@@ -125,8 +118,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.1",
   "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
   "org.clapper" %% "grizzled-slf4j" % "1.0.2",
-  "io.spray" %%  "spray-can"     % "1.3.1",
-  "io.spray" %%  "spray-routing" % "1.3.1",
+  "io.spray" %% "spray-can" % "1.3.1",
+  "io.spray" %% "spray-routing" % "1.3.1",
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
   "org.seleniumhq.selenium" % "selenium-java" % "2.48.2" % "test",
   "org.specs2" %% "specs2-junit" % "2.3.12",
@@ -148,4 +141,8 @@ coverageFailOnMinimum := false
 
 coverageOutputTeamCity := true
 
-coverageExcludedPackages := ".*Mailer;.*JsonToValueHelper;.*Routes;.*subHeader;.*Reverse.*;.*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;.*Application;.*HTTP.*;.*Regenerate.*"
+//Eventually we will want coverage on some of these classes, like the Actors
+coverageExcludedPackages := ".*AppLovinReportingActor;.*KeenExportActor;.*RevenueDataActor;.*JunGroupAPIActor;.*JunGroupEmailActor;" +
+  ".*JsonConversion;.*main;.*welcomeEmailContent;.*JsonToValueHelper;.*Routes;.*subHeader;.*Reverse.*;" +
+  ".*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;" +
+  ".*Application;.*HTTP.*;.*Regenerate.*"

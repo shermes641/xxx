@@ -1,7 +1,6 @@
-package functional
+package models
 
-import models._
-import play.api.libs.json.{JsBoolean, JsString, Json}
+import play.api.libs.json.{JsNumber, JsBoolean, JsString, Json}
 import play.api.libs.ws.{WS, WSAuthScheme}
 import play.api.test.Helpers._
 import play.api.test._
@@ -59,8 +58,46 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       contentAsString(signup).contains("<title>Sign up - hyprMediate</title>") must equalTo(true)
     }
   }
+
+  "Through Router /authenticate" should {
+    "fail with no body" in new WithDB {
+      val auth = route(FakeRequest(POST, "/authenticate")).get
+      status(auth) must equalTo(BAD_REQUEST)
+      contentType(auth) must equalTo(Some("application/json"))
+      contentAsJson(auth).toString contains """{"status":"error","message":"Invalid Request."}""" must equalTo(true)
+    }
+    "fail with bad user" in new WithDB {
+      val auth = route(FakeRequest(POST, "/authenticate").withJsonBody(Json.obj(
+        "email" -> JsString("steve@gmail.com"),
+        "password" -> JsString("Flash12345")
+      ))).get
+      status(auth) must equalTo(BAD_REQUEST)
+      contentType(auth) must equalTo(Some("application/json"))
+      contentAsJson(auth).toString contains """{"status":"error","message":"Email not found.  Please Sign up.","fieldName":"email"}""" must equalTo(true)
+    }
+  }
+  "Through Router /distributor_users/reset_password" should {
+    "fail with no body" in new WithDB {
+      val res = route(FakeRequest(POST, "/distributor_users/reset_password")).get
+      status(res) must equalTo(BAD_REQUEST)
+      contentType(res) must equalTo(Some("application/json"))
+      contentAsJson(res).toString contains """{"status":"error","message":"Invalid Request."}""" must equalTo(true)
+    }
+    "fail with bad json" in new WithDB {
+      val res = route(FakeRequest(POST, "/distributor_users/reset_password").withJsonBody(Json.obj(
+        "distributor_user_id" -> JsNumber(1),
+        "token" -> JsString("token"),
+        "password" -> JsString("Flash12345"),
+        "confirmation" -> JsString("confirmation")
+      ))).get
+      status(res) must equalTo(BAD_REQUEST)
+      contentType(res) must equalTo(Some("application/json"))
+      contentAsJson(res).toString contains """{"status":"error","message":{"obj.email":[{"msg":"error.path.missing","args":[]}]}}""" must equalTo(true)
+    }
+  }
+
   "Through Router /distributor_users" should {
-    "create user fails with missing terms" in new WithFakeBrowser {
+    "create user fails with missing terms" in new WithDB {
       val createUser = route(FakeRequest(POST, "/distributor_users")
         .withJsonBody(Json.obj(
           "company" -> JsString("My Company"),
@@ -71,7 +108,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       status(createUser) must equalTo(BAD_REQUEST)
     }
 
-    "create user fails with missing confirmation" in new WithFakeBrowser {
+    "create user fails with missing confirmation" in new WithDB {
       val createUser = route(FakeRequest(POST, "/distributor_users").withJsonBody(Json.obj(
         "company" -> JsString("My Company"),
         "email" -> JsString("steve@gmail.com"),
@@ -81,7 +118,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       status(createUser) must equalTo(BAD_REQUEST)
     }
 
-    "create user fails with not agreeing to terms" in new WithFakeBrowser {
+    "create user fails with not agreeing to terms" in new WithDB {
       val createUser = route(FakeRequest(POST, "/distributor_users").withJsonBody(Json.obj(
         "company" -> JsString("My Company"),
         "email" -> JsString("steve@gmail.com"),
@@ -91,7 +128,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       status(createUser) must equalTo(BAD_REQUEST)
     }
 
-    "create user succeeds" in new WithFakeBrowser {
+    "create user succeeds" in new WithDB {
       val createUser = route(FakeRequest(POST, "/distributor_users").withJsonBody(Json.obj(
         "company" -> JsString("My Company"),
         "email" -> JsString("steve@gmail.com"),
@@ -106,7 +143,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
   }
 
   "Through Router /distributor_users/forgot_password" should {
-    "display password reset page" in new WithFakeBrowser {
+    "display password reset page" in new WithDB {
       val pw = route(FakeRequest(GET, "/distributor_users/forgot_password")).get
       status(pw) must equalTo(OK)
       contentType(pw) must equalTo(Some("text/html"))
@@ -115,14 +152,14 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
   }
 
   "Through Router /distributor_users/send_password_reset_email" should {
-    "fail with no json" in new WithFakeBrowser {
+    "fail with no json" in new WithDB {
       val pw = route(FakeRequest(POST, "/distributor_users/send_password_reset_email")).get
       status(pw) must equalTo(BAD_REQUEST)
       contentType(pw) must equalTo(Some("application/json"))
       contentAsString(pw).contains("""{"status":"error","message":"Invalid Request."}""") must equalTo(true)
     }
 
-    "fail with unexpected json" in new WithFakeBrowser {
+    "fail with unexpected json" in new WithDB {
       val pw = route(FakeRequest(POST, "/distributor_users/send_password_reset_email")
         .withJsonBody(Json.obj("ddddddd" -> JsString("steve@gmail.com")))).get
       status(pw) must equalTo(BAD_REQUEST)
@@ -130,7 +167,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       contentAsString(pw).contains("""{"status":"error","message":"Unkown JsError"}""") must equalTo(true)
     }
 
-    "fail with email not found" in new WithFakeBrowser {
+    "fail with email not found" in new WithDB {
       val pw = route(FakeRequest(POST, "/distributor_users/send_password_reset_email")
         .withJsonBody(Json.obj("email" -> JsString("steveee@gmail.com")))).get
       status(pw) must equalTo(BAD_REQUEST)
@@ -138,7 +175,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       contentAsString(pw).contains("""{"status":"error","message":"Email not found. Please Sign up.","fieldName":"email"}""") must equalTo(true)
     }
 
-    "succeed with good email" in new WithFakeBrowser {
+    "succeed with good email" in new WithDB {
       val pw = route(FakeRequest(POST, "/distributor_users/send_password_reset_email")
         .withJsonBody(Json.obj("email" -> JsString("steve@gmail.com")))).get
       status(pw) must equalTo(OK)

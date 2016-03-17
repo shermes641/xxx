@@ -14,7 +14,8 @@ trait Mailer {
 
   /**
    * Sends a generic email with a configurable subject and body.
-   * @param recipient Email for recipient
+    *
+    * @param recipient Email for recipient
    * @param sender The 'from' email address
    * @param subject Email subject
    * @param body Email body
