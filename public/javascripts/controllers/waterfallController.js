@@ -398,7 +398,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                             $scope.showModal(false);
                             var restartParams = Object.keys($scope.changedRestartParams);
                             var successMessage = $scope.wapData.adProviderName + " updated!";
-                            flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success"});
+                            flashMessage.add({message: generateWAPSuccessMesage(successMessage, restartParams), status: "success", priority: "HIGH"});
                         });
                     }).error(function(data) {
                         flashMessage.add(data);
