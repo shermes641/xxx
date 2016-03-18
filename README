@@ -5,25 +5,38 @@ This is the Play 2 / Scala application for the Mediation Api.
 
 To get started, open the project in IntelliJ (.idea file already exists).
 
-To run/test from the command line, run `./activator`, and then either `run` or `test` from the console.
+### Running  (see https://wiki.jungroup.com/display/MED/Environment+Setup for environment and DB setup)
 
-Additional test configs are avalaible:
+    ./activator -Dconfig.file=conf/production.conf run
 
-// run all tests
-./activator "test-only *"
+### Testing
 
-// run all tests except Keen tests
-./activator "nokeen:test-only *"
+The current setup requires tests that use browser ChromeDriver to run sequentially
 
-// run all tests in the test/models directory
-./activator unit:test
+#### Examples of running tests
 
-// run all functional tests except Keen tests in the test/functional directory
-./activator fun:test
+Run all tests:
 
-// run all HMAC tests in the test/hmac directory
-./activator hmac:test
+    ./activator "it:test" "hmac:test" "unit:test" "fun:test" "keen:test"
 
-// run all KEEN tests (tests must start with "Keen" in the test/functional or test/model directories)
-./activator keen:test
+Run all tests and generates a coverage report
 
+    ./activator clean coverage "it:test" "hmac:test" "unit:test" "fun:test" "keen:test" "coverageReport"
+
+
+Test coverage reports are saved in the */target/scala-2.11/scoverage-report* directory
+
+
+### Development Gotcha's
+
+If you find yourself adding and removing ad providers you will eventually get some ID values that are not the expected values.
+In particular HyprMarketplace is required to have IDs of 2 and 6. These are expected due to environment variables:
+
+     HYPR_MARKETPLACE_AD_PROVIDER_ID         = 2
+     HYPR_MARKETPLACE_ANDROID_AD_PROVIDER_ID = 6
+     HYPR_MARKETPLACE_IOS_AD_PROVIDER_ID     = 2
+
+### Advanced Development
+
+
+TODO: document forking app and or using pipelines

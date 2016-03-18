@@ -8,6 +8,7 @@ scalacOptions ++= Seq("-feature") // show feature warnings in console
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
+  .configs(ItTest).settings(inConfig(ItTest)(Defaults.testTasks): _*)
   .configs(FunTest).settings(inConfig(FunTest)(Defaults.testTasks): _*)
   .configs(KeenTest).settings(inConfig(KeenTest)(Defaults.testTasks): _*)
   .configs(HmacTest).settings(inConfig(HmacTest)(Defaults.testTasks): _*)
@@ -16,14 +17,11 @@ lazy val root = (project in file("."))
 
 javaOptions in Test += "-Dconfig.file=conf/test.conf"
 
+lazy val ItTest = config("it") extend Test
 lazy val FunTest = config("fun") extend Test
-
 lazy val KeenTest = config("keen") extend Test
-
 lazy val HmacTest = config("hmac") extend Test
-
 lazy val UnitTest = config("unit") extend Test
-
 lazy val NoKeenTest = config("nokeen") extend Test
 
 def hmacTestFilter(name: String): Boolean = {
@@ -34,19 +32,29 @@ def hmacTestFilter(name: String): Boolean = {
     false
 }
 
-def keenTestFilter(name: String): Boolean = {
+def notKeenTestFilter(name: String): Boolean = {
   if ((name startsWith "functional.Keen") || (name startsWith "models.Keen")) {
+    false
+  } else
+    true
+}
+
+def keenTestFilter(name: String): Boolean = {
+  if ((name startsWith "functional.Keen") ||
+    (name startsWith "models.Keen") ||
+    (name startsWith "integration.Keen")) {
     println("KEEN test: " + name)
     true
   } else
     false
 }
 
-def notKeenTestFilter(name: String): Boolean = {
-  if ((name startsWith "functional.Keen") || (name startsWith "models.Keen")) {
-    false
-  } else
+def itTestFilter(name: String): Boolean = {
+  if ((name startsWith "integration.") && notKeenTestFilter(name)) {
+    println("INTEGRATION test: " + name)
     true
+  } else
+    false
 }
 
 def funTestFilter(name: String): Boolean = {
@@ -73,7 +81,9 @@ def noKeenTestFilter(name: String): Boolean = {
     false
 }
 
-testOptions in FunTest := Seq(Tests.Filter(s => funTestFilter(s)))
+testOptions in ItTest := Seq(Tests.Filter(itTestFilter))
+
+testOptions in FunTest := Seq(Tests.Filter(funTestFilter))
 
 testOptions in KeenTest := Seq(Tests.Filter(keenTestFilter))
 
@@ -84,6 +94,8 @@ testOptions in UnitTest := Seq(Tests.Filter(unitTestFilter))
 testOptions in NoKeenTest := Seq(Tests.Filter(noKeenTestFilter))
 
 logLevel in Test := Level.Info
+
+logLevel in ItTest := Level.Info
 
 logLevel in FunTest := Level.Info
 
@@ -122,7 +134,7 @@ libraryDependencies ++= Seq(
 
 //TODO normally you would set this for all tests
 //TODO but there are issues with not removing the instrumentation code from runtime classes
-//TODO Therefore if you want coverage, run tests with "clean coverage"   ie: "./activator clean coverage hmac:test"
+//TODO Therefore if you want coverage, run tests with "clean coverage"   ie: "./activator clean coverage test"
 // coverageEnabled := true
 
 coverageMinimum := 70
@@ -130,4 +142,3 @@ coverageMinimum := 70
 coverageFailOnMinimum := false
 
 coverageOutputTeamCity := true
-

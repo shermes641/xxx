@@ -1,6 +1,5 @@
 package models
 
-import hmac.Constants
 import models.WaterfallAdProvider.AdProviderRewardInfo
 import org.junit.runner._
 import org.specs2.mock.Mockito
@@ -80,11 +79,11 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val adProviderRequest = Json.obj()
       val postbackData = (new Completion).postbackData(adProviderRequest, verification)
 
-      (postbackData \ Constants.adProviderRequest) must beEqualTo(adProviderRequest)
-      (postbackData \ Constants.adProviderName).as[String] must beEqualTo(verification.adProviderName)
-      (postbackData \ Constants.rewardQuantity).as[Long] must beEqualTo(verification.rewardQuantity)
-      (postbackData \ Constants.offerProfit).as[Double] must beEqualTo(verification.offerProfit.get)
-      (postbackData \ Constants.transactionID).as[String] must beEqualTo(verification.transactionID)
+      (postbackData \ hmac.Constants.adProviderRequest) must beEqualTo(adProviderRequest)
+      (postbackData \ hmac.Constants.adProviderName).as[String] must beEqualTo(verification.adProviderName)
+      (postbackData \ hmac.Constants.rewardQuantity).as[Long] must beEqualTo(verification.rewardQuantity)
+      (postbackData \ hmac.Constants.offerProfit).as[Double] must beEqualTo(verification.offerProfit.get)
+      (postbackData \ hmac.Constants.transactionID).as[String] must beEqualTo(verification.transactionID)
     }
   }
 }

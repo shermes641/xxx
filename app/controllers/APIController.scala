@@ -88,6 +88,34 @@ object APIController extends Controller {
   }
 
   /**
+    * Accepts server to server callback info from Unity Ads, then starts the reward completion process if the parameters are correct.
+    *
+    * @param appToken Identifies the application this callback is for
+    * @param sid      The User ID provided in the Unity Ads dialog initialization
+    * @param oid      Unique identifier. //TODO Can be used to detect duplicate reward attempts
+    * @param hmac     Signature for the sid & oid query string parameters
+    * @return         If the incoming request is valid, returns a 200; otherwise, returns 400
+    */
+  def unityAdsCompletionV1(appToken: String, sid: Option[String], oid: Option[String], hmac: Option[String]) = Action { implicit request =>
+    val callback = new UnityAdsCallback(appToken,
+      sid.getOrElse(models.Constants.NoValue),
+      oid.getOrElse(models.Constants.NoValue),
+      hmac.getOrElse(models.Constants.NoValue))
+    callback.isValid match {
+      case true =>
+        callbackResponse(callback, request)
+
+      case _ =>
+        if (request.queryString.size == callback.ValidNumberOfParams)
+          Logger.error(s"Invalid Unity Ads callback request, parameters: ${callback.params}")
+        else
+          Logger.error(s"Invalid Unity Ads callback request, wrong number of parameters, " +
+            s"count of parameters: ${request.queryString.size} paramters: ${callback.params}")
+        callback.returnFailure
+    }
+  }
+
+  /**
    * Accepts server to server callback info from Ad Colony, then starts the reward completion process.
    * @param appToken The token for the App to which the completion will belong.
    * @param transactionID A unique ID that verifies the completion.

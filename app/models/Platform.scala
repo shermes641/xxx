@@ -4,7 +4,8 @@ import play.api.Play
 
 /**
  * Base class for Android and Ios AdProvider classes.
- * @param id Maps to the id column in the platforms table.
+  *
+  * @param id Maps to the id column in the platforms table.
  * @param name Maps to the name column in the platforms table.
  */
 abstract class Platform(id: Long, name: String) {
@@ -170,7 +171,55 @@ abstract class Platform(id: Long, name: String) {
     new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
-  val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin)
+  val UnityAds = {
+    val name = Constants.UnityAdsName
+
+    val callbackURLFormat = Some(Constants.UnityAdsCallbackUrl)
+
+    val configurable = true
+
+    val defaultEcpm: Option[Double] = Some(10)
+
+    val configuration = {
+      //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
+      val appIDDescription = {
+        "Your GAME ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+      }
+
+      val reportingDescription = {
+        "Your API Key can be found on the Unity Ads dashboard.  For more information on configuring reporting for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+      }
+
+      val callbackDescription = {
+        "Your Shared Hash Key for Secure Callbacks must be obtained from Unity Ads support via email. For more information on configuring server to server callbacks for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
+      }
+      s"""{ "requiredParams":[{"description": "$appIDDescription",
+         |  "displayKey": "GAME ID",
+         |  "key": "appID",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": true,
+         |  "minLength": 1
+         |  }],
+         |  "reportingParams": [{"description": "$reportingDescription",
+         |  "displayKey": "API Key",
+         |  "key": "APIKey",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": false
+         |  }],
+         |  "callbackParams": [{"description": "$callbackDescription",
+         |  "displayKey": "Shared Hash Key",
+         |  "key": "APIKey",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": false
+         |  }]}""".stripMargin.replaceAll("[\r]","").replaceAll("[\n]","")
+
+    }
+    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+  }
+  val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }
 
 object Platform {
@@ -186,12 +235,13 @@ object Platform {
   object Android extends Platform(AndroidPlatformID, AndroidPlatformName) {
     val hyprMarketplaceID = Play.current.configuration.getLong("hyprmarketplace.android_ad_provider_id").get
     val serverToServerDomain = Play.current.configuration.getString("android_server_to_server_callback_domain").get
-    override val allAdProviders = List(AdColony, HyprMarketplace, AppLovin)
+    override val allAdProviders = List(AdColony, HyprMarketplace, AppLovin, UnityAds)
   }
 
   /**
    * Finds the platform based on the ID
-   * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
+    *
+    * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
    * @return The Android or iOS object depending on the platform ID
    */
   def find(platformID: Long): Platform = {
