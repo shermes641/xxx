@@ -151,7 +151,7 @@ abstract class Platform(id: Long, name: String) {
       }
 
       val appLovinAppNameDescription = {
-        "Your application name can be found in AppLovin's dashboard.  This is the same as the Bundle identifier in your iOS target properties.  For more information on configuring reporting for AppLovin, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
+        "Your application name can be found in AppLovin's dashboard. For more information on configuring reporting for AppLovin, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/AppLovin' target='_blank'>documentation</a>."
       }
 
       "{" +
