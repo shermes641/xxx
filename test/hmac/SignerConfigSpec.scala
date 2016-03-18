@@ -1,6 +1,6 @@
 package hmac
 
-import models.SpecificationWithFixtures
+import resources.SpecificationWithFixtures
 
 /**
   * Created by shermes on 3/3/16.

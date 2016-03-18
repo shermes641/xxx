@@ -5,10 +5,11 @@ import models._
 import org.fluentlenium.core.filter.FilterConstructor.withName
 import play.api.db.DB
 import play.api.libs.json._
-import play.api.libs.ws.{WSAuthScheme, WS}
-import play.api.test._
+import play.api.libs.ws.{WS, WSAuthScheme}
 import play.api.test.Helpers._
-import resources.DistributorUserSetup
+import play.api.test._
+import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -120,7 +121,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val allApps = App.findAll(user.distributorID.get)
       allApps.size must beEqualTo(appCount + 1)
       val newApps = allApps.filter(app => app.name == currentApp.name)
-      newApps(0).platformID must not equalTo newApps(1).platformID
+      newApps.head.platformID must not equalTo newApps(1).platformID
     }
   }
 
@@ -136,7 +137,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains("Some new unique app name Waterfall"))
 
       val apps = App.findAll(user.distributorID.get)
-      val firstApp = apps(0)
+      val firstApp = apps.head
 
       apps.size must beEqualTo(appCount + 1)
       Waterfall.findByAppID(firstApp.id).size must beEqualTo(1)
@@ -181,10 +182,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       browser.$("button[id=create-app]").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(newAppName + " Waterfall"))
-      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
-      val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
+      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }.head
+      val currentWaterfall = Waterfall.findByAppID(currentApp.id).head
       val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
-      val hyprMarketplace = waterfallAdProviders(0)
+      val hyprMarketplace = waterfallAdProviders.head
       waterfallAdProviders.size must beEqualTo(1)
       hyprMarketplace.pending must beEqualTo(true)
     }
@@ -198,10 +199,10 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       clickAndWaitForAngular("#android-logo")
       browser.$("button[id=create-app]").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(newAppName + " Waterfall"))
-      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }(0)
-      val currentWaterfall = Waterfall.findByAppID(currentApp.id)(0)
+      val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }.head
+      val currentWaterfall = Waterfall.findByAppID(currentApp.id).head
       val waterfallAdProviders = WaterfallAdProvider.findAllOrdered(currentWaterfall.id)
-      val hyprMarketplace = WaterfallAdProvider.find(waterfallAdProviders(0).waterfallAdProviderID).get
+      val hyprMarketplace = WaterfallAdProvider.find(waterfallAdProviders.head.waterfallAdProviderID).get
 
       currentApp.platformID must beEqualTo(Platform.Android.PlatformID)
       hyprMarketplace.adProviderID must beEqualTo(Platform.Android.hyprMarketplaceID)
@@ -496,7 +497,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
     "update the app record in the database" in new WithAppBrowser(user.distributorID.get) {
       Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
-      WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), configurable = false, active = true)
       VirtualCurrency.create(currentApp.id, "Gold", 100, 1, None, Some(true))
       val newAppName = "New App Name"
 
@@ -520,7 +521,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
 
     "update the virtual currency record in the database" in new WithAppBrowser(user.distributorID.get) {
       Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
-      WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), false, true)
+      WaterfallAdProvider.create(currentWaterfall.id, adProviderID.get, None, Some(5.0), configurable = false, active = true)
       DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
       val originalGeneration = generationNumber(currentApp.id)
       val rewardMin = 1
@@ -529,7 +530,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.list(user.distributorID.get, currentApp.id).url)
       clickAndWaitForAngular(".left-apps-list .active .settings-icon")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until({browser.findFirst("#currencyName").getValue() == currentVirtualCurrency.name})
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until({browser.findFirst("#currencyName").getValue == currentVirtualCurrency.name})
 
       browser.fill("#rewardMin").`with`(rewardMin.toString)
       browser.fill("#rewardMax").`with`(rewardMax.toString)

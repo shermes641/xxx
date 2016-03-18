@@ -1,16 +1,16 @@
-package models
+package resources
 
 import anorm._
+import com.google.common.base.Predicate
 import org.openqa.selenium.chrome.ChromeDriver
 import org.specs2.mutable._
 import org.specs2.specification._
 import play.api.Play
 import play.api.Play.current
 import play.api.db.DB
-import play.api.test._
 import play.api.test.Helpers._
-import resources._
-import com.google.common.base.Predicate
+import play.api.test._
+
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
   sequential
@@ -197,4 +197,16 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
   abstract class WithAppBrowser(distributorID: Long, appName: Option[String] = None) extends WithFakeBrowser with DefaultUserValues with AppCreationHelper {
     lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID, appName)
   }
+
+  class ApplicationFake(additionalConfig: Map[String, _ <: Any] = Map("mode" -> play.api.Mode.Test.toString))
+    extends FakeApplication(additionalConfiguration = additionalConfig) {
+    override val mode = additionalConfig.getOrElse("mode", "No Mode").toString.toLowerCase() match {
+      case "dev" => play.api.Mode.Dev
+      case "prod" => play.api.Mode.Prod
+      case _ => play.api.Mode.Test
+    }
+  }
+  abstract class ProdApp extends WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Prod.toString.toLowerCase())))
+  abstract class TestApp extends WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Test.toString.toLowerCase())))
+  abstract class DevApp extends WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Dev.toString.toLowerCase())))
 }

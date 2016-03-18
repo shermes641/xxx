@@ -3,6 +3,7 @@ package models
 import models.Platform.{Android, Ios}
 import play.api.test._
 import play.api.test.Helpers._
+import resources.SpecificationWithFixtures
 
 class PlatformSpec extends SpecificationWithFixtures {
   val adProviderNames = running(FakeApplication(additionalConfiguration = testDB)) {

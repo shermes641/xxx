@@ -3,7 +3,7 @@ package models
 import models.Waterfall.AdProviderInfo
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 
 @RunWith(classOf[JUnitRunner])
 class AdProviderInfoSpec extends SpecificationWithFixtures with WaterfallSpecSetup {

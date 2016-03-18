@@ -3,18 +3,12 @@ package models
 import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.AdProviderSpecSetup
+import resources.{AdProviderSpecSetup, SpecificationWithFixtures}
 
 class AdProviderManagementSpec extends SpecificationWithFixtures with AdProviderSpecSetup with AdProviderManagement {
 
   running(FakeApplication(additionalConfiguration = testDB)) {
-    List(
-      AdProvider.create(Platform.Android.HyprMarketplace.name,
-        Platform.Android.HyprMarketplace.configurationData,
-        Platform.Android.PlatformID,
-        Platform.Android.HyprMarketplace.callbackURLFormat,
-        Platform.Android.HyprMarketplace.configurable,
-        Platform.Android.HyprMarketplace.defaultEcpm))
+    AdProvider.loadAll()
   }
 
   val config = {

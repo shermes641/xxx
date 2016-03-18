@@ -7,7 +7,7 @@ import play.api.db.DB
 import play.api.libs.json.{Json, JsValue}
 import play.api.Play._
 import scala.util.Random
-
+// $COVERAGE-OFF$
 // The "correct" way to start the app
 new play.core.StaticApplication(new java.io.File("."))
 
@@ -322,3 +322,4 @@ if(Environment.isProd) {
     println("")
   }
 }
+// $COVERAGE-ON$

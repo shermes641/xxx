@@ -3,19 +3,16 @@ package functional
 import controllers.APIController
 import hmac.{HmacHashData, Signer}
 import models._
-import org.junit.runner._
 import org.specs2.mock.Mockito
-import org.specs2.runner._
 import play.api.Play.current
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
-import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
+import resources.{AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
 
 import scala.concurrent.Future
 
-@RunWith(classOf[JUnitRunner])
 class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup with Mockito {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
     WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get

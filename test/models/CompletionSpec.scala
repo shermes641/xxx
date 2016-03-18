@@ -6,7 +6,7 @@ import org.specs2.mock.Mockito
 import org.specs2.runner._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 

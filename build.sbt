@@ -116,8 +116,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.1",
   "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
   "org.clapper" %% "grizzled-slf4j" % "1.0.2",
-  "io.spray" %%  "spray-can"     % "1.3.1",
-  "io.spray" %%  "spray-routing" % "1.3.1",
+  "io.spray" %% "spray-can" % "1.3.1",
+  "io.spray" %% "spray-routing" % "1.3.1",
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
   "org.seleniumhq.selenium" % "selenium-java" % "2.48.2" % "test",
   "org.specs2" %% "specs2-junit" % "2.3.12",
@@ -134,7 +134,7 @@ libraryDependencies ++= Seq(
 
 //TODO normally you would set this for all tests
 //TODO but there are issues with not removing the instrumentation code from runtime classes
-//TODO Therefore if you want coverage, run tests with "clean coverage"   ie: "./activator clean coverage test"
+//TODO Therefore if you want coverage, run tests with "clean coverage"   ie: "./activator clean coverage hmac:test"
 // coverageEnabled := true
 
 coverageMinimum := 70
@@ -142,3 +142,9 @@ coverageMinimum := 70
 coverageFailOnMinimum := false
 
 coverageOutputTeamCity := true
+
+//Eventually we will want coverage on some of these classes, like the Actors
+coverageExcludedPackages := ".*AppLovinReportingActor;.*KeenExportActor;.*RevenueDataActor;.*JunGroupAPIActor;.*JunGroupEmailActor;" +
+  ".*JsonConversion;.*main;.*welcomeEmailContent;.*JsonToValueHelper;.*Routes;.*subHeader;.*Reverse.*;" +
+  ".*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;" +
+  ".*Application;.*HTTP.*;.*Regenerate.*"

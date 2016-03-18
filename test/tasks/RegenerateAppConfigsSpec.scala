@@ -5,7 +5,7 @@ import play.api.db.DB
 import play.api.Play.current
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.DistributorUserSetup
+import resources.{AppCreationHelper, SpecificationWithFixtures, DistributorUserSetup}
 import scala.concurrent.duration.Duration
 
 class RegenerateAppConfigsSpec extends SpecificationWithFixtures with AppCreationHelper with DistributorUserSetup {

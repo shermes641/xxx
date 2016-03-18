@@ -1,7 +1,9 @@
-package models
+package resources
 
-import play.api.db.DB
+import models._
 import play.api.Play.current
+import play.api.db.DB
+
 import scala.util.Random
 
 trait AppCreationHelper extends WaterfallCreationHelper {
