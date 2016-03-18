@@ -1,14 +1,16 @@
 package controllers
 
 import java.util.concurrent.TimeoutException
+
+import hmac.{Constants, HmacHashData, Signer}
 import models._
-import play.api.mvc._
-import play.api.libs.json._
 import play.api.Logger
+import play.api.libs.json._
+import play.api.mvc._
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.language.implicitConversions
-import scala.language.postfixOps
+import scala.language.{implicitConversions, postfixOps}
 
 object APIController extends Controller {
   val DefaultTimeout = 5000 // The default timeout for all server to server calls (in milliseconds).
@@ -192,9 +194,23 @@ object APIController extends Controller {
    */
   def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue, completion: Completion = new Completion) = {
     callback.verificationInfo.isValid match {
-      case true => {
+      case true =>
         try {
-          Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest), Duration(DefaultTimeout, "millis")) match {
+          val hmacData = Some(
+            HmacHashData(uri = callback.verificationInfo.callbackURL.getOrElse(""),
+              adProviderName = callback.adProviderName,
+              rewardQuantity = callback.currencyAmount,
+              estimatedOfferProfit = callback.payout,
+              transactionId = callback.verificationInfo.transactionID
+            ).toQueryParamMap(
+              timestamp = Some(Signer.timestamp),
+              nonce = callback.verificationInfo.transactionID,
+              hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
+            )
+          )
+
+          Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest, hmacData),
+            Duration(DefaultTimeout, "millis")) match {
             case true => callback.returnSuccess
             case false => {
               Logger.error("Server to server callback to Distributor's servers was unsuccessful for Ad Provider: " +
@@ -203,13 +219,12 @@ object APIController extends Controller {
             }
           }
         } catch {
-          case _: TimeoutException => {
+          case _: TimeoutException =>
             Logger.error("Server to server callback to Distributor's servers timed out for Ad Provider: " +
               callback.adProviderName + "API Token: " + callback.token + " Callback URL: " + callback.verificationInfo.callbackURL)
             callback.returnFailure
-          }
         }
-      }
+
       case false => {
         Logger.error("Invalid server to server callback verification for Ad Provider: " + callback.adProviderName + " API Token: " + callback.token)
         callback.returnFailure

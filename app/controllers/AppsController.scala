@@ -37,7 +37,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     (JsPath \ "serverToServerEnabled").readNullable[Boolean] and
     (JsPath \ "platformID").read[Long] and
     (JsPath \ "platformName").read[String] and
-    (JsPath \ "generationNumber").readNullable[Long]
+    (JsPath \ "generationNumber").readNullable[Long] and
+    (JsPath \ "hmacSecret").readNullable[String]
   )(EditAppMapping.apply _)
 
   implicit val editAppWrites = (
@@ -54,7 +55,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
     (__ \ "serverToServerEnabled").writeNullable[Boolean] and
     (__ \ "platformID").write[Long] and
     (__ \ "platformName").write[String] and
-    (__ \ "generationNumber").writeNullable[Long]
+    (__ \ "generationNumber").writeNullable[Long] and
+    (JsPath \ "hmacSecret").writeNullable[String]
     )(unlift(EditAppMapping.unapply))
 
   /**
@@ -160,7 +162,8 @@ object AppsController extends Controller with Secured with CustomFormValidation 
           Some(appInfo.serverToServerEnabled),
           appInfo.platformID,
           appInfo.platformName,
-          appInfo.generationNumber
+          appInfo.generationNumber,
+	  Some(appInfo.hmacSecret)
         )
         Ok(Json.toJson(editAppInfo))
       }
@@ -267,6 +270,7 @@ case class NewAppMapping(appName: String,
  * @param platformID The ID of the Platform to which the app belongs.
  * @param platformName Indicates the platform to which the app belongs (e.g. iOS or Android).
  * @param generationNumber The revision number which tracks the state of the corresponding AppConfig model at the time the page renders.
+ * @param hmacSecret Shared secret for HMAC.
  */
 case class EditAppMapping(apiToken: String,
                           currencyID: Long,
@@ -281,4 +285,5 @@ case class EditAppMapping(apiToken: String,
                           serverToServerEnabled: Option[Boolean],
                           platformID: Long,
                           platformName: String,
-                          generationNumber: Option[Long])
+                          generationNumber: Option[Long],
+			  hmacSecret: Option[String])

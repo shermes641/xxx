@@ -18,6 +18,8 @@ import scala.language.postfixOps
  * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
  * @param token The unique identifier for an App.  This is used for API calls.
  * @param platformID Indicates the platform to which this App belongs (e.g. iOS or Android).
+ * @param hmacSecret The App's shared secret used by the distributor to decode the hmac signature
+
  */
 case class App(id: Long,
                active: Boolean,
@@ -25,7 +27,9 @@ case class App(id: Long,
                name: String,
                callbackURL: Option[String],
                serverToServerEnabled: Boolean,
-               token: String, platformID: Long)
+               token: String, 
+	       platformID: Long,
+	       hmacSecret: String)
 
 /**
  * Maps to the apps table in the database.
@@ -77,6 +81,7 @@ case class AppWithWaterfallID(id: Long,
  * @param rewardMax Maps to the reward_max field in the virtual_currencies table.
  * @param roundUp Maps to the round_up field in the virtual_currencies table.
  * @param generationNumber A number identifying the current AppConfig state.
+ * @param hmacSecret The App's shared secret used by the distributor to decode the hmac signature
  */
 case class AppWithVirtualCurrency(apiToken: String,
                                   currencyID: Long,
@@ -91,7 +96,8 @@ case class AppWithVirtualCurrency(apiToken: String,
                                   rewardMin: Long,
                                   rewardMax: Option[Long],
                                   roundUp: Boolean,
-                                  generationNumber: Option[Long])
+                                  generationNumber: Option[Long],
+                                  hmacSecret: String)
 
 object App {
   // Used to convert SQL row into an instance of the App class.
@@ -103,9 +109,10 @@ object App {
       get[Option[String]]("apps.callback_url") ~
       get[Boolean]("apps.server_to_server_enabled") ~
       get[Long]("apps.platform_id") ~
-      get[String]("apps.token") map {
-      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ platform_id ~ token => {
-        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token, platform_id)
+      get[String]("apps.token") ~
+      get[String]("apps.hmac_secret") map {
+      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ platform_id ~ token ~ hmacSecret => {
+        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token, platform_id, hmacSecret)
       }
     }
   }
@@ -140,8 +147,9 @@ object App {
     get[Long]("virtual_currencies.reward_min") ~
     get[Option[Long]]("virtual_currencies.reward_max") ~
     get[Boolean]("virtual_currencies.round_up") ~
-    get[Option[Long]]("generation_number") map {
-      case apiToken ~ currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ platform_id ~ platform_name ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber => {
+    get[Option[Long]]("generation_number") ~
+      get[String]("apps.hmac_secret") map {
+      case apiToken ~ currencyID ~ active ~ appName ~ callbackURL ~ serverToServerEnabled ~ platform_id ~ platform_name ~ currencyName ~ exchangeRate ~ rewardMin ~ rewardMax ~ roundUp  ~ generationNumber ~ hmacSecret => {
         AppWithVirtualCurrency(
           apiToken,
           currencyID,
@@ -156,7 +164,8 @@ object App {
           rewardMin,
           rewardMax,
           roundUp,
-          generationNumber
+          generationNumber,
+	  hmacSecret
         )
       }
     }
@@ -173,7 +182,7 @@ object App {
       val query = SQL(
         """
           SELECT apps.token, apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, platforms.name,
-          apps.platform_id, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number
+          apps.platform_id, vc.id, vc.name, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up, generation_number, hmac_secret
           FROM apps
           JOIN virtual_currencies vc ON vc.app_id = apps.id
           JOIN app_configs ON app_configs.app_id = apps.id
@@ -268,6 +277,22 @@ object App {
   }
 
   /**
+    * SQL to retrieve an hmac secret from the apps table, by App token.
+    *
+    * @param token The token of the App to be selected.
+    * @return None if app not found, otherwise the hmac secret for the App.
+    */
+  def findHmacSecretByToken(token: String): Option[String] = {
+    DB.withConnection { implicit connection =>
+      val result = SQL(""" SELECT hmac_secret as hmacSecret FROM apps WHERE token = {token}; """).on("token" -> token).apply()
+      result.length match {
+        case 0 => None
+        case _ => Some(result.head[String]("hmacSecret"))
+      }
+    }
+  }
+
+  /**
    * Finds a record in the apps table by ID
    * @param appID ID of current App
    * @return App instance if one exists; otherwise, None.
@@ -357,15 +382,22 @@ object App {
    * @param platformID Indicated the platform to which the App belongs (e.g. iOS or Android).
    * @return A SQL statement to be executed by create or createWithTransaction methods.
    */
-  def insert(distributorID: Long, name: String, platformID: Long): SimpleSql[Row] = {
+  def insert(distributorID: Long, name: String, platformID: Long, cbUrl: String): SimpleSql[Row] = {
     SQL(
       """
-      INSERT INTO apps (name, distributor_id, platform_id, token)
-      VALUES ({name}, {distributor_id}, {platform_id}, uuid_generate_v4());
-      """
+      INSERT INTO apps (name, distributor_id, platform_id, token, callback_url)
+      VALUES ({name}, {distributor_id}, {platform_id}, uuid_generate_v4(),
+      """ + s"$cbUrl);"
     ).on("name" -> name, "distributor_id" -> distributorID, "platform_id" -> platformID)
   }
 
+  /**
+    * Convert string to SQL format
+    * @param value value to convert
+    * @return NULL or quoted value
+    */
+  def getNullOrQuotedString(value: Option[String]):String = if (value.isEmpty) "NULL" else s"'${value.get}'"
+  
   /**
    * Creates a new record in the App table
    * @param distributorID ID of current Distributor
@@ -373,9 +405,9 @@ object App {
    * @param platformID Indicated the platform to which the App belongs (e.g. iOS or Android).
    * @return ID of newly created record
    */
-  def create(distributorID: Long, name: String, platformID: Long): Option[Long] = {
+  def create(distributorID: Long, name: String, platformID: Long, cb: Option[String] = None): Option[Long] = {
     DB.withConnection{ implicit connection =>
-      insert(distributorID, name, platformID).executeInsert()
+      insert(distributorID, name, platformID, getNullOrQuotedString(cb)).executeInsert()
     }
   }
 
@@ -387,8 +419,8 @@ object App {
    * @param connection Database transaction
    * @return ID of newly created record
    */
-  def createWithTransaction(distributorID: Long, name: String, platformID: Long)(implicit connection: Connection): Option[Long] = {
-    insert(distributorID, name, platformID).executeInsert()
+  def createWithTransaction(distributorID: Long, name: String, platformID: Long, cb: Option[String] = None)(implicit connection: Connection): Option[Long] = {
+    insert(distributorID, name, platformID, getNullOrQuotedString(cb)).executeInsert()
   }
 
   /**

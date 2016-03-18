@@ -1,8 +1,29 @@
 Mediation API
 =================================
 
-This is the Play 2/Scala application for the Mediation Api.
+This is the Play 2 / Scala application for the Mediation Api.
 
 To get started, open the project in IntelliJ (.idea file already exists).
 
 To run/test from the command line, run `./activator`, and then either `run` or `test` from the console.
+
+Additional test configs are avalaible:
+
+// run all tests
+./activator "test-only *"
+
+// run all tests except Keen tests
+./activator "nokeen:test-only *"
+
+// run all tests in the test/models directory
+./activator unit:test
+
+// run all functional tests except Keen tests in the test/functional directory
+./activator fun:test
+
+// run all HMAC tests in the test/hmac directory
+./activator hmac:test
+
+// run all KEEN tests (tests must start with "Keen" in the test/functional or test/model directories)
+./activator keen:test
+
