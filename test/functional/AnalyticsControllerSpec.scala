@@ -23,6 +23,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
   val distributorID = distributorUser.distributorID.get
 
   "Analytics show action" should {
+
     "show analytics for an app" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
@@ -81,11 +82,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       var date = new DateTime(DateTimeZone.UTC)
-      // End date must be todays date
-      browser.$("#end-date").getValue must beEqualTo(date.toString("MMM dd, yyyy"))
-
-      // Start date must be todays date minus 1 month
-      browser.$("#start-date").getValue must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
+      browser.$("#start-date").getValue must beEqualTo(date.minusDays(13).toString("MMM dd yyyy") + " - " + date.toString("MMM dd yyyy"))
     }
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
@@ -265,8 +262,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     }
 
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
-      browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
-      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
+      browser.goTo(routes.Assets.at("""/javascripts/test/SpecRunner.html""").url)
+      browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent
     }
   }
 

@@ -1,3 +1,4 @@
+
 /**
  * Analytics Dashboard JS
  *
@@ -19,6 +20,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             return compactedValues.length > 0 ? _.max(compactedValues) : 0;
         };
 
+        var startOfDay = moment.utc().startOf('day');
+        var dateRangeFormat = 'MMM DD YYYY';
+        var startDate = $( '#start-date' );
+
         $scope.subHeader = 'assets/templates/sub_header.html';
         $scope.page = 'analytics';
         $scope.currentlyUpdating = false;
@@ -26,9 +31,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.keenTimeout = 45000;
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
-        // utc(0, HH) current date at the following time: 0:00:00.000
-        $scope.defaultStartDate = new Date(moment.utc(0, "HH").subtract(13, 'days').format());
-        $scope.defaultEndDate = new Date(moment.utc(0, "HH").format());
+
+        $scope.defaultStartDate = startOfDay.clone().subtract(13, 'days').format(dateRangeFormat);
+        $scope.defaultEndDate = startOfDay.clone().endOf('day').format(dateRangeFormat);
+        startDate.val($scope.defaultStartDate + " - " + $scope.defaultEndDate);
         $scope.email = "";
         $scope.platforms = platforms.all();
 
@@ -88,13 +94,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
             // Initializes the keen library
             $scope.keenClient = new Keen( {
-                    projectId: $scope.keenProject,
-                    readKey: $scope.scopedKey,
-                    protocol: "https",
-                    requestType: "xhr"
+                projectId: $scope.keenProject,
+                readKey: $scope.scopedKey,
+                protocol: "https",
+                requestType: "xhr"
             } );
 
             $scope.startDatepicker();
+
         });
 
         /**
@@ -102,23 +109,18 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          */
         $scope.startDatepicker = function() {
             $scope.elements = {
-                startDate: $( '#start-date' ),
-                endDate: $( '#end-date' ),
+                rangeDate: startDate,
                 emailInput: $( '#export-email' )
             };
 
             // Distributor ID to be used in AJAX calls.
             $scope.exportEndpoint = "/distributors/" + $scope.distributorID + "/analytics/export";
 
-            // Create date range picker
-            $( '.input-daterange' ).datepicker( {
-                orientation: "auto top",
-                format: "M dd, yyyy"
-            } ).on( "changeDate", $scope.updateAnalytics );
+            // Create date range picker and run analytics update upon submit
+            $('.input-daterange').daterangepicker({}).on("apply.daterangepicker", $scope.updateAnalytics);
 
-            // Set initial start date to the last 2 weeks
-            $scope.elements.startDate.datepicker('setUTCDate', $scope.defaultStartDate);
-            $scope.elements.endDate.datepicker('setUTCDate', $scope.defaultEndDate);
+            // do not pop up daterangepicker from input element
+            startDate.click(function( event ) {event.stopPropagation()});
         };
 
         /**
@@ -218,18 +220,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         };
 
         /**
-         * Check if date is valid.  Provide a valid Javascript date object.
-         * @param date
-         * @returns {boolean}
-         */
-        $scope.isValidDate = function(date) {
-            if(isNaN(date.getTime())) {
-                return false;
-            }
-            return true;
-        };
-
-        /**
          * Returns filters to use for charting and graphs
          * @param apps An array of apps to include
          * @param country An array of countries to include
@@ -296,16 +286,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         }, true);
 
         /**
-         * Complete update once all requests have completed
-         */
-        $scope.$watch('analyticsRequestStatus', function(current){
-            if(_.every(_.values(current))) {
-                $scope.currentlyUpdating = false;
-                $timeout.cancel($scope.updateTimeout);
-            }
-        }, true);
-
-        /**
          * Update analytics
          */
         $scope.updateAnalytics = function() {
@@ -341,36 +321,48 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         };
 
         /**
+         * Get the startDate portion of our date range
+         * NOTE: This is dependent on the moment date format, 'MMM DD YYYY' -- if it changes this must change
+         *
+         * @param dateRange  expected format 'MMM DD YYYY - MMM DD YYYY' (startDate - endDate)
+         * @returns {string} start date
+         */
+        function extractStartDate(dateRange) {
+            return dateRange.substring(0,11)
+        }
+
+        /**
+         * Get the endDate portion of our date range
+         * NOTE: This is dependent on the moment date format, 'MMM DD YYYY' -- if it changes this must change
+         *
+         * @param dateRange  expected format 'MMM DD YYYY - MMM DD YYYY' (startDate - endDate)
+         * @returns {string} start date
+         */
+        function extractEndDate(dateRange) {
+            return dateRange.slice(-11)
+        }
+
+        /**
          * Update charts on dashboard page.  Uses the currently set dropdowns and dates.  This can be called anytime we want
          * to update the dashboard.  Defer is used with Apply due to Keen being a separate library.  http://underscorejs.org/#defer
          */
         $scope.updateCharts = function() {
             // Get current filter values
+            var dates = getStartEndDates();
             var config = {
                 country: _.pluck($scope.filters.countries.selected, 'id'),
                 adProvider: _.pluck($scope.filters.ad_providers.selected, 'id'),
                 apps: _.pluck($scope.filters.apps.selected, 'id'),
-                start_date: $scope.elements.startDate.datepicker('getUTCDate'),
-                end_date: $scope.elements.endDate.datepicker('getUTCDate'),
+                start_date: dates.start_date,
+                end_date: dates.end_date,
                 currentTimeStamp: $scope.updateTimeStamp = Date.now()
             };
 
-            // Return if one or both of the dates are invalid
-            if (!$scope.isValidDate(config.start_date) || !$scope.isValidDate(config.end_date) ) {
-                return;
-            }
-
-            // Update start date to be before the selected end date if it is not already
-            if (config.end_date.getTime() < config.start_date.getTime()) {
-                $scope.elements.startDate.datepicker('setDate', config.end_date);
-                config.start_date = $scope.elements.startDate.datepicker('getUTCDate');
-            }
 
             $scope.updatingStatus = "Updating...";
             $scope.setDefaultAnalyticsConfig();
             _.defer(function(){$scope.$apply();});
 
-            //
             /**
              * config timeout used for cancelling just this timeout.  $scope.updateTimeout gets overwritten by subsequent
              * updates.
@@ -379,10 +371,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
             // Build filters based on the dropdown selections and app_id
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
-            // Set timeframe for queries.  Also converts the times to EST
+            // Set timeframe for queries.
             config.timeframe = {
-                start: moment(config.start_date).utc().format(),
-                end: moment(config.end_date).utc().add(1, 'days').format()
+                start: moment(config.start_date).utc().format('YYYY-MM-DDT00:00:00+00:00'),
+                end: moment(config.end_date).utc().add(1, 'days').format('YYYY-MM-DDT00:00:00+00:00')
             };
 
             // Ad Provider eCPM for SDK versions sending events to the ad_completed collection
@@ -656,6 +648,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             } );
         };
 
+        function getStartEndDates() {
+            // Get current date values
+                return {
+                    //1381 this depends on the date format specified in daterangepicker.js
+                    start_date: extractStartDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value),
+                    end_date: extractEndDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value)
+                }
+        }
         /**
          * Begin CSV export and let the user know the export has been requested
          */
@@ -665,22 +665,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 $scope.showExportForm = false;
 
                 // Get current date values
-                var dates = {
-                    start_date: $scope.elements.startDate.datepicker('getUTCDate'),
-                    end_date: $scope.elements.endDate.datepicker('getUTCDate')
-                };
-
-                // Return if one or both of the dates are invalid
-                if (!$scope.isValidDate(dates.start_date) || !$scope.isValidDate(dates.end_date) ) {
-                    $scope.showExportError = true;
-                    return;
-                }
-
-                // Return if start date after end date
-                if (dates.end_date.getTime() < dates.start_date.getTime()) {
-                    $scope.showExportError = true;
-                    return;
-                }
+                var dates = getStartEndDates();
 
                 var emailAddress = $scope.email;
 
