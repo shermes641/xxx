@@ -1,5 +1,5 @@
 package models
-
+// $COVERAGE-OFF$
 object Constants {
   // general constants
   object AdProviderConfig {
@@ -18,3 +18,4 @@ object Constants {
   val UnityAdsCallbackUrl = "/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]"
   val UnityAdsCallbackUrlSpec= "/v1/waterfall/%s/unity_ads_completion?sid=%%sid%%&oid=%%oid%%&hmac=%%hmac%%"
 }
+// $COVERAGE-ON$

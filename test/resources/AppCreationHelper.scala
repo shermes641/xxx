@@ -36,7 +36,7 @@ trait AppCreationHelper extends WaterfallCreationHelper {
   callbackUrl: Option[String] = None
   ): (App, Waterfall, VirtualCurrency, AppConfig) = {
     val currentApp = {
-      val id = App.create(distributorID, appName.getOrElse(randomAppName), platformID, cb = callbackUrl).get
+      val id = App.create(distributorID, appName.getOrElse(randomAppName), platformID, cbUrl = callbackUrl).get
       App.find(id).get
     }
     val virtualCurrency = {

@@ -75,8 +75,15 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
               }
 
             case _ =>
-              logResponseError("Unity Ads Encountered a parsing error", waterfallAdProviderID, response)
-              false
+              response.body.contains("error")match {
+                case true =>
+                  logResponseError (s"Unity Ads responded with an error: ${response.body}", waterfallAdProviderID, response)
+                  false
+
+                case _ =>
+                  logResponseError ("Unity Ads Encountered a parsing error", waterfallAdProviderID, response)
+                false
+              }
           }
 
         case status =>

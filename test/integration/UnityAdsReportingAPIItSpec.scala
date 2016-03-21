@@ -2,6 +2,7 @@ package integration
 
 import com.github.nscala_time.time.Imports._
 import models._
+import org.specs2.mock.Mockito
 import play.api.libs.json._
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
@@ -20,7 +21,7 @@ import scala.concurrent.duration.Duration
   */
 //TODO implement some retry logic in the production code or the test code to account for server unavailability
 //TODO move this to the integration test directory when we enable integration tests in sbt
-class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with WaterfallSpecSetup {
+class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
 
   val ShouldNotHappen = "This should not happen"
   val liveAppId: String = "1038305"
@@ -44,6 +45,27 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
   }
 
   "UnityAdsReportingAPI" should {
+    "unityUpdateRevenueData failed auth, do not bump generation number or update eCPM" in new WithDB {
+      val queryString = List(
+        "apikey" -> "not a valid api key",
+        "splitBy" -> "none",
+        "start" -> startDate,
+        "end" -> endDate,
+        "scale" -> "day",
+        "sourceIds" -> (liveAppId + "44"))
+
+      unityAds.updateEcpm(unityAds.waterfallAdProviderID, liveEcpm + 5.55)
+      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      originalEcpm must beEqualTo(liveEcpm + 5.55)
+      val originalGeneration = generationNumber(waterfall.app_id)
+
+      Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
+        response must beEqualTo(false)
+      }, Duration(awaitTimeoutMs, "millis"))
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
+    }
+
     "unityUpdateRevenueData bad application ID, do not bump generation number or update eCPM" in new WithDB {
       val queryString = List(
         "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
@@ -121,6 +143,28 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
       }, Duration(awaitTimeoutMs, "millis"))
       WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(liveEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
+    }
+
+    "unityUpdateRevenueData mock failed DB update" in new WithDB {
+      val queryString = List(
+        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "splitBy" -> "none",
+        "start" -> startDate,
+        "end" -> endDate,
+        "scale" -> "day",
+        "sourceIds" -> liveAppId)
+      val ua= spy(unityAds)
+      ua.updateEcpm(unityAds.waterfallAdProviderID, 0.0) returns None
+      unityAds.updateEcpm(unityAds.waterfallAdProviderID, liveEcpm + 19.99)
+      val originalGeneration = generationNumber(waterfall.app_id)
+      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      // ensure we should update the eCPM and bump the generation number
+      originalEcpm mustNotEqual liveEcpm
+      Await.result(ua.unityUpdateRevenueData(qs = queryString).map { response =>
+        response must beEqualTo(false)
+      }, Duration(awaitTimeoutMs, "millis"))
+      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
     "unityUpdateRevenueData update changed eCPM and bump generation number with 10 days of stats" in new WithDB {

@@ -25,8 +25,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.fill("#email").`with`(newUser.email)
       browser.find("button").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#login-message").containsText("Password reset email sent!")
-      Thread.sleep(5000)
-      tableCount("password_resets") must beEqualTo(originalResetCount+1)
+      tableCount("password_resets") must beEqualTo(originalResetCount+1).eventually(5, Duration(1000, "millis"))
     }
   }
 

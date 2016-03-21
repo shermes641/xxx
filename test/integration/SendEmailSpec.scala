@@ -42,9 +42,7 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
           body = "Just a test.",
           attachmentFileName = """public/images/email_logo.jpg""")
 
-        //wait up to 20 secs for emails to get delivered
-        wait4Email(emailCnt, 20)
-        Thread.sleep(3000)
+        wait4Email(emailCnt)
         val newCnt = getMailTrapMailBoxMsgCnt
         Logger.debug(emailCnt + " cnt newCnt " + newCnt)
         validateMailTrapMsgResponseSubject(getMailTrapMailBoxMsgs, subject) mustEqual true
@@ -60,9 +58,7 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
         val emailCnt = getMailTrapMailBoxMsgCnt
         resetPasswordActor ! "steve@gmail.com"
 
-        //wait up to 20 secs for emails to get delivered
-        wait4Email(emailCnt, 20)
-        Thread.sleep(3000)
+        wait4Email(emailCnt)
         val newCnt = getMailTrapMailBoxMsgCnt
         Logger.debug(emailCnt + " cnt newCnt " + newCnt)
         validateMailTrapMsgResponseSubject(getMailTrapMailBoxMsgs, "Your HyprMediate password has been changed") mustEqual true
@@ -98,9 +94,7 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
         val user = DistributorUser.find(distributorID).get
         jApi.sendFailureEmail(user, 2, appp.token, "Test error")
 
-        //wait up to 20 secs for emails to get delivered
-        wait4Email(emailCnt, 20)
-        Thread.sleep(3000)
+        wait4Email(emailCnt)
         val newCnt = getMailTrapMailBoxMsgCnt
         Logger.debug(emailCnt + " cnt newCnt " + newCnt)
         validateMailTrapMsgResponseSubject(getMailTrapMailBoxMsgs, "Player Ad Network Creation Failure") mustEqual true
@@ -129,16 +123,14 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     }
   }
 
+  //TODO using eventually causes emails to never get sent
   /**
     * Waits for an email or emails to arrive
     *
     * @param emailCnt Inbox email count
-    * @param secs     Number of seconds to try
     */
-  def wait4Email(emailCnt: Int, secs: Int) {
-    Thread.sleep(1000)
-    if (secs != 0 && getMailTrapMailBoxMsgCnt <= emailCnt)
-      wait4Email(emailCnt, secs - 1)
+  def wait4Email(emailCnt: Int) {
+    getMailTrapMailBoxMsgCnt must eventually(be_>(emailCnt))
   }
 
   /**
@@ -169,7 +161,7 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
     */
   def cleanMailTrapMailBox(waitSecs: Int = 10) = {
     patchRestContent(MailTrapClean)
-    wait4Email(0, waitSecs)
+    getMailTrapMailBoxMsgCnt must eventually(be_==(0))
   }
 
   /**

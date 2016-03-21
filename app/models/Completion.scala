@@ -68,13 +68,17 @@ class Completion extends JsonConversion {
               postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, hmacQueryParams)
 
           case _ =>
-            Logger.warn(s"""Unable to validate callback URL, POST not executed url: '${verificationInfo.callbackURL.getOrElse("")}'""")
-            //TODO don't fail because the user entered a bad url
-            Future(true)
+            if (!verificationInfo.serverToServerEnabled) {
+              Logger.debug(s"""Server to Server callbacks not enabled url: '${verificationInfo.callbackURL.getOrElse("")}'""")
+              Future(true)
+            } else {
+              Logger.error(s"""Unable to validate callback URL, POST not executed url: '${verificationInfo.callbackURL.getOrElse("")}'""")
+              Future(false)
+            }
         }
 
       case None =>
-        // the create call log an error if it fails
+        // the create call logs an error if it fails
         Future(false)
     }
   }
@@ -82,9 +86,10 @@ class Completion extends JsonConversion {
   /**
     * Assembles data for JSON body and sends POST request to callback URL if one exists.
     *
-    * @param callbackURL       The target URL for the POST request.
-    * @param adProviderRequest The original postback from the ad provider.
-    * @param verificationInfo  Class containing information to verify the postback and create a new Completion.
+    * @param callbackURL        The target URL for the POST request.
+    * @param adProviderRequest  The original postback from the ad provider.
+    * @param verificationInfo   Class containing information to verify the postback and create a new Completion.
+    * @param hmacQueryParams    Optional sequence of query parameters if using hmac signing
     * @return A boolean future indicating the success of the call to the App's reward callback.
     */
   def postCallback(callbackURL: Option[String],
@@ -148,8 +153,9 @@ class Completion extends JsonConversion {
   /**
     * Sends POST request to callback URL
     *
-    * @param url  The callback URL specified in the app
-    * @param data The JSON to be POST'ed to the callback URL
+    * @param url              The callback URL specified in the app
+    * @param data             The JSON to be POST'ed to the callback URL
+    * @param hmacQueryParams  Optional sequence of query parameters if using hmac signing
     * @return A successful or unsuccessful WSResponse
     */
   def sendPost(url: String, data: JsValue, hmacQueryParams: Option[Seq[(String, String)]] = None): Future[WSResponse] = {

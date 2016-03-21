@@ -137,14 +137,15 @@ libraryDependencies ++= Seq(
 //TODO Therefore if you want coverage, run tests with "clean coverage"   ie: "./activator clean coverage hmac:test"
 // coverageEnabled := true
 
-coverageMinimum := 70
+coverageMinimum := 90
 
-coverageFailOnMinimum := false
+coverageFailOnMinimum := true
 
 coverageOutputTeamCity := true
 
-//Eventually we will want coverage on some of these classes, like the Actors
+//TODO Eventually we will want coverage on some of these classes, like the Actors
 coverageExcludedPackages := ".*AppLovinReportingActor;.*KeenExportActor;.*RevenueDataActor;.*JunGroupAPIActor;.*JunGroupEmailActor;" +
   ".*JsonConversion;.*main;.*welcomeEmailContent;.*JsonToValueHelper;.*Routes;.*subHeader;.*Reverse.*;" +
   ".*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;" +
-  ".*Application;.*HTTP.*;.*Regenerate.*"
+  ".*Application;.*HTTP.*;.*Regenerate.*;" +
+  ".*login.*;.*reset_password.*;.*signup.*;.*newApp.*;.*show.*"
