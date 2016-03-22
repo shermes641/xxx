@@ -8,6 +8,7 @@ scalacOptions ++= Seq("-feature") // show feature warnings in console
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
+  .configs(TaskTest).settings(inConfig(TaskTest)(Defaults.testTasks): _*)
   .configs(ItTest).settings(inConfig(ItTest)(Defaults.testTasks): _*)
   .configs(FunTest).settings(inConfig(FunTest)(Defaults.testTasks): _*)
   .configs(KeenTest).settings(inConfig(KeenTest)(Defaults.testTasks): _*)
@@ -17,6 +18,7 @@ lazy val root = (project in file("."))
 
 javaOptions in Test += "-Dconfig.file=conf/test.conf"
 
+lazy val TaskTest = config("task") extend Test
 lazy val ItTest = config("it") extend Test
 lazy val FunTest = config("fun") extend Test
 lazy val KeenTest = config("keen") extend Test
@@ -27,6 +29,14 @@ lazy val NoKeenTest = config("nokeen") extend Test
 def hmacTestFilter(name: String): Boolean = {
   if (name startsWith "hmac.") {
     println("HMAC test: " + name)
+    true
+  } else
+    false
+}
+
+def taskTestFilter(name: String): Boolean = {
+  if (name startsWith "tasks.") {
+    println("TASK test: " + name)
     true
   } else
     false
@@ -81,6 +91,8 @@ def noKeenTestFilter(name: String): Boolean = {
     false
 }
 
+testOptions in TaskTest := Seq(Tests.Filter(taskTestFilter))
+
 testOptions in ItTest := Seq(Tests.Filter(itTestFilter))
 
 testOptions in FunTest := Seq(Tests.Filter(funTestFilter))
@@ -94,6 +106,8 @@ testOptions in UnitTest := Seq(Tests.Filter(unitTestFilter))
 testOptions in NoKeenTest := Seq(Tests.Filter(noKeenTestFilter))
 
 logLevel in Test := Level.Info
+
+logLevel in TaskTest := Level.Info
 
 logLevel in ItTest := Level.Info
 

@@ -56,9 +56,10 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
               // Data is in csv form, first index is the header, then each index is more recent data
               // Always use the most recent day of data
               val reportingData = (bodyArray(0).split(',') zip bodyArray(len - 1).split(",")).toMap
-              reportingData.contains("views") && reportingData.contains("revenue") match {
+              reportingData.contains(Constants.UnityAdsReportingRevenue) && reportingData.contains(Constants.UnityAdsReportingStarted) match {
                 case true =>
-                  val eCPM = calculateEcpm(reportingData.getOrElse("revenue", "0.0").toDouble, reportingData.getOrElse("views", "1.0").toDouble)
+                  val eCPM = calculateEcpm(reportingData.getOrElse(Constants.UnityAdsReportingRevenue, "0.0").toDouble,
+                    reportingData.getOrElse(Constants.UnityAdsReportingStarted, "1.0").toDouble)
                   updateEcpm(waterfallAdProviderID, eCPM) match {
                     case Some(generationNumber) =>
                       Logger.debug(s"Unity Ads Server to server callback to Distributor's servers updated eCPM: $eCPM , generation number: $generationNumber")
@@ -70,7 +71,7 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
                   }
 
                 case _ =>
-                  Logger.error(s"Unity Ads Server to server callback does not contain views and revenue: \n Waterfall ID: $waterfallAdProviderID \n$reportingData")
+                  Logger.error(s"Unity Ads Server to server callback does not contain started and revenue: \n Waterfall ID: $waterfallAdProviderID \n$reportingData")
                   false
               }
 
