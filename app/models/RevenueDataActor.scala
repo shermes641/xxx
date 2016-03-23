@@ -14,7 +14,7 @@ import scala.language.postfixOps
 import scala.util.{Success, Failure, Try}
 
 object RevenueDataActor {
-  val RevenueDataCollectionFrequency = 1.hour
+  val RevenueDataCollectionFrequency = 30.minutes
   val appLovinActor = Akka.system(current).actorOf(Props(new AppLovinReportingActor))
 
   /**
