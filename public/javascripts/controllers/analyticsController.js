@@ -10,13 +10,16 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         var defaultTimezone = "UTC";
 
         /**
-         * Convenience function for selecting the correct value when we have to query two different collections
-         * for the same data. For example, querying ad_completed might return a null averageeCPM, but reward_completed might return a valid averageeCPM.
-         * This function will return 0 in the case that all potential collections return null for a specific query.
+         * Convenience function for calculating the weighted average of average eCPMs. Since completions can be in two
+         * different event collections (ad_completed and reward_delivered), we take the weighted average and the total count
+         * from each collection, and calculate the weighted average for events from both collections.
          **/
-        var selectNonNullOrZero = function() {
-            var compactedValues = _.compact(arguments); // remove all nulls and 0s
-            return compactedValues.length > 0 ? _.max(compactedValues) : 0;
+        $scope.weightedAverageEcpm = function(adCompletedEcpmResult, adCompletedCount, rewardDeliveredEcpmResult, rewardDeliveredCount) {
+            var adCompletedAverageeCPM = adCompletedEcpmResult || 0;
+            var rewardDeliveredAverageeCPM = rewardDeliveredEcpmResult || 0;
+            var completedCount = adCompletedCount + rewardDeliveredCount;
+            var sumTotal = (adCompletedCount * adCompletedAverageeCPM) + (rewardDeliveredCount * rewardDeliveredAverageeCPM);
+            return completedCount > 0 ? sumTotal/completedCount : 0;
         };
 
         $scope.subHeader = 'assets/templates/sub_header.html';
@@ -385,27 +388,45 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 end: moment(config.end_date).utc().add(1, 'days').format()
             };
 
-            // Ad Provider eCPM for SDK versions sending events to the ad_completed collection
-            var adCompletedEcpmMetric = new Keen.Query("average", {
+            // Ad Provider eCPM metrics for SDK versions sending events to the ad_completed collection (iOS 1.0)
+            var adCompletedEcpmMetric = new Keen.Query("multi_analysis", {
                 eventCollection: "ad_completed",
-                targetProperty: "ad_provider_eCPM",
+                analyses: {
+                    "completedCount": {
+                        "analysis_type": "count"
+                    },
+                    "averageeCPM" : {
+                        "analysis_type": "average",
+                        "target_property": "ad_provider_eCPM"
+                    }
+                },
                 filters: config.filters,
                 timeframe: config.timeframe,
                 timezone: defaultTimezone
             });
 
-            // Ad Provider eCPM for SDK versions sending events to the reward_delivered collection
-            var rewardDeliveredEcpmMetric = new Keen.Query("average", {
+            // Ad Provider eCPM metrics for SDK versions sending events to the reward_delivered collection (iOS 2.0, Android, and newer)
+            var rewardDeliveredEcpmMetric = new Keen.Query("multi_analysis", {
                 eventCollection: "reward_delivered",
-                targetProperty: "ad_provider_eCPM",
+                analyses: {
+                    "completedCount": {
+                        "analysis_type": "count"
+                    },
+                    "averageeCPM" : {
+                        "analysis_type": "average",
+                        "target_property": "ad_provider_eCPM"
+                    }
+                },
                 filters: config.filters,
                 timeframe: config.timeframe,
                 timezone: defaultTimezone
             });
 
             $scope.keenClient.run([adCompletedEcpmMetric, rewardDeliveredEcpmMetric], function() {
-                var adCompletedEcpm = this.data[0].result;
-                var rewardDeliveredEcpm = this.data[1].result;
+                var adCompletedResults = this.data[0].result;
+                var rewardDeliveredResults = this.data[1].result;
+                var adCompletedEcpm = adCompletedResults.averageeCPM;
+                var rewardDeliveredEcpm = rewardDeliveredResults.averageeCPM;
 
                 if($scope.updateTimeStamp !== config.currentTimeStamp) {
                     $scope.resetUpdate(config);
@@ -417,7 +438,12 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 if ( adCompletedEcpm === null && rewardDeliveredEcpm === null ) {
                     $scope.analyticsData.ecpmMetric = "N/A";
                 } else {
-                    var eCPM = selectNonNullOrZero(adCompletedEcpm, rewardDeliveredEcpm);
+                    var eCPM = $scope.weightedAverageEcpm(
+                        adCompletedEcpm,
+                        adCompletedResults.completedCount,
+                        rewardDeliveredEcpm,
+                        rewardDeliveredResults.completedCount
+                    );
                     var ecpmSplit = $filter("monetaryFormat")(eCPM).split(".");
                     $scope.analyticsData.ecpmMetric = '<sup>$</sup>' + ecpmSplit[0] + '<sup>.' + ecpmSplit[1] + '</sup>';
 
@@ -534,8 +560,15 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                 var cumulativeAvailable = 0;
                 _.each(adCompletedRequests, function (day, i) {
                     var rewardDeliveredRequest = rewardDeliveredRequests[i];
-                    var averageeCPM = selectNonNullOrZero(day.value.averageeCPM, rewardDeliveredRequest.value.averageeCPM);
-                    var completedCount = selectNonNullOrZero(day.value.completedCount, rewardDeliveredRequest.value.completedCount);
+                    var adCompletedCount = day.value.completedCount || 0;
+                    var rewardDeliveredCount = rewardDeliveredRequest.value.completedCount || 0;
+                    var completedCount = adCompletedCount + rewardDeliveredCount;
+                    var averageeCPM = $scope.weightedAverageEcpm(
+                        day.value.averageeCPM,
+                        adCompletedCount,
+                        rewardDeliveredRequest.value.averageeCPM,
+                        rewardDeliveredCount
+                    );
 
                     var fillRate = "0%";
                     if (inventoryRequests[i].value !== 0) {
