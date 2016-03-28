@@ -140,6 +140,7 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-core" % "1.9.5" % "test",
   "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
   "com.github.tototoshi" %% "scala-csv" % "1.1.2",
+  "org.scala-lang" % "scala-compiler" % "2.11.1",
   "org.scalatestplus" % "play_2.11" % "1.5.0-SNAP1",
   "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
   "io.spray" %% "spray-testkit" % "1.3.2" % "test",
