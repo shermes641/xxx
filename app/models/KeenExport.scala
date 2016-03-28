@@ -219,12 +219,26 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
    * @param dauResponse daily active users per day
    * @param responsesResponse responses per day (for fill rate)
    * @param impressionsResponse impressions per day
-   * @param completionsResponse completions per day
-   * @param eCPMResponse average eCPM per day
-   * @param earningsResponse sum of eCPMs per day
+   * @param adCompletedResponse completions per day (using ad_completed events for iOS 1.0)
+   * @param rewardDeliveredResponse completions per day (using reward_delivered events for Android 1.0, iOS 2.0, and newer)
+   * @param adCompletedEcpmResponse weighted average eCPM per day (using ad_completed events for iOS 1.0)
+   * @param rewardDeliveredEcpmResponse weighted average eCPM per day (using reward_delivered events for Android 1.0, iOS 2.0, and newer)
+   * @param adCompletedEarningsResponse sum of eCPMs per day (using ad_completed events for iOS 1.0)
+   * @param rewardDeliveredEarningsResponse sum of eCPMs per day (using reward_delivered events for Android 1.0, iOS 2.0, and newer)
    * @param writer the previously opened csv file
    */
-  def buildAppRows(name: String, requestsResponse: WSResponse, dauResponse: WSResponse, responsesResponse: WSResponse, impressionsResponse: WSResponse, completionsResponse: WSResponse, eCPMResponse: WSResponse, earningsResponse: WSResponse, writer: CSVWriter) = {
+  def buildAppRows(name: String,
+                   requestsResponse: WSResponse,
+                   dauResponse: WSResponse,
+                   responsesResponse: WSResponse,
+                   impressionsResponse: WSResponse,
+                   adCompletedResponse: WSResponse,
+                   rewardDeliveredResponse: WSResponse,
+                   adCompletedEcpmResponse: WSResponse,
+                   rewardDeliveredEcpmResponse: WSResponse,
+                   adCompletedEarningsResponse: WSResponse,
+                   rewardDeliveredEarningsResponse: WSResponse,
+                   writer: CSVWriter) = {
     // Count of all requests to from each ad provider
     val requestList = parseResponse(requestsResponse.body)
     // Count of all active users
@@ -233,22 +247,39 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     val responseList = parseResponse(responsesResponse.body)
     // The count of impressions
     val impressionList = parseResponse(impressionsResponse.body)
-    // The number of completions based on the SDK events
-    val completionList = parseResponse(completionsResponse.body)
-    // The sum of all the eCPMs reported on each completion
-    val eCPMList = parseResponse(eCPMResponse.body)
-    // The sum of all the eCPMs reported on each completion
-    val earningList = parseResponse(earningsResponse.body)
+    // The number of completions based on the SDK events (using ad_completed event for iOS 1.0)
+    val adCompletedList = parseResponse(adCompletedResponse.body)
+    // The number of completions based on the SDK events (using reward_delivered event for Android 1.0, iOS 2.0, and newer)
+    val rewardDeliveredList = parseResponse(rewardDeliveredResponse.body)
+    // List of weighted average eCPMs based on the SDK events (using ad_completed event for iOS 1.0)
+    val adCompletedEcpmList = parseResponse(adCompletedEcpmResponse.body)
+    // List of weighted average eCPMs based on the SDK events (using reward_delivered event for Android 1.0, iOS 2.0, and newer)
+    val rewardDeliveredEcpmList = parseResponse(rewardDeliveredEcpmResponse.body)
+    // The sum of all the eCPMs reported on each completion (using ad_completed event for iOS 1.0)
+    val adCompletedEarningsList = parseResponse(adCompletedEarningsResponse.body)
+    // The sum of all the eCPMs reported on each completion (using reward_delivered event for Android 1.0, iOS 2.0, and newer)
+    val rewardDeliveredEarningsList = parseResponse(rewardDeliveredEarningsResponse.body)
 
     for(i <- requestList.indices){
-      val date = (requestList(i).timeframe \ "start").as[String].split("T")(0)
-      val requests = requestList(i).value.as[Long]
-      val dau = dauList(i).value.as[Long]
-      val impressions = impressionList(i).value.as[Long]
-      val responses = responseList(i).value.as[Long]
-      val completions = completionList(i).value.as[Long]
-      val eCPM = eCPMList(i).value.asOpt[Float].getOrElse(0)
-      val earnings = earningList(i).value.as[Long]
+      val date: String = (requestList(i).timeframe \ "start").as[String].split("T")(0)
+      val requests: Long = requestList(i).value.as[Long]
+      val dau: Long = dauList(i).value.as[Long]
+      val impressions: Long = impressionList(i).value.as[Long]
+      val responses: Long = responseList(i).value.as[Long]
+      val adCompletedCount: Long = adCompletedList(i).value.as[Long]
+      val rewardDeliveredCount: Long = rewardDeliveredList(i).value.as[Long]
+      val completions: Long = adCompletedCount + rewardDeliveredCount
+      val earnings: Double = adCompletedEarningsList(i).value.as[Double] + rewardDeliveredEarningsList(i).value.as[Double]
+      val adCompletedAverageEcpm: Double = adCompletedEcpmList(i).value.asOpt[Double].getOrElse(0)
+      val rewardDeliveredAverageEcpm: Double = rewardDeliveredEcpmList(i).value.asOpt[Double].getOrElse(0)
+      val eCPM: Double = {
+        if(completions > 0) {
+          val sumTotal: Double = (adCompletedCount * adCompletedAverageEcpm) + (rewardDeliveredCount * rewardDeliveredAverageEcpm)
+          sumTotal / completions.toDouble
+        } else {
+          0.0
+        }
+      }
 
       // The fill rate based on the number of responses divided by requests
       val fillRate = requests match {
@@ -287,15 +318,29 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     for (appID <- selectedApps) {
       val name = App.findAppWithVirtualCurrency(appID.toLong, distributorID).get.appName
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
-      val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
+      val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
         requestsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, requestCollection, appID))
         dauResponse <- KeenExport.createRequest("count_unique", KeenExport.createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
         responsesResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, responseCollection, appID))
         impressionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_displayed", appID))
-        completionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_completed", appID))
-        eCPMResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
-        earningsResponse <- KeenExport.createRequest("sum", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
-      } yield (requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse)
+        adCompletedResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_completed", appID))
+        rewardDeliveredResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "reward_delivered", appID))
+        adCompletedEcpmResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
+        rewardDeliveredEcpmResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "reward_delivered", appID, "ad_provider_eCPM"))
+        adCompletedEarningsResponse <- KeenExport.createRequest("sum", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
+        rewardDeliveredEarningsResponse <- KeenExport.createRequest("sum", KeenExport.createFilter(timeframe, filters, "reward_delivered", appID, "ad_provider_eCPM"))
+      } yield (
+          requestsResponse,
+          dauResponse,
+          responsesResponse,
+          impressionsResponse,
+          adCompletedResponse,
+          rewardDeliveredResponse,
+          adCompletedEcpmResponse,
+          rewardDeliveredEcpmResponse,
+          adCompletedEarningsResponse,
+          rewardDeliveredEarningsResponse
+          )
 
       futureResponse.recover {
         case e: Exception =>
@@ -304,8 +349,31 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       }
 
       futureResponse.onSuccess {
-        case (requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse) => {
-          buildAppRows(name, requestsResponse, dauResponse, responsesResponse, impressionsResponse, completionsResponse, eCPMResponse, earningsResponse, writer)
+        case (
+          requestsResponse,
+          dauResponse,
+          responsesResponse,
+          impressionsResponse,
+          adCompletedResponse,
+          rewardDeliveredResponse,
+          adCompletedEcpmResponse,
+          rewardDeliveredEcpmResponse,
+          adCompletedEarningsResponse,
+          rewardDeliveredEarningsResponse) => {
+          buildAppRows(
+            name,
+            requestsResponse,
+            dauResponse,
+            responsesResponse,
+            impressionsResponse,
+            adCompletedResponse,
+            rewardDeliveredResponse,
+            adCompletedEcpmResponse,
+            rewardDeliveredEcpmResponse,
+            adCompletedEarningsResponse,
+            rewardDeliveredEarningsResponse,
+            writer
+          )
 
           counter += 1
           if(selectedApps.length <= counter) {
