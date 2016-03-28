@@ -161,6 +161,6 @@ coverageOutputTeamCity := true
 //TODO Eventually we will want coverage on some of these classes, like the Actors
 coverageExcludedPackages := ".*AppLovinReportingActor;.*KeenExportActor;.*RevenueDataActor;.*JunGroupAPIActor;.*JunGroupEmailActor;" +
   ".*JsonConversion;.*main;.*welcomeEmailContent;.*JsonToValueHelper;.*Routes;.*subHeader;.*Reverse.*;" +
-  ".*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;" +
+  ".*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;.*passwordResetEmailContent;" +
   ".*Application;.*HTTP.*;.*Regenerate.*;" +
   ".*login.*;.*reset_password.*;.*signup.*;.*newApp.*;.*show.*"
