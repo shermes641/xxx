@@ -8,7 +8,7 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import resources.JsonTesting
+import resources.{WaterfallCreationHelper, SpecificationWithFixtures, JsonTesting}
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallCreationHelper {

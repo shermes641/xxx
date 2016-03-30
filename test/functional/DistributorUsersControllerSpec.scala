@@ -8,14 +8,30 @@ import play.api.mvc.Session
 import play.api.test._
 import play.api.test.Helpers._
 import java.security.MessageDigest
-import resources.DistributorUserSetup
+import resources.{AppCreationHelper, SpecificationWithFixtures, DistributorUserSetup}
 
 import scala.concurrent.duration.Duration
 
 class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppCreationHelper {
+  "DistributorUsersController.sendPasswordResetEmail" should {
+    "create a new password reset record and alert the user of a password reset email" in new WithFakeBrowser {
+      val originalResetCount = tableCount("password_resets")
+      val newUser = {
+        val id = DistributorUser.create("UniqueUser4@gmail.com", password = "password", company = "new company").get
+        DistributorUser.find(id).get
+      }
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
+      clickAndWaitForAngular("#forgot-password-link")
+      browser.fill("#email").`with`(newUser.email)
+      browser.find("button").first.click()
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#login-message").containsText("Password reset email sent!")
+      tableCount("password_resets") must beEqualTo(originalResetCount+1).eventually(5, Duration(1000, "millis"))
+    }
+  }
+
   "DistributorUsersController.signup" should {
     "disable the submit button if terms are not agreed to" in new WithFakeBrowser {
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
@@ -24,14 +40,14 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
     }
 
     "hide the license agreement unless the user clicks on the License Agreement link" in new WithFakeBrowser {
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.find("#termsContainer").first().isDisplayed must beEqualTo(false)
       browser.$("#viewTerms").click()
       browser.find("#termsContainer").first().isDisplayed must beEqualTo(true)
     }
 
     "license agreement must be correct" in new WithFakeBrowser {
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.$("#viewTerms").click()
       val terms = browser.find("#termsContainer").first().getText
       // Gets MD5 of agreements and compares to last approved version
@@ -40,7 +56,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
     }
 
     "render an error when the password does not match the confirmation" in new WithFakeBrowser {
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.fill("#company").`with`("New Test Company")
       browser.fill("#email").`with`("UniqueEmail@gmail.com")
       browser.fill("#password").`with`("password1")
@@ -51,7 +67,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
     }
 
     "not display the welcome email flash message unless a user has just signed up" in new WithFakeBrowser {
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`("UniqueUser1@gmail.com")
       browser.fill("#password").`with`(password)
@@ -59,14 +75,14 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.$("#terms").click()
       browser.find("button").first.click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").containsText("Your confirmation email will arrive shortly.")
-      browser.goTo(controllers.routes.Application.index.url)
+      browser.goTo(controllers.routes.Application.index().url)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#new-app-message").areNotDisplayed
     }
 
     "display the latest email error" in new WithFakeBrowser {
       val distributorUserEmail = "UniqueUser2@gmail.com"
       DistributorUser.create(distributorUserEmail, password = "password", company = "new company")
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(distributorUserEmail)
       browser.fill("#password").`with`(password)
@@ -83,7 +99,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
   "DistributorUsersController.create" should {
     "if the user's email is taken, render the sign up page with all fields filled" in new WithFakeBrowser {
       DistributorUser.create(email, password, companyName)
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup.url)
+      goToAndWaitForAngular(controllers.routes.DistributorUsersController.signup().url)
       browser.fill("#company").`with`(companyName)
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
@@ -113,7 +129,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
     "clear the session and redirect the DistributorUser to the login page" in new WithFakeBrowser {
       val user = DistributorUser.findByEmail(email).get
       logInUser()
-      browser.goTo(controllers.routes.DistributorUsersController.logout.url)
+      browser.goTo(controllers.routes.DistributorUsersController.logout().url)
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
       browser.pageSource must contain("Welcome Back")
     }
@@ -136,7 +152,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
 
       logInUser()
 
-      browser.goTo(controllers.routes.DistributorUsersController.signup.url)
+      browser.goTo(controllers.routes.DistributorUsersController.signup().url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
     }
   }
@@ -170,22 +186,6 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.fill("#password").`with`("")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-custom-error").hasText("")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#password-required-error").areDisplayed
-    }
-  }
-
-  "DistributorUsersController.sendPasswordResetEmail" should {
-    "create a new password reset record and alert the user of a password reset email" in new WithFakeBrowser {
-      val originalResetCount = tableCount("password_resets")
-      val newUser = {
-        val id = DistributorUser.create("UniqueUser4@gmail.com", password = "password", company = "new company").get
-        DistributorUser.find(id).get
-      }
-      goToAndWaitForAngular(controllers.routes.DistributorUsersController.login(None).url)
-      clickAndWaitForAngular("#forgot-password-link")
-      browser.fill("#email").`with`(newUser.email)
-      browser.find("button").first.click()
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#login-message").containsText("Password reset email sent!")
-      tableCount("password_resets") must beEqualTo(originalResetCount + 1)
     }
   }
 

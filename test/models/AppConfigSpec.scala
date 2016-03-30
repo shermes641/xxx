@@ -4,7 +4,7 @@ import org.specs2.runner._
 import org.junit.runner._
 import play.api.db.DB
 import play.api.libs.json._
-import resources.{AdProviderSpecSetup, WaterfallSpecSetup}
+import resources.{SpecificationWithFixtures, AdProviderSpecSetup, WaterfallSpecSetup}
 
 @RunWith(classOf[JUnitRunner])
 class AppConfigSpec extends SpecificationWithFixtures with WaterfallSpecSetup with JsonConversion with AdProviderSpecSetup {

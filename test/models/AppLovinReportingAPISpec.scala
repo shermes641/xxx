@@ -8,14 +8,14 @@ import play.api.test.Helpers._
 import org.junit.runner._
 import org.specs2.mock.Mockito
 import org.specs2.runner._
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
+    val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
     Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
     WaterfallAdProvider.find(id).get
   }
@@ -62,6 +62,6 @@ class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallS
    */
   def callAPI = {
     appLovin.retrieveAPIData returns Future { response }
-    Await.result(appLovin.updateRevenueData, Duration(5000, "millis"))
+    Await.result(appLovin.updateRevenueData(), Duration(5000, "millis"))
   }
 }

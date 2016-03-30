@@ -1,7 +1,7 @@
 import play.api.Application
 import play.api.GlobalSettings
 import tasks.RegenerateAppConfigs
-
+// $COVERAGE-OFF$
 object RegenerateAppConfigsGlobal extends GlobalSettings {
   /**
    * Overrides application start up to include the initialization of the script to regenerate AppConfigs.
@@ -11,3 +11,4 @@ object RegenerateAppConfigsGlobal extends GlobalSettings {
     RegenerateAppConfigs.run
   }
 }
+// $COVERAGE-ON$

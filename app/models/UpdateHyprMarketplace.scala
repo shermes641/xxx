@@ -21,7 +21,8 @@ trait UpdateHyprMarketplace extends JsonConversion {
 
   /**
    * Encapsulates all WaterfallAdProvider information required for running this script.
-   * @param id The ID of the WaterfallAdProvider
+    *
+    * @param id The ID of the WaterfallAdProvider
    * @param waterfallID The ID of the Waterfall to which the WaterfallAdProvider belongs.
    * @param adProviderID The ID of the AdProvider to which the WaterfallAdProvider belongs.
    * @param waterfallOrder The position of the WaterfallAdProvider in the Waterfall.
@@ -58,7 +59,8 @@ trait UpdateHyprMarketplace extends JsonConversion {
 
   /**
    * Logs error message in console and adds the WaterfallAdProvider ID to the list of unsuccessfully updated IDs.
-   * @param waterfallAdProviderID The ID of the WaterfallAdProvider for which the request failed.
+    *
+    * @param waterfallAdProviderID The ID of the WaterfallAdProvider for which the request failed.
    * @param errorMessage The error message to be logged to the console.
    */
   def displayError(waterfallAdProviderID: Long, errorMessage: String) = {
@@ -69,10 +71,11 @@ trait UpdateHyprMarketplace extends JsonConversion {
   /**
    * Sends the create ad network request to Player and updates the HyprMarketplace
    * WaterfallAdProvider instance with the new distributor ID
-   * @param wap The WaterfallAdProvider instance to be updated
+    *
+    * @param wap The WaterfallAdProvider instance to be updated
    */
-  def updateHyprMarketplaceDistributorID(wap: WaterfallAdProviderWithAppData) = {
-    val api = new JunGroupAPI
+  def updateHyprMarketplaceDistributorID(wap: WaterfallAdProviderWithAppData, junApi: Option[JunGroupAPI] = None) = {
+    val api = if(junApi.isDefined) junApi.get else new JunGroupAPI
     val newApp = App.findByWaterfallID(wap.waterfallID).get
     val adNetwork = api.adNetworkConfiguration(wap.companyName, newApp)
     Await.result(
@@ -81,10 +84,10 @@ trait UpdateHyprMarketplace extends JsonConversion {
           if(response.status != 500) {
             try {
               Json.parse(response.body) match {
-                case _:JsUndefined => {
+                case _:JsUndefined =>
                   displayError(wap.id, "Received a JsUndefined error from Player")
-                }
-                case results if(response.status == 200 || response.status == 304) => {
+
+                case results if response.status == 200 || response.status == 304 =>
                   val success: JsValue = results \ "success"
                   if(success.as[JsBoolean] != JsBoolean(false)) {
                     DB.withTransaction { implicit connection =>
@@ -96,35 +99,34 @@ trait UpdateHyprMarketplace extends JsonConversion {
                         successfulWaterfallAdProviderIDs = successfulWaterfallAdProviderIDs :+ wap.id
                         Logger.debug("WaterfallAdProvider successfully updated with new distributor ID: " + adNetworkID + "\nWaterfallAdProvider ID: " + wap.id)
                       } catch {
-                        case error: org.postgresql.util.PSQLException => {
+                        case error: org.postgresql.util.PSQLException =>
                           connection.rollback()
-                        }
+
+                        case err: Throwable =>
+                          displayError(wap.id, "The following error occurred : " + err.getLocalizedMessage)
                       }
                     }
                   } else {
                     displayError(wap.id, "The following error occurred in Player: " + results \ "error")
                   }
-                }
-                case _ => {
+
+                case _ =>
                   displayError(wap.id, "Received status code " + response.status + " from Player")
-                }
               }
             } catch {
-              case parsingError: com.fasterxml.jackson.core.JsonParseException => {
+              case parsingError: com.fasterxml.jackson.core.JsonParseException =>
                 displayError(wap.id, "There was a JSON parsing error")
-              }
             }
           } else {
             displayError(wap.id, "Received a status code of 500 from Player")
           }
         }
       } recover {
-        case _: TimeoutException => {
+        case _: TimeoutException =>
           displayError(wap.id, "Request to Player timed out")
-        }
-        case error => {
+
+        case error =>
           displayError(wap.id, "Request to Player yielded the following error: " + error.getMessage)
-        }
       },
       Duration(60000, "millis")
     )

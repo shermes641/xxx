@@ -10,7 +10,7 @@ import play.api.Logger
 import play.api.Play.current
 import scala.language.postfixOps
 import scala.util.{Failure, Try, Success}
-
+// $COVERAGE-OFF$
 new play.core.StaticApplication(new java.io.File("."))
 
 object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
@@ -127,3 +127,4 @@ object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
     }
   }
 }
+// $COVERAGE-ON$

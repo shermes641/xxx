@@ -1,5 +1,5 @@
 @import url(vendor/bootstrap.css);
-@import url(vendor/datepicker.css);
+@import url(vendor/daterangepicker.css);
 @font-face {
   font-family: 'Avenir Book';
   src: url("fonts/Avenir.ttf") format("truetype");
@@ -1105,7 +1105,7 @@ header #logo:before,
 }
 .left-apps-list ul li.arrowdown {
   padding: 0;
-  width: 180px;
+  width: 190px;
   background: #fff;
 }
 .left-apps-list ul li.arrowdown input.form-control {

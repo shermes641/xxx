@@ -5,14 +5,14 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import org.junit.runner._
 import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
 class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
+    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
     Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }

@@ -9,14 +9,14 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
 class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
   val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, true, true).get
+    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
     Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
     WaterfallAdProvider.find(waterfallAdProviderID1).get
   }
@@ -98,6 +98,6 @@ class HyprMarketplaceReportingAPISpec extends SpecificationWithFixtures with Wat
   def callAPI = {
     hyprMarketplace.getImpressions() returns retrieveImpressionResponse
     hyprMarketplace.retrieveAPIData returns Future { retrieveAPIDataResponse }
-    Await.result(hyprMarketplace.updateRevenueData, Duration(10000, "millis"))
+    Await.result(hyprMarketplace.updateRevenueData(), Duration(10000, "millis"))
   }
 }

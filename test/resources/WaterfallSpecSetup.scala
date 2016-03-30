@@ -1,5 +1,6 @@
 package resources
 
+import hmac.Constants
 import models._
 import play.api.libs.json.JsObject
 import play.api.test.Helpers._
@@ -11,7 +12,7 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
   }
 
   val (app1, waterfall, virtualCurrency1, _) = running(FakeApplication(additionalConfiguration = testDB)) {
-    setUpApp(distributor.id.get)
+    setUpApp(distributor.id.get, callbackUrl = Some(Constants.dummyUrl))
   }
 
   val adProviderConfigData = {

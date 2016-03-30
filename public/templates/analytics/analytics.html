@@ -1,3 +1,4 @@
+
 <div ng-hide="flashMessage.text() === ''" id="analytics-message" class="full-{{flashMessage.displayClass()}}-message">
     {{flashMessage.text()}}
 </div>
@@ -36,14 +37,12 @@
         <div class="left-apps-list">
             <h2>Date Range</h2>
             <ul>
-                <div class="input-daterange input-group" id="datepicker">
-                    <li class="arrowdown">
-                        <input type="text" class="input-sm form-control" name="start" id="start-date" />
-                    </li>
-                    <li class="arrowdown">
-                        <input type="text" class="input-sm form-control" name="end" id="end-date" />
-                    </li>
-                </div>
+                <li class="arrowdown" id="daterange-arrow">
+                    <div class="input-daterange">
+                        <!-- TODO can not pass options in here or from analyticsController Why ? Currently they are set directly in daterangepicker.js -->
+                        <input type="text" readonly="true" class="input-daterange" id="start-date" name="start-date"/>
+                    </div>
+                </li>
             </ul>
         </div>
         <div class="left-apps-list">
@@ -150,7 +149,7 @@
                     <div ng-show="!analyticsData.revenueChart" class="analytics-loading chart-loading"><span class="square-1"></span><span class="square-2"></span><span class="square-3"></span></div>
                     <div class="analytics-description">
                         <div class="analytics-bullet revenue-by-day"></div>
-                        <b>Estimated Revenue</b><i>Above results use Ad Network eCPMs to estimate revenue.<br>All data is presented in UTC/GMT timezone.</i>
+                        <b>Estimated Revenue</b><i>Above results use Ad Network eCPMs to estimate revenue.</i>
                     </div>
                 </div>
             </div>
@@ -192,3 +191,4 @@
         </div>
     </div>
 </div>
+

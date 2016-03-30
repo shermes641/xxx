@@ -3,6 +3,7 @@ package models
 import models.Platform.{Android, Ios}
 import play.api.test._
 import play.api.test.Helpers._
+import resources.SpecificationWithFixtures
 
 class PlatformSpec extends SpecificationWithFixtures {
   val adProviderNames = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -10,7 +11,8 @@ class PlatformSpec extends SpecificationWithFixtures {
       Ios.AdColony.name,
       Ios.HyprMarketplace.name,
       Ios.Vungle.name,
-      Ios.AppLovin.name
+      Ios.AppLovin.name,
+      Ios.UnityAds.name
     )
   }
 
@@ -27,14 +29,14 @@ class PlatformSpec extends SpecificationWithFixtures {
   }
 
   "Ios.allAdProviders" should {
-    "return the 4 supported ad networks" in new WithDB {
+    "return the 5 supported ad networks" in new WithDB {
       val allAdProviders = Ios.allAdProviders
       verifyAdProviders(allAdProviders, adProviderNames)
     }
   }
 
   "Android.allAdProviders" should {
-    "return the 3 supported ad networks" in new WithDB {
+    "return the 4 supported ad networks" in new WithDB {
       val adProviderNamesWithoutVungle = adProviderNames.filter(_ != Ios.Vungle.name)
       val allAdProviders = Android.allAdProviders
       verifyAdProviders(allAdProviders, adProviderNamesWithoutVungle)

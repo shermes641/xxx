@@ -8,7 +8,7 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
-import resources.WaterfallSpecSetup
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 

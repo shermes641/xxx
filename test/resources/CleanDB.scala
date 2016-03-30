@@ -25,5 +25,5 @@ trait CleanDB {
       }
     }
   }
+  clean
 }
-
