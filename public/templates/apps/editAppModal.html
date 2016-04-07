@@ -66,6 +66,25 @@
                 </div>
             </dl>
 
+            <dl id="hmac-secret">
+                <dt>
+                    <label for="hmac-secret" class="ng-binding">
+                        Shared Secret
+                    </label>
+                <h4 ng-mouseenter="hoverSecret=true" ng-mouseleave="hoverSecret=false" class="tooltip">
+                    ?
+                    <div id="hmac-secret-documentation-link" class="ngtooltip ng-binding ng-hide" ng-show="hoverSecret"
+                         ng-bind-html="'If Server to Server Callbacks are Enabled, the Shared Secret is used to generate the query string for the POST to a URL of your choosing.
+                            For more information, please see our <a href=\'https://documentation.hyprmx.com/display/ADMIN/Server+to+Server+Callbacks\' target=\'_blank\'>documentation</a>.' |
+                         escapeHtml">If Server to Server Callbacks are Enabled, the Shared Secret is used to generate the query string for the POST to a URL of your choosing.
+                            For more information, please see our <a href="https://documentation.hyprmx.com/display/ADMIN/Server+to+Server+Callbacks" target="_blank">documentation</a>.</div>
+                </h4>
+                </dt>
+                <dd ng-class="errors.hmacSecretClass">
+                    <input secret-validator="false" ng-readonly="true" ng-class="{'inactive-input': true}" type="text" ng-model="data.hmacSecret" ng-model-options="{updateOn: 'blur'}" id="hmacSecret" name="hmacSecret" placeholder="hmacSecret" label="Shared Secret" class="ng-pristine ng-untouched ng-valid inactive-input ng-valid-secret-validator" readonly="readonly">
+                </dd>
+            </dl>
+
             <dl id="currency-name">
                 <dt><label for="currency-name">*Reward Name</label></dt>
                 <dd ng-class="errors.currencyNameClass">

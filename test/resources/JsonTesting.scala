@@ -1,6 +1,6 @@
 package resources
 
-import play.api.libs.json.{JsString, JsObject}
+import play.api.libs.json.{JsObject, JsString}
 
 /**
  * Configuration data for setting up WaterfallAdProviders

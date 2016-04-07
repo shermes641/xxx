@@ -14,7 +14,7 @@ import scala.language.postfixOps
 import scala.util.{Success, Failure, Try}
 
 object RevenueDataActor {
-  val RevenueDataCollectionFrequency = 1.hour
+  val RevenueDataCollectionFrequency = 30.minutes
   val appLovinActor = Akka.system(current).actorOf(Props(new AppLovinReportingActor))
 
   /**
@@ -43,19 +43,21 @@ class RevenueDataActor(waterfallAdProviderID: Long, configurationData: JsValue) 
    * @return Initiation of background job for updating a particular WaterfallAdProvider.
    */
   def receive = {
-    case "HyprMarketplace" => {
-      new HyprMarketplaceReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
-    }
-    case "AdColony" => {
-      new AdColonyReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
-    }
-    case "AppLovin" => {
+    case "HyprMarketplace" =>
+      new HyprMarketplaceReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData()
+
+    case "AdColony" =>
+      new AdColonyReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData()
+
+    case "AppLovin" => 
       val appLovinReportingCall = new AppLovinReportingAPI(waterfallAdProviderID, configurationData)
       RevenueDataActor.appLovinActor ! appLovinReportingCall
-    }
-    case "Vungle" => {
-      new VungleReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData
-    }
+
+    case "Vungle" =>
+      new VungleReportingAPI(waterfallAdProviderID, configurationData).updateRevenueData()
+
+    case Constants.UnityAdsName =>
+      new UnityAdsReportingAPI(waterfallAdProviderID, configurationData).unityUpdateRevenueData()
   }
 }
 

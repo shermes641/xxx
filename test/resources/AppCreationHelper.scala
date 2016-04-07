@@ -1,7 +1,9 @@
-package models
+package resources
 
-import play.api.db.DB
+import models._
 import play.api.Play.current
+import play.api.db.DB
+
 import scala.util.Random
 
 trait AppCreationHelper extends WaterfallCreationHelper {
@@ -20,12 +22,21 @@ trait AppCreationHelper extends WaterfallCreationHelper {
    * @param rewardMin The minimum reward a user can receive.
    * @param rewardMax The maximum reward a user can receive.  This is optional.
    * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
+   * @param callbackUrl  Some(url) if callback is required.
    * @return A tuple consisting of an App, VirtualCurrency, Waterfall, and AppConfig.
    */
-  def setUpApp(distributorID: Long, appName: Option[String] = None, currencyName: String = "Coins",
-               exchangeRate: Long = 100, rewardMin: Long = 1, rewardMax: Option[Long] = None, roundUp: Boolean = true, platformID: Long = Platform.Ios.PlatformID): (App, Waterfall, VirtualCurrency, AppConfig) = {
+  def setUpApp(distributorID: Long, 
+  appName: Option[String] = None, 
+  currencyName: String = "Coins",
+  exchangeRate: Long = 100, 
+  rewardMin: Long = 1, 
+  rewardMax: Option[Long] = None, 
+  roundUp: Boolean = true, 
+  platformID: Long = Platform.Ios.PlatformID,
+  callbackUrl: Option[String] = None
+  ): (App, Waterfall, VirtualCurrency, AppConfig) = {
     val currentApp = {
-      val id = App.create(distributorID, appName.getOrElse(randomAppName), platformID).get
+      val id = App.create(distributorID, appName.getOrElse(randomAppName), platformID, cbUrl = callbackUrl).get
       App.find(id).get
     }
     val virtualCurrency = {

@@ -11,13 +11,13 @@ import resources._
 class JsonBuilderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallSpecSetup {
   "JsonBuilder.appConfigResponseV1" should {
     val appConfig = running(FakeApplication(additionalConfiguration = testDB)) {
-      val wapID1 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, Some(0), None, true, true)
+      val wapID1 = WaterfallAdProvider.create(waterfall.id, adProviderID2.get, Some(0), None, configurable = true, active = true)
       val wap = WaterfallAdProvider.find(wapID1.get).get
       val configData = JsObject(Seq("requiredParams" -> JsObject(Seq("key1" -> JsString("value1")))))
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, Some(5.0), wap.active, wap.fillRate, configData, wap.reportingActive))
       val appToken = App.find(waterfall.app_id).get.token
       val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(appToken) }
-      JsonBuilder.appConfigResponseV1(adProviderList = waterfallOrder, adProviderBelowRewardThresholdList = waterfallOrder, configInfo = waterfallOrder(0))
+      JsonBuilder.appConfigResponseV1(adProviderList = waterfallOrder, adProviderBelowRewardThresholdList = waterfallOrder, configInfo = waterfallOrder.head)
     }
 
     "convert a list of AdProviderInfo instances into a proper JSON response" in new WithDB {

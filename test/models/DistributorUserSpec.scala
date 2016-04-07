@@ -3,12 +3,10 @@ package models
 import controllers.DistributorUsersController.PasswordUpdate
 import org.junit.runner._
 import org.specs2.runner._
-import play.api.test.Helpers._
-import play.api.test._
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
-import resources.DistributorUserSetup
+import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 @RunWith(classOf[JUnitRunner])
 class DistributorUserSpec extends SpecificationWithFixtures {

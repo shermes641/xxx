@@ -39,15 +39,18 @@ trait AdProviderSpecSetup extends SpecificationWithFixtures {
     AdProvider.create("AppLovin", appLovinConfig, Platform.Ios.PlatformID, None).get
   }
 
-  val flurryID = running(FakeApplication(additionalConfiguration = testDB)) {
-    val flurryConfig = buildAdProviderConfig(Array(("appID", None, None, Some("true")), ("spaceName", None, None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None)))
-    AdProvider.create("Flurry", flurryConfig, Platform.Ios.PlatformID, None).get
-  }
-
   val vungleID = running(FakeApplication(additionalConfiguration = testDB)) {
     val vungleConfig = buildAdProviderConfig(Array(("appID", None, None, Some("true"))), Array(("APIKey", None, None, None)), Array(("APIKey", None, None, None)))
     val vungleCallbackUrl = Some("/v1/waterfall/%s/vungle_completion?uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
     AdProvider.create("Vungle", vungleConfig, Platform.Ios.PlatformID, vungleCallbackUrl).get
+  }
+
+  val unityAdsID = running(FakeApplication(additionalConfiguration = testDB)) {
+    val unityAdsConfig = buildAdProviderConfig(
+      Array((Constants.AdProviderConfig.AppID, None, None, Some("true"))),
+      Array((Constants.AdProviderConfig.APIKey, None, None, None)),
+      Array((Constants.AdProviderConfig.APIKey, None, None, None)))
+    AdProvider.create(Constants.UnityAdsName, unityAdsConfig, Platform.Ios.PlatformID, Some(Constants.UnityAdsCallbackUrlSpec)).get
   }
 
   val hyprMarketplaceID = running(FakeApplication(additionalConfiguration = testDB)) {

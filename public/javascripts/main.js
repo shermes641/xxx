@@ -120,31 +120,80 @@ mediationModule.factory('httpErrorInterceptor', ['$q', 'flashMessage', function(
     };
 }]);
 
-// All controllers use this factory to display flash messages in the UI.
+/**
+ *  All controllers use this factory to display flash messages in the UI.
+ *
+ *  When the first flash message is added to the messageQueue, it is removed and displayed
+ *  Subsequent flash messages are placed on the messageQueue unless the message, status, and priority are the same as the currently displayed flash message
+ *  After a delay, the next flash message is dequeued and displayed.
+ *  The messageQueue is checked for duplicates of the currently displayed message, and they are removed.
+ *  Flash messages with "HIGH" priority are placed at the front of the queue.
+ *  Flash messages with "LOW" priority are placed at the tail of the queue. Flash messages with undefined priority are set to LOW priority.
+ */
 mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
+    var currentTimer;
     var currentMessage = '';
     var messageClass = '';
+    var currentPriority;
+    var timeOut = 5000;
     var messageQueue = [];
+
+    // do not allow duplicate messages with the same status and priority on the messageQueue
+    var removeDuplicates = function(msg, stat, priority){
+        var len = messageQueue.length;
+        // remove duplicate messages from the end to the start of the array
+        for (var i = len-1; i > -1; i--) {
+            if (messageQueue[i].message === msg &&
+                messageQueue[i].status === stat &&
+                messageQueue[i].priority === priority) {
+                messageQueue.splice(i,1)
+            }
+        }
+    };
 
     // Iterate through the message queue, showing each message for 5 seconds.
     var displayMessages = function() {
         if(messageQueue.length > 0) {
             var lastMessage = messageQueue.shift();
             currentMessage = lastMessage.message;
+            currentPriority = lastMessage.priority;
             messageClass = lastMessage.status;
+            timeOut = currentPriority === "HIGH" ? 5000 : 3000;
+            if(messageQueue.length > 0)
+                removeDuplicates(currentMessage, messageClass, currentPriority);
 
-            $timeout(function() {
+            if (typeof currentTimer != 'undefined')
+                $timeout.cancel(currentTimer);
+
+            currentTimer = $timeout(function() {
                 currentMessage = '';
                 messageClass = '';
+                currentPriority = '';
                 displayMessages();
-            }, 5000);
+            }, timeOut);
         }
+
     };
 
     return {
         add: function(data) {
             if(typeof data === 'object' && typeof data.message === 'string') {
-                messageQueue.push(data);
+                //TODO we could have 3 priorities HIGH LOW undefined
+                if (typeof data.priority === 'undefined')
+                    data.priority = "LOW";
+                // add message if the same message is not being displayed
+                if (currentMessage !== data.message ||
+                    messageClass !== data.status ||
+                    currentPriority !== data.priority) {
+                    if (data.priority === "HIGH") {
+                        messageQueue.unshift(data);
+                        // if a "HIGH" priority message is not displaying, display this message
+                        if (currentPriority !== "HIGH")
+                            displayMessages();
+                    } else{
+                        messageQueue.push(data);
+                    }
+                }
             }
             if(currentMessage === '') {
                 displayMessages();
@@ -155,6 +204,16 @@ mediationModule.factory('flashMessage', ['$timeout', function($timeout) {
         },
         text: function() {
             return currentMessage;
+        },
+        forceDisplay: function() {
+            displayMessages();
+            return messageQueue
+        },
+        queue: function() {
+            return messageQueue
+        },
+        getTimeOut: function() {
+            return timeOut
         }
     }
 }]);
