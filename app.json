@@ -5,6 +5,9 @@
     "AD_COLONY_REPORTING_URL": {
       "required": true
     },
+    "ANDROID_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+      "required": true
+    },
     "APP_DOMAIN": {
       "required": true
     },
@@ -26,6 +29,9 @@
     "HEROKU_APP_NAME": {
       "required": true
     },
+    "HEROKU_PARENT_APP_NAME": {
+      "required": true
+    },
     "HEROKU_RELEASE_VERSION": {
       "required": true
     },
@@ -38,7 +44,10 @@
     "HTTP_AUTH_PASSWORD": {
       "required": true
     },
-    "HYPR_MARKETPLACE_AD_PROVIDER_ID": {
+    "HYPR_MARKETPLACE_IOS_AD_PROVIDER_ID": {
+      "required": true
+    },
+    "HYPR_MARKETPLACE_ANDROID_AD_PROVIDER_ID": {
       "required": true
     },
     "HYPR_MARKETPLACE_REPORTING_URL": {
@@ -48,6 +57,9 @@
       "required": true
     },
     "HYPRMEDIATE_OPS_EMAIL": {
+      "required": true
+    },
+    "IOS_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
       "required": true
     },
     "JAVA_OPTS": {
@@ -115,7 +127,6 @@
     }
   },
   "addons": [
-    "blitz",
     "newrelic",
     "papertrail",
     "heroku-postgresql",
