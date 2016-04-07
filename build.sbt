@@ -152,7 +152,7 @@ libraryDependencies ++= Seq(
 //TODO Therefore if you want coverage, run tests with "clean coverage"   ie: "./activator clean coverage hmac:test"
 // coverageEnabled := true
 
-coverageMinimum := 90
+coverageMinimum := sys.env.getOrElse("COVERAGE_PERCENT", "87.0").toDouble
 
 coverageFailOnMinimum := true
 
