@@ -1,0 +1,4 @@
+<div class="typeahead-group-header" ng-click="$event.stopPropagation()" ng-if="match.model.header">{{match.model.header}}</div>
+<a>
+    <span ng-bind-html="match.label | typeaheadHighlight:query"></span>
+</a>

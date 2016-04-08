@@ -1,13 +1,19 @@
+import admin.{AdminService, SecurityRoleService}
+import be.objectify.deadbolt.scala.{DeadboltActions, DeadboltComponents}
+import be.objectify.deadbolt.scala.cache.{DefaultPatternCache, HandlerCache, PatternCache}
 import models._
 import models.Environment
 import play.api._
 import play.api.ApplicationLoader.Context
+import play.api.cache.EhCacheComponents
 import play.api.db.evolutions.Evolutions
 import play.api.db.{DBComponents, Database, HikariCPComponents}
 import play.api.libs.mailer._
 import play.api.libs.ws.ning.NingWSClient
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.routing.Router
+import security.AdminHandlerCache
 import router.Routes
 import scala.concurrent.Future
 
@@ -30,7 +36,7 @@ class MainApplicationLoader extends ApplicationLoader {
  *
   * @param context The context in which the app is running
   */
-class MainComponents(context: Context) extends BuiltInComponentsFromContext(context) with MailerComponents with DBComponents with HikariCPComponents {
+class MainComponents(context: Context) extends BuiltInComponentsFromContext(context) with MailerComponents with DBComponents with HikariCPComponents with DeadboltComponents with EhCacheComponents {
   lazy val database: Database = dbApi.database("default")
   Evolutions.applyEvolutions(database) // Apply evolutions by default
   lazy val wsClient = NingWSClient() // Reuse this web service client throughout app
@@ -59,6 +65,11 @@ class MainComponents(context: Context) extends BuiltInComponentsFromContext(cont
   lazy val waterfallService = new WaterfallService(waterfallAdProviderService, database)
   lazy val virtualCurrencyService = new VirtualCurrencyService(database)
 
+  lazy val securityRoleService = new SecurityRoleService(database)
+  lazy val adminService = new AdminService(securityRoleService)
+  override lazy val patternCache: PatternCache = new DefaultPatternCache(defaultCacheApi)
+  override lazy val handlers: HandlerCache = new AdminHandlerCache(adminService)
+
   // Helper class to encapsulate many service classes
   lazy val modelService = new ModelService(
     distributorUserService,
@@ -84,6 +95,8 @@ class MainComponents(context: Context) extends BuiltInComponentsFromContext(cont
   lazy val applicationController = new controllers.Application(distributorUserService)
   lazy val configVarsController = new controllers.ConfigVarsController(configVars, appEnvironment)
 
+  lazy val adminController = new controllers.AdminController(modelService, adminService, securityRoleService, deadboltActions)
+
   // Assets
   lazy val assets = new controllers.Assets(httpErrorHandler)
 
@@ -98,6 +111,7 @@ class MainComponents(context: Context) extends BuiltInComponentsFromContext(cont
     waterfallAdProvidersController,
     apiController,
     configVarsController,
+    adminController,
     assets
   )
 

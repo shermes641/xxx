@@ -24,6 +24,7 @@ lazy val root = (project in file("."))
   .configs(KeenTest).settings(inConfig(KeenTest)(Defaults.testTasks): _*)
   .configs(HmacTest).settings(inConfig(HmacTest)(Defaults.testTasks): _*)
   .configs(UnitTest).settings(inConfig(UnitTest)(Defaults.testTasks): _*)
+  .configs(AdminTest).settings(inConfig(AdminTest)(Defaults.testTasks): _*)
   .configs(NoKeenTest).settings(inConfig(NoKeenTest)(Defaults.testTasks): _*)
 
 lazy val TaskTest = config("task") extend Test
@@ -32,6 +33,7 @@ lazy val FunTest = config("fun") extend Test
 lazy val KeenTest = config("keen") extend Test
 lazy val HmacTest = config("hmac") extend Test
 lazy val UnitTest = config("unit") extend Test
+lazy val AdminTest = config("admin") extend Test
 lazy val NoKeenTest = config("nokeen") extend Test
 lazy val LoadTest = config("load") extend Gatling
 
@@ -93,6 +95,14 @@ def unitTestFilter(name: String): Boolean = {
     false
 }
 
+def adminTestFilter(name: String): Boolean = {
+  if ((name startsWith "admin.") && notKeenTestFilter(name)) {
+    println("Admin test: " + name)
+    true
+  } else
+    false
+}
+
 def noKeenTestFilter(name: String): Boolean = {
   if (notKeenTestFilter(name)) {
     println("NO KEEN test: " + name)
@@ -113,6 +123,8 @@ testOptions in HmacTest := Seq(Tests.Filter(hmacTestFilter))
 
 testOptions in UnitTest := Seq(Tests.Filter(unitTestFilter))
 
+testOptions in AdminTest := Seq(Tests.Filter(adminTestFilter))
+
 testOptions in NoKeenTest := Seq(Tests.Filter(noKeenTestFilter))
 
 logLevel in Test := Level.Info
@@ -129,6 +141,8 @@ logLevel in HmacTest := Level.Info
 
 logLevel in UnitTest := Level.Info
 
+logLevel in AdminTest := Level.Info
+
 logLevel in NoKeenTest := Level.Info
 
 libraryDependencies ++= Seq(
@@ -139,6 +153,7 @@ libraryDependencies ++= Seq(
   jdbc,
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
+  "be.objectify" %% "deadbolt-scala" % "2.4.4",
   "com.newrelic.agent.java" % "newrelic-agent" % "3.29.0",
   "com.newrelic.agent.java" % "newrelic-api" % "3.29.0",
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",

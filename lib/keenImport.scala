@@ -49,7 +49,7 @@ val distributorUserService = components.distributorUserService
 val configVars = components.configVars
 
 if(components.appEnvironment.isProd  == true) {
-    Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
+  Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
 } else {
   val project = configVars.ConfigVarsKeen.projectID
   val readKey = configVars.ConfigVarsKeen.readKey
@@ -333,9 +333,9 @@ if(components.appEnvironment.isProd  == true) {
 
     def publishToKeen() = {
 
-     client.addEvents(Json.stringify(Json.toJson(batch_request)))
-     client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
-     client.addEvents(Json.stringify(Json.toJson(batch_request_ads)))
+      client.addEvents(Json.stringify(Json.toJson(batch_request)))
+      client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
+      client.addEvents(Json.stringify(Json.toJson(batch_request_ads)))
 
       println("==================")
       println("Date:                      " + date.toString(DateTimeFormat.forPattern("MM-dd-yyyy")))

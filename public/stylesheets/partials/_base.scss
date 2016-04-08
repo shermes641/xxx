@@ -163,3 +163,7 @@ dd.modal-error {
 input:invalid, select:invalid {
   box-shadow: none;
 }
+
+.hidden-field {
+  visibility: hidden !important;
+}

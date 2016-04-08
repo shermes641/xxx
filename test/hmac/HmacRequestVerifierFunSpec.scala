@@ -1,15 +1,23 @@
 package hmac
 
 import java.net.URLEncoder
+
 import hmac.HmacConstants._
-import resources.AdProviderRequests
+import resources.{AdProviderRequests, CleanDB}
 import models.{AdProviderRewardInfo, CallbackVerificationInfo, Completion, ConfigVars}
 import org.specs2.mock.Mockito
 import play.api.{Application, GlobalSettings}
 import play.api.db.{Database, Databases}
+import models.{AdProviderRewardInfo, CallbackVerificationInfo, Completion, ConfigVars}
+import oauth.signpost.OAuth.percentEncode
+import org.specs2.mock.Mockito
+import play.api.{Application, GlobalSettings}
+import play.api.db.{Database, Databases}
+import play.api.libs.json.Json
 import play.api.libs.ws.ning.NingWSClient
 import play.api.mvc._
 import play.api.test._
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Promise}
 
@@ -18,7 +26,7 @@ import scala.concurrent.{Future, Promise}
   *
   * Currently we do not fail on bad signatures, therefore no failing case tests
   */
-class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderRequests with Mockito {
+class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderRequests with Mockito with CleanDB {
   sequential
 
   val testApplication = FakeApplication(
@@ -38,6 +46,8 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
       url = "jdbc:postgresql://localhost/mediation_test?user=postgres&password=postgres"
     )
   }
+
+  val testDatabase = database
 
   val testHmacSecret: String = "test hmac secret"
   val testTransID = "78319ddc-5a67-73g0-nj9b-9hs6e0bf7d3"
@@ -251,7 +261,7 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
         promise.success((request, request.body.asBytes().getOrElse(Array.empty[Byte])))
         Results.Ok
       }
-    })
+    }, additionalConfiguration = testDB)
     running(TestServer(testServerPort, app)) {
       await(makeRequest(app)(hostUrl))
     }

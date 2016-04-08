@@ -87,6 +87,23 @@ class DistributorUserService @Inject() (distributorService: DistributorService, 
     }
   }
 
+  def findByDistributorID(distributorID: Long): Option[DistributorUser] = {
+    db.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT distributor_users.*
+          FROM distributor_users
+          WHERE distributor_users.distributor_id = {distributor_id}
+          LIMIT 1;
+        """
+      ).on("distributor_id" -> distributorID)
+      query.as(userParser*) match {
+        case List(user) => Some(user)
+        case List() => None
+      }
+    }
+  }
+
   /**
    * Creates a new record in the database for a DistributorUser.
    * @param email Email to be stored for DistributorUser

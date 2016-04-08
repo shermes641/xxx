@@ -52,4 +52,20 @@ class DistributorService @Inject() (db: Database) {
       ).on("name" -> name).executeInsert()
     }
   }
+
+  /**
+   * Finds all Distributors in our database. This is only used in the Admin UI.
+   * @return A list of all Distributors
+   */
+  def findAll(): List[Distributor] = {
+    db.withConnection { implicit connection =>
+      SQL(
+        """
+          SELECT distributors.*
+          FROM distributors
+          ORDER BY created_at DESC;
+        """
+      ).as(DistributorParser*).toList
+    }
+  }
 }

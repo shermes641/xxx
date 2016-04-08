@@ -3,6 +3,10 @@ package resources
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
+import be.objectify.deadbolt.scala.{DeadboltComponents, ExecutionContextProvider}
+import be.objectify.deadbolt.scala.cache.{DefaultPatternCache, HandlerCache, PatternCache}
+import play.api.cache.EhCacheComponents
+import play.api.db.evolutions.Evolutions
 import anorm._
 import com.google.common.base.Predicate
 import models.ConfigVars
@@ -32,8 +36,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.bind
 import play.test.TestBrowser
 import models._
-
+import admin._
 import scala.io.Source
+import security.AdminHandlerCache
 
 trait DBSetup extends org.specs2.specification.AfterAll with CleanDB {
   override def afterAll() = clean()
@@ -54,6 +59,8 @@ abstract class SpecificationWithFixtures extends Specification with DBSetup with
   }
 
   override lazy val db = database
+
+  Evolutions.applyEvolutions(database) // Apply evolutions by default
 
   lazy val DocumentationUsername = running(testApplication) {
     Play.current.configuration.getString("httpAuthUser").getOrElse("")
@@ -145,6 +152,9 @@ abstract class SpecificationWithFixtures extends Specification with DBSetup with
      regenerateAppConfigsService,
      jsonBuilder)
   }
+
+  lazy val securityRoleService = new SecurityRoleService(database)
+  lazy val adminService = new AdminService(securityRoleService)
 
   override lazy val appModel: AppService = appService
   override lazy val distributorModel: DistributorService = distributorService
@@ -276,6 +286,7 @@ abstract class SpecificationWithFixtures extends Specification with DBSetup with
     lazy val analyticsController = app.injector.instanceOf[controllers.AnalyticsController]
     lazy val waterfallsController = app.injector.instanceOf[controllers.WaterfallsController]
     lazy val waterfallAdProvidersController = app.injector.instanceOf[controllers.WaterfallAdProvidersController]
+    lazy val adminController = app.injector.instanceOf[controllers.AdminController]
 
 
     lazy val mailerComponent = {

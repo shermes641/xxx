@@ -54,5 +54,15 @@ GET         /v1/reward_callbacks/:app_token/unity_ads                           
 
 GET         /configvars                                                                                controllers.ConfigVarsController.serveConfigVars
 
+# Admin
+GET         /admin                                                                                     controllers.AdminController.edit
+GET         /admin/distributor_info                                                                    controllers.AdminController.distributorInfo
+GET         /admin/morph                                                                               controllers.AdminController.morph(distributor_id: Option[Long])
+POST        /admin/update_app                                                                          controllers.AdminController.updateApp
+GET         /admin/manage                                                                              controllers.AdminController.manage
+GET         /admin/role_info                                                                           controllers.AdminController.roleInfo
+POST        /admin/roles                                                                               controllers.AdminController.addRole()
+POST        /admin/roles/delete                                                                        controllers.AdminController.removeRole()
+
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                                              controllers.Assets.at(path="/public", file)

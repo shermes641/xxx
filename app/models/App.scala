@@ -11,15 +11,16 @@ import scala.language.postfixOps
 /**
   * Maps to the apps table in the database.
   *
-  * @param id                    Maps to the id column in the apps table
-  * @param active                Maps to the active column in apps table
-  * @param distributorID         Maps to the distributor_id column in the apps table
-  * @param name                  Maps to the name column in the apps table
-  * @param callbackURL           Maps to the callback_url column in the apps table
-  * @param serverToServerEnabled Maps to the server_to_server_enabled column in the apps table
-  * @param token                 The unique identifier for an App.  This is used for API calls.
-  * @param platformID            Indicates the platform to which this App belongs (e.g. iOS or Android).
-  * @param hmacSecret            The App's shared secret used by the distributor to decode the hmac signature
+  * @param id                       Maps to the id column in the apps table
+  * @param active                   Maps to the active column in apps table
+  * @param distributorID            Maps to the distributor_id column in the apps table
+  * @param name                     Maps to the name column in the apps table
+  * @param callbackURL              Maps to the callback_url column in the apps table
+  * @param serverToServerEnabled    Maps to the server_to_server_enabled column in the apps table
+  * @param appConfigRefreshInterval The amount of time (in seconds) the SDK waits before checking for a new app config.
+  * @param token                    The unique identifier for an App.  This is used for API calls.
+  * @param platformID               Indicates the platform to which this App belongs (e.g. iOS or Android).
+  * @param hmacSecret               The App's shared secret used by the distributor to decode the hmac signature
   *
   */
 case class App(id: Long,
@@ -28,6 +29,7 @@ case class App(id: Long,
                name: String,
                callbackURL: Option[String],
                serverToServerEnabled: Boolean,
+               appConfigRefreshInterval: Long,
                token: String,
                platformID: Long,
                hmacSecret: String)
@@ -259,6 +261,22 @@ class AppService @Inject() (appConfigService: AppConfigService, db: Database) ex
   }
 
   /**
+   * Finds a list of all apps in the database. This is only used by the Admin UI.
+   * @return A list of all apps
+   */
+  def findAll(): List[App] = {
+    db.withConnection { implicit connection =>
+      SQL(
+        """
+        SELECT apps.*
+        FROM apps
+        ORDER BY created_at DESC;
+        """
+      ).as(AppParser*).toList
+    }
+  }
+
+  /**
     * SQL to retrieve an App from the database by ID.
     *
     * @param appID The ID of the App to be selected.
@@ -479,11 +497,12 @@ trait WaterfallFind {
       get[String]("apps.name") ~
       get[Option[String]]("apps.callback_url") ~
       get[Boolean]("apps.server_to_server_enabled") ~
+      get[Long]("apps.app_config_refresh_interval") ~
       get[Long]("apps.platform_id") ~
       get[String]("apps.token") ~
       get[String]("apps.hmac_secret") map {
-      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ platform_id ~ token ~ hmacSecret =>
-        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token, platform_id, hmacSecret)
+      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ app_config_refresh ~ platform_id ~ token ~ hmacSecret =>
+        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, app_config_refresh, token, platform_id, hmacSecret)
     }
   }
 

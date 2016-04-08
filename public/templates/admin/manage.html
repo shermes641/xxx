@@ -1,0 +1,50 @@
+<div ng-hide="flashMessage.text() === ''" id="admin-edit-message" class="full-{{flashMessage.displayClass()}}-message">
+    {{flashMessage.text()}}
+</div>
+<div ng-include="subHeader"></div>
+
+<div id="left-content">
+    <div class="left-apps-list">
+        <h2>Administrator Links</h2>
+        <a target="_self" href="/admin">Manage Apps</a><br/>
+        <a target="_self" href="/admin/completions">Search Completions</a>
+    </div>
+</div>
+
+<div class="admin-search" ng-controller="RoleManagementController">
+    <div class="distributor-search-container">
+        <div class="distributors-dropdown">
+            <ul>
+                <li class="distributors-list" class="open">
+                    <input type="text" placeholder="Search email" ng-model="userInput"
+                           class="dropdown-filter input-sm form-control distributors-list distributor-search"
+                           name="filter-users"
+                           typeahead="email as user.email for user in getUsers($viewValue) | limitTo:8" typeahead-focus
+                           typeahead-on-select="selectUser($item)"
+                           ng-blur="clearFilteredUsers()"/>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="roles-container" ng-class="{'hidden-field': !userID}">
+        <div>
+            <h1 class="role-header">Available Roles</h1>
+            <ul class="roles-list" ng-repeat="role in availableRoles">
+                <li>
+                    <div ng-click="addRole(role)" class="role-add"></div>
+                    <div class="role-name">{{role.name}}</div>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h1 class="role-header">Existing Roles</h1>
+            <ul class="roles-list" ng-repeat="role in existingRoles">
+                <li>
+                    <div ng-click="removeRole(role)" class="role-remove"></div>
+                    <div class="role-name">{{role.name}}</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

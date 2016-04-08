@@ -8,6 +8,8 @@ import resources._
 import scala.concurrent.Future
 
 class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup {
+  sequential
+
   override lazy val adProvider = adProviderService
   val eCPM = 25.0
   val amount = 1
@@ -37,7 +39,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
   /**
    * Example of a successful Unity Ads callback
    */
-  def goodCallback = running(FakeApplication(additionalConfiguration = testDB)) {
+  def goodCallback = running(testApplication) {
     val request = generateRequest(app1.token, sid, oid, hmac, productID)
     new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
   }

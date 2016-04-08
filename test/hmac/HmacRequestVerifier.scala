@@ -25,6 +25,7 @@ object HmacRequestVerifier {
     * @param requestHeader The http/https request header
     * @param body          The http/https request body (if any)
     * @param hmacSecret    The shared HMAC secret
+    * @param signer        Shared instance of the Signer class
     * @return True if hash is valid
     */
   def verifyRequest(requestHeader: RequestHeader,

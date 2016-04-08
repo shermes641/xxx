@@ -35,6 +35,7 @@ class APIController @Inject() (modelService: ModelService,
 
   /**
    * Builds the error message for an AppConfig/Device mismatch.
+ *
    * @param appPlatform The name of the platform to which the AppConfig belongs.
    * @param platformParam The name of the platform param that was sent from the SDK.
    * @return The appropriate error message, specifying which platform was sent/expected.
@@ -256,7 +257,6 @@ class APIController @Inject() (modelService: ModelService,
 
   /**
    * Creates a Completion if the reward callback is valid and notifies the Distributor if server to server callbacks are enabled.
-   *
    * @param callback Any class instance which extends CallbackVerificationHelper.  This encapsulates callback information to determine the validity of the incoming request.
    * @param adProviderRequest The original postback from the ad provider.
    * @param completion A new instance of the Completion class.

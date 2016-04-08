@@ -725,6 +725,10 @@ input:invalid, select:invalid {
   box-shadow: none;
 }
 
+.hidden-field {
+  visibility: hidden !important;
+}
+
 #browser-support {
   display: none;
   position: fixed;
@@ -2344,6 +2348,180 @@ button.confirm-button {
   position: fixed;
   margin-left: -200px;
   margin-top: -65px;
+}
+
+.admin-search {
+  margin-top: 200px;
+}
+
+.distributors-list {
+  list-style: none;
+}
+
+.distributors-dropdown {
+  float: left;
+}
+
+.distributors-dropdown .dropdown-menu > .active > a, .dropdown-menu >
+.active > a:hover, .dropdown-menu > .active > a:focus {
+  background-color: #FAFAFC;
+  color: #333;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.distributors-dropdown .dropdown-menu {
+  -webkit-background-clip: initial;
+  border-radius: initial;
+  -webkit-box-shadow: initial;
+  box-shadow: none;
+  width: 300px;
+}
+
+.distributor-search {
+  width: 300px;
+  border: none;
+  border-radius: initial;
+  box-shadow: none;
+  -webkit-background-clip: initial;
+  -webkit-box-shadow: initial;
+}
+
+#morph-button {
+  width: 100px;
+  height: 50px;
+  margin-top: 3px;
+  float: left;
+}
+
+.morph-button-container {
+  display: inline-block;
+  margin-left: 121px;
+}
+
+#distributor-info {
+  float: left;
+}
+
+.distributor-search-container {
+  width: 400px;
+  margin-left: 400px;
+  padding-bottom: 50px;
+}
+
+.app-table-header-metric {
+  text-align: left;
+  float: left;
+  width: 250px;
+}
+
+.completion-table-header-metric {
+  text-align: left;
+  float: right;
+  width: 150px;
+}
+
+.app-config-refresh-field {
+  width: 50px;
+}
+
+.admin-td {
+  height: 80px;
+}
+
+.admin-update-app {
+  height: 50px;
+  width: 70px;
+  margin-right: 200px;
+}
+
+.app-table {
+  margin-left: 115px;
+  margin-top: 20px;
+}
+
+.admin-api-token-field {
+  padding-right: 20px;
+}
+
+.company-name {
+  padding-top: 10px;
+  width: 800px;
+  float: left;
+  margin-left: 5px;
+}
+
+#admin-edit-message {
+  margin-left: -220px;
+  margin-top: -165px;
+}
+
+.distributors-dropdown .typeahead-group-header {
+  font-style: italic;
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+.roles-container {
+  width: 350px;
+  margin-left: 400px;
+  padding: 10px;
+}
+
+.roles-list {
+  list-style: none;
+}
+
+.role-remove {
+  background: url(../images/close.png);
+  cursor: pointer;
+  height: 20px;
+  right: 20px;
+  top: 18px;
+  width: 18px;
+  float: left;
+  margin-top: 5px;
+  margin-left: 5px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.role-add {
+  display: inline-block;
+  cursor: pointer;
+  margin-right: 5px;
+  background: url(../images/icons.png);
+  background-position: -94px -109px;
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+  float: left;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+
+.role-name {
+  background-color: #FFFFFF;
+  width: 200px;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.role-header {
+  padding: 5px 0px 5px;
+}
+
+.completion-search-container {
+  margin-left: 400px;
+}
+
+.admin-update-container {
+  width: 100px;
+  margin-top: -10px;
+}
+
+.admin-table tbody tr td div:first-child {
+  text-align: left;
 }
 
 /*# sourceMappingURL=main.css.map */

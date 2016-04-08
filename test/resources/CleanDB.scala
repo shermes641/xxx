@@ -15,7 +15,21 @@ trait CleanDB {
     Map("db.default.url" -> sys.env.getOrElse("TEST_DATABASE_URL", "jdbc:postgresql://localhost/mediation_test?user=postgres&password=postgres"),
         "default.hikaricp.connectionTestQuery" -> "SELECT TRUE",
         "play.mailer.mock" -> "true",
-        "play.evolutions.enabled" -> "true")
+        "play.evolutions.enabled" -> "true",
+        "play.modules.enabled" -> Seq(
+          "play.api.inject.BuiltinModule",
+          "play.api.i18n.I18nModule",
+          "play.api.libs.ws.ning.NingWSModule",
+          "play.api.libs.openid.OpenIDModule",
+          "play.api.db.DBModule",
+          "play.api.db.HikariCPModule",
+          "play.api.cache.EhCacheModule",
+          "play.api.libs.mailer.MailerModule",
+          "play.api.libs.mailer.SMTPConfigurationModule",
+          "be.objectify.deadbolt.scala.DeadboltModule",
+          "modules.CustomDeadboltHook"
+        )
+    )
   }
 
   // Helper function to drop and recreate the schema for the test database.

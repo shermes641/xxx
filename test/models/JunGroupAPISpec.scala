@@ -21,7 +21,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   val appEnv = appEnvironment
   val response = mock[WSResponse]
   val junGroup = spy(new JunGroupAPI(modelService, database, ws, actorSystem, configVars, appEnvironment))
-  val testApp: App = new App(id = 1, active = true, distributorID = 1, name = "app-name", callbackURL = None, serverToServerEnabled = true, token = "app-token", platformID = 1, hmacSecret = "")
+  val testApp: App = new App(id = 1, active = true, distributorID = 1, name = "app-name", callbackURL = None, serverToServerEnabled = true, appConfigRefreshInterval = 0, token = "app-token", platformID = 1, hmacSecret = "")
   val distributorName = "Company Name"
 
   "updateHyprMarketplaceDistributorID" should {

@@ -36,6 +36,15 @@ mediationModule.config(['$routeProvider', '$locationProvider', '$httpProvider', 
     }).when('/distributor_users/reset_password', {
         controller: 'ResetPasswordController',
         templateUrl: 'assets/templates/distributor_users/reset_password.html'
+    }).when('/admin', {
+        controller: 'AdminController',
+        templateUrl: 'assets/templates/admin/admin.html'
+    }).when('/admin/manage', {
+        controller: 'RoleManagementController',
+        templateUrl: 'assets/templates/admin/manage.html'
+    }).when('/admin/completions', {
+        controller: 'CompletionsController',
+        templateUrl: 'assets/templates/admin/completions.html'
     });
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('httpErrorInterceptor');

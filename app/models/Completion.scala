@@ -3,15 +3,17 @@ package models
 import anorm._
 import hmac.{HmacConstants, HmacHashData, Signer}
 import play.api.Logger
+import java.net.URL
+import play.api.db.Database
+import anorm.SqlParser._
+import com.github.nscala_time.time.Imports._
 import play.api.Play.current
 import play.api.db.DB
 import java.net.URL
-
 import play.api.db.Database
 import play.api.libs.json._
 import play.api.libs.ws.{WSClient, WSResponse}
 import play.api.Logger
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, TimeoutException}
 import scala.language.{implicitConversions, postfixOps}
@@ -158,4 +160,3 @@ class Completion(db: Database, wsClient: WSClient, appService: AppService, signe
     }
   }
 }
-

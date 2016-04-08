@@ -1,0 +1,65 @@
+<div ng-hide="flashMessage.text() === ''" id="admin-edit-message" class="full-{{flashMessage.displayClass()}}-message">
+    {{flashMessage.text()}}
+</div>
+<div ng-include="subHeader"></div>
+
+<div id="left-content">
+    <div class="left-apps-list">
+        <h2>Administrator Links</h2>
+        <a target="_self" href="/admin/manage">Manage Roles</a><br/>
+        <a target="_self" href="/admin/completions">Search Completions</a>
+    </div>
+</div>
+
+<div class="admin-search" ng-controller="AdminController">
+    <div class="distributor-search-container">
+        <div class="distributors-dropdown">
+            <ul>
+                <li class="distributors-list" class="open">
+                    <input type="text" placeholder="Search App name, Distributor name, or API Token" ng-model="distributorInput"
+                           class="dropdown-filter input-sm form-control distributors-list distributor-search"
+                           name="filter-distributors"
+                           typeahead="name as distributorApp.name for distributorApp in getDistributorsAndApps($viewValue) | limitTo:8" typeahead-focus
+                           typeahead-on-select="selectDistributor($item)"
+                           typeahead-template-url="assets/templates/admin/distributors-drop-down.html"
+                           ng-blur="clearFilteredDistributors()"/>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div ng-class="{'hidden-field': noDistributorSelected()}" class="analytics-row row">
+        <div class="morph-button-container">
+            <button id="morph-button" type="submit" ng-click="morph()" ng-class="{'hidden-field': noDistributorSelected()}">Morph</button>
+            <h1 class="col-sm-12 waterfall-list company-name">{{distributor.name}}</h1>
+        </div>
+        <div class="col-sm-12 app-table">
+            <table class="analytics-revenue-table admin-table" cellspacing="0" id="apps-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="app-table-header-metric">App Name</div>
+                            <div class="app-table-header-metric">API Token</div>
+                            <div class="app-table-header-metric">App Config Refresh Interval (seconds)</div>
+                            <div class="app-table-header-metric">Update</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="app in apps">
+                    <td class="admin-td">
+                        <div class="app-table-header-metric">{{app.name}}</div>
+                        <div class="app-table-header-metric admin-api-token-field">{{app.token}}</div>
+                        <div class="app-table-header-metric">
+                            <input type="number" class="app-config-refresh-field" ng-model="app.app_config_refresh_interval"></input>
+                        </div>
+                        <div class="app-table-header-metric admin-update-container">
+                            <button ng-disabled="invalidRefresh(app.app_config_refresh_interval)" ng-click="updateApp(app)" class="admin-update-app" type="submit">Update</button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
