@@ -20,7 +20,9 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
   val response = mock[WSResponse]
-  val junGroup = spy(new JunGroupAPI())
+  val junGroup = running(FakeApplication(additionalConfiguration = testDB)) {
+    spy(new JunGroupAPI())
+  }
   val testApp: App = new App(id = 1,
     active = true,
     distributorID = 1,
@@ -109,6 +111,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
       payoutUrlJson \ "url" must beEqualTo(JsString(payoutUrl))
       payoutUrlJson \ "environment" must beEqualTo(JsString(Environment.mode))
+      payoutUrlJson \ "signature" must beEqualTo(junGroup.PlayerSignature)
     }
   }
 

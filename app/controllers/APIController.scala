@@ -169,16 +169,23 @@ object APIController extends Controller {
    * @param offerProfit Ad spend generated.
    * @param rewardID A unique ID to identify a virtual currency.
    * @param uid A unique ID to identify a user.
-   * @param subID A unique ID to verify the transaction.
+   * @param partnerCode A unique ID to verify the transaction (corresponds to the partner_code in Player).
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
-  def hyprMarketplaceCompletionV1(appToken: String, time: Option[String], sig: Option[String], quantity: Option[Int], offerProfit: Option[Double], rewardID: Option[String], uid: Option[String], subID: Option[String]) = Action { implicit request =>
-    (uid, sig, time, subID, quantity) match {
-      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String), Some(quantityValue: Int)) => {
-        val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
+  def hyprMarketplaceCompletionV1(appToken: String,
+                                  time: Option[String],
+                                  sig: Option[String],
+                                  quantity: Option[Int],
+                                  offerProfit: Option[Double],
+                                  rewardID: Option[String],
+                                  uid: Option[String],
+                                  partnerCode: Option[String]) = Action { implicit request =>
+    (uid, sig, time, quantity) match {
+      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(quantityValue: Int)) => {
+        val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, offerProfit, quantityValue, partnerCode)
         callbackResponse(callback, request)
       }
-      case (_, _, _, _, _) => BadRequest
+      case (_, _, _, _) => BadRequest
     }
   }
 

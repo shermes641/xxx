@@ -71,7 +71,7 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       Await.result(completion.postCallback(nonExistentCallbackURL, JsNull, verification), Duration(5000, "millis")) must beFalse
     }
   }
-  
+
   "postbackData" should {
     "include all necessary params from our server to server callback documentation" in new WithDB {
       val rewardInfo = Some(mock[AdProviderRewardInfo])
@@ -79,6 +79,11 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       val adProviderRequest = Json.obj()
       val postbackData = (new Completion).postbackData(adProviderRequest, verification)
 
+      (postbackData \ "original_postback") must beEqualTo(adProviderRequest)
+      (postbackData \ "ad_provider").as[String] must beEqualTo(verification.adProviderName)
+      (postbackData \ "reward_quantity").as[Long] must beEqualTo(verification.rewardQuantity)
+      (postbackData \ "estimated_offer_profit").as[Double] must beEqualTo(verification.offerProfit.get)
+      (postbackData \ "transaction_id").as[String] must beEqualTo(verification.transactionID)
       (postbackData \ hmac.Constants.adProviderRequest) must beEqualTo(adProviderRequest)
       (postbackData \ hmac.Constants.adProviderName).as[String] must beEqualTo(verification.adProviderName)
       (postbackData \ hmac.Constants.rewardQuantity).as[Long] must beEqualTo(verification.rewardQuantity)

@@ -1,0 +1,136 @@
+{
+  "name": "Mediation-API",
+  "scripts": {},
+  "env": {
+    "AD_COLONY_REPORTING_URL": {
+      "required": true
+    },
+    "ANDROID_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+      "required": true
+    },
+    "APP_DOMAIN": {
+      "required": true
+    },
+    "APP_LOVIN_REPORTING_URL": {
+      "required": true
+    },
+    "APPLICATION_SECRET": {
+      "required": true
+    },
+    "AUTHENTICATION_FAILURE_DELAY": {
+      "required": true
+    },
+    "ERROR_PAGE_URL": {
+      "required": true
+    },
+    "HEROKU_APP_ID": {
+      "required": true
+    },
+    "HEROKU_APP_NAME": {
+      "required": true
+    },
+    "HEROKU_PARENT_APP_NAME": {
+      "required": true
+    },
+    "HEROKU_RELEASE_VERSION": {
+      "required": true
+    },
+    "HEROKU_SLUG_COMMIT": {
+      "required": true
+    },
+    "HEROKU_SLUG_DESCRIPTION": {
+      "required": true
+    },
+    "HTTP_AUTH_PASSWORD": {
+      "required": true
+    },
+    "HYPR_MARKETPLACE_IOS_AD_PROVIDER_ID": {
+      "required": true
+    },
+    "HYPR_MARKETPLACE_ANDROID_AD_PROVIDER_ID": {
+      "required": true
+    },
+    "HYPR_MARKETPLACE_REPORTING_URL": {
+      "required": true
+    },
+    "HYPR_MARKETPLACE_TEAM_EMAIL": {
+      "required": true
+    },
+    "HYPRMEDIATE_OPS_EMAIL": {
+      "required": true
+    },
+    "IOS_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+      "required": true
+    },
+    "JAVA_OPTS": {
+      "required": true
+    },
+    "KEEN_ERROR_PROJECT": {
+      "required": true
+    },
+    "KEEN_ERROR_WRITE_KEY": {
+      "required": true
+    },
+    "KEEN_MASTER_KEY": {
+      "required": true
+    },
+    "KEEN_PROJECT": {
+      "required": true
+    },
+    "KEEN_READ_KEY": {
+      "required": true
+    },
+    "KEEN_WRITE_KEY": {
+      "required": true
+    },
+    "LATEST_BRANCH": {
+      "required": true
+    },
+    "LATEST_SHA": {
+      "required": true
+    },
+    "MAINTENANCE_PAGE_URL": {
+      "required": true
+    },
+    "PATH": {
+      "required": true
+    },
+    "PLAYER_CALLBACK_URL": {
+      "required": true
+    },
+    "PLAYER_ERROR_EMAIL": {
+      "required": true
+    },
+    "PLAYER_MEDIATION_PASSWORD": {
+      "required": true
+    },
+    "PLAYER_MEDIATION_USER": {
+      "required": true
+    },
+    "PLAYER_TOKEN": {
+      "required": true
+    },
+    "PLAYER_URL": {
+      "required": true
+    },
+    "REPO": {
+      "required": true
+    },
+    "SENDGRID_USER": {
+      "required": true
+    },
+    "SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+      "required": true
+    },
+    "STAGING": {
+      "required": true
+    }
+  },
+  "addons": [
+    "newrelic",
+    "papertrail",
+    "heroku-postgresql",
+    "sendgrid",
+    "ssl"
+  ]
+}
