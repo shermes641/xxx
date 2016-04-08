@@ -1,17 +1,15 @@
 package hmac
 
 import java.net.URLEncoder
-
 import hmac.HmacConstants._
-import models.CallbackVerificationInfo
-import models.WaterfallAdProvider.AdProviderRewardInfo
+import resources.AdProviderRequests
+import models.{AdProviderRewardInfo, CallbackVerificationInfo, Completion, ConfigVars}
 import org.specs2.mock.Mockito
-import play.api.Application
-import play.api.libs.ws.WS
+import play.api.{Application, GlobalSettings}
+import play.api.db.{Database, Databases}
+import play.api.libs.ws.ning.NingWSClient
 import play.api.mvc._
 import play.api.test._
-import resources.AdProviderRequests
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Promise}
 
@@ -22,6 +20,24 @@ import scala.concurrent.{Future, Promise}
   */
 class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderRequests with Mockito {
   sequential
+
+  val testApplication = FakeApplication(
+    withGlobal = Some(new GlobalSettings() {})
+  )
+  val signer = {
+    val appMode = mock[models.AppMode]
+    appMode.contextMode returns testApplication.mode
+    lazy val appEnv = new models.Environment(testApplication.configuration, appMode)
+    lazy val configVars = new ConfigVars(testApplication.configuration, appEnv)
+    new Signer(configVars)
+  }
+  lazy val ws = NingWSClient()
+  lazy val database: Database = {
+    Databases(
+      driver = "org.postgresql.Driver",
+      url = "jdbc:postgresql://localhost/mediation_test?user=postgres&password=postgres"
+    )
+  }
 
   val testHmacSecret: String = "test hmac secret"
   val testTransID = "78319ddc-5a67-73g0-nj9b-9hs6e0bf7d3"
@@ -41,7 +57,8 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
       offerProfit = Some(1.3),
       rewardQuantity = DefaultRewardQuantity,
       adProviderRewardInfo = None),
-    adProviderUserID = adProviderUserID))
+    adProviderUserID = adProviderUserID,
+    signer = signer))
 
   /**
     * Validate that a signed request passes using original params, and fails on changed params
@@ -57,9 +74,9 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
       val badBody = body.clone()
       badBody(50) = badBody(51)
       badBody(51) = badBody(52)
-      HmacRequestVerifier.verifyRequest(requestHeader, body, secret + "123") mustEqual false
-      HmacRequestVerifier.verifyRequest(requestHeader, badBody, secret) mustEqual false
-      HmacRequestVerifier.verifyRequest(requestHeader, body, secret)
+      HmacRequestVerifier.verifyRequest(requestHeader, body, secret + "123", signer) mustEqual false
+      HmacRequestVerifier.verifyRequest(requestHeader, badBody, secret, signer) mustEqual false
+      HmacRequestVerifier.verifyRequest(requestHeader, body, secret, signer)
     }
   }
 
@@ -74,9 +91,9 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
     */
   def validateUnsignedRequest(request: RequestHeader, body: Array[Byte], uri: String, secret: String) = {
     running(FakeApplication()) {
-      HmacRequestVerifier.verifyRequest(request, body, secret + "123") mustEqual true
-      HmacRequestVerifier.verifyRequest(request, Array[Byte](1, 2, 3), secret) mustEqual true
-      HmacRequestVerifier.verifyRequest(request, body, secret)
+      HmacRequestVerifier.verifyRequest(request, body, secret + "123", signer) mustEqual true
+      HmacRequestVerifier.verifyRequest(request, Array[Byte](1, 2, 3), secret, signer) mustEqual true
+      HmacRequestVerifier.verifyRequest(request, body, secret, signer)
     }
   }
 
@@ -92,14 +109,14 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
 
     "Accept a unsigned GET normal url" in {
       val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
-        WS.url(hostUrl + normalUri).get()
+        ws.url(hostUrl + normalUri).get()
       }
       validateUnsignedRequest(request, body, hostUrl, testHmacSecret) mustEqual true
     }
 
     "Accept a unsigned encoded GET funky url" in {
       val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
-        WS.url(s"$hostUrl/${URLEncoder.encode(funkyUri, "UTF8")}/").get()
+        ws.url(s"$hostUrl/${URLEncoder.encode(funkyUri, "UTF8")}/").get()
       }
       validateUnsignedRequest(request, body, hostUrl, testHmacSecret) mustEqual true
     }
@@ -118,9 +135,10 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
             offerProfit = Some((postbackData \ OfferProfit).as[Double]),
             rewardQuantity = (postbackData \ RewardQuantity).as[Long],
             adProviderRewardInfo = None),
-          adProviderUserID = (postbackData \ AdProviderUser).as[String]).toHash(testHmacSecret)
+          adProviderUserID = (postbackData \ AdProviderUser).as[String],
+          signer = signer).toHash(testHmacSecret)
 
-        WS.url(testUri)
+        ws.url(testUri)
           .withQueryString(Seq(("hmac", signature.get), ("version", "1.0")): _*)
           .withBody(fakePostbackData)
           .get()
@@ -142,9 +160,10 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
             offerProfit = Some((postbackData \ OfferProfit).as[Double]),
             rewardQuantity = (postbackData \ RewardQuantity).as[Long],
             adProviderRewardInfo = None),
-          adProviderUserID = (postbackData \ AdProviderUser).as[String]).toHash(testHmacSecret)
+          adProviderUserID = (postbackData \ AdProviderUser).as[String],
+          signer = signer).toHash(testHmacSecret)
 
-        WS.url(s"$hostUrl/${URLEncoder.encode(funkyUri, "UTF8")}/")
+        ws.url(s"$hostUrl/${URLEncoder.encode(funkyUri, "UTF8")}/")
           .withQueryString(Seq((QsHmac, signature.get), (QsVersionKey, QsVersionValue1_0)): _*)
           .withBody(fakePostbackData)
           .get()
@@ -157,7 +176,7 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
       var testUri = ""
       val (request, body, _) = receiveRequest { implicit app => hostUrl =>
         testUri = hostUrl + normalUri
-        WS.url(testUri).post(fakePostbackData)
+        ws.url(testUri).post(fakePostbackData)
       }
 
       validateUnsignedRequest(request, body, testUri, testHmacSecret) mustEqual true
@@ -165,7 +184,7 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
 
     "Accept a unsigned POST funky url" in {
       val (request, body, _) = receiveRequest { implicit app => hostUrl =>
-        WS.url(s"$hostUrl/${URLEncoder.encode(funkyUri, UTF8)}/").post(fakePostbackData)
+        ws.url(s"$hostUrl/${URLEncoder.encode(funkyUri, UTF8)}/").post(fakePostbackData)
       }
 
       validateUnsignedRequest(request, body, testUri, testHmacSecret) mustEqual true
@@ -186,9 +205,10 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
             offerProfit = Some((postbackData \ OfferProfit).as[Double]),
             rewardQuantity = (postbackData \ RewardQuantity).as[Long],
             adProviderRewardInfo = None),
-          adProviderUserID = (postbackData \ AdProviderUser).as[String]).toHash(testHmacSecret)
+          adProviderUserID = (postbackData \ AdProviderUser).as[String],
+          signer = signer).toHash(testHmacSecret)
 
-        WS.url(testUri)
+        ws.url(testUri)
           .withQueryString(Seq(("hmac", signature.get), ("version", "1.0")): _*)
           .post(fakePostbackData)
       }
@@ -211,9 +231,10 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
             offerProfit = Some((postbackData \ OfferProfit).as[Double]),
             rewardQuantity = (postbackData \ RewardQuantity).as[Long],
             adProviderRewardInfo = None),
-          adProviderUserID = (postbackData \ AdProviderUser).as[String]).toHash(testHmacSecret)
+          adProviderUserID = (postbackData \ AdProviderUser).as[String],
+          signer = signer).toHash(testHmacSecret)
 
-        WS.url(s"$hostUrl/${URLEncoder.encode(funkyUri, "UTF8")}/")
+        ws.url(s"$hostUrl/${URLEncoder.encode(funkyUri, "UTF8")}/")
           .withQueryString(Seq(("hmac", signature.get), ("version", "1.0")): _*)
           .post(fakePostbackData)
       }
@@ -250,6 +271,6 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with AdProviderReques
       rewardInfo)
     )
     val adProviderRequest = hyprRequest
-    HmacHashData(adProviderRequest, verification, adProviderUserID).postBackData
+    HmacHashData(adProviderRequest, verification, adProviderUserID, signer).postBackData
   }
 }

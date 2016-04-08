@@ -3,8 +3,7 @@ package models
 import anorm._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.format.DateTimeFormatter
-import play.api.db.DB
-import play.api.Play.current
+import play.api.db.Database
 import scala.util.{Failure, Success, Try}
 
 object PasswordReset {
@@ -14,13 +13,14 @@ object PasswordReset {
   /**
    * Checks if a password reset request is valid
    * @param distributorUserID The ID of the DistributorUser
-   * @param token The one-time use reset token stored in the password_resets table
-   * @return True if the token has not been used before and the request occurs within the reset window (1 hour from creation time); otherwise, False.
+   * @param token             The one-time use reset token stored in the password_resets table
+   * @param db                A shared database
+   * @return                  True if the token has not been used before and the request occurs within the reset window (1 hour from creation time); otherwise, False.
    */
-  def isValid(distributorUserID: Long, token: String): Boolean = {
+  def isValid(distributorUserID: Long, token: String, db: Database): Boolean = {
     val resetWindowMax = new DateTime(DateTimeZone.UTC)
     val resetWindowMin = resetWindowMax - ResetPasswordWindow
-    val resetList = DB.withConnection { implicit connection =>
+    val resetList = db.withConnection { implicit connection =>
       SQL(
         """
           SELECT password_resets.id FROM password_resets
@@ -33,7 +33,7 @@ object PasswordReset {
           "token" -> token,
           "reset_window_max" -> resetWindowMax.toString(dateFormatGeneration),
           "reset_window_min" -> resetWindowMin.toString(dateFormatGeneration)
-        )().map(row => row[Option[Long]]("id")).toList
+        ).as(SqlParser.long("id").*)
     }
     resetList.length == 1
   }
@@ -41,11 +41,12 @@ object PasswordReset {
   /**
    * Creates a new record in the password_resets table
    * @param distributorUserID The ID of the DistributorUser who is generating the password reset request
-   * @return The one-time use reset token
+   * @param db                A shared database
+   * @return                  The one-time use reset token
    */
-  def create(distributorUserID: Long): Option[String] = {
+  def create(distributorUserID: Long, db: Database): Option[String] = {
     Try(
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         val resetID: Option[Long] = SQL(
           """
              INSERT INTO password_resets (distributor_user_id) VALUES ({distributor_user_id})
@@ -56,7 +57,7 @@ object PasswordReset {
           """
              SELECT token from password_resets where id = {id}
           """
-        ).on("id" -> resetID)().map(row => row[Option[String]]("token")).head
+        ).on("id" -> resetID).as(SqlParser.str("token").singleOpt)
       }
     ) match {
       case Success(token) => token
@@ -67,11 +68,12 @@ object PasswordReset {
   /**
    * Completes a password reset and ensures that a token cannot be reused
    * @param distributorUserID The ID of the DistributorUser who initiated the password reset process
-   * @param token The one-time use reset token
-   * @return The number of rows updated in the password_resets table
+   * @param token             The one-time use reset token
+   * @param db                A shared database
+   * @return                  The number of rows updated in the password_resets table
    */
-  def complete(distributorUserID: Long, token: String): Long = {
-    DB.withConnection { implicit connection =>
+  def complete(distributorUserID: Long, token: String, db: Database): Long = {
+    db.withConnection { implicit connection =>
       SQL(
         """
           UPDATE password_resets SET completed = true

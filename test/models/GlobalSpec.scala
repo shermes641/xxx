@@ -1,9 +1,11 @@
 package models
 
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import play.api.Configuration
 import play.api.test.{FakeApplication, WithApplication}
 
-class GlobalSpec extends Specification {
+class GlobalSpec extends Specification with Mockito {
   sequential
 
   class ApplicationFake(additionalConfig: Map[String, _ <: Any] = Map("mode" -> play.api.Mode.Test.toString))
@@ -15,6 +17,15 @@ class GlobalSpec extends Specification {
     }
   }
 
+  val prodEnv = play.api.Environment.simple(mode = play.api.Mode.Prod)
+  val devEnv = play.api.Environment.simple(mode = play.api.Mode.Dev)
+  val testEnv = play.api.Environment.simple(mode = play.api.Mode.Test)
+
+  def appEnv(config: Configuration, env: play.api.Environment): Environment = {
+    val appMode = new AppMode(env)
+    new models.Environment(config, appMode)
+  }
+
   "Global" should {
     "Review app fails to start with bad Keen organization ID" in
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
@@ -23,8 +34,12 @@ class GlobalSpec extends Specification {
         Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
-        Environment.isReviewApp must_== true
-        Environment.TestErrorCode must_== Constants.Errors.KeenConfigError
+        val appEnvironment = appEnv(app.configuration, testEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isReviewApp must_== true
+        appEnvironment.TestErrorCode must_== Constants.Errors.KeenConfigError
       }
 
     "Review app fails to start with bad adprovider ios ID" in
@@ -34,8 +49,12 @@ class GlobalSpec extends Specification {
         Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
-        Environment.isReviewApp must_== true
-        Environment.TestErrorCode must_== Constants.Errors.AdProviderError
+        val appEnvironment = appEnv(app.configuration, testEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isReviewApp must_== true
+        appEnvironment.TestErrorCode must_== Constants.Errors.AdProviderError
       }
 
     "Review app fails to start with bad Keen organization Key" in
@@ -45,8 +64,12 @@ class GlobalSpec extends Specification {
         Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
-        Environment.isReviewApp must_== true
-        Environment.TestErrorCode must_== Constants.Errors.KeenConfigError
+        val appEnvironment = appEnv(app.configuration, testEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isReviewApp must_== true
+        appEnvironment.TestErrorCode must_== Constants.Errors.KeenConfigError
       }
 
     "Review app fails to start with bad adprovider android ID" in
@@ -56,8 +79,12 @@ class GlobalSpec extends Specification {
         Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
-        Environment.isReviewApp must_== true
-        Environment.TestErrorCode must_== Constants.Errors.AdProviderError
+        val appEnvironment = appEnv(app.configuration, testEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isReviewApp must_== true
+        appEnvironment.TestErrorCode must_== Constants.Errors.AdProviderError
       }
 
     "Staging app starts with bad Keen organization ID" in
@@ -66,9 +93,13 @@ class GlobalSpec extends Specification {
         Constants.KeenConfig.OrgID -> "123skjlkj56",
         Constants.HerokuConfigVars.AppName -> "mediation-staging"))) {
 
-        Environment.isStaging must_== true
-        Environment.isReviewApp must_== false
-        Environment.TestErrorCode must_== 0
+        val appEnvironment = appEnv(app.configuration, prodEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isStaging must_== true
+        appEnvironment.isReviewApp must_== false
+        appEnvironment.TestErrorCode must_== 0
       }
 
     "Staging app fails to start with bad adprovider ios ID" in
@@ -77,9 +108,13 @@ class GlobalSpec extends Specification {
         Constants.AdProviderConfig.IosAdProviderID -> 0,
         Constants.HerokuConfigVars.AppName -> "mediation-staging"))) {
 
-        Environment.isStaging must_== true
-        Environment.isReviewApp must_== false
-        Environment.TestErrorCode must_== Constants.Errors.AdProviderError
+        val appEnvironment = appEnv(app.configuration, prodEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isStaging must_== true
+        appEnvironment.isReviewApp must_== false
+        appEnvironment.TestErrorCode must_== Constants.Errors.AdProviderError
       }
 
     "Staging app starts with bad Keen organization Key" in
@@ -88,9 +123,13 @@ class GlobalSpec extends Specification {
         Constants.KeenConfig.OrgKey -> "123skjlkj56",
         Constants.HerokuConfigVars.AppName -> "mediation-staging"))) {
 
-        Environment.isStaging must_== true
-        Environment.isReviewApp must_== false
-        Environment.TestErrorCode must_== 0
+        val appEnvironment = appEnv(app.configuration, prodEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isStaging must_== true
+        appEnvironment.isReviewApp must_== false
+        appEnvironment.TestErrorCode must_== 0
       }
 
     "Staging app fails to start with bad adprovider android ID" in
@@ -99,9 +138,13 @@ class GlobalSpec extends Specification {
         Constants.AdProviderConfig.AndroidAdProviderID -> 0,
         Constants.HerokuConfigVars.AppName -> "mediation-staging"))) {
 
-        Environment.isStaging must_== true
-        Environment.isReviewApp must_== false
-        Environment.TestErrorCode must_== Constants.Errors.AdProviderError
+        val appEnvironment = appEnv(app.configuration, prodEnv)
+        val currentConfig = new ConfigVars(app.configuration, appEnvironment)
+        Startup.beforeStart(currentConfig, appEnvironment)
+
+        appEnvironment.isStaging must_== true
+        appEnvironment.isReviewApp must_== false
+        appEnvironment.TestErrorCode must_== Constants.Errors.AdProviderError
       }
   }
 }

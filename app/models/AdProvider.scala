@@ -2,8 +2,8 @@ package models
 
 import anorm._
 import anorm.SqlParser._
-import play.api.db.DB
-import play.api.Play.current
+import javax.inject._
+import play.api.db.Database
 import play.api.libs.json._
 import scala.language.postfixOps
 
@@ -49,12 +49,22 @@ case class UpdatableAdProvider(name: String,
                                configurable: Boolean = true,
                                defaultEcpm: Option[Double] = None) {
   require(
-    Constants.AdProvider.namePattern.findFirstIn(name) != None,
+    Constants.AdProvider.namePattern.findFirstIn(name).isDefined,
     s"Ad Provider name: $name should not contain any spaces or punctuation"
   )
 }
 
-object AdProvider extends JsonConversion with AdProviderManagement {
+/**
+  * Encapsulates functions for AdProviders
+  * @param database         A shared database
+  * @param platformInstance A shared instance of the Platform class
+  */
+@Singleton
+class AdProviderService @Inject() (database: Database, platformInstance: Platform) extends JsonConversion with AdProviderManagement {
+  override val db = database
+  override val adProvider = this
+  override val platform = platformInstance
+
   // Used to convert SQL query result into instances of the AdProvider class.
   val adProviderParser: RowParser[AdProvider] = {
     get[Long]("id") ~
@@ -75,7 +85,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     * @return A list of all AdProvider records from the database if records exist. Otherwise, returns an empty list.
     */
   def findAll: List[AdProvider] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT ad_providers.*
@@ -92,7 +102,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     * @return A list of all AdProvider records from the database if records exist. Otherwise, returns an empty list.
     */
   def findAllByPlatform(platformID: Long): List[AdProvider] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT ad_providers.*
@@ -123,7 +133,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     * @return A list of AdProvider instances if any exist.  Otherwise, returns an empty list.
     */
   def findNonIntegrated(waterfallID: Long, platformID: Long): List[AdProvider] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT name, display_name, id, configuration_data, callback_url_description, platform_id, configurable, default_ecpm
@@ -158,7 +168,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
              callbackUrlDescription: String,
              configurable: Boolean = true,
              defaultEcpm: Option[Double] = None): Option[Long] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       SQL(
         """
           INSERT INTO ad_providers (name, display_name, configuration_data, platform_id, callback_url_format, callback_url_description, configurable, default_ecpm)

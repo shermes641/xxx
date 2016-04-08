@@ -6,7 +6,8 @@ import play.api.libs.json.JsObject
 import play.api.test.Helpers._
 import play.api.test._
 
-trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
+trait WaterfallSpecSetup {
+  /*
   val (user, distributor) = running(FakeApplication(additionalConfiguration = testDB)) {
     newDistributorUser()
   }
@@ -80,4 +81,5 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
     WaterfallAdProvider.update(new WaterfallAdProvider(id, wap.waterfallID, wap.adProviderID, None, cpm, Some(true), None, configuration, false))
     WaterfallAdProvider.find(id).get
   }
+  */
 }

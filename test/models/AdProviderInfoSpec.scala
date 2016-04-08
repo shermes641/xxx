@@ -1,6 +1,5 @@
 package models
 
-import models.Waterfall.AdProviderInfo
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import resources.{SpecificationWithFixtures, WaterfallSpecSetup}

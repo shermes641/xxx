@@ -29,7 +29,8 @@ object HmacRequestVerifier {
     */
   def verifyRequest(requestHeader: RequestHeader,
                     body: Array[Byte],
-                    hmacSecret: String): Boolean = {
+                    hmacSecret: String,
+                    signer: Signer): Boolean = {
 
     // Get the expected HMAC query parameters
     Try(Map(verifyHmac -> requestHeader.getQueryString(verifyHmac).get)) match {
@@ -61,7 +62,7 @@ object HmacRequestVerifier {
             requestHeader.queryString.size match {
               case 2 =>
                 if (requestHeader.queryString.head._1.equals("hmac")) {
-                  val sig = Signer.generate(hmacSecret, body)
+                  val sig = signer.generate(hmacSecret, body)
                   requestHeader.queryString.head._2 == mutable.Buffer(sig.get)
                 } else {
                   Logger.warn(s"'hmac' missing from query string: ${requestHeader.queryString} ")

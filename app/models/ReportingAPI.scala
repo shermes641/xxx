@@ -1,11 +1,10 @@
 package models
 
 import com.github.nscala_time.time.Imports._
-import play.api.db.DB
+import play.api.db.Database
 import play.api.libs.json._
 import play.api.libs.ws._
 import play.api.Logger
-import play.api.Play.current
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -15,14 +14,17 @@ import scala.language.postfixOps
  * All reporting API classes extend this class.
  */
 abstract class ReportingAPI {
+  val db: Database
+  val wsClient: WSClient
+  val wapService: WaterfallAdProviderService
   val dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd")
   val currentTime = new DateTime(DateTimeZone.UTC)
   val BaseURL: String
   val waterfallAdProviderID: Long
   val queryString: List[(String, String)] // Params to be included in the call to the reporting API.
 
-  lazy val targetURL: WSRequestHolder = {
-    WS.url(BaseURL).withQueryString(queryString: _*)
+  lazy val targetURL: WSRequest = {
+    wsClient.url(BaseURL).withQueryString(queryString: _*)
   }
 
   /**
@@ -50,9 +52,9 @@ abstract class ReportingAPI {
    * @return If the update is successful, returns the new generation number; otherwise, None.
    */
   def updateEcpm(waterfallAdProviderID: Long, eCPM: Double) = {
-    DB.withTransaction { implicit connection =>
+    db.withTransaction { implicit connection =>
       try {
-        WaterfallAdProvider.updateEcpm(waterfallAdProviderID, eCPM)
+        wapService.updateEcpm(waterfallAdProviderID, eCPM)
       } catch {
         case error: org.postgresql.util.PSQLException => {
           connection.rollback()
@@ -70,25 +72,24 @@ abstract class ReportingAPI {
    */
   def parseResponse(waterfallAdProviderID: Long, response: WSResponse) = {
     response.status match {
-      case 200 | 304 => {
-        Json.parse(response.body) \ "results" match {
-          case _: JsUndefined => logResponseError("Encountered a parsing error", waterfallAdProviderID, response)
-          case results: JsValue if(results.as[JsArray].as[List[JsValue]].size > 0) => {
+      case 200 | 304 =>
+        (Json.parse(response.body) \ "results").toOption match {
+          case None => logResponseError("Encountered a parsing error", waterfallAdProviderID, response)
+          case Some(results) if results.as[JsArray].as[List[JsValue]].size > 0 =>
             val result = results.as[JsArray].as[List[JsValue]].last
-            result \ "ecpm" match {
-              case eCPM: JsString => {
+            (result \ "ecpm").toOption match {
+              case Some(eCPM: JsString) =>
                 updateEcpm(waterfallAdProviderID, eCPM.as[String].toDouble)
-              }
-              case eCPM: JsNumber => {
+              case Some(eCPM: JsNumber) =>
                 updateEcpm(waterfallAdProviderID, eCPM.as[Double])
-              }
-              case _ => logResponseError("ecpm key was not present in JSON response", waterfallAdProviderID, response)
+              case _ =>
+                logResponseError("ecpm key was not present in JSON response", waterfallAdProviderID, response)
             }
-          }
-          case _ => logResponseDebug("eCPM was not updated", waterfallAdProviderID, response)
+          case _ =>
+            logResponseDebug("eCPM was not updated", waterfallAdProviderID, response)
         }
-      }
-      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
+      case _ =>
+        logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
     }
   }
 

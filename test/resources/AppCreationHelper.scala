@@ -1,12 +1,19 @@
-package resources
+package models
 
-import models._
+//import models._
+import play.api.db.{Database, DB}
 import play.api.Play.current
 import play.api.db.DB
-
 import scala.util.Random
 
 trait AppCreationHelper extends WaterfallCreationHelper {
+  val appModel: AppService
+  val virtualCurrencyModel: VirtualCurrencyService
+  val waterfallModel: WaterfallService
+  val appConfigModel: AppConfigService
+  val db: Database
+  val thisPlatform: Platform
+
   /**
    * Generates an App name using random characters.
    * @return A randomly generated String
@@ -25,27 +32,27 @@ trait AppCreationHelper extends WaterfallCreationHelper {
    * @param callbackUrl  Some(url) if callback is required.
    * @return A tuple consisting of an App, VirtualCurrency, Waterfall, and AppConfig.
    */
-  def setUpApp(distributorID: Long, 
+  def setUpApp(distributorID: Long,
   appName: Option[String] = None, 
   currencyName: String = "Coins",
   exchangeRate: Long = 100, 
   rewardMin: Long = 1, 
   rewardMax: Option[Long] = None, 
   roundUp: Boolean = true, 
-  platformID: Long = Platform.Ios.PlatformID,
+  platformID: Long = thisPlatform.Ios.PlatformID,
   callbackUrl: Option[String] = None
   ): (App, Waterfall, VirtualCurrency, AppConfig) = {
     val currentApp = {
-      val id = App.create(distributorID, appName.getOrElse(randomAppName), platformID, cbUrl = callbackUrl).get
-      App.find(id).get
+      val id = appModel.create(distributorID, appName.getOrElse(randomAppName), platformID, cbUrl = callbackUrl).get
+      appModel.find(id).get
     }
     val virtualCurrency = {
-      val id = VirtualCurrency.create(currentApp.id, currencyName, exchangeRate, rewardMin, rewardMax, Some(roundUp)).get
-      VirtualCurrency.find(id).get
+      val id = virtualCurrencyModel.create(currentApp.id, currencyName, exchangeRate, rewardMin, rewardMax, Some(roundUp)).get
+      virtualCurrencyModel.find(id).get
     }
-    val currentWaterfallID = DB.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, currentApp.name) }
-    val currentWaterfall = Waterfall.find(currentWaterfallID, distributorID).get
-    val appConfig = AppConfig.findLatest(currentApp.token).get
+    val currentWaterfallID = db.withTransaction { implicit connection => createWaterfallWithConfig(currentApp.id, currentApp.name) }
+    val currentWaterfall = waterfallModel.find(currentWaterfallID, distributorID).get
+    val appConfig = appConfigModel.findLatest(currentApp.token).get
     (currentApp, currentWaterfall, virtualCurrency, appConfig)
   }
 }

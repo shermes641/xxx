@@ -1,17 +1,31 @@
 package models
 
 import org.joda.time.format.DateTimeFormat
+import play.api.db.Database
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
+import play.api.libs.ws.WSClient
 import scala.language.postfixOps
 
 /**
- * Encapsulates interactions with AdColony's reporting API.
- * @param wapID The ID of the WaterfallAdProvider to be updated.
- * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
+ * Encapsulates interactions with AdColony's reporting API
+ * @param wapID                      The ID of the WaterfallAdProvider to be updated
+ * @param configurationData          The WaterfallAdProvider's configuration data containing required params for calling the reporting API
+ * @param database                   A shared database
+ * @param waterfallAdProviderService A shared instance of the WaterfallAdProviderService class
+ * @param configVars                 Shared ENV configuration variables
+ * @param ws                         A shared web service client
  */
-case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars {
-  override val BaseURL = ConfigVarsReporting.adcolonyUrl
+case class AdColonyReportingAPI(wapID: Long,
+                                configurationData: JsValue,
+                                database: Database,
+                                waterfallAdProviderService: WaterfallAdProviderService,
+                                configVars: ConfigVars,
+                                ws: WSClient) extends ReportingAPI {
+  override val db = database
+  override val wsClient = ws
+  override val wapService = waterfallAdProviderService
+  override val BaseURL = configVars.ConfigVarsReporting.adcolonyUrl
   override val dateFormat = DateTimeFormat.forPattern("MMddyyyy")
   override val waterfallAdProviderID = wapID
 
@@ -43,8 +57,8 @@ case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends
    */
   def getZoneData(zoneID: String, apiResults: List[JsValue]): List[JsValue] = {
     apiResults.filter(result =>
-      result \ "zone_id" match {
-        case id: JsString => id.as[String].trim.equalsIgnoreCase(zoneID.trim)
+      (result \ "zone_id").toOption match {
+        case Some(id: JsString) => id.as[String].trim.equalsIgnoreCase(zoneID.trim)
         case _ => false
       }
     )
@@ -57,8 +71,8 @@ case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends
    */
   def calculateTotalImpressions(zones: List[JsValue]): Double = {
     zones.foldLeft(0L) { (total, zoneData) =>
-      val zoneImpressions: Long = zoneData \ ImpressionsKey match {
-        case count: JsNumber => count.as[Long]
+      val zoneImpressions: Long = (zoneData \ ImpressionsKey).toOption match {
+        case Some(count: JsNumber) => count.as[Long]
         case _ => 0
       }
       total + zoneImpressions
@@ -76,8 +90,8 @@ case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends
                        totalImpressions: Double,
                        response: WSResponse): Double = {
     zones.foldLeft(0.0) { (totalWeightedEcpm, zoneData) =>
-      val zoneEcpm = (zoneData \ "ecpm", zoneData \ ImpressionsKey) match {
-        case (eCPM: JsNumber, impressions: JsNumber) =>
+      val zoneEcpm = ((zoneData \ "ecpm").toOption, (zoneData \ ImpressionsKey).toOption) match {
+        case (Some(eCPM: JsNumber), Some(impressions: JsNumber)) =>
           eCPM.as[Double] * (impressions.as[Double] / totalImpressions)
         case (_, _) =>
           logResponseDebug("Could not find eCPM or impression data", waterfallAdProviderID, response)
@@ -96,10 +110,8 @@ case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends
   override def parseResponse(waterfallAdProviderID: Long, response: WSResponse): Option[Long] = {
     response.status match {
       case 200 | 304 =>
-        Json.parse(response.body) \ "results" match {
-          case _: JsUndefined =>
-            logResponseError("Encountered a parsing error", waterfallAdProviderID, response)
-          case results: JsValue if results.as[JsArray].as[List[JsValue]].size > 0 =>
+        (Json.parse(response.body) \ "results").toOption match {
+          case Some(results: JsArray) if results.as[List[JsValue]].nonEmpty =>
             val resultZones = results.as[JsArray].as[List[JsValue]]
             val relevantZones: List[JsValue] = zoneIDs.flatMap(getZoneData(_, resultZones))
             val totalImpressions: Double = calculateTotalImpressions(relevantZones)

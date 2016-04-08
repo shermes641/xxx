@@ -11,12 +11,13 @@ import scala.util.{Failure, Success, Try}
 
 /**
   * Encapsulates the logic for verifying server to server requests from Unity Ads.
-  *
   * @param appToken    The application for this callback
   * @param queryString The entire query string sent from Unity Ads
+  * @param wapService  Encapsulates all WaterfallAdProvider functions
   */
 case class UnityAdsCallback(appToken: String,
-                            queryString: Map[String, Seq[String]]) extends CallbackVerificationHelper with Controller {
+                            queryString: Map[String, Seq[String]],
+                            wapService: WaterfallAdProviderService) extends CallbackVerificationHelper with Controller {
 
   final val algo = "HmacMD5"
   final val BadSigningResult = Constants.NoValue
@@ -26,6 +27,7 @@ case class UnityAdsCallback(appToken: String,
 
   val transactionID = queryString.getOrElse(TransactionKey, Seq(Constants.NoValue)).head
 
+  override val waterfallAdProviderService = wapService
   override val adProviderName = Constants.UnityAds.Name
   override val token = appToken
   override val adProviderUserID = queryString.getOrElse(AdProviderUserIDKey, Seq(Constants.NoValue)).head

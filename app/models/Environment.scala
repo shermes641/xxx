@@ -1,9 +1,10 @@
 package models
 
-import play.api.Play
+import javax.inject.Inject
+import play.api.Configuration
 
 //TODO due to using before application start, during testing we can not use "extends ConfigVars" here
-object Environment {
+class Environment @Inject() (environmentConfig: Configuration, appMode: AppMode) {
 
   // used for testing Global.scala
   var TestErrorCode = 0
@@ -13,7 +14,7 @@ object Environment {
     *
     * @return True if the app is running in production mode; otherwise, False.
     */
-  def isInProdMode: Boolean = play.api.Play.isProd(play.api.Play.current)
+  def isInProdMode: Boolean = play.api.Mode.Prod == appMode.contextMode
 
   /**
     * Reads STAGING ENV variable.
@@ -22,7 +23,7 @@ object Environment {
     */
   def stagingEnvSetting: Option[String] = {
     // Can not use ConfigVars.staging due to testing restrictions
-    val staging = Play.current.configuration.getString(Constants.AppConfig.Staging).getOrElse("")
+    val staging = environmentConfig.getString(Constants.AppConfig.Staging).getOrElse("")
     if (staging != "") Some(staging) else None
   }
 
@@ -62,14 +63,14 @@ object Environment {
     *
     * @return True if the app is in test mode; otherwise, False.
     */
-  def isTest: Boolean = play.api.Play.isTest(play.api.Play.current)
+  def isTest: Boolean = play.api.Mode.Test == appMode.contextMode
 
   /**
     * Checks if the app is running in development mode.
     *
     * @return True if the app is running in development mode; otherwise, False.
     */
-  def isDev: Boolean = play.api.Play.isDev(play.api.Play.current)
+  def isDev: Boolean = play.api.Mode.Dev == appMode.contextMode
 
   /**
     * Checks current environment and returns the type as a String using the Rails environment naming convention.
@@ -77,10 +78,10 @@ object Environment {
     * @return A String indicating the environment type.
     */
   def mode: String = {
-    play.api.Play.mode(play.api.Play.current).toString match {
-      case "Prod" if isStaging => "staging"
-      case "Prod" if isProd => "production"
-      case "Test" => "test"
+    appMode.contextMode match {
+      case play.api.Mode.Prod if isStaging => "staging"
+      case play.api.Mode.Prod if isProd => "production"
+      case play.api.Mode.Test => "test"
       case _ => "development"
     }
   }
@@ -91,8 +92,8 @@ object Environment {
     * @return true if this is a review app
     */
   def isReviewApp: Boolean = {
-    val ParentName  = Play.current.configuration.getString(Constants.HerokuConfigVars.ParentName).getOrElse("")
-    val AppName     = Play.current.configuration.getString(Constants.HerokuConfigVars.AppName).get
+    val ParentName  = environmentConfig.getString(Constants.HerokuConfigVars.ParentName).getOrElse("")
+    val AppName     = environmentConfig.getString(Constants.HerokuConfigVars.AppName).get
     ParentName != "" &&
       ParentName.length < AppName.length &&
       AppName.contains("-pr-")

@@ -1,15 +1,31 @@
 package controllers
 
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
+import javax.inject._
 import models._
-import play.api.libs.concurrent.Akka
+import play.api.db.Database
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.Play.current
 
-/** Controller for models.DistributorUser instances. */
-object DistributorUsersController extends Controller with Secured with CustomFormValidation with ConfigVars {
+/**
+  * Controller for all DistributorUser actions
+  * @param actorSystem A shared Akka actor system
+  * @param models      Helper class containing dependency-injected instances of service classes
+  * @param configVars  Shared ENV config variables
+  * @param mailer      A shared instance of the Mailer class
+  * @param db          A shared database
+  */
+@Singleton
+class DistributorUsersController @Inject() (actorSystem: ActorSystem,
+                                            models: ModelService,
+                                            configVars: ConfigVars,
+                                            mailer: Mailer,
+                                            db: Database) extends Controller with Secured with CustomFormValidation {
+  lazy val emailActor = actorSystem.actorOf(Props(new WelcomeEmailActor(mailer, configVars)))
+  val distributorUserService = models.distributorUserService
+  override val authUser = distributorUserService // Used in Secured trait
+
   implicit val signupReads: Reads[Signup] = (
     (JsPath \ "company").read[String] and
     (JsPath \ "email").read[String] and
@@ -20,25 +36,25 @@ object DistributorUsersController extends Controller with Secured with CustomFor
 
   /**
    * Creates a new DistributorUser in the database.
+ *
    * @return Responds with 201 when DistributorUser is properly persisted and redirects to the login page if the email is already taken.
    */
   def create = Action { implicit request =>
     request.body.asJson.map { json =>
       json.validate[Signup].map { signup =>
-        DistributorUser.create(signup.email, signup.password, signup.company) match {
+        distributorUserService.create(signup.email, signup.password, signup.company) match {
           case Some(id: Long) => {
-            val emailActor = Akka.system.actorOf(Props(new WelcomeEmailActor))
             val userIPAddress: String = request.headers.get("X-Forwarded-For") match {
               case Some(ip: String) => ip
               case None => request.remoteAddress
             }
             emailActor ! sendUserCreationEmail(signup.email, signup.company, userIPAddress)
-            DistributorUser.find(id) match {
+            distributorUserService.find(id) match {
               case Some(user: DistributorUser) => {
                 Ok(Json.obj("status" -> "success", "distributorID" -> user.distributorID.get.toString)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString)
               }
               case None => {
-                BadRequest(Json.obj("status" -> "error", "message" -> "Something went wrong. Please try logging in again."))
+                BadRequest(Json.obj("status" -> "error", "message" -> "Something went wrong. Please try signing up again."))
               }
             }
           }
@@ -47,7 +63,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           }
         }
       }.recoverTotal {
-        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toJson(error)))
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
@@ -55,12 +71,13 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   }
 
   /**
-   * Renders form to create a new DistributorUser.
+   * Renders form to create a new distributorUsersGlobal.
+ *
    * @return Form for sign up
    */
   def signup = Action { implicit request =>
     request.session.get("username").map { user =>
-      val currentUser = DistributorUser.findByEmail(user).get
+      val currentUser = distributorUserService.findByEmail(user).get
       Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None))
     }.getOrElse {
       Ok(views.html.DistributorUsers.signup())
@@ -69,11 +86,12 @@ object DistributorUsersController extends Controller with Secured with CustomFor
 
   /**
    * Renders form for DistributorUser log in.
+ *
    * @return Log in form
    */
   def login(recentlyLoggedOut: Option[Boolean]) = Action { implicit request =>
     request.session.get("username").map { user =>
-      DistributorUser.findByEmail(user) match {
+      distributorUserService.findByEmail(user) match {
         case Some(currentUser) => {
           Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None))
         }
@@ -93,14 +111,15 @@ object DistributorUsersController extends Controller with Secured with CustomFor
 
   /**
    * Authenticates DistributorUser and creates a new session.
+ *
    * @return Redirect to Application index if successful and stay on log in page otherwise.
    */
   def authenticate = Action { implicit request =>
     request.body.asJson.map { json =>
       json.validate[Login].map { user =>
-        DistributorUser.findByEmail(user.email) match {
+        distributorUserService.findByEmail(user.email) match {
           case Some(currentUser) => {
-            DistributorUser.checkPassword(user.email, user.password) match {
+            distributorUserService.checkPassword(user.email, user.password) match {
               case true => {
                 Redirect(routes.AnalyticsController.show(currentUser.distributorID.get, None, None)).withSession(Security.username -> user.email, "distributorID" -> currentUser.distributorID.get.toString())
               }
@@ -114,7 +133,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           }
         }
       }.recoverTotal {
-        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toJson(error)))
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
@@ -123,6 +142,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
 
   /**
    * Logs out DistributorUser and ends session.
+ *
    * @return Redirects to Application index.
    */
   def logout = Action {
@@ -136,7 +156,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
     Ok(views.html.DistributorUsers.forgot_password())
   }
 
-  lazy val resetPasswordActor = Akka.system.actorOf(Props(new PasswordResetActor))
+  lazy val resetPasswordActor = actorSystem.actorOf(Props(new PasswordResetActor(mailer, db, configVars)))
 
   /**
    * Accepts request from reset password email page and sends the user an email
@@ -145,7 +165,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
     request.body.asJson.map { json =>
       (json \ "email").validate[String] match {
         case email: JsSuccess[String] => {
-          DistributorUser.findByEmail(email.get) match {
+          distributorUserService.findByEmail(email.get) match {
             case Some(currentUser: DistributorUser) => {
               resetPasswordActor ! currentUser
               Ok(Json.obj("status" -> "success", "message" -> "Password reset email sent!"))
@@ -164,16 +184,6 @@ object DistributorUsersController extends Controller with Secured with CustomFor
     }
   }
 
-  /**
-   * Encapsulates all necessary info for resetting a user's password
-   * @param email The email of the DistributorUser
-   * @param distributorUserID The ID of the DistributorUser
-   * @param token The one-time use token stored in the password_resets table
-   * @param password The updated password
-   * @param passwordConfirmation The confirmation of the updated password
-   */
-  case class PasswordUpdate(email: String, distributorUserID: Long, token: String, password: String, passwordConfirmation: String)
-
   implicit val passwordUpdateReads: Reads[PasswordUpdate] = (
     (JsPath \ "email").read[String] and
     (JsPath \ "distributor_user_id").read[Long] and
@@ -188,14 +198,14 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def updatePassword() = Action { implicit request =>
     request.body.asJson.map { json =>
       json.validate[PasswordUpdate].map { passwordUpdate =>
-        if(PasswordReset.isValid(passwordUpdate.distributorUserID, passwordUpdate.token)) {
-          DistributorUser.findByEmail(passwordUpdate.email) match {
+        if(PasswordReset.isValid(passwordUpdate.distributorUserID, passwordUpdate.token, db)) {
+          distributorUserService.findByEmail(passwordUpdate.email) match {
             case Some(user) => {
-              DistributorUser.updatePassword(passwordUpdate) match {
+              distributorUserService.updatePassword(passwordUpdate) match {
                 case 1 => {
-                  PasswordReset.complete(user.id.get, passwordUpdate.token)
+                  PasswordReset.complete(user.id.get, passwordUpdate.token, db)
                   resetPasswordActor ! user.email // Send followup email to alert user of password change
-                  Redirect(routes.AnalyticsController.show(user.distributorID.get, None, None)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString())
+                  Redirect(routes.AnalyticsController.show(user.distributorID.get, None, None)).withSession(Security.username -> user.email, "distributorID" -> user.distributorID.get.toString)
                 }
                 case _ => {
                   BadRequest(Json.obj("status" -> "error", "message" -> "Password could not be updated."))
@@ -208,7 +218,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           BadRequest(Json.obj("status" -> "error", "message" -> "Your password reset link has expired. Please generate a new password reset request."))
         }
       }.recoverTotal {
-        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toJson(error)))
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
@@ -217,6 +227,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
 
   /**
    * Renders the page to update a user's password
+ *
    * @param userEmail The DistributorUsers's email
    * @param resetToken The one-time use token stored in the password_resets table
    * @param distributorUserID The ID of the DistributorUser
@@ -225,8 +236,8 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   def resetPassword(userEmail: Option[String], resetToken: Option[String], distributorUserID: Option[Long]) = Action { implicit request =>
     (userEmail, resetToken, distributorUserID) match {
       case (Some(email), Some(token), Some(distributorUserIDVal)) => {
-        DistributorUser.findByEmail(email) match {
-          case Some(user) if(PasswordReset.isValid(distributorUserIDVal, token)) => {
+        distributorUserService.findByEmail(email) match {
+          case Some(user) if PasswordReset.isValid(distributorUserIDVal, token, db) => {
             Ok(views.html.DistributorUsers.reset_password())
           }
           case _ => Redirect(routes.Application.notFound())
@@ -239,12 +250,13 @@ object DistributorUsersController extends Controller with Secured with CustomFor
   /**
    * Delays response before rendering a view to discourage brute force attacks.
    * This is used for failures on the sign up or sign in actions.
+ *
    * @param errorMessage The error message to be displayed in the login form.
    * @param fieldName The name of the field under which the error message will be displayed.
    * @return a 400 response and render a form with errors.
    */
   def delayedResponse(errorMessage: String, fieldName: String): Result = {
-    val delayValue: Long = ConfigVarsApp.authFailureDelayMs
+    val delayValue: Long = configVars.ConfigVarsApp.authFailureDelayMs
     Thread.sleep(delayValue)
     BadRequest(Json.obj("status" -> "error", "message" -> errorMessage, "fieldName" -> fieldName))
   }
@@ -269,6 +281,8 @@ case class Login(email: String, password: String)
 
 /** Handles authentication for DistributorUsers. */
 trait Secured {
+  // Override this value with the injected dependency from your controller
+  val authUser: DistributorUserService
   /**
    * Retrieves username for DistributorUser.
    * @param request Current request
@@ -296,7 +310,7 @@ trait Secured {
           case Some(ctrlDistID) => {
             request.session.get("distributorID") match {
               // Check if Distributor ID from session matches the ID passed from the controller
-              case Some(sessionDistID) if (sessionDistID == ctrlDistID.toString()) => {
+              case Some(sessionDistID) if sessionDistID == ctrlDistID.toString => {
                 controllerAction(user)(request)
               }
               case _ => Results.Redirect(routes.DistributorUsersController.login(None))
@@ -314,10 +328,20 @@ trait Secured {
    * @return If DistributorUser is found, continue request.  Otherwise, redirect to log in page.
    */
   def withUser(controllerAction: DistributorUser => Request[AnyContent] => Result ): EssentialAction = withAuth(None) { email => implicit request =>
-    val optionalUser = DistributorUser.findByEmail(email)
+    val optionalUser = authUser.findByEmail(email)
     optionalUser match {
       case Some(user) => controllerAction(user)(request)
       case None => onUnauthorized(request)
     }
   }
 }
+
+/**
+ * Encapsulates all necessary info for resetting a user's password
+ * @param email The email of the DistributorUser
+ * @param distributorUserID The ID of the DistributorUser
+ * @param token The one-time use token stored in the password_resets table
+ * @param password The updated password
+ * @param passwordConfirmation The confirmation of the updated password
+ */
+case class PasswordUpdate(email: String, distributorUserID: Long, token: String, password: String, passwordConfirmation: String)

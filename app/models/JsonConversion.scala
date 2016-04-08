@@ -9,7 +9,7 @@ trait JsonConversion {
    * Converts configuration_data field to JSON.
    * @return JSON value with configuration data.
    */
-  implicit def rowToJsValue: Column[JsValue] = Column.nonNull { (value, meta) =>
+  implicit def rowToJsValue: Column[JsValue] = Column.nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case pgo: org.postgresql.util.PGobject => Right(Json.parse(pgo.getValue))

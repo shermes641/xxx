@@ -2,7 +2,7 @@ name := "MediationApi"
 
 version := "1.0-SNAPSHOT"
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.8"
 
 scalacOptions ++= Seq("-feature") // show feature warnings in console
 
@@ -25,8 +25,6 @@ lazy val root = (project in file("."))
   .configs(HmacTest).settings(inConfig(HmacTest)(Defaults.testTasks): _*)
   .configs(UnitTest).settings(inConfig(UnitTest)(Defaults.testTasks): _*)
   .configs(NoKeenTest).settings(inConfig(NoKeenTest)(Defaults.testTasks): _*)
-
-javaOptions in Test += "-Dconfig.file=conf/test.conf"
 
 lazy val TaskTest = config("task") extend Test
 lazy val ItTest = config("it") extend Test
@@ -134,29 +132,34 @@ logLevel in UnitTest := Level.Info
 logLevel in NoKeenTest := Level.Info
 
 libraryDependencies ++= Seq(
-  jdbc,
-  anorm,
+  "com.typesafe.play" %% "anorm" % "2.4.0",
   cache,
-  ws,
-  "org.postgresql" % "postgresql" % "9.3-1100-jdbc4",
-  "com.typesafe.play.plugins" %% "play-plugins-mailer" % "2.3.1",
-  "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
-  "org.clapper" %% "grizzled-slf4j" % "1.0.2",
-  "io.spray" %% "spray-can" % "1.3.1",
-  "io.spray" %% "spray-routing" % "1.3.1",
-  "com.github.nscala-time" %% "nscala-time" % "1.8.0",
-  "org.seleniumhq.selenium" % "selenium-java" % "2.48.2" % "test",
-  "org.specs2" %% "specs2-junit" % "2.3.12",
+  evolutions,
+  "org.clapper" %% "grizzled-slf4j" % "1.0.4",
+  jdbc,
+  "ch.qos.logback" % "logback-classic" % "1.1.2",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.2",
   "com.newrelic.agent.java" % "newrelic-agent" % "3.14.0",
   "com.newrelic.agent.java" % "newrelic-api" % "3.14.0",
-  "org.mockito" % "mockito-core" % "1.9.5" % "test",
-  "com.typesafe.akka" %% "akka-testkit" % "2.3.6" % "test",
+  "com.github.nscala-time" %% "nscala-time" % "1.8.0",
+  "com.typesafe.play" %% "play-mailer" % "4.0.0",
+  "org.postgresql" % "postgresql" % "9.4.1208.jre7",
+  "com.github.t3hnar" %% "scala-bcrypt" % "2.4",
+  "org.scala-lang" % "scala-compiler" % "2.11.8",
   "com.github.tototoshi" %% "scala-csv" % "1.1.2",
-  "org.scala-lang" % "scala-compiler" % "2.11.1",
-  "org.scalatestplus" % "play_2.11" % "1.5.0-SNAP1",
-  "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
-  "io.spray" %% "spray-testkit" % "1.3.2" % "test",
-  "org.apache.httpcomponents" % "httpclient" % "4.5.2"
+  "org.scala-lang" % "scala-library" % "2.11.8",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
+  "com.netaporter" %% "scala-uri" % "0.4.14",
+  ws,
+  // Test only dependencies
+  "com.typesafe.akka" %% "akka-slf4j" % "2.4.4" % "test",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.4" % "test",
+  "org.mockito" % "mockito-core" % "1.10.19" % "test",
+  "org.scalatestplus" %% "play" % "1.4.0" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.13.1" % "test",
+  "org.scalatest" %% "scalatest" % "3.0.0-M16-SNAP6" % "test",
+  "org.seleniumhq.selenium" % "selenium-java" % "2.48.2" % "test",
+  specs2 % Test
 )
 
 //TODO normally you would set this for all tests
@@ -176,3 +179,9 @@ coverageExcludedPackages := ".*AppLovinReportingActor;.*KeenExportActor;.*Revenu
   ".*edit;.*emailTemplate;.*forgot_password;.*formErrors;.*not_found;.*passwordChangedEmail;.*CustomFormValidation;.*passwordResetEmailContent;" +
   ".*Application;.*HTTP.*;.*Regenerate.*;" +
   ".*login.*;.*reset_password.*;.*signup.*;.*newApp.*;.*show.*"
+
+resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+
+routesGenerator := InjectedRoutesGenerator
+
+javaOptions in Test +="-Dconfig.file=conf/test.conf"

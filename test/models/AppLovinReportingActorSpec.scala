@@ -9,6 +9,7 @@ import resources.SpecificationWithFixtures
 
 import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class AppLovinReportingActorSpec extends SpecificationWithFixtures with Mockito {
@@ -34,7 +35,7 @@ class AppLovinReportingActorSpec extends SpecificationWithFixtures with Mockito 
     "process each WaterfallAdProvider API call in order" in new WithDB {
       val appLovinActor = Akka.system(current).actorOf(Props(new AppLovinReportingActor))
       val configurationData = Json.obj("requiredParams" -> Json.obj(), "reportingParams" -> Json.obj("APIKey" -> JsString("some API Key"), "appName" -> JsString("some App Name")))
-      val apiCalls = List.fill(3)(spy(AppLovinReportingAPI(1, configurationData)))
+      val apiCalls = List.fill(3)(spy(AppLovinReportingAPI(1, configurationData, database, waterfallAdProviderService, configVars, ws)))
       var completedCalls = new ListBuffer[AppLovinReportingAPI]()
       def fakeUpdateRevenue(apiCall: AppLovinReportingAPI) = {
         completedCalls += apiCall

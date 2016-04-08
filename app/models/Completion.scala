@@ -1,14 +1,16 @@
 package models
 
-import java.net.URL
-
 import anorm._
-import hmac.{HmacConstants, HmacHashData}
+import hmac.{HmacConstants, HmacHashData, Signer}
 import play.api.Logger
 import play.api.Play.current
 import play.api.db.DB
+import java.net.URL
+
+import play.api.db.Database
 import play.api.libs.json._
-import play.api.libs.ws.{WS, WSResponse}
+import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, TimeoutException}
@@ -16,24 +18,25 @@ import scala.language.{implicitConversions, postfixOps}
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Encapsulates information pertaining to a successful server to server callback.
-  */
-class Completion extends JsonConversion {
+ * Encapsulates information pertaining to a successful server to server callback.
+ * @param db       A shared database
+ * @param wsClient The client used for all web service calls
+ */
+class Completion(db: Database, wsClient: WSClient, appService: AppService, signer: Signer) extends JsonConversion {
   /**
-    * Creates a new record in the completions table.
-    *
-    * @param appToken          The token for the App to which the completion belongs.
-    * @param adProviderName    The name of the ad provider to which the completion belongs.
-    * @param transactionID     A unique ID that verifies a completion.
-    * @param offerProfit       The estimated revenue earned by a Distributor for a Completion. In the case of HyprMarketplace, this value is passed to us in the server to server callback.
-    * @param rewardQuantity    The amount to reward the user.  This is calculated based on cpm of the WaterfallAdProvider and the VirtualCurrency information on the server at the time the callback is received.
-    *                          This can differ from the reward calculated by the SDK and the reward quantity passed to us from the ad provider in the server to server callback.
-    * @param generationNumber  The generationNumber from the latest AppConfig at the time the server to server callback is received.
-    * @param adProviderRequest The original server to server request from the Ad Provider.
-    * @return The ID of the new completion record if the insertion succeeds; otherwise, returns None.
-    */
+   * Creates a new record in the completions table.
+   * @param appToken The token for the App to which the completion belongs.
+   * @param adProviderName The name of the ad provider to which the completion belongs.
+   * @param transactionID A unique ID that verifies a completion.
+   * @param offerProfit The estimated revenue earned by a Distributor for a Completion. In the case of HyprMarketplace, this value is passed to us in the server to server callback.
+   * @param rewardQuantity The amount to reward the user.  This is calculated based on cpm of the WaterfallAdProvider and the VirtualCurrency information on the server at the time the callback is received.
+   *                       This can differ from the reward calculated by the SDK and the reward quantity passed to us from the ad provider in the server to server callback.
+   * @param generationNumber The generationNumber from the latest AppConfig at the time the server to server callback is received.
+   * @param adProviderRequest The original server to server request from the Ad Provider.
+   * @return The ID of the new completion record if the insertion succeeds; otherwise, returns None.
+   */
   private def create(appToken: String, adProviderName: String, transactionID: String, offerProfit: Option[Double], rewardQuantity: Long, generationNumber: Option[Long], adProviderRequest: JsValue): Option[Long] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       try {
         SQL(
           """
@@ -66,7 +69,7 @@ class Completion extends JsonConversion {
       case Some(id: Long) =>
         verificationInfo.serverToServerEnabled match {
           case true =>
-            postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, App.findHmacSecretByToken(verificationInfo.appToken).getOrElse(Constants.NoValue))
+            postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, appService.findHmacSecretByToken(verificationInfo.appToken).getOrElse(Constants.NoValue))
 
           case _ =>
             Logger.debug(s"""Server to Server callbacks not enabled url: '${verificationInfo.callbackURL.getOrElse(Constants.NoValue)}'""")
@@ -99,7 +102,7 @@ class Completion extends JsonConversion {
       case Some(url: String) =>
         Try(new URL(url)) match {
           case Success(uri) =>
-            val hmacData = HmacHashData(adProviderRequest, verificationInfo, adProviderUserID)
+            val hmacData = HmacHashData(adProviderRequest, verificationInfo, adProviderUserID, signer)
 
             Logger.info(s"hmacData:\n'${hmacData.postBackData.toString}'")
 
@@ -149,9 +152,9 @@ class Completion extends JsonConversion {
   def sendPost(url: String, data: JsValue, signature: Option[String]): Future[WSResponse] = {
     signature match {
       case Some(sig) =>
-        WS.url(url).withQueryString(Seq((HmacConstants.QsHmac, sig),(HmacConstants.QsVersionKey, HmacConstants.QsVersionValue1_0)): _*).post(data)
+        wsClient.url(url).withQueryString(Seq((HmacConstants.QsHmac, sig),(HmacConstants.QsVersionKey, HmacConstants.QsVersionValue1_0)): _*).post(data)
       case _ =>
-        WS.url(url).post(data)
+        wsClient.url(url).post(data)
     }
   }
 }

@@ -11,18 +11,21 @@ import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])
 class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
-  val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
-    Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-    WaterfallAdProvider.find(waterfallAdProviderID1).get
+  val waterfallAdProvider1 = running(testApplication) {
+    val waterfallAdProviderID1 = waterfallAdProviderService.create(waterfall.id, adProviderID1.get, None, None, true, true).get
+    waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+    waterfallAdProviderService.find(waterfallAdProviderID1).get
   }
 
   val api = {
     // Define a test class to extend and test the abstract class, ReportingAPI
     class TestAPI extends ReportingAPI {
+      override val wsClient = ws
       override val BaseURL = "some url"
       override val waterfallAdProviderID: Long = 0
       override val queryString = List()
+      override val wapService = waterfallAdProviderService
+      override val db = database
     }
     new TestAPI
   }
@@ -31,10 +34,10 @@ class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup
     "return the new generation number if the WaterfallAdProvider is successfully updated" in new WithDB {
       val newEcpm = 10.00
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm
       val newGeneration = originalGeneration + 1
       api.updateEcpm(waterfallAdProvider1.id, newEcpm)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(newGeneration)
     }
   }
@@ -47,10 +50,10 @@ class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup
       response.body returns statsJson.toString
       response.status returns 200
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm
       val newGeneration = originalGeneration + 1
       api.parseResponse(waterfallAdProvider1.id, response)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(newGeneration)
     }
 
@@ -61,10 +64,10 @@ class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup
       response.body returns statsJson.toString
       response.status returns 200
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm
       val newGeneration = originalGeneration + 1
       api.parseResponse(waterfallAdProvider1.id, response)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(newGeneration)
     }
 
@@ -75,9 +78,9 @@ class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup
       response.body returns statsJson.toString
       response.status returns 400
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       api.parseResponse(waterfallAdProvider1.id, response)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -88,9 +91,9 @@ class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup
       response.body returns statsJson.toString
       response.status returns 200
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       api.parseResponse(waterfallAdProvider1.id, response)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -101,9 +104,9 @@ class ReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup
       response.body returns statsJson.toString
       response.status returns 200
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       api.parseResponse(waterfallAdProvider1.id, response)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
   }

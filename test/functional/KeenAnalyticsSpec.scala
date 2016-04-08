@@ -1,37 +1,37 @@
 package functional
 
 import models._
-import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import resources.SpecificationWithFixtures
 
 class KeenAnalyticsSpec extends SpecificationWithFixtures {
-
   // Load AdProviders required for tests
-  running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(
+  running(testApplication) {
+    val unityAdsName = "UnityAds"
+    val unityAdsDisplayName = "Unity Ads"
+    adProviderService.create(
       name = Constants.UnityAds.Name,
       displayName = Constants.UnityAds.DisplayName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Unity Ads GAME Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
-      platformID = Platform.Ios.PlatformID,
+      platformID = testPlatform.Ios.PlatformID,
       callbackUrlFormat = None,
       callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(Constants.UnityAds.DisplayName)
     )
 
     val vungleName = "Vungle"
-    AdProvider.create(
-      name = vungleName,
+    adProviderService.create(
+      name = "Vungle",
       displayName = vungleName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
-      platformID = Platform.Ios.PlatformID,
+      platformID = testPlatform.Ios.PlatformID,
       callbackUrlFormat = None,
       callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(vungleName)
     )
   }
 
-  val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
-    DistributorUser.create(email, password, "Company Name")
-    DistributorUser.findByEmail(email).get
+  val distributorUser = running(testApplication) {
+    distributorUserService.create(email, password, "Company Name")
+    distributorUserService.findByEmail(email).get
   }
 
   val distributorID = distributorUser.distributorID.get

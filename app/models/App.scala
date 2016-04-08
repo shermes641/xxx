@@ -2,9 +2,9 @@ package models
 
 import anorm._
 import anorm.SqlParser._
-import play.api.db.DB
+import javax.inject._
+import play.api.db.Database
 import play.api.Logger
-import play.api.Play.current
 import java.sql.Connection
 import scala.language.postfixOps
 
@@ -103,22 +103,14 @@ case class AppWithVirtualCurrency(apiToken: String,
                                   generationNumber: Option[Long],
                                   hmacSecret: String)
 
-object App {
-  // Used to convert SQL row into an instance of the App class.
-  val AppParser: RowParser[App] = {
-    get[Long]("apps.id") ~
-      get[Boolean]("apps.active") ~
-      get[Long]("apps.distributor_id") ~
-      get[String]("apps.name") ~
-      get[Option[String]]("apps.callback_url") ~
-      get[Boolean]("apps.server_to_server_enabled") ~
-      get[Long]("apps.platform_id") ~
-      get[String]("apps.token") ~
-      get[String]("apps.hmac_secret") map {
-      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ platform_id ~ token ~ hmacSecret =>
-        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token, platform_id, hmacSecret)
-    }
-  }
+/**
+  * Encapsulates functions for Apps
+  * @param appConfigService A shared instance of the AppConfigService class
+  * @param db               A shared database
+  */
+@Singleton
+class AppService @Inject() (appConfigService: AppConfigService, db: Database) extends WaterfallFind {
+  val database = db
 
   // Used to convert SQL row into an instance of the App class.
   val AppsWithWaterfallsParser: RowParser[AppWithWaterfallID] = {
@@ -180,7 +172,7 @@ object App {
     * @return An instance of the AppWithVirtualCurrency class if the app ID is found; otherwise, None.
     */
   def findAppWithVirtualCurrency(appID: Long, distributorID: Long): Option[AppWithVirtualCurrency] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.token, apps.active, apps.name, apps.callback_url, apps.server_to_server_enabled, platforms.name,
@@ -208,7 +200,7 @@ object App {
     * @return List of App instances
     */
   def findAllAppsWithWaterfalls(distributorID: Long): List[AppWithWaterfallID] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*, platforms.name, waterfalls.id as waterfall_id
@@ -230,7 +222,7 @@ object App {
     * @return List of App instances
     */
   def findAppWithWaterfalls(appID: Long, distributorID: Long): Option[AppWithWaterfallID] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*, platforms.name, waterfalls.id as waterfall_id
@@ -254,7 +246,7 @@ object App {
     * @return List of App instances
     */
   def findAll(distributorID: Long): List[App] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.*
@@ -289,11 +281,13 @@ object App {
     * @return None if app not found, otherwise the hmac secret for the App.
     */
   def findHmacSecretByToken(token: String): Option[String] = {
-    DB.withConnection { implicit connection =>
-      val result = SQL(""" SELECT hmac_secret as hmacSecret FROM apps WHERE token = {token}; """).on("token" -> token).apply()
+    db.withConnection { implicit connection =>
+      val result: List[String] = SQL(""" SELECT hmac_secret as hmacSecret FROM apps WHERE token = {token}; """)
+        .on("token" -> token)
+        .as(SqlParser.str("hmacSecret").*)
       result.length match {
         case 0 => None
-        case _ => Some(result.head[String]("hmacSecret"))
+        case _ => Some(result.head)
       }
     }
   }
@@ -305,7 +299,7 @@ object App {
     * @return App instance if one exists; otherwise, None.
     */
   def find(appID: Long): Option[App] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       findSQL(appID).as(AppParser *) match {
         case List(app) => Some(app)
         case _ => None
@@ -327,42 +321,24 @@ object App {
   }
 
   /**
-    * Finds the App which owns the Waterfall ID.
-    *
-    * @param waterfallID The ID of the Waterfall owned by the App.
-    * @return An instance of the App class, if one exists; otherwise, None.
-    */
-  def findByWaterfallID(waterfallID: Long): Option[App] = {
-    DB.withConnection { implicit connection =>
-      val query = SQL(
-        """
-          SELECT apps.*
-          FROM waterfalls
-          JOIN apps ON apps.id = waterfalls.app_id
-          WHERE waterfalls.id = {id};
-        """
-      ).on("id" -> waterfallID)
-      query.as(AppParser *) match {
-        case List(app) => Some(app)
-        case _ => None
-      }
-    }
-  }
-
-  /**
-    * SQL statement that updates the fields for a particular record in apps table.
-    *
-    * @param app UpdatableApp instance with updated attributes
-    * @return SQL to be executed by update and updateWithTransaction methods.
-    */
+   * SQL statement that updates the fields for a particular record in apps table.
+   * @param app UpdatableApp instance with updated attributes
+   * @return    SQL to be executed by update and updateWithTransaction methods.
+   */
   def updateSQL(app: UpdatableApp): SimpleSql[Row] = {
     SQL(
       """
           UPDATE apps
           SET name={name}, active={active}, callback_url={callback_url}, server_to_server_enabled={server_to_server_enabled}
-          WHERE id={id};
+          WHERE id={id} AND distributor_id={distributor_id};
       """
-    ).on("name" -> app.name, "active" -> app.active, "callback_url" -> app.callbackURL, "server_to_server_enabled" -> app.serverToServerEnabled, "id" -> app.id)
+    ).on(
+      "name" -> app.name,
+      "active" -> app.active,
+      "callback_url" -> app.callbackURL,
+      "server_to_server_enabled" -> app.serverToServerEnabled,
+      "id" -> app.id,
+      "distributor_id" -> app.distributorID)
   }
 
   /**
@@ -372,7 +348,7 @@ object App {
     * @return Number of rows updated
     */
   def update(app: UpdatableApp): Int = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       updateSQL(app).executeUpdate()
     }
   }
@@ -420,10 +396,10 @@ object App {
     * @param name           Maps to name column in the apps table
     * @param platformID     Indicated the platform to which the App belongs (e.g. iOS or Android).
     * @param cbUrl          The callback URL
-    * @return ID of newly created record
+    * @return               ID of newly created record
     */
   def create(distributorID: Long, name: String, platformID: Long, cbUrl: Option[String] = None): Option[Long] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       insert(distributorID, name, platformID, getNullOrQuotedString(cbUrl)).executeInsert()
     }
   }
@@ -455,22 +431,22 @@ object App {
       false
     }
 
-    App.find(appID) match {
+    find(appID) match {
       case Some(app) =>
-        DB.withTransaction { implicit connection =>
+        db.withTransaction { implicit connection =>
           try {
             val update = SQL(
               """
                 UPDATE apps
                 SET app_config_refresh_interval={app_config_refresh_interval}
-                WHERE id={id};
+                WHERE id={id} AND distributor_id={distributor_id};
               """
-            ).on("app_config_refresh_interval" -> appConfigRefreshInterval, "id" -> appID).executeUpdate()
-            val appConfig = AppConfig.findLatestWithTransaction(app.token)
+            ).on("app_config_refresh_interval" -> appConfigRefreshInterval, "id" -> appID, "distributor_id" -> app.distributorID).executeUpdate()
+            val appConfig = appConfigService.findLatestWithTransaction(app.token)
             (update, appConfig) match {
               case (1, Some(config)) =>
-                AppConfig.create(app.id, app.token, config.generationNumber) match {
-                  case Some(newGenerationNumber) if newGenerationNumber == config.generationNumber + 1 =>
+                appConfigService.create(app.id, app.token, config.generationNumber) match {
+                  case Some(newGenerationNumber) if newGenerationNumber == (config.generationNumber + 1) =>
                     Logger.debug("App was updated successfully!")
                     true
 
@@ -488,6 +464,48 @@ object App {
       case None =>
         Logger.error("App could not be found.")
         false
+    }
+  }
+}
+
+trait WaterfallFind {
+  val database: Database
+
+  // Used to convert SQL row into an instance of the App class.
+  val AppParser: RowParser[App] = {
+    get[Long]("apps.id") ~
+      get[Boolean]("apps.active") ~
+      get[Long]("apps.distributor_id") ~
+      get[String]("apps.name") ~
+      get[Option[String]]("apps.callback_url") ~
+      get[Boolean]("apps.server_to_server_enabled") ~
+      get[Long]("apps.platform_id") ~
+      get[String]("apps.token") ~
+      get[String]("apps.hmac_secret") map {
+      case id ~ active ~ distributor_id ~ name ~ callback_url ~ server_to_server_enabled ~ platform_id ~ token ~ hmacSecret =>
+        App(id, active, distributor_id, name, callback_url, server_to_server_enabled, token, platform_id, hmacSecret)
+    }
+  }
+
+  /**
+   * Finds the App which owns the Waterfall ID.
+   * @param waterfallID The ID of the Waterfall owned by the App.
+   * @return An instance of the App class, if one exists; otherwise, None.
+   */
+  def findAppByWaterfallID(waterfallID: Long): Option[App] = {
+    database.withConnection { implicit connection =>
+      val query = SQL(
+        """
+          SELECT apps.*
+          FROM waterfalls
+          JOIN apps ON apps.id = waterfalls.app_id
+          WHERE waterfalls.id = {id};
+        """
+      ).on("id" -> waterfallID)
+      query.as(AppParser *) match {
+        case List(app) => Some(app)
+        case _ => None
+      }
     }
   }
 }

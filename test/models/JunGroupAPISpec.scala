@@ -4,33 +4,24 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
 import org.specs2.mock.Mockito
-import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
-
 import scala.Int._
 import scala.concurrent.Future
 import scala.util.Random
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with UpdateHyprMarketplace with Mockito with ConfigVars {
+class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with UpdateHyprMarketplace with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
+  val akkaActorSystem = actorSystem
+  val config = configVars
+  val appEnv = appEnvironment
   val response = mock[WSResponse]
-  val junGroup = running(FakeApplication(additionalConfiguration = testDB)) {
-    spy(new JunGroupAPI())
-  }
-  val testApp: App = new App(id = 1,
-    active = true,
-    distributorID = 1,
-    name = "app-name",
-    callbackURL = None,
-    serverToServerEnabled = true,
-    token = "app-token",
-    platformID = 1,
-    hmacSecret = "")
+  val junGroup = spy(new JunGroupAPI(modelService, database, ws, actorSystem, configVars, appEnvironment))
+  val testApp: App = new App(id = 1, active = true, distributorID = 1, name = "app-name", callbackURL = None, serverToServerEnabled = true, token = "app-token", platformID = 1, hmacSecret = "")
   val distributorName = "Company Name"
 
   "updateHyprMarketplaceDistributorID" should {
@@ -40,23 +31,23 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       val companyName = "Test Company-" + randomCharacters
       val email = "mediation-testing-" + randomCharacters + "@jungroup.com"
       val password = "testtest"
-      val adProviders = AdProvider.findAll
-      val distributorID = DistributorUser.create(email, password, companyName).get
-      val appID = App.create(distributorID, "12345", 1).get
-      val appp = App.find(appID).get
+      val adProviders = adProviderService.findAll
+      val distributorID = distributorUserService.create(email, password, companyName).get
+      val appID = modelService.appService.create(distributorID, "12345", 1).get
+      val appp = modelService.appService.find(appID).get
       val adProviderID = 2
 
-      val wap = DB.withTransaction { implicit connection =>
-        val waterfallID = Waterfall.create(appID, "12345").get
-        VirtualCurrency.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
-      val hyprWaterfallAdProviderID = WaterfallAdProvider
+      val wap = database.withTransaction { implicit connection =>
+        val waterfallID = waterfallService.create(appID, "12345").get
+        virtualCurrencyService.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
+      val hyprWaterfallAdProviderID = waterfallAdProviderService
         .createWithTransaction(waterfallID, adProviderID, Option(0), Option(int2double(20)), configurable = false, active = false, pending = true).get
-        AppConfig.create(appID, appp.token, 0)
-        val hyprWAP = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID).get
+        appConfigService.create(appID, appp.token, 0)
+        val hyprWAP = waterfallAdProviderService.findWithTransaction(hyprWaterfallAdProviderID).get
         WaterfallAdProviderWithAppData(hyprWAP.id, waterfallID, adProviderID, hyprWAP.waterfallOrder, hyprWAP.cpm, hyprWAP.active, hyprWAP.fillRate,
           hyprWAP.configurationData, hyprWAP.reportingActive, hyprWAP.pending, appp.token, appp.name, companyName)
       }
-      val newApp = App.findByWaterfallID(wap.waterfallID).get
+      val newApp = modelService.appService.findAppByWaterfallID(wap.waterfallID).get
       val adNetwork = junGroup.adNetworkConfiguration(wap.companyName, newApp)
       val response = mock[WSResponse]
       val playerSuccessBody = JsObject(Seq("success" -> JsBoolean(true),
@@ -92,25 +83,24 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
   "adNetworkConfiguration" should {
     "Build the correct configuration using the created distributor user" in new WithDB {
-      val payoutUrl = ConfigVarsCallbackUrls.player.format(testApp.token)
+      val payoutUrl = configVars.ConfigVarsCallbackUrls.player.format(testApp.token)
       val config = junGroup.adNetworkConfiguration(distributorName, testApp)
       val networkJson = config \ "ad_network"
       val payoutUrlJson = config \ "payout_url"
-      val platformName = Platform.find(testApp.platformID).PlatformName
+      val platformName = testPlatform.find(testApp.platformID).PlatformName
       val adNetworkName = distributorName + " - " + testApp.name + " - " + platformName
-      val createdInContext = ConfigVarsApp.domain + " - " + Environment.mode
+      val createdInContext = configVars.ConfigVarsApp.domain + " - " + appEnvironment.mode
 
-      networkJson \ "name" must beEqualTo(JsString(adNetworkName))
-      networkJson \ "mobile" must beEqualTo(JsBoolean(true))
-      networkJson \ "created_in_context" must beEqualTo(JsString(createdInContext))
-      networkJson \ "is_test" must beEqualTo(JsBoolean(true))
-      networkJson \ "demographic_targeting_enabled" must beEqualTo(JsBoolean(true))
-      networkJson \ "mediation_reporting_api_key" must beEqualTo(JsString(testApp.token))
-      networkJson \ "mediation_reporting_placement_id" must beEqualTo(JsString(testApp.token))
-
-      payoutUrlJson \ "url" must beEqualTo(JsString(payoutUrl))
-      payoutUrlJson \ "environment" must beEqualTo(JsString(Environment.mode))
-      payoutUrlJson \ "signature" must beEqualTo(junGroup.PlayerSignature)
+      (networkJson \ "name").get must beEqualTo(JsString(adNetworkName))
+      (networkJson \ "mobile").get must beEqualTo(JsBoolean(true))
+      (networkJson \ "created_in_context").get must beEqualTo(JsString(createdInContext))
+      (networkJson \ "is_test").get must beEqualTo(JsBoolean(true))
+      (networkJson \ "demographic_targeting_enabled").get must beEqualTo(JsBoolean(true))
+      (networkJson \ "mediation_reporting_api_key").get must beEqualTo(JsString(testApp.token))
+      (networkJson \ "mediation_reporting_placement_id").get must beEqualTo(JsString(testApp.token))
+      (payoutUrlJson \ "url").get must beEqualTo(JsString(payoutUrl))
+      (payoutUrlJson \ "environment").get must beEqualTo(JsString(appEnvironment.mode))
+      (payoutUrlJson \ "signature").get must beEqualTo(junGroup.PlayerSignature)
     }
   }
 
@@ -127,26 +117,28 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
   "JunGroup API Actor" should {
     val api = mock[JunGroupAPI]
     val playerResponse = mock[WSResponse]
-    val hyprWaterfallAdProvider = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = false, pending = true).get
-      WaterfallAdProvider.find(id).get
+    val hyprWaterfallAdProvider = running(testApplication) {
+      val id = waterfallAdProviderService.create(waterfall.id, adProviderID1.get, None, None, true, false, true).get
+      waterfallAdProviderService.find(id).get
     }
     api.createRequest(any[JsObject]) returns Future { playerResponse }
     api.adNetworkConfiguration(any[String], any[App]) returns JsObject(Seq())
-    val junActor = running(FakeApplication(additionalConfiguration = testDB)) {
-      TestActorRef(new JunGroupAPIActor(waterfall.id, hyprWaterfallAdProvider, testApp, distributor.id.get, api)).underlyingActor
+
+    val junActor: JunGroupAPIActor = running(testApplication) {
+      val mailer = mock[Mailer]
+      TestActorRef(new JunGroupAPIActor(modelService, database, mailer)).underlyingActor
     }
 
     "exist and accept Create Ad Network message" in new WithDB {
-      junActor.receive(CreateAdNetwork(user))
+      junActor.receive(CreateAdNetwork(user, waterfall.id, hyprWaterfallAdProvider, testApp, api))
       junActor must haveClass[JunGroupAPIActor]
     }
 
     "set lastFailure properly when there is an HTTP Auth failure" in new WithDB {
       playerResponse.body returns "HTTP Auth Failure"
       playerResponse.status returns 401
-      junActor.receive(CreateAdNetwork(user))
-      junActor.lastFailure must contain("Received a JSON parsing error").eventually(3, 1 second)
+      junActor.receive(CreateAdNetwork(user, waterfall.id, hyprWaterfallAdProvider, testApp, api))
+      eventually { junActor.lastFailure must contain("Received a JSON parsing error") }
     }
 
     "set lastFailure properly when the response code is 200 but the request was not successful" in new WithDB {
@@ -155,14 +147,15 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
         "ad_network" -> JsObject(Seq("id" -> JsNumber(1))))).toString
       playerResponse.body returns playerErrorBody
       playerResponse.status returns 200
-      junActor.receive(CreateAdNetwork(user))
-      junActor.lastFailure must contain (playerError).eventually(3, 1 second)
+      junActor.receive(CreateAdNetwork(user, waterfall.id, hyprWaterfallAdProvider, testApp, api))
+      eventually { junActor.lastFailure must contain(playerError) }
     }
   }
 
   "JunGroup Email Actor" should {
     "exist and accept email message" in new WithDB {
-      val emailActor = TestActorRef(new JunGroupEmailActor("test@test.com", "subject", "body")).underlyingActor
+      val mailer = mock[Mailer]
+      val emailActor = TestActorRef(new JunGroupEmailActor("test@test.com", "subject", "body", mailer, configVars)).underlyingActor
       emailActor.receive("test@test.com")
       emailActor must haveClass[JunGroupEmailActor]
     }

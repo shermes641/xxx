@@ -1,19 +1,21 @@
 package hmac
 
-import models.ConfigVars
+import org.specs2.mock.Mockito
 import resources.SpecificationWithFixtures
 
-class SignerConfigSpec extends SpecificationWithFixtures with ConfigVars {
-  sequential
+/**
+  * Created by shermes on 3/3/16.
+  */
+class SignerConfigSpec extends SpecificationWithFixtures with Mockito {
   "Signer" should {
     "use default config parameters" in {
-      Signer.algorithm must_== HmacConstants.DefaultAlgorithm
+      val signer = new Signer(configVars)
+      signer.algorithm must_== HmacConstants.DefaultAlgorithm
     }
 
     "use parameters from config file" in new WithDB {
-      object MySigner extends DefaultSigner
-      MySigner.algorithm must_== ConfigVarsHmac.algorithm
+      val signer = new Signer(configVars)
+      signer.algorithm must_== configVars.ConfigVarsHmac.algorithm
     }
   }
 }
-

@@ -9,12 +9,9 @@ import play.api.test.FakeApplication
 trait TestAdditionalConf extends SuiteMixin { this: Suite =>
 
   val HmacTestConfig = Map(
-    "db.default.url" -> "jdbc:postgresql://localhost/mediation_test",
-    "db.default.user" -> "postgres",
-    "db.default.password" -> "postgres",
-    "signerAlgorithm" -> "HmacSHA256",
-    "signerSeparator" -> "+",
-    "signerTolerance" -> 4.0)
+    "db.default.url" -> "jdbc:postgresql://localhost/mediation_test?user=postgres&password=postgres",
+    "play.evolutions.enabled" -> "true"
+  )
 
   implicit lazy val app: FakeApplication = new FakeApplication(
     // Overwrite configuration settings
@@ -27,12 +24,12 @@ trait TestAdditionalConf extends SuiteMixin { this: Suite =>
       val newConfigMap = args.configMap + ("org.scalatestplus.play.app" -> app)
       val newArgs = args.copy(configMap = newConfigMap)
       val status = super.run(testName, newArgs)
-      status.whenCompleted { _ => Play.stop() }
+      status.whenCompleted { _ => Play.stop(app) }
       status
     }
     catch {
       case ex: Throwable =>
-        Play.stop()
+        Play.stop(app)
         throw ex
     }
   }

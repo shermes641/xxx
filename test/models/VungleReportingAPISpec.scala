@@ -11,13 +11,14 @@ import play.api.test.Helpers._
 import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
 class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
-  val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, waterfallOrder = None, cpm = None, configurable = true, active = true).get
-    Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-    WaterfallAdProvider.find(waterfallAdProviderID1).get
+  val waterfallAdProvider1 = running(testApplication) {
+    val waterfallAdProviderID1 = waterfallAdProviderService.create(waterfall.id, adProviderID1.get, waterfallOrder = None, cpm = None, configurable = true, active = true).get
+    waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+    waterfallAdProviderService.find(waterfallAdProviderID1).get
   }
 
   val apiKey = "VungleAPIKey"
@@ -28,54 +29,54 @@ class VungleReportingAPISpec extends SpecificationWithFixtures with WaterfallSpe
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString(apiKey), "APIID" -> JsString(apiID)))))
   val queryString = List("key" -> apiKey, "date" -> date)
   val response = mock[WSResponse]
-  val vungle = running(FakeApplication(additionalConfiguration = testDB)) { spy(new VungleReportingAPI(waterfallAdProvider1.id, configurationData)) }
+  val vungle = running(testApplication) { spy(new VungleReportingAPI(waterfallAdProvider1.id, configurationData, database, waterfallAdProviderService, configVars, ws)) }
 
   "parseResponse" should {
     "update the eCPM if Vungle responds with a status code of 200 or 304" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm
       val newEcpm = 5.0
       originalEcpm must not(beEqualTo(newEcpm))
       val jsonResponse = JsArray(Seq(JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))
       response.body returns jsonResponse.toString
       response.status returns 200
       callAPI
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "not update the eCPM if Vungle responds with a status code other than 200 or 304" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val newEcpm = 10.0
       val jsonResponse = JsArray(Seq(JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))
       response.body returns jsonResponse.toString
       response.status returns 400
       callAPI
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
     "not update the eCPM if the JSON response is malformed" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val newEcpm = 10.0
       val jsonResponse = JsArray(Seq(JsObject(Seq("stats" -> JsObject(Seq("eCPM" -> JsNumber(newEcpm)))))))
       response.body returns jsonResponse.toString
       response.status returns 200
       callAPI
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
     "not update the eCPM if there are no events available" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val jsonResponse = JsArray(Seq())
       response.body returns jsonResponse.toString
       response.status returns 200
       callAPI
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
   }

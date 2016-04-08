@@ -1,10 +1,11 @@
 package models
 
-import play.api.libs.json.{JsUndefined, JsValue}
+import play.api.libs.json.JsString
 import play.api.mvc.Controller
 
 // Helper functions included in Callback models.
 trait CallbackVerificationHelper extends Controller {
+  val waterfallAdProviderService: WaterfallAdProviderService
   val receivedVerification: String
   val adProviderName: String
   val token: String
@@ -12,7 +13,7 @@ trait CallbackVerificationHelper extends Controller {
   val verificationInfo: CallbackVerificationInfo
 
   // Retrieve ad provider's eCPM and configuration data, virtual currency settings, and callback URL info.
-  lazy val adProviderRewardInfo = WaterfallAdProvider.findRewardInfo(token, adProviderName)
+  lazy val adProviderRewardInfo = waterfallAdProviderService.findRewardInfo(token, adProviderName)
 
   // Calculates the profit from a single completion without rounding down to a dollar amount.
   lazy val rawPayoutAmount: Option[Double] = {
@@ -55,9 +56,8 @@ trait CallbackVerificationHelper extends Controller {
   def secretKey(jsonKey: String): String = {
     adProviderRewardInfo match {
       case Some(rewardInfo) => {
-        rewardInfo.configurationData match {
-          case _:JsUndefined => ""
-          case configData: JsValue => (configData \ "callbackParams" \ jsonKey).as[String]
+        (rewardInfo.configurationData \ "callbackParams" \ jsonKey).toOption match {
+          case Some(key: JsString) => key.as[String]
           case _ => ""
         }
       }
@@ -93,11 +93,11 @@ trait CallbackVerificationHelper extends Controller {
           case Some(profitPerCompletion: Double) => {
             val rewardAmount = BigDecimal(rewardInfo.exchangeRate * profitPerCompletion).setScale(0, BigDecimal.RoundingMode.FLOOR).toInt
             rewardInfo.rewardMax match {
-              case Some(max) if(rewardAmount > max) => {
+              case Some(max) if rewardAmount > max => {
                 max
               }
-              case _ if(rewardAmount < rewardInfo.rewardMin) => {
-                if(rewardInfo.roundUp) rewardInfo.rewardMin else 0
+              case _ if rewardAmount < rewardInfo.rewardMin => {
+                if (rewardInfo.roundUp) rewardInfo.rewardMin else 0
               }
               case _ => rewardAmount
             }

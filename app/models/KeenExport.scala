@@ -1,16 +1,13 @@
 package models
 
-import java.io.File
-
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorSystem, Props}
 import com.github.tototoshi.csv._
 import io.keen.client.java.{JavaKeenClientBuilder, KeenClient, KeenProject}
-import play.api.Play.current
-import play.api.libs.concurrent.Akka
+import java.io.File
+import javax.inject._
 import play.api.libs.json._
 import play.api.libs.ws._
 import play.api.Logger
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -22,68 +19,83 @@ case class GetDataFromKeen()
 
 case class KeenResult(value: JsValue, timeframe: JsObject)
 
-class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) extends ConfigVars {
+class KeenRequest(action: String = "", val post: JsObject = Json.obj(), configVars: ConfigVars, keenInitialization: KeenInitialization, appEnvironment: Environment, wsClient: WSClient) {
 
-  val base = KeenClient.client().getBaseUrl + "/3.0/projects/" + ConfigVarsKeen.projectID + "/queries/"
+  val base = keenInitialization.client.getBaseUrl + "/3.0/projects/" + configVars.ConfigVarsKeen.projectID + "/queries/"
 
-  def function(action: String): KeenRequest = new KeenRequest(action, post)
+  def function(action: String): KeenRequest = new KeenRequest(action, post, configVars, keenInitialization, appEnvironment, wsClient)
 
-  def select(collection: String): KeenRequest = new KeenRequest(action, post +("event_collection", JsString(collection)))
+  def select(collection: String): KeenRequest = new KeenRequest(action, post + ("event_collection", JsString(collection)), configVars, keenInitialization, appEnvironment, wsClient)
 
-  def targetProperty(target: String): KeenRequest = new KeenRequest(action, post +("target_property", JsString(target)))
+  def targetProperty(target: String): KeenRequest = new KeenRequest(action, post + ("target_property", JsString(target)), configVars, keenInitialization, appEnvironment, wsClient)
 
   def filterWith(property: String, operator: String, propertyValue: String): KeenRequest = {
     val filters = (post \ "filters").asOpt[JsArray].getOrElse(JsArray())
     new KeenRequest(action, post +("filters", filters :+ JsObject(Seq("property_name" -> JsString(property),
       "operator" -> JsString(operator),
-      "property_value" -> JsString(propertyValue)))))
+      "property_value" -> JsString(propertyValue)))),
+      configVars,
+      keenInitialization,
+      appEnvironment,
+      wsClient
+    )
   }
 
-  def groupBy(group: String) = new KeenRequest(action, post +("group_by", JsString(group)))
+  def groupBy(group: String) = new KeenRequest(action, post + ("group_by", JsString(group)), configVars, keenInitialization, appEnvironment, wsClient)
 
-  def thisDays(daysAgo: Int): KeenRequest = new KeenRequest(action, post +("timeframe", JsString("this_%s_days".format(daysAgo))))
+  def thisDays(daysAgo: Int): KeenRequest = new KeenRequest(action, post + ("timeframe", JsString("this_%s_days".format(daysAgo))), configVars, keenInitialization, appEnvironment, wsClient)
 
-  def interval(interval: String): KeenRequest = new KeenRequest(action, post +("interval", JsString(interval)))
+  def interval(interval: String): KeenRequest = new KeenRequest(action, post + ("interval", JsString(interval)), configVars, keenInitialization, appEnvironment, wsClient)
 
   def collect(): Future[WSResponse] = {
-    if (Environment.isTest) {
+    if (appEnvironment.isTest) {
       debug()
     }
-    WS.url(base + action).withRequestTimeout(300000).withQueryString("api_key" -> KeenRequest.project.getReadKey).post(post)
+    wsClient.url(base + action).withRequestTimeout(300000).withQueryString("api_key" -> keenInitialization.project.getReadKey).post(post)
   }
 
   def debug() = Logger.debug("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
-
-}
-
-object KeenRequest extends ConfigVars {
-
-  // move this to startup.
-  val client = new JavaKeenClientBuilder().build()
-  val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
-  client.setDefaultProject(project)
-  KeenClient.initialize(client)
-
 }
 
 /**
-  * Encapsulates interactions with Player.
+  * Encapsulates Keen client
+  * @param configVars Shared ENV configuration variables
   */
-case class KeenExport() {
+class KeenInitialization @Inject() (configVars: ConfigVars) {
+  val client = new JavaKeenClientBuilder().build()
+  val project = new KeenProject(configVars.ConfigVarsKeen.projectID, configVars.ConfigVarsKeen.writeKey, configVars.ConfigVarsKeen.readKey)
+  client.setDefaultProject(project)
+  KeenClient.initialize(client)
+}
+
+/**
+  * Encapsulates the export of Keen data
+  * @param appService        A shared instance of the AppService class
+  * @param keenExportService A shared instance of the KeenExportService class
+  * @param configVars        Shared ENV configuration variables
+  * @param actorSystem       A shared Akka actor system
+  */
+@Singleton
+case class KeenExport @Inject() (appService: AppService,
+                                 keenExportService: KeenExportService,
+                                 configVars: ConfigVars,
+                                 actorSystem: ActorSystem) {
   /**
-    * Sends request to Keen API exporting all app information for the given distributor ID
-    *
-    * Columns: App, Platform, Earnings, Fill, Requests, Impressions, Completions, Completion Rate
-    *
-    * @param distributorID       The DistributorID with the apps needed for export.
-    * @param displayFillRate     If false display "N/A", not the actual fillrate
-    * @param email               The email to send the export to.
-    * @param filters             Filters for the analytic events
-    * @param timeframe           Timeframe for the analytics events
-    * @param selectedApps        Apps to loop through for events
-    * @param adProvidersSelected true if ad providers are selected individually
-    * @param scopedReadKey       A Keen API read key scoped exclusively to the Distributor who is currently logged in
-    */
+   * Sends request to Keen API exporting all app information for the given distributor ID
+   *
+   * Columns: App, Platform, Earnings, Fill, Requests, Impressions, Completions, Completion Rate
+   *
+   * @param distributorID       The DistributorID with the apps needed for export.
+   * @param displayFillRate     If false display "N/A", not the actual fillrate
+   * @param email               The email to send the export to.
+   * @param filters             Filters for the analytic events
+   * @param timeframe           Timeframe for the analytics events
+   * @param selectedApps        Apps to loop through for events
+   * @param adProvidersSelected true if ad providers are selected individually
+   * @param scopedReadKey       A Keen API read key scoped exclusively to the Distributor who is currently logged in
+   * @param wsClient            A shared web service client
+   * @param mailer              A shared instance of the Mailer class
+   */
   def exportToCSV(distributorID: Long,
                   displayFillRate: Boolean,
                   email: String,
@@ -91,31 +103,59 @@ case class KeenExport() {
                   timeframe: JsObject,
                   selectedApps: List[String],
                   adProvidersSelected: Boolean,
-                  scopedReadKey: String) = {
-    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, displayFillRate, email, filters, timeframe, selectedApps, adProvidersSelected, scopedReadKey)))
+                  scopedReadKey: String,
+                  wsClient: WSClient,
+                  mailer: Mailer) = {
+    val actor = actorSystem.actorOf(
+      Props(
+        new KeenExportActor(
+          distributorID,
+          displayFillRate,
+          email,
+          filters,
+          timeframe,
+          selectedApps,
+          adProvidersSelected,
+          scopedReadKey,
+          appService,
+          keenExportService,
+          configVars,
+          wsClient,
+          mailer
+        )
+      )
+    )
     actor ! GetDataFromKeen()
   }
 }
 
-object KeenExport extends ConfigVars {
+/**
+  * Encapsulates functions for exporting a CSV from Keen data
+  * @param configVars Shared ENV configuration variables
+  */
+class KeenExportService @Inject() (configVars: ConfigVars) {
   /**
-    * Posts requests to keen.
-    *
-    * @param action Type of request ex. count, sum
-    * @param filter The keen filter to query
-    * @return Future[WSResponse]
-    */
-  def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + ConfigVarsKeen.projectID + "/queries/" + action)
+   * Creates requests to keen.
+   * @param action   Type of request ex. count, sum
+   * @param filter   The keen filter to query
+   * @param wsClient A shared web service client
+   * @return Future[WSResponse]
+   */
+  def createRequest(action: String, filter: JsObject, wsClient: WSClient): Future[WSResponse] = {
+    wsClient.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + configVars.ConfigVarsKeen.projectID + "/queries/" + action)
       .withRequestTimeout(300000)
-      .withQueryString("api_key" -> ConfigVarsKeen.readKey).post(filter)
+      .withQueryString("api_key" -> configVars.ConfigVarsKeen.readKey)
+      .post(filter)
   }
 
   /**
     * Build request to keen.
     *
-    * @param collection The keen collection to query
-    * @param appID      The app ID
+    * @param timeframe      The timeframe for the Keen query
+    * @param filters        The filters set in the UI
+    * @param collection     The keen collection to query
+    * @param appID          The app ID
+    * @param targetProperty Keen's target property. Not set by default.
     * @return JsObject
     */
   def createFilter(timeframe: JsObject, filters: JsArray, collection: String, appID: String, targetProperty: String = "") = {
@@ -139,17 +179,21 @@ object KeenExport extends ConfigVars {
 }
 
 /**
-  * Actor that makes the long running requests to keen
-  *
-  * @param distributorID        The ID of the distributor
-  * @param displayFillrate      If false display "N/A", not the actual fillrate
-  * @param email                The Email address to send the final CSV
-  * @param filters              Filters for the analytic events
-  * @param timeframe            Timeframe for the analytics events
-  * @param selectedApps         Apps to loop through for events
-  * @param adProvidersSelected  true if ad providers are selected individually
-  * @param scopedReadKey       A Keen API read key scoped exclusively to the Distributor who is currently logged in
-  */
+ * Actor that makes the long running requests to keen
+ * @param distributorID        The ID of the distributor
+ * @param displayFillrate      If false display "N/A", not the actual fillrate
+ * @param email                The Email address to send the final CSV
+ * @param filters              Filters for the analytic events
+ * @param timeframe            Timeframe for the analytics events
+ * @param selectedApps         Apps to loop through for events
+ * @param adProvidersSelected  true if ad providers are selected individually
+ * @param scopedReadKey        A Keen API read key scoped exclusively to the Distributor who is currently logged in
+ * @param appService           A shared instance of the AppService class
+ * @param keenExportService    A shared instance of the KeenExportSerivce class
+ * @param configVars           Shared ENV configuration variables
+ * @param wsClient             A shared web service client
+ * @param mailer               A shared instance of the Mailer class
+ */
 class KeenExportActor(distributorID: Long,
                       displayFillrate: Boolean,
                       email: String,
@@ -157,7 +201,12 @@ class KeenExportActor(distributorID: Long,
                       timeframe: JsObject,
                       selectedApps: List[String],
                       adProvidersSelected: Boolean,
-                      scopedReadKey: String) extends Actor with Mailer with ConfigVars {
+                      scopedReadKey: String,
+                      appService: AppService,
+                      keenExportService: KeenExportService,
+                      configVars: ConfigVars,
+                      wsClient: WSClient,
+                      mailer: Mailer) extends Actor {
   private var counter = 0
 
   val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
@@ -171,9 +220,9 @@ class KeenExportActor(distributorID: Long,
   def parseResponse(body: String): List[KeenResult] = {
 
     implicit val keenReader = Json.reads[KeenResult]
-    Json.parse(body) match {
-      case results =>
-        (results \ "result").as[List[KeenResult]]
+    (Json.parse(body) \ "result").toOption match {
+      case Some(results: JsArray) => results.as[List[KeenResult]]
+      case _ => List()
     }
   }
 
@@ -226,7 +275,7 @@ class KeenExportActor(distributorID: Long,
       */
     case GetDataFromKeen() =>
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, scopedReadKey)
+      val project = new KeenProject(configVars.ConfigVarsKeen.projectID, configVars.ConfigVarsKeen.writeKey, scopedReadKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
       val writer = createCSVFile()
@@ -356,19 +405,19 @@ class KeenExportActor(distributorID: Long,
     val (requestCollection, responseCollection) = if (adProvidersSelected) ("availability_requested", "availability_response_true") else ("mediate_availability_requested", "mediate_availability_response_true")
 
     for (appID <- selectedApps) {
-      val name = App.findAppWithVirtualCurrency(appID.toLong, distributorID).get.appName
+      val name = appService.findAppWithVirtualCurrency(appID.toLong, distributorID).get.appName
       // Clean way to make sure all requests are complete before moving on.  This also sends user an error email if export fails.
       val futureResponse: Future[(WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse, WSResponse)] = for {
-        requestsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, requestCollection, appID))
-        dauResponse <- KeenExport.createRequest("count_unique", KeenExport.createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"))
-        responsesResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, responseCollection, appID))
-        impressionsResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_displayed", appID))
-        adCompletedResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "ad_completed", appID))
-        rewardDeliveredResponse <- KeenExport.createRequest("count", KeenExport.createFilter(timeframe, filters, "reward_delivered", appID))
-        adCompletedEcpmResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
-        rewardDeliveredEcpmResponse <- KeenExport.createRequest("average", KeenExport.createFilter(timeframe, filters, "reward_delivered", appID, "ad_provider_eCPM"))
-        adCompletedEarningsResponse <- KeenExport.createRequest("sum", KeenExport.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"))
-        rewardDeliveredEarningsResponse <- KeenExport.createRequest("sum", KeenExport.createFilter(timeframe, filters, "reward_delivered", appID, "ad_provider_eCPM"))
+        requestsResponse <- keenExportService.createRequest("count", keenExportService.createFilter(timeframe, filters, requestCollection, appID), wsClient)
+        dauResponse <- keenExportService.createRequest("count_unique", keenExportService.createFilter(timeframe, filters, requestCollection, appID, "device_unique_id"), wsClient)
+        responsesResponse <- keenExportService.createRequest("count", keenExportService.createFilter(timeframe, filters, responseCollection, appID), wsClient)
+        impressionsResponse <- keenExportService.createRequest("count", keenExportService.createFilter(timeframe, filters, "ad_displayed", appID), wsClient)
+        adCompletedResponse <- keenExportService.createRequest("count", keenExportService.createFilter(timeframe, filters, "ad_completed", appID), wsClient)
+        rewardDeliveredResponse <- keenExportService.createRequest("count", keenExportService.createFilter(timeframe, filters, "reward_delivered", appID), wsClient)
+        adCompletedEcpmResponse <- keenExportService.createRequest("average", keenExportService.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"), wsClient)
+        rewardDeliveredEcpmResponse <- keenExportService.createRequest("average", keenExportService.createFilter(timeframe, filters, "reward_delivered", appID, "ad_provider_eCPM"), wsClient)
+        adCompletedEarningsResponse <- keenExportService.createRequest("sum", keenExportService.createFilter(timeframe, filters, "ad_completed", appID, "ad_provider_eCPM"), wsClient)
+        rewardDeliveredEarningsResponse <- keenExportService.createRequest("sum", keenExportService.createFilter(timeframe, filters, "reward_delivered", appID, "ad_provider_eCPM"), wsClient)
       } yield (
         requestsResponse,
         dauResponse,
@@ -385,7 +434,7 @@ class KeenExportActor(distributorID: Long,
       futureResponse.recover {
         case e: Exception =>
           Logger.error("Error Exporting CSV for " + email + " Message: " + e.getMessage)
-          sendEmail(host = ConfigVarsApp.domain, recipient = email, sender = PublishingEmail, subject = "Error Exporting CSV", body = "There was a problem exporting your data.  Please try again.")
+          mailer.sendEmail(host = configVars.ConfigVarsApp.domain, recipient = email, sender = mailer.PublishingEmail, subject = "Error Exporting CSV", body = "There was a problem exporting your data.  Please try again.")
       }
 
       futureResponse.onSuccess {
@@ -420,7 +469,7 @@ class KeenExportActor(distributorID: Long,
             println("Exported CSV: " + fileName)
             // Sends email after all apps have received their stats
             val content = "Attached is your requested CSV file."
-            sendEmail(host = ConfigVarsApp.domain, recipient = email, sender = PublishingEmail, subject = "Exported CSV from HyprMediate", body = content, "", attachmentFileName = fileName)
+            mailer.sendEmail(host = configVars.ConfigVarsApp.domain, recipient = email, sender = mailer.PublishingEmail, subject = "Exported CSV from HyprMediate", body = content, "", attachmentFileName = fileName)
             writer.close()
           }
       }

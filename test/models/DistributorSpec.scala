@@ -2,25 +2,27 @@ package models
 
 import org.junit.runner._
 import org.specs2.runner._
-import resources.{SpecificationWithFixtures, DistributorUserSetup}
+import resources.{DistributorUserSetup, SpecificationWithFixtures}
 
 @RunWith(classOf[JUnitRunner])
 class DistributorSpec extends SpecificationWithFixtures {
   "Distributor.create" should {
     "properly save a new Distributor in the database" in new WithDB {
-      Distributor.create("Some Company Name") must haveClass[Some[Long]]
+      distributorService.create("Some Company Name") must haveClass[Some[Long]]
     }
   }
 
   "Distributor.find" should {
     "return an instance of the Distributor class if the ID is found" in new WithDB with DistributorUserSetup {
+      override val distributorModel = distributorService
+      override val userService = distributorUserService
       val (_, distributor) = newDistributorUser("newemail1@gmail.com")
-      Distributor.find(distributor.id.get).get must haveClass[Distributor]
+      distributorService.find(distributor.id.get).get must haveClass[Distributor]
     }
 
     "return None if the ID is not found" in new WithDB {
       val fakeDistributorID = 12345
-      Distributor.find(fakeDistributorID) must beNone
+      distributorService.find(fakeDistributorID) must beNone
     }
   }
 }

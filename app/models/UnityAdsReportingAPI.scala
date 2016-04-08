@@ -3,11 +3,10 @@ package models
 import com.github.nscala_time.time.Imports._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
-import play.api.Play.current
 import play.api.libs.json._
-import play.api.libs.ws.WS
+import play.api.libs.ws.WSClient
 import play.api.Logger
-
+import play.api.db.Database
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -15,11 +14,23 @@ import scala.language.postfixOps
 /**
   * Encapsulates interactions with Unity Ad's reporting API.
   *
-  * @param wapID             The ID of the WaterfallAdProvider to be updated.
-  * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
+  * @param wapID                      The ID of the WaterfallAdProvider to be updated
+  * @param configurationData          The WaterfallAdProvider's configuration data containing required params for calling the reporting API
+  * @param database                   The default database
+  * @param waterfallAdProviderService Encapsulates all WaterfallAdProvider functions
+  * @param configVars                 Shared ENV configuration variables
+  * @param ws                         A shared web service client
   */
-case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars {
-  val BaseURL = ConfigVarsReporting.unityadsUrl
+case class UnityAdsReportingAPI(wapID: Long,
+                                configurationData: JsValue,
+                                database: Database,
+                                waterfallAdProviderService: WaterfallAdProviderService,
+                                configVars: ConfigVars,
+                                ws: WSClient) extends ReportingAPI {
+  override val db = database
+  override val wsClient = ws
+  override val wapService = waterfallAdProviderService
+  val BaseURL = configVars.ConfigVarsReporting.unityadsUrl
   val waterfallAdProviderID = wapID
 
   override val dateFormat = DateTimeFormat.forPattern("YYYY-MM-d")
@@ -38,15 +49,15 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
   /**
     * Update eCPM and generation number based on reporting data
     *
-    * @param url      Reporting url, allows tests to specify non default value
-    * @param qs       Query string, allows tests to specify non default value
-    * @param timeOut  Set request time out, used in testing
-    * @return Future(true) on success
+    * @param url     Reporting url, allows tests to specify non default value
+    * @param qs      Query string, allows tests to specify non default value
+    * @param timeOut Set request time out, used in testing
+    * @return        Future(true) on success
     */
   def unityUpdateRevenueData(url: String = BaseURL,
                              qs: List[(String, String)] = queryString,
                              timeOut: Int = Constants.DefaultReportingTimeoutMs): Future[Boolean] = {
-    WS.url(url).withRequestTimeout(timeOut).withQueryString(qs: _*).get().map { response =>
+    wsClient.url(url).withRequestTimeout(timeOut).withQueryString(qs: _*).get.map { response =>
       response.status match {
         case 200 | 304 =>
           val bodyArray = response.body.replaceAll("\"", "").split("\n").map(_.trim)

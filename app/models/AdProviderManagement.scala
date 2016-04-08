@@ -1,14 +1,16 @@
 package models
 
 import anorm._
-import play.api.db.DB
+import play.api.db.Database
 import play.api.Logger
-import play.api.Play.current
 
 /**
   * Encapsulates AdProvider functions that are used outside of application code.
   */
 trait AdProviderManagement {
+  val db: Database
+  val adProvider: AdProviderService
+  val platform: Platform
 
   object AdProviderResult extends Enumeration {
     type AdProviderResult = Value
@@ -22,7 +24,7 @@ trait AdProviderManagement {
     * @return UPDATED or FAILED
     */
   def updateSingleAdProvider(adProvider: UpdatableAdProvider): AdProviderResult.AdProviderResult = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       SQL(
         """
           UPDATE ad_providers
@@ -58,7 +60,7 @@ trait AdProviderManagement {
     */
   def updateAll(): Int = {
     var successfullyUpdatedProvidersCount: Int = 0
-    (Platform.Ios.allAdProviders ++ Platform.Android.allAdProviders).foreach { adProvider =>
+    (platform.Ios.allAdProviders ++ platform.Android.allAdProviders).foreach { adProvider =>
       updateSingleAdProvider(adProvider) match {
         case AdProviderResult.UPDATED =>
           successfullyUpdatedProvidersCount += 1
@@ -79,18 +81,18 @@ trait AdProviderManagement {
     * @return list of AdProviderResult enums
     */
   def loadAll(): List[AdProviderResult.AdProviderResult] = {
-    List(createAdProvider(Platform.IosPlatformID, Platform.Ios.AdColony),
-    createAdProvider(Platform.IosPlatformID, Platform.Ios.HyprMarketplace),
-    createAdProvider(Platform.IosPlatformID, Platform.Ios.Vungle),
-    createAdProvider(Platform.IosPlatformID, Platform.Ios.AppLovin),
+    List(createAdProvider(platform.IosPlatformID, platform.Ios.AdColony),
+    createAdProvider(platform.IosPlatformID, platform.Ios.HyprMarketplace),
+    createAdProvider(platform.IosPlatformID, platform.Ios.Vungle),
+    createAdProvider(platform.IosPlatformID, platform.Ios.AppLovin),
 
-    createAdProvider(Platform.AndroidPlatformID, Platform.Android.AdColony),
-    createAdProvider(Platform.AndroidPlatformID, Platform.Android.HyprMarketplace),
-    createAdProvider(Platform.AndroidPlatformID, Platform.Android.AppLovin),
-    createAdProvider(Platform.AndroidPlatformID, Platform.Android.Vungle),
+    createAdProvider(platform.AndroidPlatformID, platform.Android.AdColony),
+    createAdProvider(platform.AndroidPlatformID, platform.Android.HyprMarketplace),
+    createAdProvider(platform.AndroidPlatformID, platform.Android.AppLovin),
+    createAdProvider(platform.AndroidPlatformID, platform.Android.Vungle),
 
-    createAdProvider(Platform.IosPlatformID, Platform.Ios.UnityAds),
-    createAdProvider(Platform.AndroidPlatformID, Platform.Android.UnityAds))
+    createAdProvider(platform.IosPlatformID, platform.Ios.UnityAds),
+    createAdProvider(platform.AndroidPlatformID, platform.Android.UnityAds))
   }
 
   /**
@@ -103,8 +105,8 @@ trait AdProviderManagement {
     */
   protected def createAdProvider(platformID: Long, provider: UpdatableAdProvider): AdProviderResult.AdProviderResult = {
     platformID match {
-      case Platform.AndroidPlatformID => Platform.AndroidPlatformName
-      case Platform.IosPlatformID => Platform.IosPlatformName
+      case platform.AndroidPlatformID => platform.AndroidPlatformName
+      case platform.IosPlatformID => platform.IosPlatformName
       case _ => ""
     }
   } match {
@@ -113,13 +115,13 @@ trait AdProviderManagement {
       AdProviderResult.INVALID_PLATFORM_ID
 
     case platformName =>
-      AdProvider.findByPlatformAndName(platformID, provider.name).isEmpty match {
+      adProvider.findByPlatformAndName(platformID, provider.name).isEmpty match {
         case false =>
           Logger.warn(s"${provider.name} for $platformName platform already exists, the configuration was not changed")
           AdProviderResult.EXISTS
 
         case _ =>
-          AdProvider.create(provider.name,
+          adProvider.create(provider.name,
             provider.displayName,
             provider.configurationData,
             platformID,

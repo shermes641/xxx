@@ -7,41 +7,37 @@ import play.api.test.Helpers._
 import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 @RunWith(classOf[JUnitRunner])
-class VirtualCurrencySpec extends SpecificationWithFixtures with DistributorUserSetup {
-  val (distributorUser, _) = running(FakeApplication(additionalConfiguration = testDB)) {
-    newDistributorUser()
-  }
-
-  val currentApp = running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = App.create(distributorUser.distributorID.get, "App 1", Platform.Ios.PlatformID).get
-    App.find(id).get
+class VirtualCurrencySpec extends SpecificationWithFixtures {
+  val currentApp = running(testApplication) {
+    val id = appService.create(distributor.id.get, "App 1", testPlatform.Ios.PlatformID).get
+    appService.find(id).get
   }
 
   "VirtualCurrency.create" should {
     "add a record to the virtual_currencies table" in new WithDB {
-      VirtualCurrency.create(currentApp.id, "Coins", 100, 500, Some(100), Some(true)) must not beNone
+      virtualCurrencyService.create(currentApp.id, "Coins", 100, 500, Some(100), Some(true)) must not equalTo None
     }
   }
 
   "VirtualCurrency.find" should {
     "return an instance of VirtualCurrency if one exists" in new WithDB {
-      val virtualCurrencyID = VirtualCurrency.create(currentApp.id, "Coins", 100, 500, Some(100), Some(true)).get
-      VirtualCurrency.find(virtualCurrencyID) must beSome[VirtualCurrency]
+      val virtualCurrencyID = virtualCurrencyService.create(currentApp.id, "Coins", 100, 500, Some(100), Some(true)).get
+      virtualCurrencyService.find(virtualCurrencyID) must beSome[VirtualCurrency]
     }
 
     "return None if no record is found" in new WithDB {
       val fakeID = 999
-      VirtualCurrency.find(fakeID) must beNone
+      virtualCurrencyService.find(fakeID) must beNone
     }
   }
 
   "VirtualCurrency.update" should {
     "update the record in the virtual_currencies table." in new WithDB {
-      val virtualCurrencyID = VirtualCurrency.create(currentApp.id, "Coins", 100, 500, Some(100), Some(true)).get
+      val virtualCurrencyID = virtualCurrencyService.create(currentApp.id, "Coins", 100, 500, Some(100), Some(true)).get
       val newName = "Energy"
       val updatedVC = new VirtualCurrency(virtualCurrencyID, currentApp.id, newName, 200, 600, Some(200), false)
-      VirtualCurrency.update(updatedVC) must beEqualTo(1)
-      val updatedRecord = VirtualCurrency.find(virtualCurrencyID).get
+      virtualCurrencyService.update(updatedVC) must beEqualTo(1)
+      val updatedRecord = virtualCurrencyService.find(virtualCurrencyID).get
       updatedRecord.name must beEqualTo(newName)
     }
   }

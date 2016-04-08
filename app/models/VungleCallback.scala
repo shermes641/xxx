@@ -4,12 +4,20 @@ import java.security.MessageDigest
 
 /**
  * Encapsulates the logic for verifying server to server requests from Vungle.
- * @param appToken The token for the App to which the completion will belong.
+ * @param appToken      The token for the App to which the completion will belong.
  * @param transactionID A unique ID that verifies the completion.
- * @param digest A hashed value to authenticate the origin of the request.
- * @param amount The amount of virtual currency to be rewarded based on the callback URL. We do not use this value.
+ * @param digest        A hashed value to authenticate the origin of the request.
+ * @param amount        The amount of virtual currency to be rewarded based on the callback URL. We do not use this value.
+ * @param userID        The user ID to be rewarded.
+ * @param wapService    A shared instance of the WaterfallAdProviderService class
  */
-class VungleCallback(appToken: String, transactionID: String, digest: String, amount: Int, userID: Option[String]) extends CallbackVerificationHelper {
+class VungleCallback(appToken: String,
+                     transactionID: String,
+                     digest: String,
+                     amount: Int,
+                     userID: Option[String],
+                     wapService: WaterfallAdProviderService) extends CallbackVerificationHelper {
+  override val waterfallAdProviderService = wapService
   override val adProviderName = "Vungle"
   override val token = appToken
   override val adProviderUserID = userID.getOrElse(Constants.NoValue)

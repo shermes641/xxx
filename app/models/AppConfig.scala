@@ -2,10 +2,9 @@ package models
 
 import anorm._
 import anorm.SqlParser._
+import javax.inject._
 import java.sql.Connection
-import models.Waterfall.AdProviderInfo
-import play.api.db.DB
-import play.api.Play.current
+import play.api.db.Database
 import play.api.libs.json._
 import scala.language.postfixOps
 
@@ -16,7 +15,14 @@ import scala.language.postfixOps
  */
 case class AppConfig(generationNumber: Long, configuration: JsValue)
 
-object AppConfig extends JsonConversion {
+/**
+  * Encapsulates functions for AppConfigs
+  * @param db          A shared database
+  * @param jsonBuilder A shared instance of the JsonBuilder class
+  */
+@Singleton
+class AppConfigService @Inject() (db: Database, jsonBuilder: JsonBuilder) extends JsonConversion with WaterfallOrdering with WaterfallFind {
+  val database = db
   val TestModeDistributorID = "111"
   val TestModeProviderName = "HyprMarketplace"
   val TestModeProviderID = 0L
@@ -52,7 +58,7 @@ object AppConfig extends JsonConversion {
   def create(appID: Long, appToken: String, generationNumber: Long)(implicit connection: Connection): Option[Long] = {
     val currentConfiguration = responseV1(appToken)
     findLatestWithTransaction(appToken) match {
-      case Some(latestGeneration) if(generationNumber != latestGeneration.generationNumber) => {
+      case Some(latestGeneration) if generationNumber != latestGeneration.generationNumber => {
         throw new IllegalArgumentException
       }
       case Some(latestGeneration) if(configurationDiffers(latestGeneration.configuration, currentConfiguration) && generationNumber == latestGeneration.generationNumber) => {
@@ -96,7 +102,7 @@ object AppConfig extends JsonConversion {
    * @return If successful, ID of the AppConfig; otherwise, None.
    */
   def createWithWaterfallIDInTransaction(waterfallID: Long, currentGenerationNumber: Option[Long])(implicit connection: Connection): Option[Long] = {
-    App.findByWaterfallID(waterfallID) match {
+    findAppByWaterfallID(waterfallID) match {
       case Some(app) => {
         val generationNumber = currentGenerationNumber match {
           case Some(number) => number
@@ -135,7 +141,7 @@ object AppConfig extends JsonConversion {
    * @return An instance of the AppConfig class if one is found; otherwise, None.
    */
   def findLatest(appToken: String): Option[AppConfig] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       findLatestSQL(appToken).as(appConfigParser*) match {
         case List(appConfig) => Some(appConfig)
         case _ => None
@@ -176,7 +182,7 @@ object AppConfig extends JsonConversion {
       (qualifiedAdProviders, belowThresholdAdProviders)
     }
 
-    Waterfall.order(appToken) match {
+    order(appToken) match {
       // App token was not found in app_configs table.
       case adProviders: List[AdProviderInfo] if adProviders.size == 0 => {
         Json.obj("status" -> "error", "message" -> "App Configuration not found.")
@@ -194,12 +200,12 @@ object AppConfig extends JsonConversion {
             case (_, _) => false
           }
         }
-        JsonBuilder.appConfigResponseV1(providerList, belowThresholdAdProviders, adProviders(0))
+        jsonBuilder.appConfigResponseV1(providerList, belowThresholdAdProviders, adProviders(0))
       }
       // All other cases.
       case adProviders: List[AdProviderInfo] => {
         val (qualifiedAdProviders, belowThresholdAdProviders) = filteredAdProviders(adProviders)
-        JsonBuilder.appConfigResponseV1(qualifiedAdProviders, belowThresholdAdProviders, adProviders(0))
+        jsonBuilder.appConfigResponseV1(qualifiedAdProviders, belowThresholdAdProviders, adProviders(0))
       }
     }
   }
@@ -215,6 +221,6 @@ object AppConfig extends JsonConversion {
       Some(TestModeAppName), Some(TestModeHyprMediateAppID), TestModeAppConfigRefreshInterval, Some(TestModeHyprMediateDistributorName),
       Some(TestModeHyprMediateDistributorID), Some(testConfigData), Some(5.0), Some(TestModeVirtualCurrency.name), Some(TestModeVirtualCurrency.exchangeRate),
       TestModeVirtualCurrency.rewardMin, TestModeVirtualCurrency.rewardMax, Some(TestModeVirtualCurrency.roundUp), testMode = true, paused = false, optimizedOrder = false, active = Some(false))
-    JsonBuilder.appConfigResponseV1(List(testAdProviderConfig), List(), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
+    jsonBuilder.appConfigResponseV1(List(testAdProviderConfig), List(), testAdProviderConfig).as[JsObject].deepMerge(JsObject(Seq("testMode" -> JsBoolean(true))))
   }
 }

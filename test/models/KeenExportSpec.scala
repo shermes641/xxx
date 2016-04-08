@@ -3,22 +3,21 @@ package models
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
-import controllers.AnalyticsController
 import io.keen.client.java.{JavaKeenClientBuilder, KeenClient, KeenProject}
 import org.specs2.mock.Mockito
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
+import resources.{DistributorUserSetup, SpecificationWithFixtures}
 
 import scala.io._
 
-class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito with ConfigVars {
+class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
   val displayFillRate = true
 
   def getAppsList(distributorID: Long) = {
-    val appList = App.findAllAppsWithWaterfalls(distributorID)
+    val appList = appService.findAllAppsWithWaterfalls(distributorID)
     appList.map(app => app.id.toString)
   }
 
@@ -39,12 +38,14 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
     )
   )
 
+  val mailer = mock[Mailer]
+
   "GetDataFromKeen" should {
     "Returns the correct filters" in new WithDB {
       val collection_name = "test_collection"
       val property_name = "property_name"
       val property_value = 123123
-      val createdFilters = models.KeenExport.createFilter(timeframe, filters, collection_name, "2", property_name)
+      val createdFilters = keenExportService.createFilter(timeframe, filters, collection_name, "2", property_name)
       (createdFilters \ "event_collection").as[String] must beEqualTo(collection_name)
       (createdFilters \ "target_property").as[String] must beEqualTo(property_name)
       ((createdFilters \ "filters").as[JsArray].as[List[JsObject]].head \ "property_value").as[String].toLong must beEqualTo(10)
@@ -57,20 +58,13 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
+      val project = new KeenProject(configVars.ConfigVarsKeen.projectID, configVars.ConfigVarsKeen.writeKey, configVars.ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
-      val keenExportActor = TestActorRef(new KeenExportActor(
-        newDistributor.id.get,
-        displayFillRate,
-        email,
-        filters,
-        timeframe,
-        getAppsList(newDistributor.id.get),
-        adProvidersSelected = true,
-        scopedReadKey)).underlyingActor
+      lazy val analyticsController = app.injector.instanceOf[controllers.AnalyticsController]
+      val scopedReadKey = analyticsController.getScopedReadKey(newDistributor.id.get)
+      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, displayFillRate, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey, appService, keenExportService, configVars, ws, mailer)).underlyingActor
       setUpApp(newDistributor.id.get)
 
       val writer = keenExportActor.createCSVFile()
@@ -83,20 +77,13 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test2@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
+      val project = new KeenProject(configVars.ConfigVarsKeen.projectID, configVars.ConfigVarsKeen.writeKey, configVars.ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
-      var keenExportActor = TestActorRef(new KeenExportActor(
-        newDistributor.id.get,
-        displayFillRate,
-        email,
-        filters,
-        timeframe,
-        getAppsList(newDistributor.id.get),
-        adProvidersSelected = true,
-        scopedReadKey)).underlyingActor
+      lazy val analyticsController = app.injector.instanceOf[controllers.AnalyticsController]
+      val scopedReadKey = analyticsController.getScopedReadKey(newDistributor.id.get)
+      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, displayFillRate, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey, appService, keenExportService, configVars, ws, mailer)).underlyingActor
       var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
@@ -151,15 +138,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,0.3806700110435486")
 
-      keenExportActor = TestActorRef(new KeenExportActor(
-        newDistributor.id.get,
-        displayFillRate,
-        email,
-        filters,
-        timeframe,
-        getAppsList(newDistributor.id.get),
-        adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, displayFillRate, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey, appService, keenExportService, configVars, ws, mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify dividing by 0 does not cause error
@@ -177,15 +156,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,0.09233000129461288")
 
-      keenExportActor = TestActorRef(new KeenExportActor(
-        newDistributor.id.get,
-        displayFillRate,
-        email,
-        filters,
-        timeframe,
-        getAppsList(newDistributor.id.get),
-        adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, displayFillRate, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey, appService, keenExportService, configVars, ws, mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify eCPM defaults to 0
@@ -199,11 +170,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test3@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
+      val project = new KeenProject(configVars.ConfigVarsKeen.projectID, configVars.ConfigVarsKeen.writeKey, configVars.ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
+      lazy val analyticsController = app.injector.instanceOf[controllers.AnalyticsController]
+      val scopedReadKey = analyticsController.getScopedReadKey(newDistributor.id.get)
       var keenExportActor = TestActorRef(new KeenExportActor(
         newDistributor.id.get,
         !displayFillRate,
@@ -212,7 +184,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = true,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService,
+        keenExportService,
+        configVars,
+        ws,
+        mailer)).underlyingActor
       var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
@@ -276,7 +253,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService,
+        keenExportService,
+        configVars,
+        ws,
+        mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify dividing by 0 does not cause error
@@ -303,7 +285,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService,
+        keenExportService,
+        configVars,
+        ws,
+        mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify eCPM defaults to 0
@@ -318,11 +305,14 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test4@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
+      val project = new KeenProject(configVars.ConfigVarsKeen.projectID, configVars.ConfigVarsKeen.writeKey, configVars.ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
-      val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
+      val scopedReadKey = {
+        lazy val analyticsController = app.injector.instanceOf[controllers.AnalyticsController]
+        analyticsController.getScopedReadKey(newDistributor.id.get)
+      }
       var keenExportActor = TestActorRef(new KeenExportActor(
         newDistributor.id.get,
         !displayFillRate,
@@ -331,7 +321,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = true,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService = appService,
+        keenExportService = keenExportService,
+        configVars = configVars,
+        wsClient = ws,
+        mailer = mailer)).underlyingActor
       var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
@@ -383,7 +378,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService = appService,
+        keenExportService = keenExportService,
+        configVars = configVars,
+        wsClient = ws,
+        mailer = mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       buildAppRows()
@@ -402,7 +402,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService = appService,
+        keenExportService = keenExportService,
+        configVars = configVars,
+        wsClient = ws,
+        mailer = mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       buildAppRows()
@@ -421,7 +426,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
         timeframe,
         getAppsList(newDistributor.id.get),
         adProvidersSelected = false,
-        scopedReadKey)).underlyingActor
+        scopedReadKey,
+        appService = appService,
+        keenExportService = keenExportService,
+        configVars = configVars,
+        wsClient = ws,
+        mailer = mailer)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       buildAppRows()

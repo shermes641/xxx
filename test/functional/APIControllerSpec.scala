@@ -1,32 +1,35 @@
 package functional
 
 import anorm._
-import controllers.APIController
+import hmac.Signer
 import models._
 import org.specs2.mock.Mockito
-import play.api.Play.current
-import play.api.db.DB
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
-import resources.{AdProviderRequests, AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
-
+import resources.{AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderRequests with AdProviderSpecSetup with Mockito {
+class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup with Mockito {
+  override lazy val adProvider = adProviderService
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
+    waterfallAdProviderService.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
   }
 
   val wap2ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    WaterfallAdProvider.create(waterfall.id, adProviderID2.get, None, None, configurable = true, active = true).get
+    waterfallAdProviderService.create(waterfall.id, adProviderID2.get, None, None, configurable = true, active = true).get
   }
 
   val (completionApp, completionWaterfall, _, _) = running(FakeApplication(additionalConfiguration = testDB)) {
     val (completionApp, completionWaterfall, _, _) = setUpApp(distributor.id.get)
-    WaterfallAdProvider.create(completionWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
-    DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(completionWaterfall.id, None) }
+    waterfallAdProviderService.create(completionWaterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
+    database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(completionWaterfall.id, None) }
     (completionApp, completionWaterfall, None, None)
+  }
+
+  val signer = running(testApplication) {
+    new Signer(configVars)
   }
 
   "APIController.appConfigV1" should {
@@ -43,8 +46,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with the HyprMarketplace test distributor configuration when waterfall is in test mode" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = true, paused = false)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = true, paused = false)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(app1.token, None).url,
@@ -54,31 +57,31 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       val appConfig = Json.parse(contentAsString(result))
-      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(AppConfig.TestModeDistributorID),
-        "propertyID" -> JsString(AppConfig.TestModePropertyID), "providerName" -> JsString(AppConfig.TestModeProviderName),
-        "providerID" -> JsNumber(AppConfig.TestModeProviderID), "eCPM" -> JsNumber(5.0), "sdkBlacklistRegex" -> JsString(AppConfig.TestModeSdkBlacklistRegex)))
-      val vcAttributes = AppConfig.TestModeVirtualCurrency
+      val testAdProviderConfig: JsValue = JsObject(Seq("distributorID" -> JsString(appConfigService.TestModeDistributorID),
+        "propertyID" -> JsString(appConfigService.TestModePropertyID), "providerName" -> JsString(appConfigService.TestModeProviderName),
+        "providerID" -> JsNumber(appConfigService.TestModeProviderID), "eCPM" -> JsNumber(5.0), "sdkBlacklistRegex" -> JsString(appConfigService.TestModeSdkBlacklistRegex)))
+      val vcAttributes = appConfigService.TestModeVirtualCurrency
       val expectedVCJson = JsObject(Seq("name" -> JsString(vcAttributes.name), "exchangeRate" -> JsNumber(vcAttributes.exchangeRate),
         "rewardMin" -> JsNumber(vcAttributes.rewardMin), "rewardMax" -> JsNumber(vcAttributes.rewardMax.get), "roundUp" -> JsBoolean(vcAttributes.roundUp)))
-      (appConfig \ "adProviderConfigurations") must beEqualTo(JsArray(testAdProviderConfig :: Nil))
-      (appConfig \ "analyticsConfiguration") must beEqualTo(JsonBuilder.analyticsConfiguration \ "analyticsConfiguration")
-      (appConfig \ "errorReportingConfiguration") must beEqualTo(JsonBuilder.errorReportingConfiguration \ "errorReportingConfiguration")
-      (appConfig \ "virtualCurrency") must beEqualTo(expectedVCJson)
-      (appConfig \ "appName").as[String] must beEqualTo(AppConfig.TestModeAppName)
-      (appConfig \ "appID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateAppID)
-      (appConfig \ "distributorName").as[String] must beEqualTo(AppConfig.TestModeHyprMediateDistributorName)
-      (appConfig \ "distributorID").as[Long] must beEqualTo(AppConfig.TestModeHyprMediateDistributorID)
-      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(AppConfig.TestModeAppConfigRefreshInterval)
+      (appConfig \ "adProviderConfigurations").get must beEqualTo(JsArray(testAdProviderConfig :: Nil))
+      (appConfig \ "analyticsConfiguration").get must beEqualTo((jsonBuilder.analyticsConfiguration \ "analyticsConfiguration").get)
+      (appConfig \ "errorReportingConfiguration").get must beEqualTo((jsonBuilder.errorReportingConfiguration \ "errorReportingConfiguration").get)
+      (appConfig \ "virtualCurrency").get must beEqualTo(expectedVCJson)
+      (appConfig \ "appName").as[String] must beEqualTo(appConfigService.TestModeAppName)
+      (appConfig \ "appID").as[Long] must beEqualTo(appConfigService.TestModeHyprMediateAppID)
+      (appConfig \ "distributorName").as[String] must beEqualTo(appConfigService.TestModeHyprMediateDistributorName)
+      (appConfig \ "distributorID").as[Long] must beEqualTo(appConfigService.TestModeHyprMediateDistributorID)
+      (appConfig \ "appConfigRefreshInterval").as[Long] must beEqualTo(appConfigService.TestModeAppConfigRefreshInterval)
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       (appConfig \ "paused").as[Boolean] must beEqualTo(false)
-      (appConfig \ "generationNumber") must haveClass[JsNumber]
+      (appConfig \ "generationNumber").get must haveClass[JsNumber]
     }
 
     "respond with ad providers ordered by eCPM when the waterfall is in optimized mode" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
+      waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      database.withTransaction { implicit connection => appConfigService.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(app1.token, None).url,
@@ -94,10 +97,10 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     }
 
     "respond with the current waterfall order when waterfall is live and not optimized" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, Some(0), Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, Some(1), Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, Some(0), Some(1.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, Some(1), Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      database.withTransaction { implicit connection => appConfigService.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(app1.token, None).url,
@@ -114,11 +117,11 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
 
     "exclude ad providers from the waterfall order if the virtual currency roundUp option is false and ad provider's current cpm value is less than the calculated reward amount for the virtual currency" in new WithFakeBrowser {
       val roundUp = false
-      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 1, None, roundUp))
-      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2ID, waterfall.id, adProviderID2.get, None, Some(50.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 1, None, roundUp))
+      waterfallService.update(completionWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap1ID, completionWaterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap2ID, completionWaterfall.id, adProviderID2.get, None, Some(50.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(completionWaterfall.id, None) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(completionApp.token, None).url,
@@ -130,16 +133,16 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val appConfig: JsValue = Json.parse(contentAsString(result))
       (appConfig \ "logFullConfig").as[Boolean] must beEqualTo(true)
       val adProviderConfigs = (appConfig \ "adProviderConfigurations").as[JsArray].as[List[JsValue]]
-      adProviderConfigs.map(provider => (provider \ "providerName").as[String]) must contain(adProviders.head.name)
-      adProviderConfigs.map(provider => (provider \ "providerName").as[String]) must not contain adProviders(1).name
+      adProviderConfigs.map(provider => (provider \ "providerName").as[String]) must contain(adProviders.head)
+      adProviderConfigs.map(provider => (provider \ "providerName").as[String]) must not contain adProviders(1)
     }
 
     "respond with an empty adProviderConfigurations array when there are no active ad providers that meet the minimum reward threshold" in new WithFakeBrowser {
       val roundUp = false
-      VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 100, None, roundUp))
-      Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
-      DB.withTransaction { implicit connection => AppConfig.create(app1.id, app1.token, generationNumber(app1.id)) }
+      virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, virtualCurrency1.exchangeRate, 100, None, roundUp))
+      waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap1ID, waterfall.id, adProviderID1.get, None, Some(5.0), Some(true), None, JsObject(Seq("requiredParams" -> JsObject(Seq()))), true))
+      database.withTransaction { implicit connection => appConfigService.create(app1.id, app1.token, generationNumber(app1.id)) }
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.appConfigV1(app1.token, None).url,
@@ -148,7 +151,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      val jsonResponse: JsValue = Json.parse(contentAsString(result))
+      val jsonResponse: JsValue = contentAsJson(result)
       (jsonResponse \ "logFullConfig").as[Boolean] must beEqualTo(true)
       (jsonResponse \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
     }
@@ -164,10 +167,11 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
         val Some(result) = route(request)
         status(result) must equalTo(400)
         val jsonResponse: JsValue = Json.parse(contentAsString(result))
-        (jsonResponse \ "message").as[String] must beEqualTo(APIController.platformError(correctPlatformName, incorrectPlatformName))
+
+        (jsonResponse \ "message").as[String] must beEqualTo(apiController.platformError(correctPlatformName, incorrectPlatformName))
       }
 
-      List((Platform.Android, Platform.Ios), (Platform.Ios, Platform.Android)).map { platforms =>
+      List((testPlatform.Android, testPlatform.Ios), (testPlatform.Ios, testPlatform.Android)).map { platforms =>
         val appPlatform = platforms._1
         val incorrectPlatform = platforms._2
 
@@ -181,18 +185,18 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
           roundUp = true,
           platformID = appPlatform.PlatformID
         )
-        WaterfallAdProvider.create(waterfallID = currentWaterfall.id, adProviderID = adProviderID1.get, waterfallOrder = None, cpm = Some(5.0), configurable = true, active = true, pending = false)
-        DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+        waterfallAdProviderService.create(waterfallID = currentWaterfall.id, adProviderID = adProviderID1.get, waterfallOrder = None, cpm = Some(5.0), configurable = true, active = true, pending = false)
+        database.withTransaction { implicit connection => appConfigService.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
 
         // Verify we get a platform error when in test mode
-        Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beTrue
+        waterfallService.find(currentWaterfall.id, distributor.id.get).get.testMode must beTrue
         verifyBadRequest(currentApp.token, appPlatform.PlatformName, incorrectPlatform.PlatformName)
 
-        Waterfall.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
-        DB.withTransaction { implicit connection => AppConfig.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
+        waterfallService.update(currentWaterfall.id, optimizedOrder = true, testMode = false, paused = false)
+        database.withTransaction { implicit connection => appConfigService.create(currentApp.id, currentApp.token, generationNumber(currentApp.id)) }
 
         // Verify we get a platform error when in live mode
-        Waterfall.find(currentWaterfall.id, distributor.id.get).get.testMode must beFalse
+        waterfallService.find(currentWaterfall.id, distributor.id.get).get.testMode must beFalse
         verifyBadRequest(currentApp.token, appPlatform.PlatformName, incorrectPlatform.PlatformName)
       }
     }
@@ -201,15 +205,15 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   "APIController.vungleCompletionV1" should {
     val transactionID = Some("0123456789")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, vungleID, None, None, configurable = true, active = true).get
-      WaterfallAdProvider.find(id).get
+      val id = waterfallAdProviderService.create(completionWaterfall.id, vungleID, None, None, configurable = true, active = true).get
+      waterfallAdProviderService.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
 
     "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val digest = Some("bf80d53f84df22bb91b48acc7606bc0909876f6fe981b1610a0352433ae16a63")
       val request = FakeRequest(
         GET,
@@ -219,12 +223,12 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      verifyNewCompletion(completionApp.token, transactionID.get, Platform.Ios.Vungle.name, completionCount)
+      verifyNewCompletion(completionApp.token, transactionID.get, testPlatform.Ios.Vungle.name, completionCount)
     }
 
     "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.vungleCompletionV1(completionApp.token, transactionID, Some("some-fake-digest"), Some(1), None).url,
@@ -262,7 +266,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      verifyNewCompletion(completionApp.token, transactionID.get, Platform.Ios.AppLovin.name, completionCount)
+      verifyNewCompletion(completionApp.token, transactionID.get, testPlatform.Ios.AppLovin.name, completionCount)
     }
 
     "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
@@ -291,15 +295,15 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val transactionID = Some("0123456789")
     val customID = Some("testuser")
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, adColonyID, None, None, configurable = true, active = true).get
-      WaterfallAdProvider.find(id).get
+      val id = waterfallAdProviderService.create(completionWaterfall.id, adColonyID, None, None, configurable = true, active = true).get
+      waterfallAdProviderService.find(id).get
     }
-    val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
+    val adProviderConfiguration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
 
     "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, adProviderConfiguration, false))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.adColonyCompletionV1(completionApp.token, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID).url,
@@ -309,12 +313,12 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       contentAsString(result) must contain("vc_success")
-      verifyNewCompletion(completionApp.token, transactionID.get, Platform.Ios.AdColony.name, completionCount)
+      verifyNewCompletion(completionApp.token, transactionID.get, testPlatform.Ios.AdColony.name, completionCount)
     }
 
     "respond with a 200 if the request signature is not valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, adProviderConfiguration, false))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.adColonyCompletionV1(completionApp.token, Some("invalid-transaction-id"), uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID).url,
@@ -350,15 +354,15 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val quantity = Some(1)
 
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, hyprMarketplaceID, None, None, configurable = true, active = true).get
-      WaterfallAdProvider.find(id).get
+      val id = waterfallAdProviderService.create(completionWaterfall.id, hyprMarketplaceID, None, None, configurable = true, active = true).get
+      waterfallAdProviderService.find(id).get
     }
 
     "respond with a 200 when all necessary params are present and transaction_id is not blank" in new WithFakeBrowser {
       val partnerCodeSig = Some("43c038d8f6edda911ef3813fe0c3e86a10437f0fbd78fccf47cca62f61212fdc")
       val nonBlankPartnerCode = Some("partner_code")
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, partnerCodeSig, quantity, None, None, uid, nonBlankPartnerCode).url,
@@ -367,12 +371,12 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      verifyNewCompletion(completionApp.token, nonBlankPartnerCode.get, Platform.Ios.HyprMarketplace.name, completionCount)
+      verifyNewCompletion(completionApp.token, nonBlankPartnerCode.get, testPlatform.Ios.HyprMarketplace.name, completionCount)
     }
 
     "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, uid, partnerCode).url,
@@ -381,13 +385,13 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      verifyNewCompletion(completionApp.token, partnerCode.get, Platform.Ios.HyprMarketplace.name, completionCount)
+      verifyNewCompletion(completionApp.token, partnerCode.get, testPlatform.Ios.HyprMarketplace.name, completionCount)
     }
 
     "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
       val badSignature = Some("123")
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, JsObject(Seq()), false))
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, badSignature, quantity, None, None, uid, partnerCode).url,
@@ -420,15 +424,15 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val hmac = "ec61dfb3f7355aea49a1a81540073f48"
     val productID = "1061310"
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
-      val id = WaterfallAdProvider.create(completionWaterfall.id, unityAdsID, None, None, configurable = true, active = true).get
-      WaterfallAdProvider.find(id).get
+      val id = waterfallAdProviderService.create(completionWaterfall.id, unityAdsID, None, None, configurable = true, active = true).get
+      waterfallAdProviderService.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString(sharedSecret))),
       "requiredParams" -> JsObject(Seq(Constants.UnityAds.GameID -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
 
     "respond with a 200 if the request is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
         s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=$sid&oid=$oid&hmac=$hmac",
@@ -443,7 +447,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
 
     "respond with a 200 when the productid param is duplicated" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
         s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=$sid&oid=$oid&hmac=$hmac&productid=$productID",
@@ -461,7 +465,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val sid = "testuser1"
       val oid = "562832418"
       val hmac = "7338989ca66614440f5a92788e15ae55"
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
         s"/v1/reward_callbacks/${completionApp.token}/unity_ads?sid=$sid&oid=$oid&hmac=$hmac",
@@ -477,7 +481,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       val invalidTransactionID = "invalid-transaction-id"
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
         s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=$sid&oid=$invalidTransactionID&hmac=$hmac",
@@ -515,18 +519,20 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       FakeHeaders(),
       ""
     )
-    val adProviderRequest = APIController.requestToJsonBuilder(getRequest)
 
     "store the HTTP method in a standardized JSON format" in new WithFakeBrowser {
+      val adProviderRequest = apiController.requestToJsonBuilder(getRequest)
       (adProviderRequest \ "method").as[String] must beEqualTo(route.method)
     }
 
     "store the URL path in a standardized JSON format" in new WithFakeBrowser {
+      val adProviderRequest = apiController.requestToJsonBuilder(getRequest)
       (adProviderRequest \ "path").as[String] must beEqualTo(route.url.split("""\?""")(0))
     }
 
     "store the query string in a standardized JSON format" in new WithFakeBrowser {
-      (adProviderRequest \ "query") must haveClass[JsObject]
+      val adProviderRequest = apiController.requestToJsonBuilder(getRequest)
+      (adProviderRequest \ "query").get must haveClass[JsObject]
       (adProviderRequest \ "query" \ "time").as[String] must beEqualTo(time)
       (adProviderRequest \ "query" \ "sig").as[String] must beEqualTo(sig)
     }
@@ -542,37 +548,39 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     verificationInfo.callbackURL returns Some("http://someUrl.com")
 
     val callback = mock[CallbackVerificationHelper]
-    callback.returnFailure returns APIController.BadRequest
-    callback.returnSuccess returns APIController.Ok
-    callback.verificationInfo returns verificationInfo
     callback.currencyAmount returns 10
     callback.payout returns Some(10.0)
+    callback.verificationInfo returns verificationInfo
 
     val completion = mock[Completion]
     val adProviderRequest = JsObject(Seq())
 
     "return the ad provider's default successful response if the server to server callback receives a 200 response" in new WithFakeBrowser {
+      callback.returnSuccess returns apiController.Ok
       completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future(true)
-      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnSuccess.header.status)
+      apiController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnSuccess.header.status)
     }
 
     "return the ad provider's default failure response if the server to server callback does not respond with a 200" in new WithFakeBrowser {
+      callback.returnFailure returns apiController.BadRequest
       completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future(false)
-      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
+      apiController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
 
     "return the ad provider's default failure response if the server to server callback times out" in new WithFakeBrowser {
+      callback.returnFailure returns apiController.BadRequest
       completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future {
-        Thread.sleep(APIController.DefaultTimeout + 1000)
+        Thread.sleep(apiController.DefaultTimeout + 1000)
         true
       }
-      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
+      apiController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
 
     "return the ad provider's default failure response if the incoming request was not valid" in new WithFakeBrowser {
+      callback.returnFailure returns apiController.BadRequest
       verificationInfo.isValid returns false
       completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future(true)
-      APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
+      apiController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
   }
 
@@ -582,7 +590,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   def verifyNewCompletion(appToken: String,
                           transactionID: String,
                           adProviderName: String, expectedCompletionCount: Long) = {
-    val completionID = DB.withConnection { implicit connection =>
+    val completionID = database.withConnection { implicit connection =>
       SQL(
         """
           SELECT completions.id FROM completions
@@ -591,8 +599,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
           LIMIT 1
         """
       )
-        .on("app_token" -> appToken, "transaction_id" -> transactionID, "ad_provider_name" -> adProviderName)()
-        .map(row => row[Long]("id")).head
+        .on("app_token" -> appToken, "transaction_id" -> transactionID, "ad_provider_name" -> adProviderName)
+        .as(SqlParser.long("id").single)
     }
     completionID must beGreaterThan(expectedCompletionCount)
     tableCount("completions") must beEqualTo(expectedCompletionCount + 1)

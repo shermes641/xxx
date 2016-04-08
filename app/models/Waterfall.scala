@@ -3,10 +3,10 @@ package models
 import anorm._
 import anorm.SqlParser._
 import controllers.ConfigInfo
+import javax.inject._
 import java.sql.Connection
-import play.api.db.DB
+import play.api.db.Database
 import play.api.libs.json._
-import play.api.Play.current
 import scala.language.postfixOps
 
 /**
@@ -36,7 +36,13 @@ case class Waterfall(id: Long,
                      platformID: Long,
                      platformName: String)
 
-object Waterfall extends JsonConversion {
+/**
+  * Encapsulates functions for Waterfalls
+  * @param waterfallAdProviderService A shared instance of the WaterfallAdProviderService class
+  * @param db                         A shared database
+  */
+@Singleton
+class WaterfallService @Inject() (waterfallAdProviderService: WaterfallAdProviderService, db: Database) extends WaterfallOrdering {
   // Used to convert SQL row into an instance of the Waterfall class.
   val waterfallParser: RowParser[Waterfall] = {
     get[Long]("waterfalls.id") ~
@@ -100,7 +106,7 @@ object Waterfall extends JsonConversion {
    * @return Number of rows updated
    */
   def update(id: Long, optimizedOrder: Boolean, testMode: Boolean, paused: Boolean): Int = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       updateSQL(id, optimizedOrder, testMode, paused).executeUpdate()
     }
   }
@@ -124,7 +130,7 @@ object Waterfall extends JsonConversion {
    * @return Waterfall instance
    */
   def find(waterfallID: Long, distributorID: Long): Option[Waterfall] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, apps.platform_id, platforms.name as platform_name, generation_number
@@ -150,7 +156,7 @@ object Waterfall extends JsonConversion {
    * @return List of Waterfall instances if query is successful.  Otherwise, returns an empty list.
    */
   def findByAppID(appID: Long): List[Waterfall] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT waterfalls.*, apps.name as app_name, apps.token as app_token, apps.platform_id, platforms.name as platform_name, generation_number
@@ -188,7 +194,7 @@ object Waterfall extends JsonConversion {
    * @return An instance of the WaterfallCallbackInfo if the token is found; otherwise, returns None.
    */
   def findCallbackInfo(appToken: String): Option[WaterfallCallbackInfo] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT apps.callback_url, apps.server_to_server_enabled
@@ -200,6 +206,71 @@ object Waterfall extends JsonConversion {
       query.as(waterfallCallbackInfoParser*) match {
         case List(waterfallCallbackInfo) => Some(waterfallCallbackInfo)
         case _ => None
+      }
+    }
+  }
+
+  /**
+   * Updates WaterfallAdProvider records according to the configuration in the Waterfall edit view.
+   * @param waterfallID ID of the Waterfall to which all WaterfallAdProviders belong.
+   * @param adProviderConfigList List of attributes to update for each WaterfallAdProvider.
+   * @return True if the update is successful; otherwise, false.
+   */
+  def reconfigureAdProviders(waterfallID: Long, adProviderConfigList: List[ConfigInfo])(implicit connection: Connection): Boolean = {
+    var successful = true
+    adProviderConfigList.map { adProviderConfig =>
+      if(adProviderConfig.active && adProviderConfig.newRecord) {
+        // If a Distributor wants to add a new AdProvider to the current waterfall, create a new WaterfallAdProvider record.
+        waterfallAdProviderService.createWithTransaction(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder), adProviderConfig.cpm, adProviderConfig.configurable) match {
+          case Some(id) => {}
+          case None => successful = false
+        }
+      } else if(!adProviderConfig.newRecord) {
+        //  Otherwise, find and update the existing WaterfallAdProvider record.
+        waterfallAdProviderService.find(adProviderConfig.id) match {
+          case Some(record) =>
+            val newOrder = if(adProviderConfig.active) Some(adProviderConfig.waterfallOrder) else None
+            // In the case that the WaterfallAdProvider's pending status has changed and the user edits the Waterfall without before refreshing the browser, use the most up to date active status from the database.
+            val activeStatus: Option[Boolean] = if(adProviderConfig.pending != record.pending) record.active else Some(adProviderConfig.active)
+            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, activeStatus, record.fillRate, record.configurationData, record.reportingActive, record.pending)
+            waterfallAdProviderService.updateWithTransaction(updatedValues)
+
+          case _ =>
+            successful = false
+        }
+      }
+    }
+    successful
+  }
+}
+
+trait WaterfallOrdering extends JsonConversion {
+  // Used to convert SQL row into an instance of the AdProviderInfo class in Waterfall.order.
+  val adProviderParser: RowParser[AdProviderInfo] = {
+    get[Option[String]]("provider_name") ~
+      get[Option[Long]]("provider_id") ~
+      get[Option[Long]]("apps.platform_id") ~
+      get[Option[String]]("sdk_blacklist_regex") ~
+      get[Option[String]]("app_name") ~
+      get[Option[Long]]("app_id") ~
+      get[Long]("app_config_refresh_interval") ~
+      get[Option[String]]("distributor_name") ~
+      get[Option[Long]]("distributor_id") ~
+      get[Option[JsValue]]("configuration_data") ~
+      get[Option[Double]]("cpm") ~
+      get[Option[String]]("vc_name") ~
+      get[Option[Long]]("exchange_rate") ~
+      get[Long]("reward_min") ~
+      get[Option[Long]]("reward_max") ~
+      get[Option[Boolean]]("round_up") ~
+      get[Boolean]("test_mode") ~
+      get[Boolean]("paused") ~
+      get[Boolean]("optimized_order") ~
+      get[Option[Boolean]]("active") map {
+      case provider_name ~ provider_id ~ platform_id ~ sdk_blacklist_regex ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
+        configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ paused ~ optimized_order ~ active => {
+        AdProviderInfo(provider_name, provider_id, platform_id, sdk_blacklist_regex, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
+          configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, paused, optimized_order, active)
       }
     }
   }
@@ -227,117 +298,54 @@ object Waterfall extends JsonConversion {
     ).on("app_token" -> appToken)
     query.as(adProviderParser*).toList
   }
-
-  // Used to convert SQL row into an instance of the AdProviderInfo class in Waterfall.order.
-  val adProviderParser: RowParser[AdProviderInfo] = {
-    get[Option[String]]("provider_name") ~
-    get[Option[Long]]("provider_id") ~
-    get[Option[Long]]("apps.platform_id") ~
-    get[Option[String]]("sdk_blacklist_regex") ~
-    get[Option[String]]("app_name") ~
-    get[Option[Long]]("app_id") ~
-    get[Long]("app_config_refresh_interval") ~
-    get[Option[String]]("distributor_name") ~
-    get[Option[Long]]("distributor_id") ~
-    get[Option[JsValue]]("configuration_data") ~
-    get[Option[Double]]("cpm") ~
-    get[Option[String]]("vc_name") ~
-    get[Option[Long]]("exchange_rate") ~
-    get[Long]("reward_min") ~
-    get[Option[Long]]("reward_max") ~
-    get[Option[Boolean]]("round_up") ~
-    get[Boolean]("test_mode") ~
-    get[Boolean]("paused") ~
-    get[Boolean]("optimized_order") ~
-    get[Option[Boolean]]("active") map {
-      case provider_name ~ provider_id ~ platform_id ~ sdk_blacklist_regex ~ app_name ~ app_id ~ app_config_refresh_interval ~ distributor_name ~ distributor_id ~
-           configuration_data ~ cpm ~ vc_name ~ exchange_rate ~ reward_min ~ reward_max ~ round_up ~ test_mode ~ paused ~ optimized_order ~ active => {
-        AdProviderInfo(provider_name, provider_id, platform_id, sdk_blacklist_regex, app_name, app_id, app_config_refresh_interval, distributor_name, distributor_id,
-                       configuration_data, cpm, vc_name, exchange_rate, reward_min, reward_max, round_up, test_mode, paused, optimized_order, active)
-      }
-    }
-  }
-
-  /**
-   * Encapsulates necessary information returned from SQL query in Waterfall.order.
-   * @param providerName Maps to the display_name field in the ad_providers table. WARNING: This name cannot contain spaces or punctuation.
-   * @param providerID Maps to the id field in the ad_providers table.
-   * @param platformID Indicates the platform to which the App belongs (e.g. iOS or Android)
-   * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider. This value will be used to create an NSRegularExpression in the SDK.
-   * @param appName Maps to the name field in the apps table.
-   * @param appID Maps to the id field in the apps table.
-   * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
-   * @param distributorName Maps to the name field in the distributors table.
-   * @param distributorID Maps to the id field in the distributors table.
-   * @param configurationData Maps to the configuration_data field in the waterfall_ad_providers table.
-   * @param cpm Maps to the cpm field of waterfall_ad_providers table.
-   * @param virtualCurrencyName Maps to the name field in the virtual_currencies table.
-   * @param exchangeRate Maps to the exchange_rate field of the virtual_currencies table.
-   * @param rewardMin Maps to the reward_min field of the virtual_currencies table.
-   * @param rewardMax Maps to the reward_max field of the virtual_currencies table.
-   * @param roundUp Maps to the round_up field of the virtual_currencies table.
-   * @param testMode Determines if a waterfall is in test mode or not.
-   * @param paused Determines if a waterfall is paused or not.
-   * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
-   * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
-   */
-  case class AdProviderInfo(providerName: Option[String],
-                            providerID: Option[Long],
-                            platformID: Option[Long],
-                            sdkBlacklistRegex: Option[String],
-                            appName: Option[String],
-                            appID: Option[Long],
-                            appConfigRefreshInterval: Long,
-                            distributorName: Option[String],
-                            distributorID: Option[Long],
-                            configurationData: Option[JsValue],
-                            cpm: Option[Double],
-                            virtualCurrencyName: Option[String],
-                            exchangeRate: Option[Long],
-                            rewardMin: Long,
-                            rewardMax: Option[Long],
-                            roundUp: Option[Boolean],
-                            testMode: Boolean,
-                            paused: Boolean,
-                            optimizedOrder: Boolean,
-                            active: Option[Boolean]) extends RewardThreshold {
-    override val roundUpVal = roundUp
-    override val exchangeRateVal = exchangeRate
-    override val rewardMinVal = rewardMin
-    override val cpmVal = cpm
-  }
-
-  /**
-   * Updates WaterfallAdProvider records according to the configuration in the Waterfall edit view.
-   * @param waterfallID ID of the Waterfall to which all WaterfallAdProviders belong.
-   * @param adProviderConfigList List of attributes to update for each WaterfallAdProvider.
-   * @return True if the update is successful; otherwise, false.
-   */
-  def reconfigureAdProviders(waterfallID: Long, adProviderConfigList: List[ConfigInfo])(implicit connection: Connection): Boolean = {
-    var successful = true
-    adProviderConfigList.map { adProviderConfig =>
-      if(adProviderConfig.active && adProviderConfig.newRecord) {
-        // If a Distributor wants to add a new AdProvider to the current waterfall, create a new WaterfallAdProvider record.
-        WaterfallAdProvider.createWithTransaction(waterfallID, adProviderConfig.id, Some(adProviderConfig.waterfallOrder), adProviderConfig.cpm, adProviderConfig.configurable) match {
-          case Some(id) => {}
-          case None => successful = false
-        }
-      } else if(!adProviderConfig.newRecord) {
-        //  Otherwise, find and update the existing WaterfallAdProvider record.
-        WaterfallAdProvider.find(adProviderConfig.id) match {
-          case Some(record) => {
-            val newOrder = if(adProviderConfig.active) Some(adProviderConfig.waterfallOrder) else None
-            // In the case that the WaterfallAdProvider's pending status has changed and the user edits the Waterfall without before refreshing the browser, use the most up to date active status from the database.
-            val activeStatus: Option[Boolean] = if(adProviderConfig.pending != record.pending) record.active else Some(adProviderConfig.active)
-            val updatedValues = new WaterfallAdProvider(record.id, record.waterfallID, record.adProviderID, newOrder, record.cpm, activeStatus, record.fillRate, record.configurationData, record.reportingActive, record.pending)
-            WaterfallAdProvider.updateWithTransaction(updatedValues)
-          }
-          case _ => {
-            successful = false
-          }
-        }
-      }
-    }
-    successful
-  }
 }
+
+/**
+ * Encapsulates necessary information returned from SQL query in Waterfall.order.
+ * @param providerName Maps to the name field in the ad_providers table.
+ * @param providerID Maps to the id field in the ad_providers table.
+ * @param platformID Indicates the platform to which the App belongs (e.g. iOS or Android)
+ * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider. This value will be used to create an NSRegularExpression in the SDK.
+ * @param appName Maps to the name field in the apps table.
+ * @param appID Maps to the id field in the apps table.
+ * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
+ * @param distributorName Maps to the name field in the distributors table.
+ * @param distributorID Maps to the id field in the distributors table.
+ * @param configurationData Maps to the configuration_data field in the waterfall_ad_providers table.
+ * @param cpm Maps to the cpm field of waterfall_ad_providers table.
+ * @param virtualCurrencyName Maps to the name field in the virtual_currencies table.
+ * @param exchangeRate Maps to the exchange_rate field of the virtual_currencies table.
+ * @param rewardMin Maps to the reward_min field of the virtual_currencies table.
+ * @param rewardMax Maps to the reward_max field of the virtual_currencies table.
+ * @param roundUp Maps to the round_up field of the virtual_currencies table.
+ * @param testMode Determines if a waterfall is in test mode or not.
+ * @param paused Determines if a waterfall is paused or not.
+ * @param optimizedOrder Determines if the waterfall_ad_providers should be sorted by cpm or not.
+ * @param active Determines if a waterfall_ad_provider record should be included in the waterfall order.
+ */
+case class AdProviderInfo(providerName: Option[String],
+                          providerID: Option[Long],
+                          platformID: Option[Long],
+                          sdkBlacklistRegex: Option[String],
+                          appName: Option[String],
+                          appID: Option[Long],
+                          appConfigRefreshInterval: Long,
+                          distributorName: Option[String],
+                          distributorID: Option[Long],
+                          configurationData: Option[JsValue],
+                          cpm: Option[Double],
+                          virtualCurrencyName: Option[String],
+                          exchangeRate: Option[Long],
+                          rewardMin: Long,
+                          rewardMax: Option[Long],
+                          roundUp: Option[Boolean],
+                          testMode: Boolean,
+                          paused: Boolean,
+                          optimizedOrder: Boolean,
+                          active: Option[Boolean]) extends RewardThreshold {
+  override val roundUpVal = roundUp
+  override val exchangeRateVal = exchangeRate
+  override val rewardMinVal = rewardMin
+  override val cpmVal = cpm
+}
+

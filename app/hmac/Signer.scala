@@ -3,11 +3,17 @@ package hmac
 import java.security.NoSuchAlgorithmException
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
+import javax.inject.Inject
 import javax.xml.bind.DatatypeConverter
 
 import models.{CallbackVerificationInfo, ConfigVars, Environment}
 import play.api.libs.json.{JsValue, Json}
 import play.api.{Logger, Play}
+import com.netaporter.uri.QueryString
+import com.netaporter.uri.dsl._
+import models.ConfigVars
+import oauth.signpost.OAuth.percentEncode
+import play.api.Logger
 
 /**
   * Encapsulate parameters for hmac hash
@@ -15,15 +21,16 @@ import play.api.{Logger, Play}
   * @param adProviderRequest  The original postback from the ad provider.
   * @param verificationInfo   Class containing information to verify the postback and create a new Completion.
   * @param adProviderUserID   The user ID provided by the adProvider
+  * @param signer             Shared instance of the Signer class
   * @return JSON containing all necessary postback params from our documentation
   */
-case class HmacHashData(adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo, adProviderUserID: String) {
+case class HmacHashData(adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo, adProviderUserID: String, signer: Signer) {
   val postBackData = Json.obj(
     HmacConstants.AdProviderName    -> verificationInfo.adProviderName,
     HmacConstants.OfferProfit       -> verificationInfo.offerProfit,
     HmacConstants.OriginalPostback  -> adProviderRequest,
     HmacConstants.RewardQuantity    -> verificationInfo.rewardQuantity,
-    HmacConstants.TimeStamp         -> Signer.timestamp.toString,
+    HmacConstants.TimeStamp         -> signer.timestamp.toString,
     HmacConstants.TransactionID     -> verificationInfo.transactionID,
     HmacConstants.AdProviderUser    -> adProviderUserID
   )
@@ -35,20 +42,14 @@ case class HmacHashData(adProviderRequest: JsValue, verificationInfo: CallbackVe
     * @return Base64 encoded hash
     */
   def toHash(secret: String): Option[String] = {
-    Signer.generate(secret, postBackData.toString)
+    signer.generate(secret, postBackData.toString)
   }
 }
 
-trait Signer extends ConfigVars {
+trait HmacSigner {
   final val getNewTimestamp = None
-  var algorithm = HmacConstants.DefaultAlgorithm
-
-  Play.maybeApplication match {
-    case Some(application) =>
-      algorithm = ConfigVarsHmac.algorithm
-
-    case _ => // defaults already set
-  }
+  val configVars: ConfigVars
+  lazy val algorithm = configVars.ConfigVarsHmac.algorithm
 
   /**
     * Validates a hmac hash
@@ -70,7 +71,8 @@ trait Signer extends ConfigVars {
   def generate(secret: String, strToHash: String): Option[String]
 }
 
-trait DefaultSigner extends Signer {
+trait DefaultSigner extends HmacSigner {
+
   /**
     * Validate hash against the supplied hashData
     *
@@ -125,5 +127,6 @@ trait DefaultSigner extends Signer {
   }
 }
 
-object Signer extends DefaultSigner
-
+class Signer @Inject() (config: ConfigVars) extends DefaultSigner {
+  val configVars = config
+}

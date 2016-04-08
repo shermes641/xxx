@@ -4,7 +4,8 @@ import play.api.libs.json.{JsNumber, JsBoolean, JsString, Json}
 import play.api.libs.ws.{WS, WSAuthScheme}
 import play.api.test.Helpers._
 import play.api.test._
-import resources.{AppCreationHelper, SpecificationWithFixtures}
+import resources.SpecificationWithFixtures
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -14,7 +15,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
     "include a working link to documentation in the navigation bar" in new WithFakeBrowser {
       goToAndWaitForAngular("http://localhost:" + port + "/login")
       val documentationLink = browser.find("#main-documentation-link").getAttribute("href")
-      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      val request = ws.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
       Await.result(request.get().map { response =>
         response.status must beEqualTo(OK)
         response.body must contain("Welcome")
@@ -24,24 +25,21 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
     }
 
     "redirect a logged in user to the Analytics index page" in new WithFakeBrowser {
-      val distributorID = DistributorUser.create(email, password, companyName).get
-      val user = DistributorUser.findByEmail(email).get
-      setUpApp(distributorID)
       goToAndWaitForAngular("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
-      browser.click("button")
+      clickAndWaitForAngular("button")
       assertUrlEquals("/distributors/" + user.distributorID.get + "/analytics")
     }
 
     "redirect a logged out user to the login page" in new WithFakeBrowser {
-      val user = DistributorUser.findByEmail(email).get
+      val user = distributorUserService.findByEmail(email).get
       val distributorID = user.id.get
       setUpApp(distributorID)
       goToAndWaitForAngular("http://localhost:" + port + "/login")
       browser.fill("#email").`with`(email)
       browser.fill("#password").`with`(password)
-      browser.click("button")
+      clickAndWaitForAngular("button")
       assertUrlEquals("/distributors/" + user.distributorID.get + "/analytics")
 
       val logout = route(FakeRequest(GET, "/logout")).get
@@ -50,7 +48,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
     }
 
     "display signup page" in new WithFakeBrowser {
-      val user = DistributorUser.findByEmail(email).get
+      val user = distributorUserService.findByEmail(email).get
       setUpApp(user.id.get)
       val signup = route(FakeRequest(GET, "/signup")).get
       status(signup) must equalTo(OK)
@@ -92,7 +90,7 @@ class ApplicationSpec extends SpecificationWithFixtures with AppCreationHelper {
       ))).get
       status(res) must equalTo(BAD_REQUEST)
       contentType(res) must equalTo(Some("application/json"))
-      contentAsJson(res).toString contains """{"status":"error","message":{"obj.email":[{"msg":"error.path.missing","args":[]}]}}""" must equalTo(true)
+      contentAsJson(res).toString must contain("""{"status":"error","message":{"obj.email":[{"msg":["error.path.missing"],"args":[]}]}}""")
     }
   }
 

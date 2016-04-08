@@ -2,14 +2,13 @@ package models
 
 import controllers.routes
 import play.Logger
-import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import resources.SpecificationWithFixtures
 
 class JasmineBlanketSpec extends SpecificationWithFixtures {
-  val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
-    DistributorUser.create(email, password, "Company Name")
-    DistributorUser.findByEmail(email).get
+  val distributorUser = running(testApplication) {
+    distributorUserService.create(email, password, "Company Name")
+    distributorUserService.findByEmail(email).get
   }
 
   val distributorID = distributorUser.distributorID.get

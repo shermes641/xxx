@@ -6,12 +6,13 @@ import play.api.test._
 import resources._
 
 class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
-  running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, hyprMarketplaceID, waterfallOrder = None, cpm = None, configurable = true, active = true).get
-    val currentWap = WaterfallAdProvider.find(id).get
+  override lazy val adProvider = adProviderService
+  running(testApplication) {
+    val id = waterfallAdProviderService.create(waterfall.id, hyprMarketplaceID, waterfallOrder = None, cpm = None, configurable = true, active = true).get
+    val currentWap = waterfallAdProviderService.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq()),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
-    WaterfallAdProvider.update(
+    waterfallAdProviderService.update(
       new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, waterfallOrder = None,
         cpm = Some(20), active = Some(true), fillRate = None, configurationData = configuration, reportingActive = false)
     )
@@ -22,8 +23,8 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
   val partnerCode = Some("")
   val quantity = 1
   val payout = Some(0.5)
-  val callback = running(FakeApplication(additionalConfiguration = testDB)) {
-    new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode)
+  val callback = running(testApplication) {
+    new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
   }
 
   "adProviderName" should {
@@ -47,8 +48,8 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
   "currencyAmount" should {
     "ignore the reward amount passed in the server to server callback" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
-        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
       }
       callback.currencyAmount must beEqualTo(2) // ($20 eCPM/1000) * (100 currency/dollar) = 2 currency
       callback.currencyAmount must not(beEqualTo(quantity))
@@ -56,30 +57,30 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
 
     "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
-        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
       }
       callback.currencyAmount must beEqualTo(5) // ($20 eCPM/1000) * (1 currency/dollar) = 0.02 currency
     }
 
     "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=false))
-        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=false))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
       }
       callback.currencyAmount must beEqualTo(0) // ($20 eCPM/1000) * (1 currency/dollar) = 0.02 currency
     }
 
     "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
       val callbackWithoutRewardMax = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
-        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
       }
       callbackWithoutRewardMax.currencyAmount must beEqualTo(10) // ($20 eCPM/1000) * (500 currency/dollar) = 10 currency
 
       val callbackWithRewardMax = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
-        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
+        new HyprMarketplaceCallback(app1.token, userID, signature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
       }
       callbackWithRewardMax.currencyAmount must beEqualTo(2) // ($20 eCPM/1000) * (500 currency/dollar) = 10 currency
     }
@@ -104,13 +105,13 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
     "be valid when the generated verification matches the received verification string and transaction_id is not blank" in new WithDB {
       val partnerCodeSig = "43c038d8f6edda911ef3813fe0c3e86a10437f0fbd78fccf47cca62f61212fdc"
       val nonBlankPartnerCode = Some("partner_code")
-      val callbackWithTransactionID = new HyprMarketplaceCallback(app1.token, userID, partnerCodeSig, time, payout, quantity, nonBlankPartnerCode)
+      val callbackWithTransactionID = new HyprMarketplaceCallback(app1.token, userID, partnerCodeSig, time, payout, quantity, nonBlankPartnerCode, waterfallAdProviderService, configVars)
       callbackWithTransactionID.verificationInfo.isValid must beEqualTo(true)
     }
 
     "not be valid when the generated verification does not match the received signature" in new WithDB {
       val invalidSignature = "Some fake verifier"
-      val newCallback = new HyprMarketplaceCallback(app1.token, userID, invalidSignature, time, payout, quantity, partnerCode)
+      val newCallback = new HyprMarketplaceCallback(app1.token, userID, invalidSignature, time, payout, quantity, partnerCode, waterfallAdProviderService, configVars)
       val verification = newCallback.verificationInfo
       verification.isValid must beEqualTo(false)
     }

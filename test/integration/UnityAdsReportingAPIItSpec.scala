@@ -4,12 +4,12 @@ import com.github.nscala_time.time.Imports._
 import models._
 import org.specs2.mock.Mockito
 import play.api.libs.json._
-import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Integration test for Unity Adds Reporting API.
@@ -27,10 +27,10 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
   val liveAppId: String = "1038305"
   val liveEcpm = 0.0
   val awaitTimeoutMs = Constants.DefaultReportingTimeoutMs
-  val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
-    Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-    WaterfallAdProvider.find(waterfallAdProviderID1).get
+  val waterfallAdProvider1 = running(testApplication) {
+    val waterfallAdProviderID1 = waterfallAdProviderService.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
+    waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+    waterfallAdProviderService.find(waterfallAdProviderID1).get
   }
 
   val dateFormat = DateTimeFormat.forPattern("YYYY-MM-d")
@@ -46,8 +46,8 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
     )
   )
 
-  val unityAds = running(FakeApplication(additionalConfiguration = testDB)) {
-    new UnityAdsReportingAPI(waterfallAdProvider1.id, configurationData)
+  val unityAds = running(testApplication) {
+    new UnityAdsReportingAPI(waterfallAdProvider1.id, configurationData, database, waterfallAdProviderService, configVars, ws)
   }
 
   "UnityAdsReportingAPI" should {
@@ -61,14 +61,14 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "sourceIds" -> (liveAppId + "44"))
 
       unityAds.updateEcpm(unityAds.waterfallAdProviderID, liveEcpm + 5.55)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       originalEcpm must beEqualTo(liveEcpm + 5.55)
       val originalGeneration = generationNumber(waterfall.app_id)
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -82,14 +82,14 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "sourceIds" -> (liveAppId + "44"))
 
       unityAds.updateEcpm(unityAds.waterfallAdProviderID, liveEcpm + 5.55)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       originalEcpm must beEqualTo(liveEcpm + 5.55)
       val originalGeneration = generationNumber(waterfall.app_id)
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -101,13 +101,13 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "end" -> endDate,
         "scale" -> "day",
         "sourceIds" -> liveAppId)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val originalGeneration = generationNumber(waterfall.app_id)
 
       Await.result(unityAds.unityUpdateRevenueData(url = "http://localhost/", qs = queryString).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -119,13 +119,13 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "end" -> endDate,
         "scale" -> "day",
         "sourceIds" -> liveAppId)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val originalGeneration = generationNumber(waterfall.app_id)
 
       Await.result(unityAds.unityUpdateRevenueData(url = "http://google.com/", qs = queryString).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -140,14 +140,14 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
       unityAds.updateEcpm(unityAds.waterfallAdProviderID, liveEcpm + 9.99)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       // ensure we should update the eCPM and bump the generation number
       originalEcpm mustNotEqual liveEcpm
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(true)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(liveEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(liveEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -163,13 +163,13 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
       ua.updateEcpm(unityAds.waterfallAdProviderID, 0.0) returns None
       unityAds.updateEcpm(unityAds.waterfallAdProviderID, liveEcpm + 19.99)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       // ensure we should update the eCPM and bump the generation number
       originalEcpm mustNotEqual liveEcpm
       Await.result(ua.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -184,14 +184,14 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
       unityAds.updateEcpm(unityAds.waterfallAdProviderID, 2.99)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       // ensure we should update the eCPM and bump the generation number
       originalEcpm mustNotEqual liveEcpm
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(true)
       }, Duration(awaitTimeoutMs, "millis"))
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(liveEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(liveEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -204,13 +204,13 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "scale" -> "day",
         "sourceIds" -> liveAppId)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(true)
       }, Duration(awaitTimeoutMs, "millis"))
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
     }
 
     "unityUpdateRevenueData force timeout" in new WithDB {
@@ -222,13 +222,13 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "scale" -> "day",
         "sourceIds" -> liveAppId)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString, timeOut = 1).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
     }
 
     "unityUpdateRevenueData no reporting data" in new WithDB {
@@ -240,13 +240,13 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "scale" -> "day",
         "sourceIds" -> liveAppId)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString, timeOut = 1).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
     }
 
     "unityUpdateRevenueData reporting end date before start date" in new WithDB {
@@ -258,25 +258,25 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
         "scale" -> "day",
         "sourceIds" -> liveAppId)
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString, timeOut = 1).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
     }
 
     "unityUpdateRevenueData no query string" in new WithDB {
       val queryString = List()
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
 
       Await.result(unityAds.unityUpdateRevenueData(qs = queryString).map { response =>
         response must beEqualTo(false)
       }, Duration(awaitTimeoutMs, "millis"))
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.getOrElse(ShouldNotHappen) must beEqualTo(originalEcpm)
     }
   }
 }

@@ -3,10 +3,13 @@ package models
 import anorm._
 import anorm.SqlParser._
 import java.util.concurrent.TimeoutException
-import play.api.db.DB
+
+import akka.actor.ActorSystem
+import play.api.db.Database
 import play.api.libs.json._
-import play.api.Logger
-import play.api.Play.current
+import play.api.{Configuration, Logger}
+import play.api.libs.ws.WSClient
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -16,6 +19,16 @@ import scala.language.postfixOps
  * Encapsulates behavior used in the keenImport.scala and recreateAdNetwork.scala scripts.
  */
 trait UpdateHyprMarketplace extends JsonConversion {
+  val akkaActorSystem: ActorSystem
+  val ws: WSClient
+  val modelService: ModelService
+  val database: Database
+  val appService: AppService
+  val waterfallAdProviderService: WaterfallAdProviderService
+  val appConfigService: AppConfigService
+  val config: ConfigVars
+  val appEnv: Environment
+
   var unsuccessfulWaterfallAdProviderIDs: List[Long] = List()
   var successfulWaterfallAdProviderIDs: List[Long] = List()
 
@@ -75,8 +88,8 @@ trait UpdateHyprMarketplace extends JsonConversion {
     * @param wap The WaterfallAdProvider instance to be updated
    */
   def updateHyprMarketplaceDistributorID(wap: WaterfallAdProviderWithAppData, junApi: Option[JunGroupAPI] = None) = {
-    val api = if(junApi.isDefined) junApi.get else new JunGroupAPI
-    val newApp = App.findByWaterfallID(wap.waterfallID).get
+    val api = if(junApi.isDefined) junApi.get else new JunGroupAPI(modelService, database, ws, akkaActorSystem, config, appEnv)
+    val newApp = appService.findAppByWaterfallID(wap.waterfallID).get
     val adNetwork = api.adNetworkConfiguration(wap.companyName, newApp)
     Await.result(
       api.createRequest(adNetwork) map {
@@ -84,30 +97,40 @@ trait UpdateHyprMarketplace extends JsonConversion {
           if(response.status != 500) {
             try {
               Json.parse(response.body) match {
-                case _:JsUndefined =>
-                  displayError(wap.id, "Received a JsUndefined error from Player")
-
                 case results if response.status == 200 || response.status == 304 =>
-                  val success: JsValue = results \ "success"
-                  if(success.as[JsBoolean] != JsBoolean(false)) {
-                    DB.withTransaction { implicit connection =>
-                      try {
-                        val adNetworkID: Long = (results \ "ad_network" \ "id").as[Long]
-                        val hyprWaterfallAdProvider = new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, wap.configurationData, wap.reportingActive, wap.pending)
-                        WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, wap.appToken, wap.appName)
-                        AppConfig.createWithWaterfallIDInTransaction(wap.waterfallID, None)
-                        successfulWaterfallAdProviderIDs = successfulWaterfallAdProviderIDs :+ wap.id
-                        Logger.debug("WaterfallAdProvider successfully updated with new distributor ID: " + adNetworkID + "\nWaterfallAdProvider ID: " + wap.id)
-                      } catch {
-                        case error: org.postgresql.util.PSQLException =>
-                          connection.rollback()
-
-                        case err: Throwable =>
-                          displayError(wap.id, "The following error occurred : " + err.getLocalizedMessage)
+                  (results \ "success").toOption match {
+                    case Some(success: JsBoolean) if success.as[Boolean] =>
+                      (results \ "ad_network" \ "id").toOption match {
+                        case Some(adNetworkID: JsNumber) =>
+                          database.withTransaction { implicit connection =>
+                            try {
+                              val hyprWaterfallAdProvider = new WaterfallAdProvider(
+                                id = wap.id,
+                                waterfallID = wap.waterfallID,
+                                adProviderID = wap.adProviderID,
+                                waterfallOrder = wap.waterfallOrder,
+                                cpm = wap.cpm,
+                                active = wap.active,
+                                fillRate = wap.fillRate,
+                                configurationData = wap.configurationData,
+                                reportingActive = wap.reportingActive,
+                                pending = wap.pending
+                              )
+                              waterfallAdProviderService.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID.as[Long], wap.appToken, wap.appName)
+                              appConfigService.createWithWaterfallIDInTransaction(wap.waterfallID, None)
+                              successfulWaterfallAdProviderIDs = successfulWaterfallAdProviderIDs :+ wap.id
+                              Logger.debug("WaterfallAdProvider successfully updated with new distributor ID: " + adNetworkID + "\nWaterfallAdProvider ID: " + wap.id)
+                            } catch {
+                              case error: org.postgresql.util.PSQLException => {
+                                connection.rollback()
+                              }
+                            }
+                          }
+                        case _ =>
+                          displayError(wap.id, "Could not get ad network ID from Player's response")
                       }
-                    }
-                  } else {
-                    displayError(wap.id, "The following error occurred in Player: " + results \ "error")
+                    case failure =>
+                      displayError(wap.id, "The following error occurred in Player: " + (results \ "error").as[JsString].as[String])
                   }
 
                 case _ =>

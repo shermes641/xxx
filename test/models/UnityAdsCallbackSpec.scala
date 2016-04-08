@@ -7,7 +7,8 @@ import play.api.test._
 import resources._
 import scala.concurrent.Future
 
-class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
+class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup {
+  override lazy val adProvider = adProviderService
   val eCPM = 25.0
   val amount = 1
   val sharedSecret = "ccfbde79b23f0fde7867cb9177b1a15"
@@ -17,12 +18,12 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
   val productID = "1061310"
   val invalidHmac = "xxxxxec61dfb3f7355aea49a1a81540073f48xxxxx"
 
-  running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, unityAdsID, None, None, configurable = true, active = true).get
-    val currentWap = WaterfallAdProvider.find(id).get
+  running(testApplication) {
+    val id = waterfallAdProviderService.create(waterfall.id, unityAdsID, None, None, configurable = true, active = true).get
+    val currentWap = waterfallAdProviderService.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString(sharedSecret))),
       "requiredParams" -> JsObject(Seq(Constants.UnityAds.GameID -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
-    WaterfallAdProvider.update(new WaterfallAdProvider(
+    waterfallAdProviderService.update(new WaterfallAdProvider(
       currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
   }
 
@@ -38,7 +39,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
    */
   def goodCallback = running(FakeApplication(additionalConfiguration = testDB)) {
     val request = generateRequest(app1.token, sid, oid, hmac, productID)
-    new UnityAdsCallback(app1.token, request.queryString)
+    new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
   }
 
   // Helper class for testing successful/unsuccessful callback responses
@@ -48,7 +49,8 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
 
   /**
    * Helper function to verify several characteristics of a successful/unsuccessful request
-   * @param request The incoming request from Unity Ads
+    *
+    * @param request The incoming request from Unity Ads
    * @param response Our successful or unsuccessful response to the callback
    */
   def verifyRequest(request: Future[Result], response: Response) = {
@@ -60,14 +62,14 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
 
   "unityAdsCompletionV1" should {
     "respond status 200 to valid request" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
-      val token = App.findAll(waterfall.id).head.token
+      val token = appService.findAll(waterfall.id).head.token
       val request = generateRequest(token, sid, oid, hmac, productID)
       val Some(result) = route(request)
       verifyRequest(result, successfulResponse)
     }
 
     "respond status 200 to a valid request with a duplicate productid param" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
-      val token = App.findAll(waterfall.id).head.token
+      val token = appService.findAll(waterfall.id).head.token
       val Some(result) = route(FakeRequest(GET, s"/v1/reward_callbacks/$token/unity_ads?productid=$productID&sid=$sid&oid=$oid&hmac=$hmac&productid=$productID"))
       verifyRequest(result, successfulResponse)
     }
@@ -76,20 +78,20 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
       val sid = "testuser1"
       val oid = "562832418"
       val hmac = "7338989ca66614440f5a92788e15ae55"
-      val token = App.findAll(waterfall.id).head.token
+      val token = appService.findAll(waterfall.id).head.token
       val Some(result) = route(FakeRequest(GET, s"/v1/reward_callbacks/$token/unity_ads?&sid=$sid&oid=$oid&hmac=$hmac"))
       verifyRequest(result, successfulResponse)
     }
 
     "respond status 400 to request with bad hmac signature" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
-      val token = App.findAll(waterfall.id).head.token
+      val token = appService.findAll(waterfall.id).head.token
       val request = generateRequest(token, sid, oid, invalidHmac, productID)
       val Some(result) = route(request)
       verifyRequest(result, failedResponse)
     }
 
     "respond status 400 to request with extra query param that is not used in the hmac signature" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
-      val token = App.findAll(waterfall.id).head.token
+      val token = appService.findAll(waterfall.id).head.token
       val Some(result) = route(FakeRequest(GET, s"/v1/reward_callbacks/$token/unity_ads?productid=$productID&sid=$sid&oid=$oid&hmac=$hmac&dummy=123456"))
       verifyRequest(result, failedResponse)
     }
@@ -100,7 +102,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     }
 
     "respond correctly (status 400) to request missing query params that are used in the hmac signature" in new WithApplication(FakeApplication(additionalConfiguration = testDB)) {
-      val token = App.findAll(waterfall.id).head.token
+      val token = appService.findAll(waterfall.id).head.token
       val Some(resultOid) = route(FakeRequest(GET, s"/v1/reward_callbacks/$token/unity_ads?productid=$productID&sid=123456789&hmac=12120989fs8dfwoej"))
       verifyRequest(resultOid, failedResponse)
 
@@ -136,10 +138,10 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
   "currencyAmount" should {
     "ignore the reward amount passed in the server to server callback" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(
+        virtualCurrencyService.update(new VirtualCurrency(
           virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = true))
         val request = generateRequest(app1.token, sid, oid, hmac, productID)
-        new UnityAdsCallback(app1.token, request.queryString)
+        new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
       }
       callback.currencyAmount must beEqualTo(2)
       callback.currencyAmount must not(beEqualTo(amount))
@@ -147,38 +149,38 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
 
     "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(
+        virtualCurrencyService.update(new VirtualCurrency(
           virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate = 1, rewardMin = 5, rewardMax = None, roundUp = true))
         val request = generateRequest(app1.token, sid, oid, hmac, productID)
-        new UnityAdsCallback(app1.token, request.queryString)
+        new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
       }
       callback.currencyAmount must beEqualTo(5)
     }
 
     "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(
+        virtualCurrencyService.update(new VirtualCurrency(
           virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate = 100, rewardMin = 5, rewardMax = None, roundUp = false))
         val request = generateRequest(app1.token, sid, oid, hmac, productID)
-        new UnityAdsCallback(app1.token, request.queryString)
+        new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
       }
       callback.currencyAmount must beEqualTo(0)
     }
 
     "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
       val callbackWithoutRewardMax = {
-        VirtualCurrency.update(new VirtualCurrency(
+        virtualCurrencyService.update(new VirtualCurrency(
           virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate = 500, rewardMin = 1, rewardMax = None, roundUp = true))
         val request = generateRequest(app1.token, sid, oid, hmac, productID)
-        new UnityAdsCallback(app1.token, request.queryString)
+        new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
       }
       callbackWithoutRewardMax.currencyAmount must beEqualTo(12)
 
       val callbackWithRewardMax = {
-        VirtualCurrency.update(new VirtualCurrency(
+        virtualCurrencyService.update(new VirtualCurrency(
           virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate = 500, rewardMin = 1, rewardMax = Some(2), roundUp = true))
         val request = generateRequest(app1.token, sid, oid, hmac, productID)
-        new UnityAdsCallback(app1.token, request.queryString)
+        new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
       }
       callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }
@@ -201,7 +203,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
 
     "not be valid when the generated verification does not match the received hmac query param" in new WithDB {
       val request = generateRequest(app1.token, sid, oid, invalidHmac, productID)
-      val newCallback = new UnityAdsCallback(app1.token, request.queryString)
+      val newCallback = new UnityAdsCallback(app1.token, request.queryString, waterfallAdProviderService)
       newCallback.verificationInfo.isValid mustEqual false
     }
 

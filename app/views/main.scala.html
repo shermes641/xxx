@@ -83,7 +83,7 @@
             <div class="version-info">
                 SHA: @{ Play.current.configuration.getString("latestSHA").getOrElse("") }
                 <div class="footer-text-format"></div>
-                @if(!Environment.isProd) {
+                @if(false) {
                     Branch: @{
                         Play.current.configuration.getString("latestBranch").getOrElse("")
                     }

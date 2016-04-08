@@ -1,7 +1,5 @@
 package models
 
-import models.WaterfallAdProvider.AdProviderRewardInfo
-
 /**
  * Encapsulates information to create a completion if a callback is valid.
  * @param isValid True if the callback is valid; otherwise, false.

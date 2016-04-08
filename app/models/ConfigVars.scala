@@ -1,65 +1,71 @@
 package models
 
-import play.api.{Logger, Play}
+import javax.inject.Inject
+import play.api.{Configuration, Logger}
 
 //TODO fix up toString methods --- add test coverage
-trait ConfigVars {
+/**
+  * Encapsulates ENV vars throughout app
+  * @param environmentConfig The shared ENV vars
+  * @param appEnvironment    The shared app environment
+  */
+class ConfigVars @Inject() (environmentConfig: Configuration, appEnvironment: Environment) {
   //@formatter:off
   // !!! the Heroku app must enable these environ vars to be enable review apps !!!
   // RUN: heroku labs:enable runtime-dyno-metadata --app <app name>
   // and restart the app. Reference: https://devcenter.heroku.com/articles/dyno-metadata
 
   //Review app specific
-  lazy final val ParentName  = Play.current.configuration.getString(Constants.HerokuConfigVars.ParentName).getOrElse("")
+  lazy final val ParentName  = environmentConfig.getString(Constants.HerokuConfigVars.ParentName).getOrElse("")
 
   // general application vars -- these never change for app or review app
-  lazy final val AppName                         = Play.current.configuration.getString(Constants.HerokuConfigVars.AppName).get
-  lazy final val LatestSha                       = Play.current.configuration.getString(Constants.HerokuConfigVars.LatestSha).get
-  lazy final val LatestBranch                    = Play.current.configuration.getString(Constants.HerokuConfigVars.LatestBranch).get
+  lazy final val AppName                         = environmentConfig.getString(Constants.HerokuConfigVars.AppName).get
+  lazy final val LatestSha                       = environmentConfig.getString(Constants.HerokuConfigVars.LatestSha).get
+  lazy final val LatestBranch                    = environmentConfig.getString(Constants.HerokuConfigVars.LatestBranch).get
 
-  private lazy final val Staging                 = Play.current.configuration.getString(Constants.AppConfig.Staging).getOrElse("")
+  private lazy final val Staging                 = environmentConfig.getString(Constants.AppConfig.Staging).getOrElse("")
 
-  private lazy final val JunGroupUrl             = Play.current.configuration.getString(Constants.JunGroup.Url).get
-  private lazy final val JunGroupToken           = Play.current.configuration.getString(Constants.JunGroup.Token).get
-  private lazy final val JunGroupUser            = Play.current.configuration.getString(Constants.JunGroup.User).get
-  private lazy final val JunGroupPw              = Play.current.configuration.getString(Constants.JunGroup.Pw).get
-  private lazy final val JunGroupEmail           = Play.current.configuration.getString(Constants.JunGroup.Email).get
+  private lazy final val JunGroupUrl             = environmentConfig.getString(Constants.JunGroup.Url).get
+  private lazy final val JunGroupToken           = environmentConfig.getString(Constants.JunGroup.Token).get
+  private lazy final val JunGroupUser            = environmentConfig.getString(Constants.JunGroup.User).get
+  private lazy final val JunGroupPw              = environmentConfig.getString(Constants.JunGroup.Pw).get
+  private lazy final val JunGroupEmail           = environmentConfig.getString(Constants.JunGroup.Email).get
 
-  private lazy final val AuthFailureDelayMs      = Play.current.configuration.getLong(Constants.AppConfig.AuthFailureDelayMs).get
-  private lazy final val OpsEmail                = Play.current.configuration.getString(Constants.AppConfig.OpsEmail).get
-  private lazy final val TeamEmail               = Play.current.configuration.getString(Constants.AppConfig.TeamEmail).get
-  private lazy final val HttpAuthUser            = Play.current.configuration.getString(Constants.AppConfig.HttpAuthUser).get
-  private lazy final val HttpAuthPw              = Play.current.configuration.getString(Constants.AppConfig.HttpAuthPw).get
-  private lazy final val WebDriverType           = Play.current.configuration.getString(Constants.AppConfig.WebDriverType).get
+  private lazy final val AuthFailureDelayMs      = environmentConfig.getLong(Constants.AppConfig.AuthFailureDelayMs).get
+  private lazy final val OpsEmail                = environmentConfig.getString(Constants.AppConfig.OpsEmail).get
+  private lazy final val TeamEmail               = environmentConfig.getString(Constants.AppConfig.TeamEmail).get
+  private lazy final val HttpAuthUser            = environmentConfig.getString(Constants.AppConfig.HttpAuthUser).get
+  private lazy final val HttpAuthPw              = environmentConfig.getString(Constants.AppConfig.HttpAuthPw).get
+  private lazy final val WebDriverType           = environmentConfig.getString(Constants.AppConfig.WebDriverType).get
 
-  private lazy final val ApplovinUrl             = Play.current.configuration.getString(Constants.Reporting.ApplovinUrl).get
-  private lazy final val HyprMarketplaceUrl      = Play.current.configuration.getString(Constants.Reporting.HyprMarketplaceUrl).get
-  private lazy final val AdcolonyUrl             = Play.current.configuration.getString(Constants.Reporting.AdcolonyUrl).get
-  private lazy final val VungleUrl               = Play.current.configuration.getString(Constants.Reporting.VungleUrl).get
-  private lazy final val UnityadsUrl             = Play.current.configuration.getString(Constants.Reporting.UnityadsUrl).get
+  private lazy final val ApplovinUrl             = environmentConfig.getString(Constants.Reporting.ApplovinUrl).get
+  private lazy final val HyprMarketplaceUrl      = environmentConfig.getString(Constants.Reporting.HyprMarketplaceUrl).get
+  private lazy final val AdcolonyUrl             = environmentConfig.getString(Constants.Reporting.AdcolonyUrl).get
+  private lazy final val VungleUrl               = environmentConfig.getString(Constants.Reporting.VungleUrl).get
+  private lazy final val UnityadsUrl             = environmentConfig.getString(Constants.Reporting.UnityadsUrl).get
 
-  private lazy final val KeenOrgId               = Play.current.configuration.getString(Constants.KeenConfig.OrgID).get
-  private lazy final val KeenOrgKey              = Play.current.configuration.getString(Constants.KeenConfig.OrgKey).get
-  private lazy final val ErrorProjectID          = Play.current.configuration.getString(Constants.KeenConfig.ErrorProjectID).get
-  private lazy final val ErrorProjectKey         = Play.current.configuration.getString(Constants.KeenConfig.ErrorProjectKey).get
-  private lazy final val ReviewErrorProjectID    = Play.current.configuration.getString(Constants.KeenConfig.ReviewErrorProjectID).get
-  private lazy final val ReviewErrorProjectKey   = Play.current.configuration.getString(Constants.KeenConfig.ReviewErrorProjectKey).get
+  private lazy final val KeenOrgId               = environmentConfig.getString(Constants.KeenConfig.OrgID).get
+  private lazy final val KeenOrgKey              = environmentConfig.getString(Constants.KeenConfig.OrgKey).get
+  private lazy final val ErrorProjectID          = environmentConfig.getString(Constants.KeenConfig.ErrorProjectID).get
+  private lazy final val ErrorProjectKey         = environmentConfig.getString(Constants.KeenConfig.ErrorProjectKey).get
+  private lazy final val ReviewErrorProjectID    = environmentConfig.getString(Constants.KeenConfig.ReviewErrorProjectID).get
+  private lazy final val ReviewErrorProjectKey   = environmentConfig.getString(Constants.KeenConfig.ReviewErrorProjectKey).get
 
-  private lazy final val SignerAlgorithm         = Play.current.configuration.getString(Constants.Hmac.SignerAlgorithm).get
+  private lazy final val SignerAlgorithm         = environmentConfig.getString(Constants.Hmac.SignerAlgorithm).get
 
   // these change for review apps
-  private lazy final val AppDomain               = Play.current.configuration.getString(Constants.AppConfig.AppDomain).get
-  private lazy final val IosDomain               = Play.current.configuration.getString(Constants.AppConfig.S2sIosCallbackDomain).get
-  private lazy final val AndroidDomain           = Play.current.configuration.getString(Constants.AppConfig.S2sAndroidCallbackDomain).get
-  private lazy final val PlayerCallbackUrl       = Play.current.configuration.getString(Constants.AppConfig.PlayerCallbackUrl).get
+  private lazy final val AppDomain               = environmentConfig.getString(Constants.AppConfig.AppDomain).get
+  private lazy final val IosDomain               = environmentConfig.getString(Constants.AppConfig.S2sIosCallbackDomain).get
+  private lazy final val AndroidDomain           = environmentConfig.getString(Constants.AppConfig.S2sAndroidCallbackDomain).get
+  private lazy final val PlayerCallbackUrl       = environmentConfig.getString(Constants.AppConfig.PlayerCallbackUrl).get
 
-  private lazy final val IosAdProviderID         = Play.current.configuration.getLong(Constants.AdProviderConfig.IosAdProviderID).get
-  private lazy final val AndroidAdProviderID     = Play.current.configuration.getLong(Constants.AdProviderConfig.AndroidAdProviderID).get
+  private lazy final val IosAdProviderID         = environmentConfig.getLong(Constants.AdProviderConfig.IosAdProviderID).get
+  private lazy final val AndroidAdProviderID     = environmentConfig.getLong(Constants.AdProviderConfig.AndroidAdProviderID).get
 
-  private lazy final val KeenProject             = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.Project}").get
-  private lazy final val KeenWriteKey            = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.WriteKey}").get
-  private lazy final val KeenReadKey             = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.ReadKey}").get
-  private lazy final val KeenMasterKey           = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.MasterKey}").get
+  private lazy final val KeenProject             = environmentConfig.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.Project}").get
+  private lazy final val KeenWriteKey            = environmentConfig.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.WriteKey}").get
+  private lazy final val KeenReadKey             = environmentConfig.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.ReadKey}").get
+  private lazy final val KeenMasterKey           = environmentConfig.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.MasterKey}").get
 
   //@formatter:on
 
@@ -80,11 +86,11 @@ trait ConfigVars {
     val (ios: String,
     android: String,
     player: String) = {
-      if (Environment.isReviewApp) {
-        (s"https://$AppName.herokuapp.com",
-          s"https://$AppName.herokuapp.com", {
-          val url = PlayerCallbackUrl.replace("https://callback.hyprmx.com", s"https://$AppName.herokuapp.com")
-          if (url.startsWith(s"https://$AppName.herokuapp.com")) {
+      if (appEnvironment.isReviewApp) {
+        (s"https://$AppName.herokuapp.com/",
+          s"https://$AppName.herokuapp.com/", {
+          val url = PlayerCallbackUrl.replace("https://callback.hyprmx.com", s"https://$AppName.herokuapp.com/")
+          if (url.startsWith(s"https://$AppName.herokuapp.com/")) {
             url
           } else {
             PlayerCallbackUrl.replace(ParentName, AppName)
@@ -195,7 +201,7 @@ trait ConfigVars {
     opsEmail: String,
     authFailureDelayMs: Long,
     webDriverType: String) = {
-      if (Environment.isReviewApp) {
+      if (appEnvironment.isReviewApp) {
         (Staging,
           AppName,
           ParentName,
@@ -248,7 +254,7 @@ trait ConfigVars {
     errorProjectKey: String,
     orgID: String,
     orgKey: String) = {
-      Environment.isReviewApp && KeenOrgId != "" && KeenOrgKey != "" match {
+      appEnvironment.isReviewApp && KeenOrgId != "" && KeenOrgKey != "" match {
         case true =>
           val res = new ReviewApp().createOrGetKeenProject(ConfigVarsApp.appName, OpsEmail, KeenOrgId, KeenOrgKey)
           val error = res.get("error")
@@ -277,7 +283,7 @@ trait ConfigVars {
           result
 
         case _ =>
-          Environment.isReviewApp match {
+          appEnvironment.isReviewApp match {
             case true =>
               val err = s"This review app: $AppName  does not have usable Keen organization environ vars "
               Logger.error(s"ERROR: This review app: $AppName  does not have usable Keen organization environ vars Keen Organization ID: $KeenOrgId   KEY: $KeenOrgKey")

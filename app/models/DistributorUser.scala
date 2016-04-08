@@ -2,10 +2,10 @@ package models
 
 import anorm._
 import anorm.SqlParser._
+import javax.inject._
 import com.github.t3hnar.bcrypt._
-import controllers.DistributorUsersController.PasswordUpdate
-import play.api.db.DB
-import play.api.Play.current
+import controllers._
+import play.api.db.Database
 import scala.language.postfixOps
 
 /**
@@ -15,20 +15,15 @@ import scala.language.postfixOps
  * @param hashedPassword Hashed password for DistributorUser
  * @param distributorID Foreign key to maintain relationship with Distributor (Distributor has many DistributorUsers).
  */
-case class DistributorUser (id: Option[Long], email: String, hashedPassword: String, distributorID: Option[Long]) {
-  /**
-   * Stores hashed password in database for DistributorUser.
-   * @param password Password for current DistributorUser
-   */
-  def setPassword(password: String) {
-    val salt = generateSalt
-    SQL("UPDATE distributor_users SET ('hashed_password') VALUE ('{hash}') WHERE id = {id}")
-      .on("hash" -> password.bcrypt(salt), "id" -> this.id.get)
-  }
-}
+case class DistributorUser (id: Option[Long], email: String, hashedPassword: String, distributorID: Option[Long])
 
-/** Encapsulates methods for DistributorUser class */
-object DistributorUser {
+/**
+  * Encapsulates functions for DistributorUsers
+  * @param distributorService A shared instance of the DistributorService class
+  * @param db                 A shared database
+  */
+@Singleton
+class DistributorUserService @Inject() (distributorService: DistributorService, db: Database) {
 
   /**
    * Checks DistributorUser log in credentials against what is stored in the database.
@@ -37,7 +32,7 @@ object DistributorUser {
    * @return If log in credentials are valid, returns a DistributorUser instance.  Otherwise, returns false.
    */
   def checkPassword(email: String, password: String): Boolean = {
-    DistributorUser.findByEmail(email) match {
+    findByEmail(email) match {
       case Some(user) =>
         password.isBcrypted(user.hashedPassword)
       case None =>
@@ -61,7 +56,7 @@ object DistributorUser {
    * @return List of DistributorUsers if query is successful.  Otherwise, returns an empty list.
    */
   def findByEmail(email: String): Option[DistributorUser] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT distributor_users.*
@@ -77,7 +72,7 @@ object DistributorUser {
   }
 
   def find(userID: Long): Option[DistributorUser] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT distributor_users.*
@@ -105,9 +100,9 @@ object DistributorUser {
     findByEmail(email) match {
       case Some(user) => None
       case _ => {
-        Distributor.create(company) match {
+        distributorService.create(company) match {
           case Some(distributorID) => {
-            DB.withConnection { implicit connection =>
+            db.withConnection { implicit connection =>
               SQL(
                 """
                   INSERT INTO distributor_users (email, hashed_password, distributor_id)
@@ -128,7 +123,7 @@ object DistributorUser {
    * @return Number of rows successfully updated.
    */
   def update(user: DistributorUser) = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       SQL(
         """
           UPDATE distributor_users
@@ -145,12 +140,12 @@ object DistributorUser {
    * @return The number of records updated
    */
   def updatePassword(updateInfo: PasswordUpdate): Int = {
-    DistributorUser.findByEmail(updateInfo.email) match {
+    findByEmail(updateInfo.email) match {
       case Some(user) if(user.id.get == updateInfo.distributorUserID) => {
         val salt = generateSalt
         val hashedPassword = updateInfo.password.bcrypt(salt)
         val updatedUser = new DistributorUser(user.id, user.email, hashedPassword, user.distributorID)
-        DistributorUser.update(updatedUser)
+        update(updatedUser)
       }
       case _ => 0
     }

@@ -1,14 +1,19 @@
 package models
 
-import play.api.libs.json.{JsArray, JsObject, Json}
-import play.api.test.FakeApplication
+import anorm._
+import play.api.libs.json.{JsObject, JsArray, Json}
 import play.api.test.Helpers._
-import resources.{AdProviderSpecSetup, SpecificationWithFixtures}
+import resources.SpecificationWithFixtures
 
-class AdProviderManagementSpec extends SpecificationWithFixtures with AdProviderSpecSetup with AdProviderManagement {
-
-  running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.loadAll()
+class AdProviderManagementSpec extends SpecificationWithFixtures with AdProviderManagement {
+  override lazy val adProvider = adProviderService
+  override lazy val platform = testPlatform
+  override lazy val db = database
+  running(testApplication) {
+    database.withConnection { implicit connection =>
+      SQL("""DELETE FROM ad_providers;""").execute()
+    }
+    adProviderService.loadAll()
   }
 
   val config = {
@@ -35,7 +40,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
       |  "refreshOnAppRestart": false
       |  }]}""".stripMargin
   }
-  val providerList = Platform.Ios.allAdProviders ++ Platform.Android.allAdProviders
+  val providerList = testPlatform.Ios.allAdProviders ++ testPlatform.Android.allAdProviders
 
   "createAdProvider" should {
     "find or create ad providers" in new WithDB {
@@ -57,7 +62,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         name = adProviderName,
         displayName = adProviderDisplayName,
         configurationData = config,
-        platformID = Platform.AndroidPlatformID,
+        platformID = testPlatform.AndroidPlatformID,
         callbackURLFormat = Some(""),
         callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
@@ -70,7 +75,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         name = adProviderName,
         displayName = adProviderName,
         configurationData = config,
-        platformID = Platform.IosPlatformID,
+        platformID = testPlatform.IosPlatformID,
         callbackURLFormat = Some(""),
         callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
@@ -87,7 +92,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
           name = name,
           displayName = name,
           configurationData = config,
-          platformID = Platform.AndroidPlatformID,
+          platformID = testPlatform.AndroidPlatformID,
           callbackURLFormat = Some(""),
           callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(name),
           configurable = true,
@@ -149,7 +154,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         name = adProviderName,
         displayName = adProviderDisplayName,
         configurationData = config,
-        platformID = Platform.IosPlatformID,
+        platformID = testPlatform.IosPlatformID,
         callbackURLFormat = Some(""),
         callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
@@ -164,7 +169,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         name = adProviderName,
         displayName = adProviderName,
         configurationData = newConfig,
-        platformID = Platform.IosPlatformID,
+        platformID = testPlatform.IosPlatformID,
         callbackURLFormat = Some("ABCD"),
         callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderName),
         configurable = false,
@@ -172,7 +177,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
       )
       updateSingleAdProvider(newProvider) must beEqualTo(AdProviderResult.UPDATED)
 
-      val adp = AdProvider.findByPlatformAndName(newProvider.platformID, newProvider.name).get
+      val adp = adProviderService.findByPlatformAndName(newProvider.platformID, newProvider.name).get
       adp.name must beEqualTo(newProvider.name)
       adp.platformID must beEqualTo(newProvider.platformID)
       (adp.configurationData + "").contains("Newer Ads App ID")
@@ -204,12 +209,12 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
 
   "update" should {
     "update values for only the ad provider passed as an argument" in new WithDB {
-      val adProvider = AdProvider.findAllByPlatform(Platform.Ios.PlatformID).head
+      val adProvider = adProviderService.findAllByPlatform(testPlatform.Ios.PlatformID).head
       val newDefaultEcpm = Some(25.00)
       val newConfigurationData = adProvider.configurationData.as[JsObject]
         .deepMerge(Json.obj("requiredParams" -> JsArray()))
       val newCallbackURLFormat = Some("some callback URL format")
-      val newPlatformID = Platform.Android.PlatformID
+      val newPlatformID = testPlatform.Android.PlatformID
       val newCallbackUrlDescription = "Some new callback URL description"
       val updatableAdProvider = new UpdatableAdProvider(
         name = adProvider.name,
@@ -222,8 +227,8 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         defaultEcpm = newDefaultEcpm
       )
 
-      AdProvider.updateSingleAdProvider(updatableAdProvider).toString must beEqualTo(AdProviderResult.UPDATED.toString)
-      val updatedAdProvider = AdProvider.findAllByPlatform(updatableAdProvider.platformID)
+      adProviderService.updateSingleAdProvider(updatableAdProvider).toString must beEqualTo(AdProviderResult.UPDATED.toString)
+      val updatedAdProvider = adProviderService.findAllByPlatform(updatableAdProvider.platformID)
         .filter(_.name == adProvider.name).head
       updatedAdProvider.configurationData must beEqualTo(newConfigurationData)
       updatedAdProvider.configurable must beEqualTo(!adProvider.configurable)

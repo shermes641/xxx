@@ -6,11 +6,11 @@ import org.specs2.mock.Mockito
 import org.specs2.runner._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
 class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
@@ -45,17 +45,10 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     )
   }
 
-  val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val waterfallAdProviderID1 = WaterfallAdProvider.create(
-      waterfallID = waterfall.id,
-      adProviderID = adProviderID1.get,
-      waterfallOrder = None,
-      cpm = Some(10.0),
-      configurable = true,
-      active = true
-    ).get
-    Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-    WaterfallAdProvider.find(waterfallAdProviderID1).get
+  val waterfallAdProvider1 = running(testApplication) {
+    val waterfallAdProviderID1 = waterfallAdProviderService.create(waterfall.id, adProviderID1.get, None, Some(20.0), true, true).get
+    waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+    waterfallAdProviderService.find(waterfallAdProviderID1).get
   }
 
   val dateFormat = DateTimeFormat.forPattern("MMddyyyy")
@@ -84,16 +77,16 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
 
   "getZoneData" should {
     "return a list including a single JsValue thats belong to a zone ID" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val zoneList = List(zone1Stats, zone2Stats, zone3Stats)
       val relevantZones = adColony.getZoneData(zone1ID, zoneList)
 
       relevantZones.length must beEqualTo(1)
-      (relevantZones(0) \ "zone_id").as[String] must beEqualTo(zone1ID)
+      (relevantZones.head \ "zone_id").as[String] must beEqualTo(zone1ID)
     }
 
     "return a list of JsValues that belong to a zone ID" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val zoneList = List(zone1Stats, zone2Stats, zone3Stats, zone1Stats)
       val relevantZones = adColony.getZoneData(zone1ID, zoneList)
 
@@ -102,7 +95,7 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "not be case sensitive when matching zone IDs" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val zoneList = List(zone1Stats, zone2Stats, zone3Stats)
       List(zone1ID.toUpperCase, zone1ID.toLowerCase, zone1ID.capitalize).map { zoneID =>
         adColony.getZoneData(zoneID, zoneList).length must beEqualTo(1)
@@ -110,7 +103,7 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "trim whitespace from incoming zone ID data when comparing zone IDs" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val untrimmedZoneStats = generateZoneData(" " + zone1ID + " ", zone1eCPM, zone1Impressions)
       val zoneList = List(untrimmedZoneStats, zone2Stats, zone3Stats)
 
@@ -119,14 +112,14 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "not return any JsValues that are missing the zone_id param in AdColony's API response" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val missingZoneJson = Json.obj()
       val zoneList = List(zone1Stats, missingZoneJson, zone3Stats)
       adColony.getZoneData(zone1ID, zoneList).length must beEqualTo(1)
     }
 
     "return an empty list if the zone ID is not found" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val zoneList = List(zone2Stats, zone3Stats)
       val relevantZones = adColony.getZoneData(zone1ID, zoneList)
 
@@ -136,12 +129,12 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
 
   "calculateTotalImpressions" should {
     "return 0.0 if the list of zones is empty" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       adColony.calculateTotalImpressions(List()) must beEqualTo(0.0)
     }
 
     "return the sum of all impressions for every zone passed as an argument" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       val expectedImpressionTotal: Double = zone1Impressions + zone2Impressions
       adColony.calculateTotalImpressions(List(zone1Stats, zone2Stats)) must beEqualTo(expectedImpressionTotal)
     }
@@ -149,17 +142,17 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
 
   "calculateNewEcpm" should {
     "return 0.0 if the list of zones is empty" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID)), database, waterfallAdProviderService, configVars, ws))
       adColony.calculateNewEcpm(zones = List(), totalImpressions = 0.0, response = response) must beEqualTo(0.0)
     }
 
     "return the correct eCPM for a single zone" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone3ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone3ID)), database, waterfallAdProviderService, configVars, ws))
       adColony.calculateNewEcpm(zones = List(zone3Stats), totalImpressions = zone3Impressions, response = response) must beEqualTo(zone3eCPM)
     }
 
     "return the correct eCPM for multiple zones" in new WithDB {
-      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID, zone2ID))))
+      val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, generateConfiguration(List(zone1ID, zone2ID)), database, waterfallAdProviderService, configVars, ws))
       val totalImpressions = zone1Impressions + zone2Impressions
       val zones = List(zone1Stats, zone2Stats)
       // Calculated using the following formula:
@@ -178,10 +171,10 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
       response.body returns body
       response.status returns 200
 
-      val originalEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       callAPI(generateConfiguration(List(zone3ID)))
 
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
@@ -191,10 +184,10 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
       response.body returns body
       response.status returns 200
 
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must not equalTo zone3eCPM
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must not equalTo zone3eCPM
       callAPI(generateConfiguration(List(zone3ID)))
 
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(zone3eCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(zone3eCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
@@ -208,15 +201,17 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
       // zone1eCPM * (zone1Impressions/zone1Impressions + zone3Impressions) + zone3eCPM * (zone3Impressions/zone1Impressions + zone3Impressions)
       val combinedEcpm = 11.71
       callAPI(generateConfiguration(List(zone3ID, zone1ID)))
-      val newEcpm = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val newEcpm = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
 
       BigDecimal(newEcpm).setScale(2, BigDecimal.RoundingMode.FLOOR).toDouble must beEqualTo(combinedEcpm)
+      callAPI(generateConfiguration(List(zone3ID, zone1ID)))
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(newEcpm)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "not update the eCPM if the AdColony API call is unsuccessful" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val jsonResponse = Json.obj(
         "message" -> JsString("Bad Request."),
         "details" -> JsString("Some error message")
@@ -225,13 +220,13 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
       response.status returns 401
       callAPI(generateConfiguration(List(zone3ID)))
 
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
 
     "not update the eCPM if the AdColony API call contains no impressions" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val zeroImpressionStats = Json.obj(
         "zone_id"     -> JsString(zone1ID),
         "ecpm"        -> JsNumber(zone1eCPM),
@@ -242,7 +237,7 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
       response.status returns 200
       callAPI(generateConfiguration(List(zone1ID)))
 
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
   }
@@ -253,7 +248,7 @@ class AdColonyReportingAPISpec extends SpecificationWithFixtures with WaterfallS
    * @return Response from mocked out API call.
    */
   def callAPI(configurationData: JsObject) = {
-    val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, configurationData))
+    val adColony = spy(new AdColonyReportingAPI(waterfallAdProvider1.id, configurationData, database, waterfallAdProviderService, configVars, ws))
     adColony.retrieveAPIData returns Future { response }
     Await.result(adColony.updateRevenueData(), Duration(5000, "millis"))
   }

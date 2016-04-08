@@ -7,22 +7,22 @@ import models._
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test.{FakeApplication, FakeHeaders, _}
-import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
-
+import resources.SpecificationWithFixtures
+import resources.DistributorUserSetup
 import scala.collection.JavaConversions._
 
-class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with ConfigVars {
+class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
-    DistributorUser.create(email, password, "Company Name")
-    DistributorUser.findByEmail(email).get
+    distributorUserService.create(email, password, "Company Name")
+    distributorUserService.findByEmail(email).get
   }
 
   val distributorID = distributorUser.distributorID.get
 
   "Analytics show action" should {
-    "show analytics for an app" in new WithAppBrowser(distributorID) {
+    "show analytics for an app" in new WithFakeBrowser {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
       browser.pageSource must contain("Analytics")
     }
 
@@ -44,13 +44,13 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val adProviderID = {
         val name = "UnityAds"
         val configuration = "{\"required_params\":[{\"description\": \"Your Unity Ads GAME Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}"
-        AdProvider.create(
+        adProviderService.create(
           name = name,
           displayName = adProviderDisplayName,
           configurationData = configuration,
-          platformID = Platform.Ios.PlatformID,
+          platformID = testPlatform.Ios.PlatformID,
           callbackUrlFormat = None,
-          callbackUrlDescription = Platform.Ios.UnityAds.callbackURLDescription.format(name)
+          callbackUrlDescription = testPlatform.Ios.UnityAds.callbackURLDescription.format(name)
         )
       }
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
@@ -65,10 +65,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText(adProviderDisplayName)
     }
 
-    "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {
+    "country select box should exist and not be empty" in new WithFakeBrowser {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
 
       // All Countries should be selected
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries-filter").containsText("All Countries")
@@ -84,18 +84,18 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#countries-filter .add").containsText("Ireland")
     }
 
-    "date picker should be setup correctly" in new WithAppBrowser(distributorID) {
+    "date picker should be setup correctly" in new WithFakeBrowser {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
 
       var date = new DateTime(DateTimeZone.UTC)
       browser.$("#start-date").getValue must beEqualTo(date.minusDays(13).toString("MMM dd yyyy") + " - " + date.toString("MMM dd yyyy"))
     }
 
-    "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
+    "Verify Analytic items have proper labels" in new WithFakeBrowser {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
 
       // eCPM metric
       waitUntilContainsText("#ecpm-metric-container", "Average eCPM")
@@ -107,9 +107,9 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       waitUntilContainsText("#estimated-revenue-chart-container", "Above results use Ad Network eCPMs to estimate revenue.")
     }
 
-    "Check Analytics configuration info JSON" in new WithAppBrowser(distributorID) {
+    "Check Analytics configuration info JSON" in new WithFakeBrowser {
       logInUser()
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
 
       val request = FakeRequest(
         GET,
@@ -120,30 +120,30 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
       status(result) must equalTo(200)
-      val response = Json.parse(contentAsString(result))
+      val response = contentAsJson(result)
 
       (response \ "distributorID").as[Long] must beEqualTo(distributorID)
-      (response \ "keenProject").as[String] must beEqualTo(ConfigVarsKeen.projectID)
+      (response \ "keenProject").as[String] must beEqualTo(configVars.ConfigVarsKeen.projectID)
 
       // Verify scopedKey
-      val decrypted = ScopedKeys.decrypt(ConfigVarsKeen.masterKey, (response \ "scopedKey").as[String]).toMap.toString()
+      val decrypted = ScopedKeys.decrypt(configVars.ConfigVarsKeen.masterKey, (response \ "scopedKey").as[String]).toMap.toString()
       decrypted must contain("property_value=" + distributorID.toString)
     }
 
-    "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithFakeBrowser {
       val (maliciousUser, maliciousDistributor) = newDistributorUser("newuseremail2@gmail.com")
       setUpApp(maliciousDistributor.id.get)
 
       logInUser(maliciousUser.email, password)
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorUser.distributorID.get, Some(app1.id), None).url)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(maliciousDistributor.id.get, None, None).url)
     }
 
-    "export analytics data as csv" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "export analytics data as csv" in new WithFakeBrowser {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
       clickAndWaitForAngular("#export-as-csv")
       browser.fill("#export-email").`with`("test@test.com")
       clickAndWaitForAngular("#export-submit")
@@ -151,10 +151,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.pageSource() must contain("Export Requested")
     }
 
-    "export analytics data as csv must fail with invalid email" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "export analytics data as csv must fail with invalid email" in new WithFakeBrowser {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
       clickAndWaitForAngular("#export-as-csv")
       browser.fill("#export-email").`with`("test.com")
       clickAndWaitForAngular("#export-submit")
@@ -162,10 +162,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("The email you entered is invalid.")
     }
 
-    "export analytics data as csv should not allow field to be empty" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "export analytics data as csv should not allow field to be empty" in new WithFakeBrowser {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
       clickAndWaitForAngular("#export-as-csv")
       browser.fill("#export-email").`with`("")
       clickAndWaitForAngular("#export-submit")
@@ -173,10 +173,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("Email address is required")
     }
 
-    "export analytics data as csv should not allow field to be empty after already successfully exporting" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "export analytics data as csv should not allow field to be empty after already successfully exporting" in new WithFakeBrowser {
       logInUser()
 
-      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(app1.id), None).url)
       clickAndWaitForAngular("#export-as-csv")
       browser.fill("#export-email").`with`("test@test.com")
       browser.click("#export-submit")
@@ -192,11 +192,11 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#csv-email-form").containsText("Email address is required")
     }
 
-    "Send JSON data without email and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "Send JSON data without email and verify error response" in new WithFakeBrowser {
       val request = FakeRequest(
         POST,
         controllers.routes.AnalyticsController.export(distributorID).url,
-        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        FakeHeaders(Seq("Content-type" -> "application/json")),
         JsObject(
           Seq(
             "noEmailParameter" -> JsString("some other parameter")
@@ -209,17 +209,16 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       contentAsString(result) must equalTo("{\"status\":\"error\",\"message\":\"Missing parameters\"}")
     }
 
-    "Send bad JSON data and verify error response" in new WithAppBrowser(distributorUser.distributorID.get) {
+    "Send bad JSON data and verify error response" in new WithFakeBrowser {
       val request = FakeRequest(
         POST,
         controllers.routes.AnalyticsController.export(distributorID).url,
-        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        FakeHeaders(Seq("Content-type" -> "application/json")),
         "{BAD JSON DATA!@#}"
       )
 
       val Some(result) = route(request.withSession("distributorID" -> distributorID.toString, "username" -> email))
       status(result) must equalTo(400)
-      contentAsString(result) must equalTo("Expecting Json data")
     }
 
     "Refresh analytics page when clicking on the HyprMediate logo without a persisted app_id" in new WithFakeBrowser {
@@ -241,7 +240,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
         rewardMin = 1,
         rewardMax = None,
         roundUp = true,
-        platformID = Platform.Android.PlatformID
+        platformID = testPlatform.Android.PlatformID
       )
       val (iosApp, _, _, _) = setUpApp(
         distributorID = currentDistributor.id.get,
@@ -251,7 +250,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
         rewardMin = 1,
         rewardMax = None,
         roundUp = true,
-        platformID = Platform.Ios.PlatformID
+        platformID = testPlatform.Ios.PlatformID
       )
 
       logInUser(currentDistributorUser.email, password)
@@ -260,7 +259,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       clickAndWaitForAngular("#filter-apps")
       fillAndWaitForAngular("#filter-apps", "App")
 
-      List(Platform.Ios.PlatformName, Platform.Android.PlatformName)
+      List(testPlatform.Ios.PlatformName, testPlatform.Android.PlatformName)
         .map(platformName =>
           browser.find(
             "#apps-filter li a span",
@@ -276,8 +275,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
   }
 
   "AnalyticsController.info" should {
-    "include only unique ad provider names" in new WithAppBrowser(distributorID) {
-      AdProvider.loadAll()
+    "include only unique ad provider names" in new WithFakeBrowser {
+      adProviderService.loadAll()
 
       val request = FakeRequest(
         GET,
@@ -296,7 +295,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
         .toList.length must beEqualTo(adProviders.length)
     }
 
-    "must include a platform name for each app" in new WithAppBrowser(distributorID) {
+    "must include a platform name for each app" in new WithFakeBrowser {
       val (_, _, _, _) = setUpApp(
         distributorID = distributorID,
         appName = Some("Android Test App"),
@@ -305,7 +304,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
         rewardMin = 1,
         rewardMax = None,
         roundUp = true,
-        platformID = Platform.Android.PlatformID
+        platformID = testPlatform.Android.PlatformID
       )
 
       val request = FakeRequest(
@@ -319,7 +318,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       status(result) must equalTo(200)
       val response = Json.parse(contentAsString(result))
 
-      val platformNames = List(Platform.Android.PlatformName, Platform.Ios.PlatformName)
+      val platformNames = List(testPlatform.Android.PlatformName, testPlatform.Ios.PlatformName)
       val apps = (response \ "apps").as[JsArray].as[List[JsValue]]
       apps.map(appInfo =>
         platformNames must contain((appInfo \ "platformName").as[String])

@@ -1,12 +1,9 @@
 package integration
 
 import java.io.File
-
 import models._
-import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import resources.SpecificationWithFixtures
-
 import scala.concurrent.duration.Duration
 import scala.io.Source
 
@@ -17,31 +14,31 @@ import scala.io.Source
 class KeenCsvFillRateSpec extends SpecificationWithFixtures {
 
   // Load AdProviders required for tests
-  running(FakeApplication(additionalConfiguration = testDB)) {
+  running(testApplication) {
     val hyprName = "hyprMX"
-    AdProvider.create(
+    adProviderService.create(
       name = hyprName,
       displayName = hyprName,
       configurationData = "{\"required_params\":[{\"description\": \"Your HyprMarketplace App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
-      platformID = Platform.Ios.PlatformID,
+      platformID = testPlatform.Ios.PlatformID,
       callbackUrlFormat = None,
       callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(hyprName)
     )
 
     val vungleName = "Vungle"
-    AdProvider.create(
+    adProviderService.create(
       name = vungleName,
       displayName = vungleName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
-      platformID = Platform.Ios.PlatformID,
+      platformID = testPlatform.Ios.PlatformID,
       callbackUrlFormat = None,
       callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(vungleName)
     )
   }
 
-  val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
-    DistributorUser.create(email, password, "Company Name")
-    DistributorUser.findByEmail(email).get
+  val distributorUser = running(testApplication) {
+    distributorUserService.create(email, password, "Company Name")
+    distributorUserService.findByEmail(email).get
   }
 
   val distributorID = distributorUser.distributorID.get

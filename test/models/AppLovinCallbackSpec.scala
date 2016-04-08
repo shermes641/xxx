@@ -6,25 +6,27 @@ import play.api.test._
 import resources._
 
 class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
+  override lazy val adProvider = adProviderService
   val eCPM = 25.0
   val adProviderUserID= Some("user-id")
 
-  running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, appLovinID, None, None, configurable = true, active = true).get
-    val currentWap = WaterfallAdProvider.find(id).get
+  running(testApplication) {
+    val id = waterfallAdProviderService.create(waterfall.id, appLovinID, None, None, true, true).get
+    val currentWap = waterfallAdProviderService.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq()),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
-    WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
+    waterfallAdProviderService.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
   }
 
   val transactionID = "some-transaction-id"
   val amount = 5.0
-  val callback = running(FakeApplication(additionalConfiguration = testDB)) {
-    new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
-  }
 
   val callbackNoUserID = running(FakeApplication(additionalConfiguration = testDB)) {
-    new AppLovinCallback(transactionID, app1.token, amount, None)
+    new AppLovinCallback(transactionID, app1.token, amount, None, waterfallAdProviderService)
+  }
+
+  val callback = running(testApplication) {
+    new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID, waterfallAdProviderService)
   }
 
   "adProviderName" should {
@@ -51,39 +53,39 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
   "currencyAmount" should {
     "ignore the reward amount passed in the server to server callback" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID, waterfallAdProviderService)
       }
       callback.currencyAmount must beEqualTo(2)
-      callback.currencyAmount must not(beEqualTo(amount))
+      callback.currencyAmount must not(beEqualTo(amount, waterfallAdProviderService))
     }
 
     "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID, waterfallAdProviderService)
       }
       callback.currencyAmount must beEqualTo(5)
     }
 
     "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
       val callback = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=5, rewardMax=None, roundUp=false))
-        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=5, rewardMax=None, roundUp=false))
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID, waterfallAdProviderService)
       }
       callback.currencyAmount must beEqualTo(0)
     }
 
     "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
       val callbackWithoutRewardMax = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID, waterfallAdProviderService)
       }
       callbackWithoutRewardMax.currencyAmount must beEqualTo(12)
 
       val callbackWithRewardMax = {
-        VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
+        virtualCurrencyService.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID, waterfallAdProviderService)
       }
       callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }

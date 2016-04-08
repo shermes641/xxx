@@ -1,45 +1,63 @@
 package controllers
 
+import hmac.{HmacHashData, Signer}
 import java.util.concurrent.TimeoutException
-
 import models._
-import play.api.Logger
-import play.api.libs.json._
+import play.api.db.Database
 import play.api.mvc._
-
+import play.api.libs.json._
+import play.api.libs.ws.WSClient
+import play.api.Logger
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.language.{implicitConversions, postfixOps}
+import javax.inject._
 
-object APIController extends Controller {
+/**
+  * Controller for all app config and server to server callback actions
+  * @param modelService Helper class encapsulating model service classes
+  * @param signer       Shared instance of Signer for Hmac
+  * @param configVars   Shared ENV configuration variables
+  * @param db           Shared instance of database
+  * @param wsClient     Shared instance of web service client
+  */
+@Singleton
+class APIController @Inject() (modelService: ModelService,
+                               signer: Signer,
+                               configVars: ConfigVars,
+                               db: Database,
+                               wsClient: WSClient) extends Controller {
   val DefaultTimeout = 5000 // The default timeout for all server to server calls (in milliseconds).
+  val appConfigService = modelService.appConfigServiceService
+  val waterfallAdProviderService = modelService.waterfallAdProviderService
+  val appService = modelService.appService
+  val platform = modelService.platform
+
   /**
-    * Builds the error message for an AppConfig/Device mismatch.
-    *
-    * @param appPlatform   The name of the platform to which the AppConfig belongs.
-    * @param platformParam The name of the platform param that was sent from the SDK.
-    * @return The appropriate error message, specifying which platform was sent/expected.
-    */
+   * Builds the error message for an AppConfig/Device mismatch.
+   * @param appPlatform The name of the platform to which the AppConfig belongs.
+   * @param platformParam The name of the platform param that was sent from the SDK.
+   * @return The appropriate error message, specifying which platform was sent/expected.
+   */
   def platformError(appPlatform: String, platformParam: String): String = {
     "Your " + platformParam + " device is using the API token for an app that is targeted to " +
       appPlatform + " devices. Please check your HyprMediate dashboard for an app with the appropriate device targeting."
   }
 
   /**
-    * Responds with configuration JSON from the app_configs table.
-    *
-    * @param appToken     Random string which both authenticates the request and identifies the app.
-    * @param platformName The name of the device platform (e.g. iOS or Android).
-    * @return If an AppConfig is found, return the configuration field.  Otherwise, return a JSON error message.
-    */
+   * Responds with configuration JSON from the app_configs table.
+   * @param appToken     Random string which both authenticates the request and identifies the app.
+   * @param platformName The name of the device platform (e.g. iOS or Android).
+   * @return             If an AppConfig is found, return the configuration field.  Otherwise, return a JSON error message.
+   */
   def appConfigV1(appToken: String, platformName: Option[String]) = Action { implicit request =>
-    AppConfig.findLatest(appToken) match {
+    appConfigService.findLatest(appToken) match {
       case Some(response) =>
-        if ((response.configuration \ "status").isInstanceOf[JsUndefined]) {
-          (platformName, response.configuration \ "platformID") match {
-            case (Some(platformParamName), platformID: JsNumber) =>
-              val appConfigPlatformName = Platform.find(platformID.as[Int]).PlatformName
-              if (platformParamName == appConfigPlatformName) {
+        if((response.configuration \ "status").toOption.isEmpty) {
+          (platformName, (response.configuration \ "platformID").toOption) match {
+            case (Some(platformParamName), Some(platformID: JsNumber)) =>
+              val appConfigPlatformName = platform.find(platformID.as[Int]).PlatformName
+              if(platformParamName == appConfigPlatformName) {
                 Ok(response.configuration)
               } else {
                 BadRequest(
@@ -84,7 +102,7 @@ object APIController extends Controller {
                          uid: Option[String]) = Action { implicit request =>
     (transactionID, digest, amount) match {
       case (Some(transactionIDValue: String), Some(digestValue: String), Some(amountValue: Int)) =>
-        val callback = new VungleCallback(appToken, transactionIDValue, digestValue, amountValue, uid)
+        val callback = new VungleCallback(appToken, transactionIDValue, digestValue, amountValue, uid, waterfallAdProviderService)
         callbackResponse(callback, request)
 
       case (_, _, _) => BadRequest
@@ -98,7 +116,7 @@ object APIController extends Controller {
     * @return          If the incoming request is valid, returns a 200; otherwise, returns 400
     */
   def unityAdsCompletionV1(appToken: String) = Action { implicit request =>
-    val callback = new UnityAdsCallback(appToken, request.queryString)
+    val callback = new UnityAdsCallback(appToken, request.queryString, waterfallAdProviderService)
     callbackResponse(callback, request)
   }
 
@@ -149,7 +167,8 @@ object APIController extends Controller {
           odin1Value,
           macSha1Value,
           verifierValue,
-          customIDValue)
+          customIDValue,
+          waterfallAdProviderService)
         callbackResponse(callback, request)
 
       case (_, _, _, _, _, _, _, _, _, _) => AdColonyCallback.DefaultFailure
@@ -177,7 +196,7 @@ object APIController extends Controller {
                            userID: Option[String]) = Action { implicit request =>
     (eventID, amount) match {
       case (Some(eventIDValue: String), Some(amountValue: Double)) =>
-        val callback = new AppLovinCallback(eventIDValue, appToken, amountValue, userID)
+        val callback = new AppLovinCallback(eventIDValue, appToken, amountValue, userID, waterfallAdProviderService)
         callbackResponse(callback, request)
 
       case (_, _) => BadRequest
@@ -205,12 +224,22 @@ object APIController extends Controller {
                                   rewardID: Option[String],
                                   uid: Option[String],
                                   partnerCode: Option[String]) = Action { implicit request =>
-    (uid, sig, time, quantity) match {
-      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(quantityValue: Int)) =>
-        val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, offerProfit, quantityValue, partnerCode)
+    (uid, sig, time, partnerCode, quantity) match {
+      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(partnerCodeValue: String), Some(quantityValue: Int)) => {
+        val callback = new HyprMarketplaceCallback(
+          appToken,
+          userIDValue,
+          signatureValue,
+          timeValue,
+          offerProfit,
+          quantityValue,
+          partnerCode,
+          waterfallAdProviderService,
+          configVars
+        )
         callbackResponse(callback, request)
-
-      case (_, _, _, _) => BadRequest
+      }
+      case _ => BadRequest
     }
   }
 
@@ -226,14 +255,14 @@ object APIController extends Controller {
   }
 
   /**
-    * Creates a Completion if the reward callback is valid and notifies the Distributor if server to server callbacks are enabled.
-    *
-    * @param callback          Any class instance which extends CallbackVerificationHelper.  This encapsulates callback information to determine the validity of the incoming request.
-    * @param adProviderRequest The original postback from the ad provider.
-    * @param completion        A new instance of the Completion class.
-    * @return Creates a Completion if the callback if valid and notifies the Distributor if server to server callbacks are enabled; otherwise, returns None.
-    */
-  def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue, completion: Completion = new Completion) = {
+   * Creates a Completion if the reward callback is valid and notifies the Distributor if server to server callbacks are enabled.
+   *
+   * @param callback Any class instance which extends CallbackVerificationHelper.  This encapsulates callback information to determine the validity of the incoming request.
+   * @param adProviderRequest The original postback from the ad provider.
+   * @param completion A new instance of the Completion class.
+   * @return Creates a Completion if the callback if valid and notifies the Distributor if server to server callbacks are enabled; otherwise, returns None.
+   */
+  def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue, completion: Completion = new Completion(db, wsClient, modelService.appService, signer)) = {
     callback.verificationInfo.isValid match {
       case true =>
         try {

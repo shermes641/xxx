@@ -2,25 +2,60 @@
  * When an Ad Network creation fails in Player, this script will attempt to recreate the Ad Network.
  */
 
+// $COVERAGE-OFF$
 import anorm._
 import java.sql.Connection
-import models._
 import play.api.db.DB
 import play.api.Logger
 import play.api.Play.current
 import scala.language.postfixOps
 import scala.util.{Failure, Try, Success}
-// $COVERAGE-OFF$
-new play.core.StaticApplication(new java.io.File("."))
+
+import models._
+import play.api.Logger
+import play.api._
+import play.api.ApplicationLoader.Context
+import play.api.db.evolutions.Evolutions
+import play.api.db.{DBComponents, Database, HikariCPComponents}
+import play.api.libs.mailer._
+import play.api.libs.ws.ning.NingWSClient
+import play.api.mvc._
+import play.api.mvc.Results._
+import router.Routes
+import scala.concurrent.Future
+import Play.current
+
+// The "correct" way to start the app
+val env = Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Prod)
+val context = ApplicationLoader.createContext(env)
+val loader = ApplicationLoader(context)
+
+val components = new MainComponents(context)
+val adProviderService = components.adProviderService
+val db = components.database
+val waterfallAdProviderService = components.waterfallAdProviderService
+val appConfigService = components.appConfigService
+val platform = components.platform
+val appService = components.appService
 
 object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
+  val akkaActorSystem = components.actorSystem
+  val ws = components.wsClient
+  val modelService = components.modelService
+  val database = components.database
+  val appService = components.appService
+  val waterfallAdProviderService = components.waterfallAdProviderService
+  val appConfigService = components.appConfigService
+  val config = components.configVars
+  val appEnv = components.appEnvironment
+
   /**
    * Recreates the ad network for a single WaterfallAdProvider.  This can be used to properly configure the HyprMarketplace
    * WaterfallAdProvider instance when the original call to Player fails.
    * @param waterfallAdProviderID The ID of the WaterfallAdProvider to be updated.
    */
   def recreateAdNetwork(waterfallAdProviderID: Long) = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT wap.*, apps.token, apps.name as app_name, d.name as company_name
@@ -56,12 +91,12 @@ object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
     }
 
     val currentApp = {
-      DB.withConnection { implicit connection =>
+      db.withConnection { implicit connection =>
         SQL(
           """
               SELECT * FROM apps WHERE apps.token = {token};
           """
-        ).on("token" -> apiToken).as(App.AppParser*) match {
+        ).on("token" -> apiToken).as(appService.AppParser*) match {
           case List(app) =>
             app
           case _ =>
@@ -70,7 +105,7 @@ object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
       }
     }
 
-    DB.withTransaction { implicit connection =>
+    db.withTransaction { implicit connection =>
       val hyprWaterfallAdProvider = {
         SQL(
           """
@@ -83,8 +118,8 @@ object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
           """
         ).on(
             "app_id"              -> currentApp.id,
-            "hypr_ad_provider_id" -> Platform.find(currentApp.platformID).hyprMarketplaceID
-          ).as(WaterfallAdProvider.waterfallAdProviderParser*) match {
+            "hypr_ad_provider_id" -> platform.find(currentApp.platformID).hyprMarketplaceID
+          ).as(waterfallAdProviderService.waterfallAdProviderParser*) match {
           case List(waterfallAdProvider) =>
             waterfallAdProvider
           case _ =>
@@ -93,7 +128,7 @@ object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
       }
 
       Try(
-        WaterfallAdProvider.updateHyprMarketplaceConfig(
+        waterfallAdProviderService.updateHyprMarketplaceConfig(
           hyprWaterfallAdProvider,
           adNetworkID,
           apiToken,
@@ -102,7 +137,7 @@ object AdNetworkUtils extends JsonConversion with UpdateHyprMarketplace {
       ) match {
         case Success(rowsUpdated: Int) =>
           if(rowsUpdated == 1) {
-            AppConfig.createWithWaterfallIDInTransaction(
+            appConfigService.createWithWaterfallIDInTransaction(
               hyprWaterfallAdProvider.waterfallID,
               currentGenerationNumber = None
             ) match {

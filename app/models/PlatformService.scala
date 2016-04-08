@@ -1,12 +1,14 @@
 package models
 
+import javax.inject.Inject
+
 /**
  * Base class for Android and Ios AdProvider classes.
   *
   * @param id Maps to the id column in the platforms table.
  * @param name Maps to the name column in the platforms table.
  */
-abstract class Platform(id: Long, name: String) {
+abstract class PlatformService(id: Long, name: String) {
   val PlatformID: Long = id
   val PlatformName: String = name
 
@@ -245,19 +247,23 @@ abstract class Platform(id: Long, name: String) {
   val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }
 
-object Platform extends ConfigVars {
+/**
+  * Contains platform-specific information for iOS and Android
+  * @param config The shared Play environment configuration
+  */
+class Platform @Inject() (config: ConfigVars) {
   val IosPlatformID: Long = 1
   val IosPlatformName: String = "iOS"
-  object Ios extends Platform(IosPlatformID, IosPlatformName) {
-    val hyprMarketplaceID = ConfigVarsAdProviders.iosID
-    val serverToServerDomain = ConfigVarsCallbackUrls.ios
+  object Ios extends PlatformService(IosPlatformID, IosPlatformName) {
+    val hyprMarketplaceID: Long = config.ConfigVarsAdProviders.iosID
+    val serverToServerDomain: String = config.ConfigVarsCallbackUrls.ios
   }
 
   val AndroidPlatformID: Long = 2
   val AndroidPlatformName: String = "Android"
-  object Android extends Platform(AndroidPlatformID, AndroidPlatformName) {
-    val hyprMarketplaceID = ConfigVarsAdProviders.androidID
-    val serverToServerDomain = ConfigVarsCallbackUrls.android
+  object Android extends PlatformService(AndroidPlatformID, AndroidPlatformName) {
+    val hyprMarketplaceID = config.ConfigVarsAdProviders.androidID
+    val serverToServerDomain = config.ConfigVarsCallbackUrls.android
   }
 
   /**
@@ -266,7 +272,7 @@ object Platform extends ConfigVars {
     * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
    * @return The Android or iOS object depending on the platform ID
    */
-  def find(platformID: Long): Platform = {
-    if(platformID == Platform.Android.PlatformID) Platform.Android else Platform.Ios
+  def find(platformID: Long): PlatformService = {
+    if(platformID == this.Android.PlatformID) this.Android else this.Ios
   }
 }

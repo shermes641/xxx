@@ -1,11 +1,16 @@
 package hmac
 
-import models.CallbackVerificationInfo
+import models.{CallbackVerificationInfo, ConfigVars}
 import org.specs2.mock.Mockito
 import resources.AdProviderRequests
 
 class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
   val adProviderUserID = "user-id"
+  val appMode = mock[models.AppMode]
+  appMode.contextMode returns app.mode
+  val appEnv = new models.Environment(app.configuration, appMode)
+  val configVars = new ConfigVars(app.configuration, appEnv)
+  val signer = new Signer(configVars)
 
   val validData = Table(
     ("secret", "user-id", "estimatedOfferProfit"),
@@ -36,9 +41,9 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
       */
     def validateTimestamp = {
 
-      val t1 = Signer.timestamp
-      val t2 = Signer.timestamp
-      val t3 = Signer.previousTimestamp(t1)
+      val t1 = signer.timestamp
+      val t2 = signer.timestamp
+      val t3 = signer.previousTimestamp(t1)
       t1 should (equal(t2) or equal(t3))
     }
     0.to(1000).foreach(x => validateTimestamp)
@@ -52,8 +57,8 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
       */
     def validateTimestamp = {
 
-      val t1 = Signer.timestamp
-      val t2 = Signer.previousTimestamp(t1)
+      val t1 = signer.timestamp
+      val t2 = signer.previousTimestamp(t1)
       t1 should equal(t2 + 1)
     }
     0.to(1000).foreach(x => validateTimestamp)
@@ -72,7 +77,8 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
       val pbd = HmacHashData(
         adProviderUserID = adProviderUserID,
         adProviderRequest = adColonyRequest,
-        verificationInfo = vi).postBackData
+        verificationInfo = vi,
+        signer = signer).postBackData
 
       pbd.value.get(HmacConstants.OriginalPostback).get.equals(adColonyRequest) should be(true)
       pbd.value.get(HmacConstants.AdProviderName).get.toString.contains(adProviderName.toString) should be(true)
@@ -95,7 +101,8 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
           appToken = "1234",
           offerProfit = Some(ep),
           rewardQuantity = rewardQuantity,
-          adProviderRewardInfo = None))
+          adProviderRewardInfo = None),
+          signer = signer)
 
       res.postBackData.value.get(HmacConstants.OriginalPostback).get.equals(adColonyRequest) should be(true)
       res.postBackData.value.get(HmacConstants.AdProviderName).get.toString.contains(HmacConstants.DefaultAdProviderName) should be(true)
@@ -106,7 +113,7 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
     }
   }
 
-  val ts = Signer.timestamp
+  val ts = signer.timestamp
 
   property("generates the same hashes") {
     forAll(validData) { (secret: String, userID: String, estimatedOfferProfit: Double) =>
@@ -119,9 +126,10 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
           appToken = "1234",
           offerProfit = Some(estimatedOfferProfit),
           rewardQuantity = 1L,
-          adProviderRewardInfo = None))
+          adProviderRewardInfo = None),
+          signer = signer)
 
-      Signer.generate(secret, hd.toHash(HmacConstants.DefaultSecret).get) shouldEqual Signer.generate(secret, hd.toHash(HmacConstants.DefaultSecret).get)
+      signer.generate(secret, hd.toHash(HmacConstants.DefaultSecret).get) shouldEqual signer.generate(secret, hd.toHash(HmacConstants.DefaultSecret).get)
     }
   }
 
@@ -137,7 +145,8 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
             appToken = "1234",
             offerProfit = Some(1.1),
             rewardQuantity = 1L,
-            adProviderRewardInfo = None))
+            adProviderRewardInfo = None),
+            signer = signer)
 
         val h2 = HmacHashData(
           adProviderUserID = u2,
@@ -148,9 +157,10 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
             appToken = "1234",
             offerProfit = Some(1.1),
             rewardQuantity = 1L,
-            adProviderRewardInfo = None))
+            adProviderRewardInfo = None),
+            signer = signer)
 
-        Signer.generate(s1, h1.toHash(HmacConstants.DefaultSecret).get) should not be Signer.generate(s1, h2.toHash(HmacConstants.DefaultSecret).get)
+        signer.generate(s1, h1.toHash(HmacConstants.DefaultSecret).get) should not be signer.generate(s1, h2.toHash(HmacConstants.DefaultSecret).get)
       }
     }
   }
@@ -167,15 +177,17 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
             appToken = "1234",
             offerProfit = Some(3.3),
             rewardQuantity = 2L,
-            adProviderRewardInfo = None))
+            adProviderRewardInfo = None),
+            signer = signer)
 
-        val hash = Signer.generate(secret, h1.postBackData.toString)
-        Signer.valid(secret, h1.postBackData.toString, hash.get) should be(true)
+        val hash = signer.generate(secret, h1.postBackData.toString)
+        signer.valid(secret, h1.postBackData.toString, hash.get) should be(true)
       }
     }
   }
 
   property("valid hashes") {
+    val ts = signer.timestamp
     forAll {
       (adProviderName: String,
        adProviderUserID: String,
@@ -191,10 +203,11 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
               appToken = "1234",
               offerProfit = Some(estimatedOfferProfit),
               rewardQuantity = rewardQuantity,
-              adProviderRewardInfo = None))
+              adProviderRewardInfo = None),
+              signer = signer)
 
-          val hash = Signer.generate("asflaskfs43^&6ydgdf&*69tTds=", h1.postBackData.toString)
-          Signer.valid("asflaskfs43^&6ydgdf&*69tTds=", h1.postBackData.toString, hash.get) should be(true)
+          val hash = signer.generate("asflaskfs43^&6ydgdf&*69tTds=", h1.postBackData.toString)
+          signer.valid("asflaskfs43^&6ydgdf&*69tTds=", h1.postBackData.toString, hash.get) should be(true)
         }
     }
   }
@@ -216,8 +229,9 @@ class SignerSpec extends BaseSpec with AdProviderRequests with Mockito {
               appToken = "1234",
               offerProfit = Some(estimatedOfferProfit),
               rewardQuantity = rewardQuantity,
-              adProviderRewardInfo = None))
-          Signer.generate(secret, h1.postBackData.toString) should be(None)
+              adProviderRewardInfo = None),
+              signer = signer)
+          signer.generate(secret, h1.postBackData.toString) should be(None)
         }
     }
   }

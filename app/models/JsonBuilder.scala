@@ -1,12 +1,15 @@
 package models
 
-import models.Waterfall.AdProviderInfo
+import javax.inject.Inject
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-
 import scala.language.implicitConversions
 
-object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with ConfigVars {
+/**
+  * Encapsulates functions for building AppConfig Json
+  * @param configVars A shared Play environment configuration
+  */
+class JsonBuilder @Inject() (configVars: ConfigVars) extends ValueToJsonHelper with RequiredParamJsReader {
   val LogFullConfig = true // This value must remain true to provide accurate analytics for ad providers
   val DefaultCanShowAdTimeout = 10 // This value represents seconds.
   val DefaultRewardTimeout = 10 // This value represents seconds.
@@ -20,21 +23,15 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     */
   def appConfigResponseV1(adProviderList: List[AdProviderInfo], adProviderBelowRewardThresholdList: List[AdProviderInfo], configInfo: AdProviderInfo): JsValue = {
     val adProviderConfigurations = {
-      JsObject(
-        Seq(
-          "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
+      Json.obj(
+        "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
             array ++ JsArray(adProviderJson(el).deepMerge(
               el.configurationData match {
                 case Some(data) =>
-                  data \ "requiredParams" match {
-                    case _: JsUndefined => JsObject(Seq())
-                    case json: JsValue => json.as[JsObject]
-                  }
-
-                case None => JsObject(Seq())
+                  (data \ "requiredParams").getOrElse(Json.obj()).as[JsObject]
+                case None => Json.obj()
               }
             ) :: Nil
-            )
           )
         )
       )
@@ -62,16 +59,14 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return JSON object containing ad provider information.
     */
   def adProviderJson(adProvider: AdProviderInfo): JsObject = {
-    JsObject(
-      Seq(
-        "providerName" -> adProvider.providerName,
-        "providerID" -> adProvider.providerID,
-        "eCPM" -> (adProvider.cpm match {
-          case Some(eCPM) => JsNumber(eCPM)
-          case None => JsNull
-        }),
-        "sdkBlacklistRegex" -> adProvider.sdkBlacklistRegex
-      )
+    Json.obj(
+      "providerName" -> adProvider.providerName,
+      "providerID" -> adProvider.providerID,
+      "eCPM" -> (adProvider.cpm match {
+        case Some(eCPM) => JsNumber(eCPM)
+        case None => JsNull
+      }),
+      "sdkBlacklistRegex" -> adProvider.sdkBlacklistRegex
     )
   }
 
@@ -82,11 +77,9 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return A JsObject containing SDK configuration info.
     */
   def sdkConfiguration(appConfigRefreshInterval: Long): JsObject = {
-    JsObject(
-      Seq(
-        "appConfigRefreshInterval" -> JsNumber(appConfigRefreshInterval),
-        "logFullConfig" -> JsBoolean(LogFullConfig)
-      )
+    Json.obj(
+      "appConfigRefreshInterval" -> JsNumber(appConfigRefreshInterval),
+      "logFullConfig" -> JsBoolean(LogFullConfig)
     )
   }
 
@@ -97,11 +90,9 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return A JsObject containing distributorID and distributorName.
     */
   def distributorConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
-    JsObject(
-      Seq(
-        "distributorName" -> adProviderInfo.distributorName,
-        "distributorID" -> adProviderInfo.distributorID
-      )
+    Json.obj(
+      "distributorName" -> adProviderInfo.distributorName,
+      "distributorID" -> adProviderInfo.distributorID
     )
   }
 
@@ -112,12 +103,10 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return A JsObject containing app name, ID, and platform ID.
     */
   def appConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
-    JsObject(
-      Seq(
-        "appName" -> adProviderInfo.appName,
-        "appID" -> adProviderInfo.appID,
-        "platformID" -> adProviderInfo.platformID
-      )
+    Json.obj(
+      "appName" -> adProviderInfo.appName,
+      "appID" -> adProviderInfo.appID,
+      "platformID" -> adProviderInfo.platformID
     )
   }
 
@@ -128,17 +117,13 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return A JsObject with virtual currency information.
     */
   def virtualCurrencyConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
-    JsObject(
-      Seq(
-        "virtualCurrency" -> JsObject(
-          Seq(
-            "name" -> adProviderInfo.virtualCurrencyName,
-            "exchangeRate" -> adProviderInfo.exchangeRate,
-            "roundUp" -> JsBoolean(adProviderInfo.roundUp.get),
-            "rewardMin" -> JsNumber(adProviderInfo.rewardMin),
-            "rewardMax" -> adProviderInfo.rewardMax
-          )
-        )
+    Json.obj(
+      "virtualCurrency" -> Json.obj(
+        "name" -> adProviderInfo.virtualCurrencyName,
+        "exchangeRate" -> adProviderInfo.exchangeRate,
+        "roundUp" -> JsBoolean(adProviderInfo.roundUp.get),
+        "rewardMin" -> JsNumber(adProviderInfo.rewardMin),
+        "rewardMax" -> adProviderInfo.rewardMax
       )
     )
   }
@@ -149,14 +134,10 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return JSON object to be merged into JSON API response.
     */
   def analyticsConfiguration: JsObject = {
-    JsObject(
-      Seq(
-        "analyticsConfiguration" -> JsObject(
-          Seq(
-            "analyticsPostUrl" -> JsString(Constants.KeenConfig.ProjectsUrl + ConfigVarsKeen.projectID),
-            "analyticsWriteKey" -> JsString(ConfigVarsKeen.writeKey)
-          )
-        )
+    Json.obj(
+      "analyticsConfiguration" -> Json.obj(
+        "analyticsPostUrl" -> JsString(Constants.KeenConfig.ProjectsUrl + configVars.ConfigVarsKeen.projectID),
+        "analyticsWriteKey" -> JsString(configVars.ConfigVarsKeen.writeKey)
       )
     )
   }
@@ -167,14 +148,10 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return JSON object to be merged into JSON API response.
     */
   def errorReportingConfiguration: JsObject = {
-    JsObject(
-      Seq(
-        "errorReportingConfiguration" -> JsObject(
-          Seq(
-            "errorReportingPostUrl" -> JsString(Constants.KeenConfig.ProjectsUrl + ConfigVarsKeen.errorProjectID),
-            "errorReportingWriteKey" -> JsString(ConfigVarsKeen.errorProjectKey)
-          )
-        )
+    Json.obj(
+      "errorReportingConfiguration" -> Json.obj(
+        "errorReportingPostUrl" -> JsString(Constants.KeenConfig.ProjectsUrl + configVars.ConfigVarsKeen.errorProjectID),
+        "errorReportingWriteKey" -> JsString(configVars.ConfigVarsKeen.errorProjectKey)
       )
     )
   }
@@ -185,11 +162,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return JSON object to be merged into JSON API response.
     */
   def testModeConfiguration: JsObject = {
-    JsObject(
-      Seq(
-        "testMode" -> JsBoolean(false)
-      )
-    )
+    Json.obj("testMode" -> JsBoolean(false))
   }
 
   /**
@@ -199,11 +172,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return A JsObject containing paused status.
     */
   def pausedConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
-    JsObject(
-      Seq(
-        "paused" -> JsBoolean(adProviderInfo.paused)
-      )
-    )
+    Json.obj("paused" -> JsBoolean(adProviderInfo.paused))
   }
 
   /**
@@ -212,11 +181,9 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return JSON object to be merged in to the JSON API response.
     */
   def timeoutConfigurations: JsObject = {
-    JsObject(
-      Seq(
-        "canShowAdTimeout" -> JsNumber(DefaultCanShowAdTimeout),
-        "rewardTimeout" -> JsNumber(DefaultRewardTimeout)
-      )
+    Json.obj(
+      "canShowAdTimeout" -> JsNumber(DefaultCanShowAdTimeout),
+      "rewardTimeout" -> JsNumber(DefaultRewardTimeout)
     )
   }
 
@@ -267,7 +234,7 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return A JsObject containing WaterfallAdProvider params.
     */
   def buildWAPParamsForDB(list: List[RequiredParam]): JsObject = {
-    list.foldLeft(JsObject(Seq()))((jsonObject, param) => {
+    list.foldLeft(Json.obj())((jsonObject, param) => {
       jsonObject.deepMerge(
         JsObject(
           Seq(
@@ -298,16 +265,14 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with Con
     * @return JSON object to be used in the edit action.
     */
   implicit def requiredParamWrites(param: RequiredParam): JsObject = {
-    JsObject(
-      Seq(
-        "displayKey" -> JsString(param.displayKey.getOrElse("")),
-        "key" -> JsString(param.key.getOrElse("")),
-        "dataType" -> JsString(param.dataType.getOrElse("")),
-        "description" -> JsString(param.description.getOrElse("")),
-        "value" -> JsString(param.value.getOrElse("")),
-        "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart),
-        "minLength" -> JsNumber(param.minLength)
-      )
+    Json.obj(
+      "displayKey" -> JsString(param.displayKey.getOrElse("")),
+      "key" -> JsString(param.key.getOrElse("")),
+      "dataType" -> JsString(param.dataType.getOrElse("")),
+      "description" -> JsString(param.description.getOrElse("")),
+      "value" -> JsString(param.value.getOrElse("")),
+      "refreshOnAppRestart" -> JsBoolean(param.refreshOnAppRestart),
+      "minLength" -> JsNumber(param.minLength)
     )
   }
 }
@@ -373,9 +338,10 @@ trait JsonToValueHelper {
     */
   implicit def jsValueToOptionalDouble(param: JsValue): Option[Double] = {
     param match {
-      case value: JsUndefined => None
-      case value: JsValue if value.as[String] == "" => None
-      case value: JsValue => Some(value.as[String].toDouble)
+      case value: JsString =>
+        val number = value.as[String]
+        if(number == "" ) None else Some(number.toDouble)
+      case value: JsNumber => Some(value.as[Double])
       case _ => None
     }
   }
@@ -388,9 +354,10 @@ trait JsonToValueHelper {
     */
   implicit def jsValueToOptionalLong(param: JsValue): Option[Long] = {
     param match {
-      case value: JsUndefined => None
-      case value: JsValue if value.as[String] == "" => None
-      case value: JsValue => Some(value.as[String].toLong)
+      case value: JsString =>
+        val number = value.as[String]
+        if(number == "" ) None else Some(number.toLong)
+      case value: JsNumber => Some(value.as[Long])
       case _ => None
     }
   }

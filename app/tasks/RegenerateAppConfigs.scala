@@ -3,34 +3,46 @@ package tasks
 import anorm._
 import java.sql.Connection
 import models._
-import play.api.db.DB
+import play.api.db.Database
 import play.api.Logger
-import play.api.Play.current
 import scala.language.postfixOps
 
-object RegenerateAppConfigs {
+/**
+  * Regenerates an app config for every app in the database
+  * @param db                         A shared database
+  * @param waterfallAdProviderService A shared instance of the WaterfallAdProviderService class
+  * @param appConfigService           A shared instance of the AppConfigService class
+  * @param adProviderService          A shared instance of the AdProviderService class
+  * @param jsonBuilder                A shared instance of the JsonBuilder class
+  */
+class RegenerateAppConfigsService(db: Database,
+                                  waterfallAdProviderService: WaterfallAdProviderService,
+                                  appConfigService: AppConfigService,
+                                  adProviderService: AdProviderService,
+                                  platform: Platform,
+                                  jsonBuilder: JsonBuilder) {
   val taskName = "RegenerateAppConfigs: "
   /**
    * Script to update AppConfigs for all Waterfalls.
    */
   def run() = {
     // make sure all ad providers exist
-    AdProvider.loadAll()
-    if(AdProvider.updateAll == (Platform.Ios.allAdProviders ++ Platform.Android.allAdProviders).size) {
+    adProviderService.loadAll()
+    if(adProviderService.updateAll == (platform.Ios.allAdProviders ++ platform.Android.allAdProviders).size) {
       var unsuccessfulWaterfallIDs: Set[Long] = Set()
       var unsuccessfulWaterfallAdProviderIDs: Vector[Long] = Vector()
 
-      DB.withTransaction { implicit connection =>
-        val waterfallIDs: Vector[Long] = SQL("""SELECT id from waterfalls""")().map(row => row[Long]("id")).toVector
+      db.withTransaction { implicit connection =>
+        val waterfallIDs: Vector[Long] = SQL("""SELECT id from waterfalls""").as(SqlParser.long("id").*).toVector
         waterfallIDs.map { waterfallID =>
-          val waps = WaterfallAdProvider.findAllByWaterfallID(waterfallID)
+          val waps = waterfallAdProviderService.findAllByWaterfallID(waterfallID)
           waps.map { wap =>
             try {
-              val configData = WaterfallAdProvider.findConfigurationData(wap.id).get
+              val configData = waterfallAdProviderService.findConfigurationData(wap.id).get
               if(!configData.pending) {
-                val newConfig = JsonBuilder.buildWAPParams(JsonBuilder.buildWAPParamsForDB, configData)
+                val newConfig = jsonBuilder.buildWAPParams(jsonBuilder.buildWAPParamsForDB, configData)
                 val newWapValues = new WaterfallAdProvider(wap.id, waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, newConfig, wap.reportingActive)
-                WaterfallAdProvider.updateWithTransaction(newWapValues) match {
+                waterfallAdProviderService.updateWithTransaction(newWapValues) match {
                   case 0 => {
                     unsuccessfulWaterfallAdProviderIDs = unsuccessfulWaterfallAdProviderIDs :+ wap.id
                     unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + wap.waterfallID
@@ -48,7 +60,7 @@ object RegenerateAppConfigs {
             }
           }
           try {
-            AppConfig.createWithWaterfallIDInTransaction(waterfallID, None) match {
+            appConfigService.createWithWaterfallIDInTransaction(waterfallID, None) match {
               case Some(newGenerationNumber) => None
               case None => {
                 unsuccessfulWaterfallIDs = unsuccessfulWaterfallIDs + waterfallID

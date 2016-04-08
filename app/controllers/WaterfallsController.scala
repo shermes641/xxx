@@ -1,15 +1,30 @@
 package controllers
 
+import javax.inject._
 import java.sql.Connection
-import play.api.db.DB
+import play.api.db.Database
 import play.api.mvc._
 import models._
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import play.api.Play.current
 import scala.language.implicitConversions
 
-object WaterfallsController extends Controller with Secured with JsonToValueHelper with ValueToJsonHelper {
+/**
+  * Controller for all Waterfall actions
+  * @param models Helper class containing dependency-injected instances of service classes
+  * @param db     A shared database
+  */
+@Singleton
+class WaterfallsController @Inject() (models: ModelService,
+                                      db: Database) extends Controller with Secured with JsonToValueHelper with ValueToJsonHelper {
+  val distributorUserService = models.distributorUserService
+  val appService = models.appService
+  val waterfallService = models.waterfallService
+  val waterfallAdProviderService = models.waterfallAdProviderService
+  val virtualCurrencyService = models.virtualCurrencyServiceService
+  val appConfigService = models.appConfigServiceService
+  val adProviderService = models.adProviderService
+
+  override val authUser = distributorUserService // Used in Secured trait
   /**
    * Redirects to the waterfall assigned to App.
    * Future:  Will return list of waterfalls.
@@ -18,7 +33,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return Redirects to edit page if app with waterfall exists.
    */
   def list(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.findAppWithWaterfalls(appID, distributorID) match {
+    appService.findAppWithWaterfalls(appID, distributorID) match {
       case Some(app) => {
           Redirect(routes.WaterfallsController.edit(distributorID, app.waterfallID))
       }
@@ -35,13 +50,25 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return Form for editing Waterfall
    */
   def edit(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    Waterfall.find(waterfallID, distributorID) match {
+    waterfallService.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
-        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
-            new OrderedWaterfallAdProvider(name = adProvider.displayName, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
-                                          configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
+        val waterfallAdProviderList = waterfallAdProviderService.findAllOrdered(waterfallID) ++ adProviderService.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
+          new OrderedWaterfallAdProvider(
+            name = adProvider.displayName,
+            waterfallAdProviderID = adProvider.id,
+            cpm = adProvider.defaultEcpm,
+            active = false,
+            waterfallOrder = None,
+            unconfigured = true,
+            configurable = adProvider.configurable,
+            roundUp = Option(false),
+            exchangeRate = Option(0),
+            rewardMin = 0,
+            pending = false,
+            newRecord = true
+          )
         }
-        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
+        val appsWithWaterfalls = appService.findAllAppsWithWaterfalls(distributorID)
         Ok(views.html.Waterfalls.edit(distributorID, waterfall, waterfallAdProviderList, appsWithWaterfalls, waterfall.generationNumber))
       }
       case None => {
@@ -51,13 +78,25 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
   }
 
   def waterfallInfo(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    Waterfall.find(waterfallID, distributorID) match {
+    waterfallService.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
-        val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
-          new OrderedWaterfallAdProvider(name = adProvider.displayName, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
-                                          configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
+        val waterfallAdProviderList = waterfallAdProviderService.findAllOrdered(waterfallID) ++ adProviderService.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
+          new OrderedWaterfallAdProvider(
+            name = adProvider.displayName,
+            waterfallAdProviderID = adProvider.id,
+            cpm = adProvider.defaultEcpm,
+            active = false,
+            waterfallOrder = None,
+            unconfigured = true,
+            configurable = adProvider.configurable,
+            roundUp = Option(false),
+            exchangeRate = Option(0),
+            rewardMin = 0,
+            pending = false,
+            newRecord = true
+          )
         }
-        val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
+        val appsWithWaterfalls = appService.findAllAppsWithWaterfalls(distributorID)
         val generationNumber: Long = waterfall.generationNumber.getOrElse(0)
         Ok(Json.obj("distributorID" -> JsNumber(distributorID), "waterfall" -> waterfall, "waterfallAdProviderList" -> adProviderListJs(waterfallAdProviderList),
           "appsWithWaterfalls" -> appsWithWaterfallListJs(appsWithWaterfalls), "generationNumber" -> JsNumber(generationNumber)))
@@ -86,19 +125,17 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return A JSON object.
    */
   implicit def orderedWaterfallAdProviderWrites(wap: OrderedWaterfallAdProvider): JsObject = {
-    JsObject(
-      Seq(
-        "name" -> JsString(wap.name),
-        "waterfallAdProviderID" -> JsNumber(wap.waterfallAdProviderID),
-        "cpm" -> wap.cpm,
-        "active" -> JsBoolean(wap.active),
-        "waterfallOrder" -> wap.waterfallOrder,
-        "unconfigured" -> JsBoolean(wap.unconfigured),
-        "newRecord" -> JsBoolean(wap.newRecord),
-        "configurable" -> JsBoolean(wap.configurable),
-        "meetsRewardThreshold" -> JsBoolean(wap.meetsRewardThreshold),
-        "pending" -> JsBoolean(wap.pending)
-      )
+    Json.obj(
+      "name" -> JsString(wap.name),
+      "waterfallAdProviderID" -> JsNumber(wap.waterfallAdProviderID),
+      "cpm" -> wap.cpm,
+      "active" -> JsBoolean(wap.active),
+      "waterfallOrder" -> wap.waterfallOrder,
+      "unconfigured" -> JsBoolean(wap.unconfigured),
+      "newRecord" -> JsBoolean(wap.newRecord),
+      "configurable" -> JsBoolean(wap.configurable),
+      "meetsRewardThreshold" -> JsBoolean(wap.meetsRewardThreshold),
+      "pending" -> JsBoolean(wap.pending)
     )
   }
 
@@ -117,20 +154,18 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return A JSON object.
    */
   implicit def waterfallWrites(waterfall: Waterfall): Json.JsValueWrapper = {
-    JsObject(
-      Seq(
-        "id" -> JsString(waterfall.id.toString),
-        "appID" -> JsString(waterfall.app_id.toString),
-        "name" -> JsString(waterfall.name),
-        "token" -> JsString(waterfall.token),
-        "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
-        "testMode" -> JsBoolean(waterfall.testMode),
-        "paused" -> JsBoolean(waterfall.paused),
-        "appName" -> JsString(waterfall.appName),
-        "appToken" -> JsString(waterfall.appToken),
-        "platformID" -> JsNumber(waterfall.platformID),
-        "platformName" -> JsString(waterfall.platformName)
-      )
+    Json.obj(
+      "id" -> JsString(waterfall.id.toString),
+      "appID" -> JsString(waterfall.app_id.toString),
+      "name" -> JsString(waterfall.name),
+      "token" -> JsString(waterfall.token),
+      "optimizedOrder" -> JsBoolean(waterfall.optimizedOrder),
+      "testMode" -> JsBoolean(waterfall.testMode),
+      "paused" -> JsBoolean(waterfall.paused),
+      "appName" -> JsString(waterfall.appName),
+      "appToken" -> JsString(waterfall.appToken),
+      "platformID" -> JsNumber(waterfall.platformID),
+      "platformName" -> JsString(waterfall.platformName)
     )
   }
 
@@ -140,16 +175,14 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    * @return A JSON object.
    */
   implicit def appWithWaterfallIDWrites(app: AppWithWaterfallID): JsObject = {
-    JsObject(
-      Seq(
-        "id" -> JsString(app.id.toString),
-        "active" -> JsBoolean(app.active),
-        "distributorID" -> JsNumber(app.distributorID),
-        "name" -> JsString(app.name),
-        "waterfallID" -> JsNumber(app.waterfallID),
-        "platformName" -> JsString(app.platformName),
-        "platformID" -> JsNumber(app.platformID)
-      )
+    Json.obj(
+      "id" -> JsString(app.id.toString),
+      "active" -> JsBoolean(app.active),
+      "distributorID" -> JsNumber(app.distributorID),
+      "name" -> JsString(app.name),
+      "waterfallID" -> JsNumber(app.waterfallID),
+      "platformName" -> JsString(app.platformName),
+      "platformID" -> JsNumber(app.platformID)
     )
   }
 
@@ -178,7 +211,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
         Redirect(routes.WaterfallsController.list(distributorID, appID))
       }
       case (None, None) => {
-        val apps = App.findAllAppsWithWaterfalls(distributorID)
+        val apps = appService.findAllAppsWithWaterfalls(distributorID)
         if(apps.size == 0) {
             Redirect(routes.AppsController.newApp(distributorID))
         } else {
@@ -196,22 +229,26 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    */
   def update(distributorID: Long, waterfallID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         try {
           val listOrder: List[JsValue] = (json \ "adProviderOrder").as[List[JsValue]]
           val adProviderConfigList = listOrder.map { jsArray =>
-            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[Long], (jsArray \ "newRecord").as[Boolean], (jsArray \ "active").as[Boolean], (jsArray \ "waterfallOrder").as[Long], (jsArray \ "cpm"), (jsArray \ "configurable").as[Boolean], (jsArray \ "pending").as[Boolean])
+            val eCPM = (jsArray \ "cpm").toOption match {
+              case Some(cpm: JsNumber) => Some(cpm.as[Double])
+              case _ => None
+            }
+            new ConfigInfo((jsArray \ "waterfallAdProviderID").as[JsNumber].as[Long], (jsArray \ "newRecord").as[JsBoolean].as[Boolean], (jsArray \ "active").as[JsBoolean].as[Boolean], (jsArray \ "waterfallOrder").as[JsNumber].as[Long], eCPM, (jsArray \ "configurable").as[JsBoolean].as[Boolean], (jsArray \ "pending").as[JsBoolean].as[Boolean])
           }
-          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[Boolean]
-          val testMode: Boolean = (json \ "testMode").as[Boolean]
-          val paused: Boolean = (json \ "paused").as[Boolean]
-          val generationNumber: Long = (json \ "generationNumber").as[Long]
-          Waterfall.updateWithTransaction(waterfallID, optimizedOrder, testMode, paused) match {
+          val optimizedOrder: Boolean = (json \ "optimizedOrder").as[JsBoolean].as[Boolean]
+          val testMode: Boolean = (json \ "testMode").as[JsBoolean].as[Boolean]
+          val paused: Boolean = (json \ "paused").as[JsBoolean].as[Boolean]
+          val generationNumber: Long = (json \ "generationNumber").as[JsNumber].as[Long]
+          waterfallService.updateWithTransaction(waterfallID, optimizedOrder, testMode, paused) match {
             case 1 => {
-              Waterfall.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
+              waterfallService.reconfigureAdProviders(waterfallID, adProviderConfigList) match {
                 case true => {
-                  val appToken = (json \ "appToken").as[String]
-                  val newGenerationNumber: Long = AppConfig.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).getOrElse(0)
+                  val appToken = (json \ "appToken").as[JsString].as[String]
+                  val newGenerationNumber: Long = appConfigService.createWithWaterfallIDInTransaction(waterfallID, Some(generationNumber)).getOrElse(0)
                   Ok(Json.obj("status" -> "success", "message" -> "Waterfall updated!", "newGenerationNumber" -> newGenerationNumber))
                 }
                 case _ => {
@@ -240,7 +277,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
    */
   implicit def convertCpm(param: JsValue): Option[Double] = {
     param match {
-      case value: JsValue if(value == JsNumber) => Some(value.as[Double])
+      case value: JsNumber => Some(value.as[Double])
       case _ => None
     }
   }

@@ -1,18 +1,31 @@
 package models
 
+import play.api.db.Database
 import play.api.libs.json._
-import play.api.libs.ws.WSResponse
+import play.api.libs.ws.{WSClient, WSResponse}
 import scala.language.postfixOps
 
 /**
- * Encapsulates interactions with Vungle's reporting API.
- * @param wapID The ID of the WaterfallAdProvider to be updated.
- * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
+ * Encapsulates interactions with Vungle's reporting API
+ * @param wapID                      The ID of the WaterfallAdProvider to be updated
+ * @param configurationData          The WaterfallAdProvider's configuration data containing required params for calling the reporting API
+ * @param database                   A shared database
+ * @param waterfallAdProviderService A shared instance of the WaterfallAdProviderService class
+ * @param configVars                 Shared ENV configuration variables
+ * @param ws                         A shared web service client
  */
-case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars{
+case class VungleReportingAPI(wapID: Long,
+                              configurationData: JsValue,
+                              database: Database,
+                              waterfallAdProviderService: WaterfallAdProviderService,
+                              configVars: ConfigVars,
+                              ws: WSClient) extends ReportingAPI {
+  override val db = database
+  override val wsClient = ws
+  override val wapService = waterfallAdProviderService
   val reportingParams = configurationData \ "reportingParams"
   val apiID = (reportingParams \ "APIID").as[String] // This value identifies the specific app for which to get eCPM data
-  override val BaseURL = ConfigVarsReporting.vungleUrl + "/" + apiID
+  override val BaseURL = configVars.ConfigVarsReporting.vungleUrl + "/" + apiID
   override val waterfallAdProviderID = wapID
 
   override val queryString: List[(String, String)] = {
@@ -31,19 +44,21 @@ case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends R
     response.status match {
       case 200 | 304 => {
         val results = Json.parse(response.body)
-        if(results.as[JsArray].as[List[JsValue]].size > 0) {
-          results(0) \ "eCPM" match {
-            case _: JsUndefined => logResponseError("eCPM key was not present", waterfallAdProviderID, response)
-            case eCPM: JsNumber => {
+        if(results.as[JsArray].as[List[JsValue]].nonEmpty) {
+          (results(0) \ "eCPM").toOption match {
+            case None =>
+              logResponseError("eCPM key was not present", waterfallAdProviderID, response)
+            case Some(eCPM: JsNumber) =>
               updateEcpm(waterfallAdProviderID, eCPM.as[Double])
-            }
-            case _ => logResponseError("eCPM was not updated", waterfallAdProviderID, response)
+            case _ =>
+              logResponseError("eCPM was not updated", waterfallAdProviderID, response)
           }
         } else {
           logResponseDebug("There were no events returned", waterfallAdProviderID, response)
         }
       }
-      case _ => logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
+      case _ =>
+        logResponseError("Received an unsuccessful reporting API response", waterfallAdProviderID, response)
     }
   }
 }

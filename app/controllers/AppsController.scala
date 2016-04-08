@@ -1,18 +1,43 @@
 package controllers
 
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
+import javax.inject._
 import java.sql.Connection
 import models._
-import play.api.db.DB
-import play.api.libs.concurrent.Akka
+import play.api.db.Database
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.Play
-import play.api.Play.current
+import play.api.libs.ws.WSClient
 
-/** Controller for models.App instances. */
-object AppsController extends Controller with Secured with CustomFormValidation {
+/**
+  * Controller for all app actions
+  * @param models            Helper class containing dependency-injected instances of service classes
+  * @param db                Shared instance of database
+  * @param actorSystem       Shared instance of Akka actor system
+  * @param wsClient          Shared instance of web service client
+  * @param mailer            Shared instance of Mailer class
+  * @param configVars        Shared ENV configuration variables
+  * @param appEnvironment    The environment in which the app is running
+  */
+@Singleton
+class AppsController @Inject() (models: ModelService,
+                                db: Database,
+                                actorSystem: ActorSystem,
+                                wsClient: WSClient,
+                                mailer: Mailer,
+                                configVars: ConfigVars,
+                                appEnvironment: Environment) extends Controller with Secured with CustomFormValidation {
+  lazy val junGroupAPIActor = actorSystem.actorOf(Props(new JunGroupAPIActor(models, db, mailer)))
+  val distributorUserService = models.distributorUserService
+  val appService = models.appService
+  val waterfallService = models.waterfallService
+  val waterfallAdProviderService = models.waterfallAdProviderService
+  val virtualCurrencyService = models.virtualCurrencyServiceService
+  val appConfigService = models.appConfigServiceService
+  val platform = models.platform
+  val authUser = distributorUserService // Used in Secured trait
+
   implicit val newAppReads: Reads[NewAppMapping] = (
     (JsPath \ "appName").read[String] and
     (JsPath \ "currencyName").read[String] and
@@ -84,36 +109,42 @@ object AppsController extends Controller with Secured with CustomFormValidation 
   def create(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
       json.validate[NewAppMapping].map { newApp =>
-        DB.withTransaction { implicit connection =>
+        db.withTransaction { implicit connection =>
           val createErrorMessage = "App could not be created."
           try {
-            App.createWithTransaction(distributorID, newApp.appName, newApp.platformID) match {
+            appService.createWithTransaction(distributorID, newApp.appName, newApp.platformID) match {
               case Some(appID) => {
-                val waterfallID = Waterfall.create(appID, newApp.appName)
-                val virtualCurrencyID = VirtualCurrency.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
-                val persistedApp = App.findWithTransaction(appID)
+                val waterfallID = waterfallService.create(appID, newApp.appName)
+                val virtualCurrencyID = virtualCurrencyService.createWithTransaction(appID, newApp.currencyName, newApp.exchangeRate, newApp.rewardMin, newApp.rewardMax, newApp.roundUp)
+                val persistedApp = appService.findWithTransaction(appID)
                 (waterfallID, virtualCurrencyID, persistedApp) match {
                   case (Some(waterfallIDVal), Some(virtualCurrencyIDVal), Some(app)) => {
                     // Set up HyprMarketplace ad provider
-                    val platform = Platform.find(app.platformID)
-                    val hyprMarketplace = platform.HyprMarketplace
-                    val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(
+                    val appPlatform = platform.find(app.platformID)
+                    val hyprMarketplace = appPlatform.HyprMarketplace
+                    val hyprWaterfallAdProviderID = waterfallAdProviderService.createWithTransaction(
                       waterfallID = waterfallIDVal,
-                      adProviderID = platform.hyprMarketplaceID,
+                      adProviderID = appPlatform.hyprMarketplaceID,
                       waterfallOrder = Option(0),
                       cpm = hyprMarketplace.defaultEcpm,
                       configurable = hyprMarketplace.configurable,
                       active = false,
                       pending = true
                     )
-                    val hyprWaterfallAdProvider = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
-                    AppConfig.create(appID, app.token, 0)
+                    val hyprWaterfallAdProvider = waterfallAdProviderService.findWithTransaction(hyprWaterfallAdProviderID.getOrElse(0))
+                    appConfigService.create(appID, app.token, 0)
                     (hyprWaterfallAdProviderID, hyprWaterfallAdProvider) match {
-                      case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) => {
-                        val actor = Akka.system(current).actorOf(Props(new JunGroupAPIActor(waterfallIDVal, hyprWaterfallAdProviderInstance, app, distributorID, new JunGroupAPI)))
-                        actor ! CreateAdNetwork(DistributorUser.find(distributorID).get)
+                      case (Some(hyprID), Some(hyprWaterfallAdProviderInstance)) =>
+                        val adNetworkCreation = CreateAdNetwork(
+                          distributorUser = distributorUserService.find(distributorID).get,
+                          waterfallID = waterfallIDVal,
+                          hyprWaterfallAdProvider = hyprWaterfallAdProviderInstance,
+                          app = app,
+                          api = new JunGroupAPI(models, db, wsClient, actorSystem, configVars, appEnvironment)
+                        )
+                        junGroupAPIActor ! adNetworkCreation
                         Ok(Json.obj("status" -> "success", "message" -> "App Created!", "waterfallID" -> waterfallIDVal))
-                      }
+
                       case (_, _) => rollbackWithError(createErrorMessage)
                     }
                   }
@@ -123,16 +154,15 @@ object AppsController extends Controller with Secured with CustomFormValidation 
               case _ => rollbackWithError(createErrorMessage)
             }
           } catch {
-            case error: org.postgresql.util.PSQLException if(error.toString contains duplicateAppNameException) => {
+            case error: org.postgresql.util.PSQLException if error.toString contains duplicateAppNameException =>
               rollbackWithError(takenAppNameError, Some("appName"))
-            }
-            case error: org.postgresql.util.PSQLException => {
+
+            case error: org.postgresql.util.PSQLException =>
               rollbackWithError(createErrorMessage)
-            }
           }
         }
       }.recoverTotal {
-        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toJson(error)))
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))
@@ -146,7 +176,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
    * @return Form for editing Apps
    */
   def edit(distributorID: Long, appID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
-    App.findAppWithVirtualCurrency(appID, distributorID) match {
+    appService.findAppWithVirtualCurrency(appID, distributorID) match {
       case Some(appInfo) => {
         val editAppInfo = new EditAppMapping(
           appInfo.apiToken,
@@ -184,17 +214,17 @@ object AppsController extends Controller with Secured with CustomFormValidation 
       json.validate[EditAppMapping].map { appInfo =>
         val updateErrorMessage = "App could not be updated."
         val newAppValues = new UpdatableApp(appID, appInfo.active.getOrElse(false), distributorID, appInfo.appName, appInfo.callbackURL, appInfo.serverToServerEnabled.getOrElse(false))
-        DB.withTransaction { implicit connection =>
+        db.withTransaction { implicit connection =>
           try {
-            App.updateWithTransaction(newAppValues) match {
+            appService.updateWithTransaction(newAppValues) match {
               case 1 => {
-                VirtualCurrency.updateWithTransaction(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
+                virtualCurrencyService.updateWithTransaction(new VirtualCurrency(appInfo.currencyID, appID, appInfo.currencyName, appInfo.exchangeRate,
                   appInfo.rewardMin, appInfo.rewardMax, appInfo.roundUp.getOrElse(false))) match {
                   case 1 => {
-                    Waterfall.findByAppID(appID) match {
+                    waterfallService.findByAppID(appID) match {
                       case waterfalls: List[Waterfall] if(waterfalls.size > 0) => {
                         val waterfall = waterfalls(0)
-                        val newGeneration: Long = AppConfig.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0)).getOrElse(0)
+                        val newGeneration: Long = appConfigService.create(appID, waterfall.appToken, appInfo.generationNumber.getOrElse(0)).getOrElse(0)
                         Ok(Json.obj("status" -> "success", "message" -> "App updated successfully.", "generationNumber" -> newGeneration))
                       }
                     }
@@ -217,7 +247,7 @@ object AppsController extends Controller with Secured with CustomFormValidation 
           }
         }
       }.recoverTotal {
-        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toFlatJson(error)))
+        error => BadRequest(Json.obj("status" -> "error", "message" -> JsError.toJson(error)))
       }
     }.getOrElse {
       BadRequest(Json.obj("status" -> "error", "message" -> "Invalid Request."))

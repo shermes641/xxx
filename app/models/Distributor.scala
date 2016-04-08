@@ -2,8 +2,8 @@ package models
 
 import anorm._
 import anorm.SqlParser._
-import play.api.db.DB
-import play.api.Play.current
+import javax.inject._
+import play.api.db.Database
 import scala.language.postfixOps
 
 /**
@@ -13,7 +13,12 @@ import scala.language.postfixOps
  */
 case class Distributor(id: Option[Long], name: String) {}
 
-object Distributor {
+/**
+  * Encapsulates functions for Distributors
+  * @param db A shared database
+  */
+@Singleton
+class DistributorService @Inject() (db: Database) {
   val DistributorParser: RowParser[Distributor] = {
       get[Option[Long]]("distributors.id") ~
       get[String]("distributors.name") map {
@@ -22,7 +27,7 @@ object Distributor {
   }
 
   def find(id: Long): Option[Distributor] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT distributors.*
@@ -38,7 +43,7 @@ object Distributor {
   }
 
   def create(name: String): Option[Long] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       SQL(
         """
           INSERT INTO distributors (name)

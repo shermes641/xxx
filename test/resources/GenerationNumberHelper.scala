@@ -5,6 +5,7 @@ import models.App
 import play.api.Play.current
 import play.api.db.DB
 
+/*
 trait GenerationNumberHelper {
   /**
    * Retrieve the latest generation_number for a particular waterfall ID.
@@ -39,3 +40,4 @@ trait GenerationNumberHelper {
     }
   }
 }
+*/

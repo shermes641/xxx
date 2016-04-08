@@ -1,24 +1,33 @@
 package functional
 
 import anorm.SQL
+import controllers.WaterfallsController
 import models._
 import org.fluentlenium.core.filter.FilterConstructor.{withId, withName}
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.{WS, WSAuthScheme}
+import org.fluentlenium.core.filter.FilterConstructor.{withId, withName}
+import org.junit.runner._
+import org.specs2.runner._
+import play.api.libs.json._
+import play.api.libs.ws.WSAuthScheme
+import play.api.test._
 import play.api.test.Helpers._
 import play.api.test._
 import resources._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
+@RunWith(classOf[JUnitRunner])
 class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with DistributorUserSetup {
-  val wap1 = running(FakeApplication(additionalConfiguration = testDB)) {
+  val wap1 = running(testApplication) {
     createWaterfallAdProvider(waterfall.id, adProviderID1.get, None, Some(5.0), configurable = true, active = true)
   }
 
-  val wap2 = running(FakeApplication(additionalConfiguration = testDB)) {
+  val wap2 = running(testApplication) {
     createWaterfallAdProvider(waterfall.id, adProviderID2.get, None, Some(5.0), configurable = true, active = true)
   }
 
@@ -74,12 +83,12 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val request = FakeRequest(
         POST,
         controllers.routes.WaterfallsController.update(distributor.id.get, waterfall.id).url,
-        FakeHeaders(Seq("Content-type" -> Seq("application/json"))),
+        FakeHeaders(Seq("Content-type" -> "application/json")),
         body
       )
       val Some(result) = route(request.withSession("distributorID" -> distributor.id.get.toString, "username" -> email))
-      status(result) must equalTo(200)
-      val generationNumberResponse = (Json.parse(contentAsString(result)) \ "newGenerationNumber").as[Long]
+      status(result) must equalTo(OK)
+      val generationNumberResponse = (Json.parse(contentAsString(result)) \ "newGenerationNumber").get.as[Long]
       generationNumberResponse must beEqualTo(originalGeneration + 1)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
@@ -100,7 +109,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     "reorder the waterfall in the same configuration as the drag and drop list" in new WithFakeBrowser {
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
-      val waterfallOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
+      val waterfallOrder = database.withTransaction { implicit connection => waterfallService.order(app1.token) }
       val firstProvider = waterfallOrder.head.providerName
 
       logInUser()
@@ -108,32 +117,32 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.executeScript("var providers = angular.element($('#waterfall-controller')).scope().waterfallData.waterfallAdProviderList; angular.element($('#waterfall-controller')).scope().waterfallData.waterfallAdProviderList = [providers.pop()].concat(providers); angular.element($('#waterfall-controller')).scope().sortableOptions.stop();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
-      val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
+      val newOrder = database.withTransaction { implicit connection => waterfallService.order(app1.token) }
       newOrder.head.providerName must not equalTo firstProvider
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
     "remove an ad provider from the order when a user clicks the Deactivate button" in new WithFakeBrowser {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
+      val originalOrder = database.withTransaction { implicit connection => waterfallService.order(app1.token) }
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       browser.$("button[name=status]").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
-      val newOrder = DB.withTransaction { implicit connection => Waterfall.order(app1.token) }
-      newOrder.count(adProvider => adProvider.active.get) must equalTo(originalOrder.size - 1)
+      val newOrder = database.withTransaction { implicit connection => waterfallService.order(app1.token) }
+      newOrder.filter(adProvider => adProvider.active.get).size must equalTo(originalOrder.size - 1)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "configure an ad provider from the waterfall edit page" in new WithFakeBrowser with JsonTesting {
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
-      WaterfallAdProvider.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(true), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap1.id, wap1.waterfallID, wap1.adProviderID, Some(1), wap1.cpm, Some(true), wap1.fillRate, wap1.configurationData, wap1.reportingActive))
+      waterfallAdProviderService.update(new WaterfallAdProvider(wap2.id, wap2.waterfallID, wap2.adProviderID, Some(0), wap2.cpm, Some(true), wap2.fillRate, wap2.configurationData, wap1.reportingActive))
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
       clearGeneration(app1.id)
       val originalGeneration = generationNumber(app1.id)
-      DB.withConnection { implicit connection =>
+      database.withConnection { implicit connection =>
         SQL("update ad_providers set configuration_data = CAST({configuration_data} AS json) where id = {wap2_id};").on("configuration_data" -> configurationData, "wap2_id" -> wap2.id).executeInsert()
       }
 
@@ -146,7 +155,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviderDisplayNames(1) + " updated!")
-      val waterfallAdProviderParams = WaterfallAdProvider.find(wap2.id).get.configurationData \ "requiredParams"
+      val waterfallAdProviderParams = waterfallAdProviderService.find(wap2.id).get.configurationData \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configKey)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
@@ -158,110 +167,110 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(false)
       browser.executeScript("$('#optimized-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
-      Waterfall.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(true)
+      waterfallService.find(waterfall.id, distributor.id.get).get.optimizedOrder must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
     }
 
     "toggle test mode to off when there is at least one ad provider" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = true, paused = false)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = true, paused = false)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+      (appConfigService.findLatest(app1.token).get.configuration \ "testMode").get must beEqualTo(JsBoolean(true))
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
+      waterfallService.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       browser.executeScript("$('#live-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+      (appConfigService.findLatest(app1.token).get.configuration \ "testMode").get must beEqualTo(JsBoolean(false))
     }
 
     "toggle test mode to on only when the user confirms the action if waterfall is not paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+      (appConfigService.findLatest(app1.token).get.configuration \ "testMode").get must beEqualTo(JsBoolean(false))
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("$('#test-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
       browser.find("#test-mode-confirmation").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
+      waterfallService.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(true)
       generationNumber(app1.id) must beEqualTo(originalGeneration + 1)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(true))
+      (appConfigService.findLatest(app1.token).get.configuration \ "testMode").get must beEqualTo(JsBoolean(true))
     }
 
     "not toggle test mode to on when the user cancels the action" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+      (appConfigService.findLatest(app1.token).get.configuration \ "testMode").get must beEqualTo(JsBoolean(false))
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       browser.executeScript("$('#test-mode-switch').click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#test-mode-confirmation-modal").areDisplayed()
       browser.find("#test-mode-cancel").click()
-      Waterfall.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.testMode must beEqualTo(false)
       generationNumber(app1.id) must beEqualTo(originalGeneration)
-      AppConfig.findLatest(app1.token).get.configuration \ "testMode" must beEqualTo(JsBoolean(false))
+      (appConfigService.findLatest(app1.token).get.configuration \ "testMode").get must beEqualTo(JsBoolean(false))
     }
 
     "waterfall UI should start paused if waterfall is paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = true)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
-      (AppConfig.findLatest(app1.token).get.configuration \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
+      (appConfigService.findLatest(app1.token).get.configuration \ "adProviderConfigurations").as[JsArray].as[List[JsObject]].size must beEqualTo(0)
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
+      waterfallService.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
     }
 
     "waterfall UI not should not start paused if waterfall is not paused" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
     }
 
     "toggle paused mode should show message above waterfall" in new WithFakeBrowser {
-      Waterfall.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
-      DB.withTransaction { implicit connection => AppConfig.createWithWaterfallIDInTransaction(waterfall.id, None) }
+      waterfallService.update(waterfall.id, optimizedOrder = false, testMode = false, paused = false)
+      database.withTransaction { implicit connection => appConfigService.createWithWaterfallIDInTransaction(waterfall.id, None) }
       val originalGeneration = generationNumber(waterfall.app_id)
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
-      Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
       clickAndWaitForAngular("#pause-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areDisplayed()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isPresent
-      Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
+      waterfallService.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(true)
       clickAndWaitForAngular("#live-mode-switch")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#paused-mode-message").areNotDisplayed()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#status-toggle.paused").isNotPresent
-      Waterfall.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
+      waterfallService.find(waterfall.id, distributor.id.get).get.paused must beEqualTo(false)
     }
 
     "persist the waterfall ordering when the eCPM is changed for a waterfall ad provider in optimized mode" in new WithAppBrowser(distributor.id.get) {
@@ -329,11 +338,11 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val defaultEcpm = "20.00"
       val adProviderName = "TestAdProviderWithDefaulteCPM"
       val adProviderDisplayName = "Test Ad Provider With Default eCPM"
-      val adProviderWithDefaultEcpmID = AdProvider.create(
+      val adProviderWithDefaultEcpmID = adProviderService.create(
         name = adProviderName,
         displayName = adProviderDisplayName,
         configurationData = adProviderConfigData,
-        platformID = Platform.Ios.PlatformID,
+        platformID = testPlatform.Ios.PlatformID,
         callbackUrlFormat = None,
         callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
@@ -367,18 +376,18 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
     }
 
     "render the updated pending status, on browser refresh, for HyprMarketplace ad provider" in new WithAppBrowser(distributor.id.get) {
-      val wapID = WaterfallAdProvider.create(currentWaterfall.id, adProviderID2.get, None, None, true, false, true).get
+      val wapID = waterfallAdProviderService.create(currentWaterfall.id, adProviderID2.get, None, None, true, false, true).get
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       browser.findFirst(".pending-status").isDisplayed must beTrue
-      val wap = WaterfallAdProvider.find(wapID).get
+      val wap = waterfallAdProviderService.find(wapID).get
       wap.pending must beEqualTo(true)
-      DB.withConnection { implicit connection =>
+      database.withConnection { implicit connection =>
         SQL(""" UPDATE waterfall_ad_providers SET pending=false WHERE id={id}; """).on("id" -> wapID).executeUpdate()
       }
-      val updatedWap = WaterfallAdProvider.find(wapID).get
+      val updatedWap = waterfallAdProviderService.find(wapID).get
       updatedWap.pending must beEqualTo(false)
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
@@ -415,7 +424,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.findFirst("button[name=status]").getText must contain("Activate")
       browser.$("button[name=status]").first().click()
       browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")
-      WaterfallAdProvider.findAllOrdered(currentWaterfall.id).size must beEqualTo(1)
+      waterfallAdProviderService.findAllOrdered(currentWaterfall.id).size must beEqualTo(1)
     }
 
     "change the name of the App in the header and the sidebar when the App name is edited" in new WithFakeBrowser {
@@ -462,8 +471,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       clickAndWaitForAngular("#create-new-app")
       browser.fill("input").`with`(newAppName, "Coins", "1")
       clickAndWaitForAngular("#create-app")
-      val newestApp = App.findAll(distributor.id.get).filter(_.name == newAppName)(0)
-      val newestWaterfall = Waterfall.findByAppID(newestApp.id)(0)
+      val newestApp = appService.findAll(distributor.id.get).filter(_.name == newAppName)(0)
+      val newestWaterfall = waterfallService.findByAppID(newestApp.id)(0)
       browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newestWaterfall.id).url)
       browser.pageSource must contain(newAppName + " Waterfall")
     }
@@ -505,8 +514,8 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(distributor.id.get, None, None).url)
       val newestWaterfall = {
-        val id = App.findAllAppsWithWaterfalls(distributor.id.get).head.waterfallID
-        Waterfall.find(id, distributor.id.get).get
+        val id = appService.findAllAppsWithWaterfalls(distributor.id.get).head.waterfallID
+        waterfallService.find(id, distributor.id.get).get
       }
       browser.url() must beEqualTo(controllers.routes.WaterfallsController.edit(distributor.id.get, newestWaterfall.id).url)
       browser.pageSource must contain(newestWaterfall.name)
@@ -521,6 +530,15 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.editAll(currentDistributor.id.get, None, None).url)
       browser.url() must beEqualTo(controllers.routes.AppsController.newApp(currentDistributor.id.get).url)
       browser.pageSource must contain("Begin by creating your first app")
+    }
+  }
+
+  "WaterfallsController.rollback" should {
+    "return a bad request" in new WithFakeBrowser {
+      val currentWaterfallsController = new WaterfallsController(modelService, database)
+      database.withTransaction { implicit connection =>
+        currentWaterfallsController.rollback(connection)
+      }.header.status must beEqualTo(BAD_REQUEST)
     }
   }
 }

@@ -2,9 +2,9 @@ package models
 
 import anorm._
 import anorm.SqlParser._
+import javax.inject._
 import java.sql.Connection
-import play.api.db.DB
-import play.api.Play.current
+import play.api.db.Database
 import scala.language.postfixOps
 
 /**
@@ -12,14 +12,19 @@ import scala.language.postfixOps
  * @param id Maps to the id field in the virtual_currencies table.
  * @param appID The ID of the app to which the virtual currency belongs.
  * @param name An identifier displayed in the UI.
- * @param exchangeRate The units of virtual currency per $1.
+ * @param exchangeRate The units of virtual currency per \$1.
  * @param rewardMin The minimum reward a user can receive.
  * @param rewardMax The maximum reward a user can receive.  This is optional.
  * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
  */
 case class VirtualCurrency(id: Long, appID: Long, name: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Boolean)
 
-object VirtualCurrency {
+/**
+  * Encapsulates functions for VirtualCurrencies
+  * @param db A shared database
+  */
+@Singleton
+class VirtualCurrencyService @Inject() (db: Database) {
   // Used to convert SQL row into an instance of the VirtualCurrency class.
   val VirtualCurrencyParser: RowParser[VirtualCurrency] = {
     get[Long]("virtual_currencies.id") ~
@@ -37,7 +42,7 @@ object VirtualCurrency {
    * SQL statement for inserting a new record into the virtual_currencies table.
    * @param appID ID of the app to which the virtual currency belongs.
    * @param name An identifier displayed in the UI.
-   * @param exchangeRate The units of virtual currency per $1.
+   * @param exchangeRate The units of virtual currency per \$1.
    * @param rewardMin The minimum reward a user can receive.
    * @param rewardMax The maximum reward a user can receive.  This is optional.
    * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
@@ -60,7 +65,7 @@ object VirtualCurrency {
    * Executes SQL from insert method within a database transaction.
    * @param appID ID of the app to which the virtual currency belongs.
    * @param name An identifier displayed in the UI.
-   * @param exchangeRate The units of virtual currency per $1.
+   * @param exchangeRate The units of virtual currency per \$1.
    * @param rewardMin The minimum reward a user can receive.
    * @param rewardMax The maximum reward a user can receive.  This is optional.
    * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
@@ -74,14 +79,14 @@ object VirtualCurrency {
    * Creates a new record in the virtual_currencies table.
    * @param appID ID of the app to which the virtual currency belongs.
    * @param name An identifier displayed in the UI.
-   * @param exchangeRate The units of virtual currency per $1.
+   * @param exchangeRate The units of virtual currency per \$1.
    * @param rewardMin The minimum reward a user can receive.
    * @param rewardMax The maximum reward a user can receive.  This is optional.
    * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
    * @return ID of the new record if insert is successful; otherwise, None.
    */
   def create(appID: Long, name: String, exchangeRate: Long, rewardMin: Long, rewardMax: Option[Long], roundUp: Option[Boolean]): Option[Long] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       insert(appID, name, exchangeRate, rewardMin, rewardMax, roundUp).executeInsert()
     }
   }
@@ -92,7 +97,7 @@ object VirtualCurrency {
    * @return An instance of VirtualCurrency if one exists; otherwise, None.
    */
   def find(virtualCurrencyID: Long): Option[VirtualCurrency] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT virtual_currencies.*
@@ -113,7 +118,7 @@ object VirtualCurrency {
    * @return An instance of VirtualCurrency if one exists; otherwise, None.
    */
   def findByAppID(appID: Long): Option[VirtualCurrency] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT virtual_currencies.*
@@ -134,7 +139,7 @@ object VirtualCurrency {
    * @return The number of rows updated.
    */
   def update(virtualCurrency: VirtualCurrency): Int = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       updateSQL(virtualCurrency).executeUpdate()
     }
   }

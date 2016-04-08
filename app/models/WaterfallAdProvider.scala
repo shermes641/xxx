@@ -2,13 +2,12 @@ package models
 
 import anorm._
 import anorm.SqlParser._
+import javax.inject._
 import java.sql.Connection
-import play.api.db.DB
-import play.api.Play.current
+import play.api.db.Database
 import play.api.libs.json._
 import scala.language.implicitConversions
 import scala.language.postfixOps
-import play.api.Play
 
 /**
  * Encapsulates information for a record in the waterfall_ad_providers table.
@@ -26,7 +25,28 @@ case class WaterfallAdProvider (
                                  fillRate: Option[Float], configurationData: JsValue, reportingActive: Boolean, pending: Boolean = false
                                  )
 
-object WaterfallAdProvider extends JsonConversion {
+/**
+ * Encapsulates information to be used in callbacks.
+ * @param configurationData maps to the configuration_data field in the waterfall_ad_providers table.
+ * @param cpm maps to the cpm field in the waterfall_ad_providers table.
+ * @param exchangeRate maps to the exchange_rate field in the virtual_currencies table.
+ * @param rewardMin The minimum reward a user can receive.
+ * @param rewardMax The maximum reward a user can receive.  This is optional.
+ * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
+ * @param callbackURL If server to server is enabled, we will send a POST request to this URL after a completion.
+ * @param serverToServerEnabled Boolean value to determine if we should send a POST request to the Distributor's servers.
+ * @param generationNumber The generation number of the last created AppConfig.
+ */
+case class AdProviderRewardInfo(configurationData: JsValue, cpm: Option[Double], exchangeRate: Double, rewardMin: Long, rewardMax: Option[Long],
+                                roundUp: Boolean, callbackURL: Option[String], serverToServerEnabled: Boolean, generationNumber: Long)
+
+/**
+  * Encapsulates functions for WaterfallAdProviders
+  * @param appConfigService A shared instance of the AppConfigService class
+  * @param db               A shared database
+  */
+@Singleton
+class WaterfallAdProviderService @Inject() (appConfigService: AppConfigService, db: Database) extends JsonConversion {
   // Used to convert SQL row into an instance of the WaterfallAdProvider class.
   val waterfallAdProviderParser: RowParser[WaterfallAdProvider] = {
     get[Long]("waterfall_ad_providers.id") ~
@@ -74,7 +94,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return Number of rows updated
    */
   def update(waterfallAdProvider: WaterfallAdProvider): Int = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       updateSQL(waterfallAdProvider).executeUpdate()
     }
   }
@@ -103,8 +123,8 @@ object WaterfallAdProvider extends JsonConversion {
       """
     ).on("cpm" -> eCPM, "id" -> id).executeUpdate() match {
       case 1 => {
-        WaterfallAdProvider.findWithTransaction(id) match {
-          case Some(wap) => AppConfig.createWithWaterfallIDInTransaction(wap.waterfallID, None)
+        findWithTransaction(id) match {
+          case Some(wap) => appConfigService.createWithWaterfallIDInTransaction(wap.waterfallID, None)
           case None => None
         }
       }
@@ -142,7 +162,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return ID of new record if insert is successful, otherwise None.
    */
   def create(waterfallID: Long, adProviderID: Long, waterfallOrder: Option[Long] = None, cpm: Option[Double] = None, configurable: Boolean, active: Boolean = false, pending: Boolean = false): Option[Long] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       insert(waterfallID, adProviderID, waterfallOrder, cpm, configurable, active, pending).executeInsert()
     }
   }
@@ -195,7 +215,7 @@ object WaterfallAdProvider extends JsonConversion {
     )
     val newValues = new WaterfallAdProvider(hyprWaterfallAdProvider.id, hyprWaterfallAdProvider.waterfallID, hyprWaterfallAdProvider.adProviderID,
       hyprWaterfallAdProvider.waterfallOrder, hyprWaterfallAdProvider.cpm, active = Some(true), hyprWaterfallAdProvider.fillRate, hyprConfig, reportingActive = true, pending = false)
-    WaterfallAdProvider.updateWithTransaction(newValues)
+    updateWithTransaction(newValues)
   }
 
   /**
@@ -219,7 +239,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return WaterfallAdProvider instance if one exists. Otherwise, returns None.
    */
   def find(waterfallAdProviderID: Long): Option[WaterfallAdProvider] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       findSQL(waterfallAdProviderID).as(waterfallAdProviderParser*) match {
         case List(waterfallAdProvider) => Some(waterfallAdProvider)
         case _ => None
@@ -245,7 +265,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return List of WaterfallAdProvider instances if any exist.  Otherwise, returns an empty list.
    */
   def findAllByWaterfallID(waterfallID: Long): List[WaterfallAdProvider] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT waterfall_ad_providers.*
@@ -263,7 +283,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return A list of OrderedWaterfallAdProvider instances if any exist.  Otherwise returns an empty list.
    */
   def findAllOrdered(waterfallID: Long): List[OrderedWaterfallAdProvider] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val sqlStatement =
         """
           SELECT ad_providers.display_name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable,
@@ -284,7 +304,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return A list of WaterfallAdProviderRevenueData instances if any exist; otherwise, returns an empty list.
    */
   def findAllReportingEnabled: List[WaterfallAdProviderRevenueData] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
           SELECT wap.id as id, ap.name, wap.configuration_data FROM ad_providers ap
@@ -327,7 +347,7 @@ object WaterfallAdProvider extends JsonConversion {
    * @return an AdProviderRewardInfo instance if one exists; otherwise, returns None.
    */
   def findRewardInfo(appToken: String, adProviderName: String): Option[AdProviderRewardInfo] = {
-    DB.withConnection { implicit connection =>
+    db.withConnection { implicit connection =>
       val query = SQL(
         """
            SELECT wap.configuration_data, wap.cpm, vc.exchange_rate, vc.reward_min, vc.reward_max, vc.round_up,
@@ -355,13 +375,13 @@ object WaterfallAdProvider extends JsonConversion {
    * @return True if there is a blank field; False, otherwise.
    */
   def unconfigured(configurationData: JsValue, paramType: String = "requiredParams"): Boolean = {
-    configurationData \ paramType match {
-      case _: JsUndefined => return true
-      case params: JsValue => {
+    (configurationData \ paramType).toOption match {
+      case None => return true
+      case Some(params) => {
         params.as[Map[String, JsValue]].map { param =>
           param._2 match {
-            case paramValue: JsString if (paramValue == JsString("")) => return true
-            case paramValue: JsArray if (paramValue == JsArray(Seq())) => return true
+            case paramValue: JsString if paramValue == JsString("") => return true
+            case paramValue: JsArray if paramValue == JsArray(Seq()) => return true
             case _ => None
           }
         }
@@ -369,21 +389,6 @@ object WaterfallAdProvider extends JsonConversion {
     }
     false
   }
-
-  /**
-   * Encapsulates information to be used in callbacks.
-   * @param configurationData maps to the configuration_data field in the waterfall_ad_providers table.
-   * @param cpm maps to the cpm field in the waterfall_ad_providers table.
-   * @param exchangeRate maps to the exchange_rate field in the virtual_currencies table.
-   * @param rewardMin The minimum reward a user can receive.
-   * @param rewardMax The maximum reward a user can receive.  This is optional.
-   * @param roundUp If true, we will round up the payout calculation to the rewardMin value.
-   * @param callbackURL If server to server is enabled, we will send a POST request to this URL after a completion.
-   * @param serverToServerEnabled Boolean value to determine if we should send a POST request to the Distributor's servers.
-   * @param generationNumber The generation number of the last created AppConfig.
-   */
-  case class AdProviderRewardInfo(configurationData: JsValue, cpm: Option[Double], exchangeRate: Double, rewardMin: Long, rewardMax: Option[Long],
-                                  roundUp: Boolean, callbackURL: Option[String], serverToServerEnabled: Boolean, generationNumber: Long)
 
   val adProviderRewardInfoParser: RowParser[AdProviderRewardInfo] = {
     get[JsValue]("configuration_data") ~
@@ -521,24 +526,22 @@ case class WaterfallAdProviderConfig(name: String,
     val reqParams = (this.adProviderConfiguration \ paramType).as[List[JsValue]].map(el => el.as[RequiredParam])
     val waterfallAdProviderParams = this.waterfallAdProviderConfiguration \ paramType
     var paramValue: Option[String] = None
-    // A JsUndefined value (when a key is not found in the JSON object) will pattern match to JsValue.
-    // For this reason, the JsUndefined case must come before JsValue to avoid a JSON error when converting a JsValue to any other type.
     reqParams.map( param =>
-      (waterfallAdProviderParams \ param.key.get) match {
-        case _: JsUndefined => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart, param.minLength)
-        case value: JsNumber => {
+      (waterfallAdProviderParams \ param.key.get).toOption match {
+        case Some(value: JsNumber) =>
           paramValue = Some(value.as[Long].toString) // All AdProvider params should be Strings by default
           new RequiredParam(param.displayKey, param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart, param.minLength)
-        }
-        case value: JsValue => {
+
+        case Some(value: JsValue) =>
           if(param.dataType.get == "Array") {
             paramValue = Some(value.as[List[String]].mkString(","))
           } else {
             paramValue = Some(value.as[String])
           }
           new RequiredParam(param.displayKey, param.key, param.dataType, param.description, paramValue, param.refreshOnAppRestart, param.minLength)
-        }
-        case _ => new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart, param.minLength)
+
+        case _ =>
+          new RequiredParam(param.displayKey, param.key, param.dataType, param.description, None, param.refreshOnAppRestart, param.minLength)
       }
     )
   }

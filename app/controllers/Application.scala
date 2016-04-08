@@ -1,9 +1,17 @@
 package controllers
 
+import javax.inject._
+import models.DistributorUserService
 import play.api.mvc._
 import play.api.data.validation._
 
-object Application extends Controller with Secured {
+/**
+  * Controller for index and not found actions
+  * @param distributorUserService Shared instance of DistributorUserService
+  */
+@Singleton
+class Application @Inject() (distributorUserService: DistributorUserService) extends Controller with Secured {
+  override val authUser = distributorUserService // Used in Secured trait
 
   def index = withUser { user => implicit request =>
     Redirect(routes.AnalyticsController.show(user.distributorID.get, None, None))

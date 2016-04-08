@@ -11,13 +11,14 @@ import org.specs2.runner._
 import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
 class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with Mockito {
-  val waterfallAdProvider1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
-    Waterfall.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
-    WaterfallAdProvider.find(id).get
+  val waterfallAdProvider1 = running(testApplication) {
+    val id = waterfallAdProviderService.create(waterfall.id, adProviderID1.get, None, None, true, true).get
+    waterfallService.update(waterfall.id, optimizedOrder = true, testMode = false, paused = false)
+    waterfallAdProviderService.find(id).get
   }
 
   val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq("APIKey" -> JsString("some API Key"), "appName" -> JsString("some App Name")))))
@@ -27,31 +28,31 @@ class AppLovinReportingAPISpec extends SpecificationWithFixtures with WaterfallS
   val queryString = List("api_key" -> (configurationData \ "reportingParams" \ "APIKey").as[String], "start" -> date, "end" -> date,
     "format" -> "json", "columns" -> "application,impressions,clicks,ctr,revenue,ecpm", "filter_application" -> (configurationData \ "reportingParams" \ "appName").as[String])
   val response = mock[WSResponse]
-  val appLovin = running(FakeApplication(additionalConfiguration = testDB)) { spy(new AppLovinReportingAPI(waterfallAdProvider1.id, configurationData)) }
+  val appLovin = running(testApplication) { spy(new AppLovinReportingAPI(waterfallAdProvider1.id, configurationData, database, waterfallAdProviderService, configVars, ws)) }
 
   "updateRevenueData" should {
     "updates the cpm field of the WaterfallAdProvider if the AppLovin API call is successful" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm must beNone
-      Waterfall.update(waterfallAdProvider1.waterfallID, optimizedOrder = true, testMode = false, paused = false)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm must beNone
+      waterfallService.update(waterfallAdProvider1.waterfallID, optimizedOrder = true, testMode = false, paused = false)
       waterfallAdProvider1.cpm must beNone
       val stats = JsObject(Seq("ecpm" -> JsString("10.00")))
       val statsJson = JsObject(Seq("results" -> JsArray(Seq(stats))))
       response.body returns statsJson.toString
       response.status returns 200
       callAPI
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(10)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(10)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
     }
 
     "does not update the WaterfallAdProvider if the AppLovin API call is unsuccessful" in new WithDB {
       val originalGeneration = generationNumber(waterfall.app_id)
-      val originalCPM = WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get
+      val originalCPM = waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get
       val jsonResponse = JsObject(Seq("message" -> JsString("Bad Request."), "details" -> JsString("Some error message")))
       response.body returns jsonResponse.toString
       response.status returns 401
       callAPI
-      WaterfallAdProvider.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
+      waterfallAdProviderService.find(waterfallAdProvider1.id).get.cpm.get must beEqualTo(originalCPM)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration)
     }
   }

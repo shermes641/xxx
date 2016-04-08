@@ -11,18 +11,19 @@ object AdColonyCallback extends Controller {
 }
 
 /**
- * Encapsulates the logic for verifying server to server requests from Ad Colony.
- * @param appToken The token for the App to which the completion will belong.
- * @param transactionID A unique ID that verifies the completion.
- * @param uid The ID of the device on Ad Colony's network.
- * @param amount The amount of virtual currency to reward based on AdColony's dashboard. We do not use this amount.
- * @param currency The type of virtual currency to reward based on AdColony's dashboard. We do not use this currency name.
- * @param openUDID A unique device identifier (not Apple).
- * @param udid Apple device identifier.
- * @param odin1 Open device identification number.
- * @param macSha1 Ad Colony device ID
- * @param verifier A hashed value to authenticate the origin of the request.
- * @param customID A custom param used to pass user ID.
+ * Encapsulates the logic for verifying server to server requests from Ad Colony
+ * @param appToken      The token for the App to which the completion will belong
+ * @param transactionID A unique ID that verifies the completion
+ * @param uid           The ID of the device on Ad Colony's network
+ * @param amount        The amount of virtual currency to reward based on AdColony's dashboard. We do not use this amount
+ * @param currency      The type of virtual currency to reward based on AdColony's dashboard. We do not use this currency name
+ * @param openUDID      A unique device identifier (not Apple).
+ * @param udid          Apple device identifier.
+ * @param odin1         Open device identification number.
+ * @param macSha1       Ad Colony device ID
+ * @param verifier      A hashed value to authenticate the origin of the request
+ * @param customID      A custom param used to pass user ID
+ * @param wapService    A shared instance of the WaterfallAdProviderService class
  */
 class AdColonyCallback(appToken: String,
                        transactionID: String,
@@ -34,7 +35,9 @@ class AdColonyCallback(appToken: String,
                        odin1: String,
                        macSha1: String,
                        verifier: String,
-                       customID: String) extends CallbackVerificationHelper with Controller {
+                       customID: String,
+                       wapService: WaterfallAdProviderService) extends CallbackVerificationHelper with Controller {
+  override val waterfallAdProviderService = wapService
   override val adProviderName = "AdColony"
   override val token = appToken
   override val adProviderUserID = customID

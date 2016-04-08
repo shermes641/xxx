@@ -1,7 +1,9 @@
 package integration
 
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
+import akka.testkit.TestActorRef
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.typesafe.config.ConfigFactory
 import models._
 import org.apache.http.client.methods.{HttpGet, HttpPatch}
 import org.apache.http.impl.client.HttpClients
@@ -11,7 +13,8 @@ import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.test.WithApplication
 import resources.{ApplicationFake, SpecificationWithFixtures, WaterfallSpecSetup}
-
+import play.api.libs.ws.ning.NingWSClient
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import scala.util.Random
 
 /**
@@ -23,8 +26,11 @@ import scala.util.Random
   *         Mailbox                ID 97312
   *         website login          shermes@jungroup.com  PW  jungroup
   */
-class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup
-  with UpdateHyprMarketplace with Mailer with Mockito with ConfigVars {
+class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup with UpdateHyprMarketplace with Mockito {
+  implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
+  val akkaActorSystem = actorSystem
+  val config = configVars
+  val appEnv = appEnvironment
   final val MailTrapClean = "https://mailtrap.io/api/v1/inboxes/97312/clean?api_token=e4189cd37ee9cf6c15d2ce43c2838caf"
   final val MailTrapCnt = "https://mailtrap.io/api/v1/inboxes/97312?api_token=e4189cd37ee9cf6c15d2ce43c2838caf"
   final val MailTrapMsgs = "https://mailtrap.io/api/v1/inboxes/97312/messages?page=1&api_token=e4189cd37ee9cf6c15d2ce43c2838caf"
@@ -33,13 +39,13 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup
     sequential
 
     "send an email to mailtrap.io " in
-      new WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Prod.toString, "staging" -> "true"))) {
+      new StagingApp {
         cleanMailTrapMailBox()
         val emailCnt = getMailTrapMailBoxMsgCnt
         val subject = "Email Test using mailtrap " + System.currentTimeMillis()
-        sendEmail(ConfigVarsApp.domain,
+        mailer.sendEmail(host = configVars.ConfigVarsApp.domain,
           recipient = "steve@gmail.com",
-          sender = PublishingEmail,
+          sender = mailer.PublishingEmail,
           subject = subject,
           body = "Just a test.",
           attachmentFileName = """public/images/email_logo.jpg""")
@@ -52,12 +58,10 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup
       }
 
     "reset password email to mailtrap.io " in
-      new WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Prod.toString, "staging" -> "true"))) {
-
-        val resetPasswordActor = Akka.system.actorOf(Props(new PasswordResetActor))
-
+      new StagingApp {
         cleanMailTrapMailBox()
         val emailCnt = getMailTrapMailBoxMsgCnt
+        lazy val resetPasswordActor = TestActorRef(Props(new PasswordResetActor(mailer, db, configVars)))
         resetPasswordActor ! "steve@gmail.com"
 
         wait4Email(emailCnt)
@@ -68,33 +72,36 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup
       }
 
     "send failure email to mailtrap.io " in
-      new WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Prod.toString, "staging" -> "true"))) {
+      new StagingApp {
         val randomCharacters = Random.alphanumeric.take(5).mkString
         val companyName = "Test Company-" + randomCharacters
         val email = "mediation-testing-" + randomCharacters + "@jungroup.com"
         val password = "testtest"
 
-        val jApi = new JunGroupAPI
-        val adProviders = AdProvider.findAll
-        val distributorID = DistributorUser.create(email, password, companyName).get
-        val appID = App.create(distributorID, "12345", 1).get
-        val appp = App.find(appID).get
+        lazy val environmentConfig = app.configuration
+        lazy val ws = NingWSClient()
+        val jApi = new JunGroupAPI(mock[ModelService], db, ws, actorSystem, configVars, appEnvironment)
 
-        val wap = DB.withTransaction { implicit connection =>
-          val waterfallID = Waterfall.create(appID, "12345").get
-          VirtualCurrency.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
-          val adProviderID = ConfigVarsAdProviders.iosID
-        val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallID, adProviderID, Option(0), Option(20), configurable = false, active = false, pending = true).get
-          models.AppConfig.create(appID, appp.token, 0)
-          val hyprWAP = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID).get
+        val adProviders = adProviderService.findAll
+        val distributorID = distributorUserService.create(email, password, companyName).get
+        val appID = appService.create(distributorID, "12345", 1).get
+        val appp = appService.find(appID).get
+
+        val wap = db.withTransaction { implicit connection =>
+          val waterfallID = waterfallService.create(appID, "12345").get
+          virtualCurrencyService.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
+          val adProviderID = configVars.ConfigVarsAdProviders.iosID
+        val hyprWaterfallAdProviderID = waterfallAdProviderService.createWithTransaction(waterfallID, adProviderID, Option(0), Option(20), configurable = false, active = false, pending = true).get
+          appConfigService.create(appID, appp.token, 0)
+          val hyprWAP = waterfallAdProviderService.findWithTransaction(hyprWaterfallAdProviderID).get
           WaterfallAdProviderWithAppData(hyprWAP.id, waterfallID, adProviderID, hyprWAP.waterfallOrder, hyprWAP.cpm, hyprWAP.active, hyprWAP.fillRate,
             hyprWAP.configurationData, hyprWAP.reportingActive, hyprWAP.pending, appp.token, appp.name, companyName)
         }
 
         cleanMailTrapMailBox()
         val emailCnt = getMailTrapMailBoxMsgCnt
-        val user = DistributorUser.find(distributorID).get
-        jApi.sendFailureEmail(user, 2, appp.token, "Test error")
+        val user = distributorUserService.find(distributorID).get
+        jApi.sendFailureEmail(user, 2, appp.token, "Test error", mailer)
 
         wait4Email(emailCnt)
         val newCnt = getMailTrapMailBoxMsgCnt
