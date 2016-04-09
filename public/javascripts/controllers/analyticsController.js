@@ -694,11 +694,17 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
         function getStartEndDates() {
             // Get current date values
+            try {
                 return {
                     //1381 this depends on the date format specified in daterangepicker.js
                     start_date: extractStartDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value),
                     end_date: extractEndDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value)
-                };
+                }
+            } catch(err) {
+                return {
+                    start_date: $scope.defaultStartDate,
+                    end_date: $scope.defaultEndDate
+                }
         }
 
         /**
