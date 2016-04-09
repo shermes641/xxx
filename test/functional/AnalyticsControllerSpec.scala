@@ -1,7 +1,6 @@
 package functional
 
 import com.github.nscala_time.time.Imports._
-import controllers.routes
 import io.keen.client.java.ScopedKeys
 import models._
 import play.api.Play
@@ -256,11 +255,6 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
             org.fluentlenium.core.filter.FilterConstructor.withClass().contains(platformName + "-app-list-logo")
           ).length must beEqualTo(1)
         )
-    }
-
-    "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
-      browser.goTo(routes.Assets.at("""/javascripts/test/SpecRunner.html""").url)
-      browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent
     }
   }
 
