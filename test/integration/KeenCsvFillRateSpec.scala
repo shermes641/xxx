@@ -55,7 +55,7 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
     val csvNewList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
     // assumes a single csv file was created
     val fn = new File((csvNewList diff csvList).head).getPath
-    true must beEqualTo(waitForCsvData(s"tmp/$fn")).eventually(30, oneSecDur)
+    true must beEqualTo(waitForCsvData(s"tmp/$fn")).eventually(60, oneSecDur)
     val lines = Source.fromFile(s"tmp/$fn").getLines
     var res = true
     for (line <- lines) {
