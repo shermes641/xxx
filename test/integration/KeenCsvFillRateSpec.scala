@@ -41,17 +41,22 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
   val distributorID = distributorUser.distributorID.get
 
   val ContainNA = true
+  val oneSecDur = Duration(1000, "millis")
 
-  def waitForAndValidateCsvFillRate(appName: String, checkForNA: Boolean) = {
-    val fn = new File("tmp").listFiles.head.getPath
-    true must beEqualTo(readFileAsString(fn).contains(appName))
-      .eventually(30, Duration(1000, "millis"))
-    val bufferedSource = Source.fromFile(fn)
+  def waitForAndValidateCsvFillRate(appName: String, csvList: List[String], checkForNA: Boolean) = {
+    true must beEqualTo(new File("tmp").listFiles.count(_.getName.endsWith(".csv")) != csvList.length)
+      .eventually(30, oneSecDur)
+    val csvNewList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+    // assumes a single csv file was created
+    val fn = new File((csvNewList diff csvList).head).getPath
+    val bufferedSource = Source.fromFile(s"tmp/$fn")
     var res = true
     for (line <- bufferedSource.getLines) {
       if (!line.startsWith("Date")) {
+        res = res || line.contains(appName)
         checkForNA match {
           case true => res = res && line.split(",")(4) == "N/A"
+
           case _ => res = res && line.split(",")(4) != "N/A"
         }
       }
@@ -69,14 +74,15 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       // eCPM metric
       verifyAnalyticsHaveLoaded
 
-      new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).foreach(_.delete)
+      val csvList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+
       browser.click("#export-as-csv")
       browser.await().atMost(3000).until("#email-modal").areDisplayed()
       browser.fill("input[id=export-email]").`with`("s@s.com")
       browser.find("#export-submit").click()
       browser.await().atMost(500)
       browser.find(".close-button").click()
-      waitForAndValidateCsvFillRate(currentApp.name, !ContainNA) must beEqualTo(true)
+      waitForAndValidateCsvFillRate(currentApp.name, csvList, !ContainNA) must beEqualTo(true)
     }
 
     "Verify with one ad providers, CSV contains fillrate" in new WithAppBrowser(distributorID) {
@@ -93,7 +99,8 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
 
-      new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).foreach(_.delete)
+      val csvList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+
       browser.click("#export-as-csv")
       browser.await().atMost(3000).until("#email-modal").areDisplayed()
       browser.fill("input[id=export-email]").`with`("s@s.com")
@@ -101,7 +108,7 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       browser.await().atMost(500)
       browser.find(".close-button").click()
 
-      waitForAndValidateCsvFillRate(currentApp.name, !ContainNA) must beEqualTo(true)
+      waitForAndValidateCsvFillRate(currentApp.name, csvList, !ContainNA) must beEqualTo(true)
     }
 
     "Verify with more than one ad providers, CSV does not contain fillrate" in new WithAppBrowser(distributorID) {
@@ -125,7 +132,7 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
 
-      new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).foreach(_.delete)
+      val csvList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
 
       browser.click("#export-as-csv")
       browser.await().atMost(3000).until("#email-modal").areDisplayed()
@@ -134,7 +141,7 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       browser.await().atMost(500)
       browser.find(".close-button").click()
 
-      waitForAndValidateCsvFillRate(currentApp.name, ContainNA) must beEqualTo(true)
+      waitForAndValidateCsvFillRate(currentApp.name, csvList, ContainNA) must beEqualTo(true)
     }
   }
 }
