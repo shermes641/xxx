@@ -43,15 +43,22 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
   val ContainNA = true
   val oneSecDur = Duration(1000, "millis")
 
+  def waitForCsvData(fn: String) = {
+    val bufferedSource = Source.fromFile(fn)
+    val res = bufferedSource.getLines.length > 1
+    bufferedSource.close
+    res
+  }
+
   def waitForAndValidateCsvFillRate(appName: String, csvList: List[String], checkForNA: Boolean) = {
-    true must beEqualTo(new File("tmp").listFiles.count(_.getName.endsWith(".csv")) != csvList.length)
-      .eventually(30, oneSecDur)
+    true must beEqualTo(new File("tmp").listFiles.count(_.getName.endsWith(".csv")) != csvList.length).eventually(30, oneSecDur)
     val csvNewList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
     // assumes a single csv file was created
     val fn = new File((csvNewList diff csvList).head).getPath
-    val bufferedSource = Source.fromFile(s"tmp/$fn")
+    true must beEqualTo(waitForCsvData(s"tmp/$fn")).eventually(30, oneSecDur)
+    val lines = Source.fromFile(s"tmp/$fn").getLines
     var res = true
-    for (line <- bufferedSource.getLines) {
+    for (line <- lines) {
       if (!line.startsWith("Date")) {
         res = res || line.contains(appName)
         checkForNA match {
@@ -61,7 +68,6 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
         }
       }
     }
-    bufferedSource.close
     res
   }
 
@@ -74,13 +80,17 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       // eCPM metric
       verifyAnalyticsHaveLoaded
 
-      val csvList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
-
       browser.click("#export-as-csv")
       browser.await().atMost(3000).until("#email-modal").areDisplayed()
       browser.fill("input[id=export-email]").`with`("s@s.com")
       browser.find("#export-submit").click()
       browser.await().atMost(500)
+
+      val csvList = try {
+        new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+      } catch {
+        case _: Throwable => List[String]()
+      }
       browser.find(".close-button").click()
       waitForAndValidateCsvFillRate(currentApp.name, csvList, !ContainNA) must beEqualTo(true)
     }
@@ -99,15 +109,18 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
 
-      val csvList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
-
       browser.click("#export-as-csv")
       browser.await().atMost(3000).until("#email-modal").areDisplayed()
       browser.fill("input[id=export-email]").`with`("s@s.com")
       browser.find("#export-submit").click()
       browser.await().atMost(500)
-      browser.find(".close-button").click()
 
+      val csvList = try {
+        new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+      } catch {
+        case _: Throwable => List[String]()
+      }
+      browser.find(".close-button").click()
       waitForAndValidateCsvFillRate(currentApp.name, csvList, !ContainNA) must beEqualTo(true)
     }
 
@@ -132,15 +145,18 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       waitUntilContainsText("#analytics-loading-status", "Waiting...")
       verifyAnalyticsHaveLoaded
 
-      val csvList = new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
-
       browser.click("#export-as-csv")
       browser.await().atMost(3000).until("#email-modal").areDisplayed()
       browser.fill("input[id=export-email]").`with`("s@s.com")
       browser.find("#export-submit").click()
       browser.await().atMost(500)
-      browser.find(".close-button").click()
 
+      val csvList = try {
+        new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+      } catch {
+        case _: Throwable => List[String]()
+      }
+      browser.find(".close-button").click()
       waitForAndValidateCsvFillRate(currentApp.name, csvList, ContainNA) must beEqualTo(true)
     }
   }
