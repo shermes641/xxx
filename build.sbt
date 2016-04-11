@@ -43,7 +43,9 @@ def taskTestFilter(name: String): Boolean = {
 }
 
 def notKeenTestFilter(name: String): Boolean = {
-  if ((name startsWith "functional.Keen") || (name startsWith "models.Keen")) {
+  if ((name startsWith "functional.Keen") ||
+    (name startsWith "integration.Keen") ||
+    (name startsWith "models.Keen")) {
     false
   } else
     true
@@ -51,8 +53,7 @@ def notKeenTestFilter(name: String): Boolean = {
 
 def keenTestFilter(name: String): Boolean = {
   if ((name startsWith "functional.Keen") ||
-    (name startsWith "models.Keen") ||
-    (name startsWith "integration.Keen")) {
+    (name startsWith "models.Keen")) {
     println("KEEN test: " + name)
     true
   } else
@@ -60,7 +61,7 @@ def keenTestFilter(name: String): Boolean = {
 }
 
 def itTestFilter(name: String): Boolean = {
-  if ((name startsWith "integration.") && notKeenTestFilter(name)) {
+  if (name startsWith "integration.") {
     println("INTEGRATION test: " + name)
     true
   } else

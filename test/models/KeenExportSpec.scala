@@ -16,10 +16,6 @@ import scala.io._
 class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
-  def readFileAsString(file: String) = {
-    Source.fromFile(file).getLines.mkString("", "", "")
-  }
-
   def getAppsList(distributorID: Long) = {
     val appList = App.findAllAppsWithWaterfalls(distributorID)
     appList.map(app => app.id.toString)
@@ -102,8 +98,9 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       adCompletedEarningsResponse,
       rewardDeliveredEarningsResponse = mock[WSResponse]
 
-      def buildAppRows() = {
+      def buildAppRows(displayFillRate: Boolean = true) = {
         keenExportActor.buildAppRows(
+          displayFillRate,
           "App Name",
           requestsResponse,
           dauResponse,
@@ -139,6 +136,10 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
 
+      buildAppRows(false)
+      readFileAsString(keenExportActor.fileName) must
+        beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.0132015-04-02,App Name,310,101,N/A,30,9,0.029032258,12.689,20.013")
+
       keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
@@ -156,6 +157,9 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
+      buildAppRows(false)
+      readFileAsString(keenExportActor.fileName) must
+        beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,10.0022015-04-02,App Name,0,0,N/A,10,4,0.0,9.233,10.002")
 
       keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
@@ -165,6 +169,9 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,0.0,10.002")
+      buildAppRows(false)
+      readFileAsString(keenExportActor.fileName) must
+        beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,0.0,10.0022015-04-02,App Name,0,0,N/A,10,4,0.0,0.0,10.002")
     }
   }
 }

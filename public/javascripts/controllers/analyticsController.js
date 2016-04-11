@@ -10,6 +10,13 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
     function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs, platforms) {
         var defaultTimezone = "UTC";
 
+        var setTimeFrame = function(dates) {
+            return {
+                start: moment(dates.start_date).utc().startOf('day').format(),
+                end: moment(dates.end_date).utc().endOf('day').format()
+            };
+        };
+
         /**
          * Convenience function for calculating the weighted average of average eCPMs. Since completions can be in two
          * different event collections (ad_completed and reward_delivered), we take the weighted average and the total count
@@ -339,7 +346,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * NOTE: This is dependent on the moment date format, 'MMM DD YYYY' -- if it changes this must change
          *
          * @param dateRange  expected format 'MMM DD YYYY - MMM DD YYYY' (startDate - endDate)
-         * @returns {string} start date
+         * @returns {string} end date
          */
         function extractEndDate(dateRange) {
             return dateRange.slice(-11)
@@ -489,7 +496,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
                 },
                 filters: config.filters,
-                timeframe: config.timeframe,
+                timeframe:  setTimeFrame(getStartEndDates()), //config.timeframe,
                 timezone: defaultTimezone
             });
 
@@ -697,12 +704,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             if($scope.exportForm.$valid) {
                 $scope.showExportForm = false;
 
-                // Get current date values
-                var dates = getStartEndDates();
-
                 var emailAddress = $scope.email;
 
-                var filters = $scope.getExportCSVFilters(dates);
+                var filters = $scope.getExportCSVFilters(getStartEndDates());
                 filters.email = emailAddress;
                 $http.post($scope.exportEndpoint, filters)
                     .success(_.bind( function() {
@@ -733,13 +737,11 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             var filters = $scope.buildFilters([],_.pluck($scope.filters.countries.selected, 'id'),
                 _.pluck($scope.filters.ad_providers.selected, 'id'));
 
-            // Set timeframe for queries.  Also converts the times to EST
-            var timeframe = {
-                start: moment(dates.start_date).utc().format(),
-                end: moment(dates.end_date).utc().add(1, 'days').format()
-            };
-
-            return { apps: apps, ad_providers_selected: ad_providers_selected, filters: filters, timeframe: timeframe, timezone: defaultTimezone };
+            return { apps: apps,
+                ad_providers_selected: ad_providers_selected,
+                filters: filters,
+                timeframe: setTimeFrame(dates),
+                timezone: defaultTimezone };
         };
 
 
