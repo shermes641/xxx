@@ -47,12 +47,12 @@ class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
 
   def collect(): Future[WSResponse] = {
     if (Environment.isTest) {
-      debug
+      debug()
     }
     WS.url(base + action).withRequestTimeout(300000).withQueryString("api_key" -> KeenRequest.project.getReadKey).post(post)
   }
 
-  def debug = Logger.debug("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
+  def debug() = Logger.debug("-- KeenRequest Debug: Posting to %s, data: %s".format(base + action, post.toString))
 
 }
 
@@ -77,6 +77,7 @@ case class KeenExport() {
     * Columns: App, Platform, Earnings, Fill, Requests, Impressions, Completions, Completion Rate
     *
     * @param distributorID       The DistributorID with the apps needed for export.
+    * @param displayFillRate     If false display "N/A", not the actual fillrate
     * @param email               The email to send the export to.
     * @param filters             Filters for the analytic events
     * @param timeframe           Timeframe for the analytics events
@@ -84,8 +85,15 @@ case class KeenExport() {
     * @param adProvidersSelected true if ad providers are selected individually
     * @param scopedReadKey       A Keen API read key scoped exclusively to the Distributor who is currently logged in
     */
-  def exportToCSV(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean, scopedReadKey: String) = {
-    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, email, filters, timeframe, selectedApps, adProvidersSelected, scopedReadKey)))
+  def exportToCSV(distributorID: Long,
+                  displayFillRate: Boolean,
+                  email: String,
+                  filters: JsArray,
+                  timeframe: JsObject,
+                  selectedApps: List[String],
+                  adProvidersSelected: Boolean,
+                  scopedReadKey: String) = {
+    val actor = Akka.system(current).actorOf(Props(new KeenExportActor(distributorID, displayFillRate, email, filters, timeframe, selectedApps, adProvidersSelected, scopedReadKey)))
     actor ! GetDataFromKeen()
   }
 }
@@ -95,18 +103,19 @@ object KeenExport {
   val config = Play.current.configuration
 
   /**
-    * Creates requests to keen.
+    * Posts requests to keen.
     *
     * @param action Type of request ex. count, sum
     * @param filter The keen filter to query
     * @return Future[WSResponse]
     */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action).withRequestTimeout(300000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
+    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action)
+      .withRequestTimeout(300000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
   }
 
   /**
-    * Creates requests to keen.
+    * Build request to keen.
     *
     * @param collection The keen collection to query
     * @param appID      The app ID
@@ -135,16 +144,25 @@ object KeenExport {
 /**
   * Actor that makes the long running requests to keen
   *
-  * @param distributorID       The ID of the distributor
-  * @param email               The Email address to send the final CSV
-  * @param filters             Filters for the analytic events
-  * @param timeframe           Timeframe for the analytics events
-  * @param selectedApps        Apps to loop through for events
-  * @param adProvidersSelected true if ad providers are selected individually
+  * @param distributorID        The ID of the distributor
+  * @param displayFillrate      If false display "N/A", not the actual fillrate
+  * @param email                The Email address to send the final CSV
+  * @param filters              Filters for the analytic events
+  * @param timeframe            Timeframe for the analytics events
+  * @param selectedApps         Apps to loop through for events
+  * @param adProvidersSelected  true if ad providers are selected individually
   * @param scopedReadKey       A Keen API read key scoped exclusively to the Distributor who is currently logged in
   */
-class KeenExportActor(distributorID: Long, email: String, filters: JsArray, timeframe: JsObject, selectedApps: List[String], adProvidersSelected: Boolean, scopedReadKey: String) extends Actor with Mailer {
+class KeenExportActor(distributorID: Long,
+                      displayFillrate: Boolean,
+                      email: String,
+                      filters: JsArray,
+                      timeframe: JsObject,
+                      selectedApps: List[String],
+                      adProvidersSelected: Boolean,
+                      scopedReadKey: String) extends Actor with Mailer {
   private var counter = 0
+
   val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
 
   /**
@@ -209,21 +227,19 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
       * in order as some calculations require previous variables to be set.  It does this on each app in the distributors
       * account
       */
-    case GetDataFromKeen() => {
+    case GetDataFromKeen() =>
       val client = new JavaKeenClientBuilder().build()
       val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, scopedReadKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
       val writer = createCSVFile()
       createCSVHeader(writer)
-      getData(writer)
-    }
+      requestData(writer)
   }
 
   /**
     * Build csv rows for each date returned called per App
     *
-    * @param displayFillRate                 if false display "N/A" for fillRate
     * @param name                            App Name
     * @param requestsResponse                requests per day
     * @param dauResponse                     daily active users per day
@@ -237,8 +253,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     * @param rewardDeliveredEarningsResponse sum of eCPMs per day (using reward_delivered events for Android 1.0, iOS 2.0, and newer)
     * @param writer                          the previously opened csv file
     */
-  def buildAppRows(displayFillRate: Boolean,
-                   name: String,
+  def buildAppRows(name: String,
                    requestsResponse: WSResponse,
                    dauResponse: WSResponse,
                    responsesResponse: WSResponse,
@@ -294,7 +309,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
 
       // The fill rate based on the number of responses divided by requests
       val fillRate =
-        if (displayFillRate) {
+        if (displayFillrate) {
           requests match {
             case 0 => 0
             case _ => responses.toFloat / requests
@@ -327,7 +342,7 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
     }
   }
 
-  def getData(writer: CSVWriter) = {
+  def requestData(writer: CSVWriter) = {
     val (requestCollection, responseCollection) = if (adProvidersSelected) ("availability_requested", "availability_response_true") else ("mediate_availability_requested", "mediate_availability_response_true")
 
     for (appID <- selectedApps) {
@@ -374,10 +389,8 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
           adCompletedEcpmResponse,
           rewardDeliveredEcpmResponse,
           adCompletedEarningsResponse,
-          rewardDeliveredEarningsResponse) => {
+          rewardDeliveredEarningsResponse) =>
           buildAppRows(
-            // true if 1 or no adproviders are selected on the analytics page
-            filters.value.isEmpty || filters.value.head.\("property_value").toString().split(",").length < 2,
             name,
             requestsResponse,
             dauResponse,
@@ -400,7 +413,6 @@ class KeenExportActor(distributorID: Long, email: String, filters: JsArray, time
             sendEmail(recipient = email, sender = PublishingEmail, subject = "Exported CSV from HyprMediate", body = content, "", attachmentFileName = fileName)
             writer.close()
           }
-        }
       }
     }
   }

@@ -11,8 +11,6 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
 
-import scala.io._
-
 class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
@@ -62,12 +60,12 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       KeenClient.initialize(client)
 
       val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
-      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey)).underlyingActor
+      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, true, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey)).underlyingActor
       setUpApp(newDistributor.id.get)
 
       val writer = keenExportActor.createCSVFile()
       keenExportActor.createCSVHeader(writer)
-      keenExportActor.getData(writer)
+      keenExportActor.requestData(writer)
       readFileAsString(keenExportActor.fileName) must beEqualTo("Date,App,DAU,Requests,Fill,Impressions,Completions,Completion Per DAU,eCPM,Estimated Revenue")
     }
 
@@ -80,7 +78,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       KeenClient.initialize(client)
 
       val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
-      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey)).underlyingActor
+      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, true, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey)).underlyingActor
       var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
@@ -100,7 +98,6 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       def buildAppRows(displayFillRate: Boolean = true) = {
         keenExportActor.buildAppRows(
-          displayFillRate,
           "App Name",
           requestsResponse,
           dauResponse,
@@ -140,7 +137,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       readFileAsString(keenExportActor.fileName) must
         beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.0132015-04-02,App Name,310,101,N/A,30,9,0.029032258,12.689,20.013")
 
-      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, true, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify dividing by 0 does not cause error
@@ -161,7 +158,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       readFileAsString(keenExportActor.fileName) must
         beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,10.0022015-04-02,App Name,0,0,N/A,10,4,0.0,9.233,10.002")
 
-      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, true, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify eCPM defaults to 0

@@ -72,6 +72,140 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
   }
 
   "Analytics keen integration CSV tests" should {
+    "Verify with app and countries and all ad providers, CSV contains fillrate" in new WithAppBrowser(distributorID) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
+      // eCPM metric
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#apps-filter .add")
+      clickAndWaitForAngular("#apps-filter")
+      waitUntilContainsText("#apps-filter .add", "Add App")
+      clickAndWaitForAngular("#apps-filter .add")
+      fillAndWaitForAngular("#filter-apps", "\n")
+
+      clickAndWaitForAngular("#countries-filter .add")
+      clickAndWaitForAngular("#countries-filter")
+      waitUntilContainsText("#countries-filter .add", "Add Country")
+      clickAndWaitForAngular("#countries-filter .add")
+      fillAndWaitForAngular("#filter-countries", "United\n")
+      fillAndWaitForAngular("#filter-countries", "United\n")
+
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad_providers")
+      // hyprMX must be part of dropdown
+      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
+
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+
+      browser.click("#export-as-csv")
+      browser.await().atMost(3000).until("#email-modal").areDisplayed()
+      browser.fill("input[id=export-email]").`with`("s@s.com")
+      browser.find("#export-submit").click()
+      browser.await().atMost(500)
+
+      val csvList = try {
+        new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+      } catch {
+        case _: Throwable => List[String]()
+      }
+      browser.find(".close-button").click()
+      waitForAndValidateCsvFillRate(currentApp.name, csvList, !ContainNA) must beEqualTo(true)
+    }
+
+    "Verify with app and countries and one ad providers, CSV contains fillrate" in new WithAppBrowser(distributorID) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#apps-filter .add")
+      clickAndWaitForAngular("#apps-filter")
+      waitUntilContainsText("#apps-filter .add", "Add App")
+      clickAndWaitForAngular("#apps-filter .add")
+      fillAndWaitForAngular("#filter-apps", "\n")
+
+      clickAndWaitForAngular("#countries-filter .add")
+      clickAndWaitForAngular("#countries-filter")
+      waitUntilContainsText("#countries-filter .add", "Add Country")
+      clickAndWaitForAngular("#countries-filter .add")
+      fillAndWaitForAngular("#filter-countries", "United\n")
+
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad_providers")
+      // hyprMX must be part of dropdown
+      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+
+      browser.click("#export-as-csv")
+      browser.await().atMost(3000).until("#email-modal").areDisplayed()
+      browser.fill("input[id=export-email]").`with`("s@s.com")
+      browser.find("#export-submit").click()
+      browser.await().atMost(500)
+
+      val csvList = try {
+        new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+      } catch {
+        case _: Throwable => List[String]()
+      }
+      browser.find(".close-button").click()
+      waitForAndValidateCsvFillRate(currentApp.name, csvList, !ContainNA) must beEqualTo(true)
+    }
+
+    "Verify with app and countries and more than one ad providers, CSV does not contain fillrate" in new WithAppBrowser(distributorID) {
+      logInUser()
+      goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
+      verifyAnalyticsHaveLoaded
+
+      clickAndWaitForAngular("#apps-filter .add")
+      clickAndWaitForAngular("#apps-filter")
+      waitUntilContainsText("#apps-filter .add", "Add App")
+      clickAndWaitForAngular("#apps-filter .add")
+      fillAndWaitForAngular("#filter-apps", "\n")
+      
+      clickAndWaitForAngular("#countries-filter .add")
+      clickAndWaitForAngular("#countries-filter")
+      waitUntilContainsText("#countries-filter .add", "Add Country")
+      clickAndWaitForAngular("#countries-filter .add")
+      fillAndWaitForAngular("#filter-countries", "United\n")
+
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      clickAndWaitForAngular("#filter-ad_providers")
+
+      fillAndWaitForAngular("#filter-ad_providers", "Vungl")
+      waitUntilContainsText("#ad-providers-filter .add", "Vungle")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
+
+      clickAndWaitForAngular("#ad-providers-filter .add")
+      fillAndWaitForAngular("#filter-ad_providers", "hyprMX")
+      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
+
+      // Verify analytics data has been loaded
+      waitUntilContainsText("#analytics-loading-status", "Waiting...")
+      verifyAnalyticsHaveLoaded
+
+      browser.click("#export-as-csv")
+      browser.await().atMost(3000).until("#email-modal").areDisplayed()
+      browser.fill("input[id=export-email]").`with`("s@s.com")
+      browser.find("#export-submit").click()
+      browser.await().atMost(500)
+
+      val csvList = try {
+        new File("tmp").listFiles.filter(_.getName.endsWith(".csv")).map(_.getName).toList
+      } catch {
+        case _: Throwable => List[String]()
+      }
+      browser.find(".close-button").click()
+      waitForAndValidateCsvFillRate(currentApp.name, csvList, ContainNA) must beEqualTo(true)
+    }
+
     "Verify with all ad providers, CSV contains fillrate" in new WithAppBrowser(distributorID) {
       logInUser()
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
