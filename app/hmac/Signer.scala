@@ -8,7 +8,7 @@ import javax.xml.bind.DatatypeConverter
 import com.netaporter.uri.QueryString
 import com.netaporter.uri.dsl._
 import oauth.signpost.OAuth.percentEncode
-import play.api.Play
+import play.api.{Logger, Play}
 
 /**
   * Encapsulate parameters for hmac hash
@@ -144,16 +144,14 @@ trait DefaultSigner extends Signer {
     ParseUri(hashData.uri ? ("nonce" -> nonce) & ("timestamp" -> timestamp.toString)).parsed match {
       case Some(encodedUri) =>
         //@formatter:off
-        val strForHashing = timestamp + separator +     // seconds since epoch for request
-          nonce + separator +                           // any unique string (we use transaction_id)
-          encodeParams(hashData.paramSeq) + separator + // data sent with POST
-          Constants.DefaultMethod + separator +         // this is always a POST
-          percentEncode(hashData.uri) + separator +     // encoded callback uri
-          encodedUri.port + separator +                 // port for the http / https request
-          encodedUri.query + separator +                // encoded query string nonce & timestamp
-          separator                                     // ending empty line
+        val strForHashing = timestamp + separator +       // seconds since epoch for request
+          nonce + separator +                             // any unique string (we use transaction_id)
+          encodeParams(hashData.paramSeq) + separator +   // data sent with POST
+          Constants.DefaultMethod + separator +           // this is always a POST
+          percentEncode(hashData.uri) + separator +       // encoded callback uri
+          encodedUri.port                                 // port for the http / https request
       //@formatter:on
-
+        Logger.info(s"Distributor hmac POST:\n$strForHashing")
         val mac = Mac.getInstance(algorithm)
         mac.init(new SecretKeySpec(secret.getBytes, algorithm))
         Some(DatatypeConverter.printBase64Binary(mac.doFinal(strForHashing.getBytes)))
