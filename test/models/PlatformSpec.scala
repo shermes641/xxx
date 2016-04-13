@@ -36,14 +36,9 @@ class PlatformSpec extends SpecificationWithFixtures {
   }
 
   "Android.allAdProviders" should {
-    "return the 4 supported ad networks" in new WithDB {
-      val adProviderNamesWithoutVungle = adProviderNames.filter(_ != Ios.Vungle.name)
+    "return the 5 supported ad networks" in new WithDB {
       val allAdProviders = Android.allAdProviders
-      verifyAdProviders(allAdProviders, adProviderNamesWithoutVungle)
-    }
-
-    "not include Vungle" in new WithDB {
-      Android.allAdProviders.count(_.name == Ios.Vungle.name) must beEqualTo(0)
+      verifyAdProviders(allAdProviders, adProviderNames)
     }
   }
 

@@ -84,6 +84,7 @@ trait AdProviderManagement {
     createAdProvider(Platform.AndroidPlatformID, Platform.Android.AdColony),
     createAdProvider(Platform.AndroidPlatformID, Platform.Android.HyprMarketplace),
     createAdProvider(Platform.AndroidPlatformID, Platform.Android.AppLovin),
+    createAdProvider(Platform.AndroidPlatformID, Platform.Android.Vungle),
 
     createAdProvider(Platform.IosPlatformID, Platform.Ios.UnityAds),
     createAdProvider(Platform.AndroidPlatformID, Platform.Android.UnityAds))
