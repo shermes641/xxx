@@ -126,7 +126,7 @@ Example line to copy:
 Verify that adProviderName estimatedOfferProfit rewardQuantity and transactionId match "ad_provider" reward_quantity" "estimated_offer_profit" and "transaction_id" from  http://requestb.in/1fkadcg1?inspect RAW BODY
 Ignore the plus sign after each element.
 
-Go to http://www.freeformatter.com/hmac-generator.html#ad-output
+Go to http://www.freeformatter.com/hmac-generator.html
 
 Paste the line into the "Copy-paste the message here" text box
 Copy your shared secret into the "Secret Key" text box
