@@ -222,7 +222,7 @@ object APIController extends Controller {
               hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
             )
           )
-
+          Logger.info(s"hmacData:\n$hmacData")
           Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest, hmacData),
             Duration(DefaultTimeout, "millis")) match {
             case true => callback.returnSuccess

@@ -23,7 +23,7 @@ object Constants {
   final val DefaultTransactionId  = "no trans id"
   final val DefaultSecret         = "some secret only for testing"
   final val DefaultAlgorithm      = "HmacSHA256"
-  final val DefaultSeparator      = "\n"
+  final val DefaultSeparator      = "+"
   final val DefaultTolerance      = 4.1
   final val dummyUrl              = "http://localhost:9000/dummy"
   final val DefaultNonce          = "1234ADVfgtr^^&087="
