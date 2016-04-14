@@ -9,6 +9,30 @@
 mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http', '$routeParams', '$filter', '$timeout', '$rootScope', 'flashMessage', 'sharedIDs', 'platforms',
     function($scope, $window, $http, $routeParams, $filter, $timeout, $rootScope, flashMessage, sharedIDs, platforms) {
         var defaultTimezone = "UTC";
+        var dateRangeFormat = 'MMM DD YYYY';
+
+        // Helper method for finding the "all" option
+        var allItemForFilter = function(array) {
+            return _.find(array, function(item){ return item.id === 'all'; });
+        };
+
+        // Helper method for removing the "all" option
+        var removeAllItemFromFilter = function(array) {
+            return _.reject(array, function(item){ return item.id === 'all'; });
+        };
+
+        // Helper function for setting dates
+        var setTimeFrame = function(dates) {
+            return {
+                start: moment(dates.start_date, dateRangeFormat).utc().startOf('day').format(),
+                end: moment(dates.end_date, dateRangeFormat).utc().startOf('day').add(1, 'day').format()
+            };
+        };
+
+        // Helper function for determining ad provider logic
+        var oneOrAllAdProviders = function(apArray) {
+            return apArray.length === 1;
+        };
 
         /**
          * Convenience function for calculating the weighted average of average eCPMs. Since completions can be in two
@@ -24,7 +48,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         };
 
         var startOfDay = moment.utc().startOf('day');
-        var dateRangeFormat = 'MMM DD YYYY';
         var startDate = $( '#start-date' );
 
         $scope.subHeader = 'assets/templates/sub_header.html';
@@ -123,7 +146,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             $('.input-daterange').daterangepicker({}).on("apply.daterangepicker", $scope.updateAnalytics);
 
             // do not pop up daterangepicker from input element
-            startDate.click(function( event ) {event.stopPropagation()});
+            startDate.click(function( event ) {event.stopPropagation();});
         };
 
         /**
@@ -212,16 +235,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             }
         };
 
-        // Helper method for finding the "all" option
-        var allItemForFilter = function(array) {
-            return _.find(array, function(item){ return item.id === 'all'; });
-        };
-
-        // Helper method for removing the "all" option
-        var removeAllItemFromFilter = function(array) {
-            return _.reject(array, function(item){ return item.id === 'all'; });
-        };
-
         /**
          * Returns filters to use for charting and graphs
          * @param apps An array of apps to include
@@ -253,7 +266,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     property_value: adProvider
                 } );
             }
-
             return filters;
         };
 
@@ -331,7 +343,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * @returns {string} start date
          */
         function extractStartDate(dateRange) {
-            return dateRange.substring(0,11)
+            return dateRange.substring(0,11);
         }
 
         /**
@@ -339,10 +351,10 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * NOTE: This is dependent on the moment date format, 'MMM DD YYYY' -- if it changes this must change
          *
          * @param dateRange  expected format 'MMM DD YYYY - MMM DD YYYY' (startDate - endDate)
-         * @returns {string} start date
+         * @returns {string} end date
          */
         function extractEndDate(dateRange) {
-            return dateRange.slice(-11)
+            return dateRange.slice(-11);
         }
 
         /**
@@ -376,8 +388,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             config.filters = $scope.buildFilters(config.apps, config.country, config.adProvider);
             // Set timeframe for queries.
             config.timeframe = {
-                start: moment(config.start_date).utc().format('YYYY-MM-DDT00:00:00+00:00'),
-                end: moment(config.end_date).utc().add(1, 'days').format('YYYY-MM-DDT00:00:00+00:00')
+                start: moment(config.start_date, dateRangeFormat).utc().format('YYYY-MM-DDT00:00:00+00:00'),
+                end: moment(config.end_date, dateRangeFormat).utc().add(1, 'days').format('YYYY-MM-DDT00:00:00+00:00')
             };
 
             // Ad Provider eCPM metrics for SDK versions sending events to the ad_completed collection (iOS 1.0)
@@ -450,7 +462,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * Calculate day revenue from completed count and the average eCPM
          */
         $scope.calculateDayRevenue = function(completedCount, averageeCPM) {
-            return (completedCount * averageeCPM/1000)
+            return (completedCount * averageeCPM/1000);
         };
 
         /**
@@ -489,7 +501,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
                 },
                 filters: config.filters,
-                timeframe: config.timeframe,
+                timeframe:  setTimeFrame(getStartEndDates()), //config.timeframe,
                 timezone: defaultTimezone
             });
 
@@ -568,7 +580,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
 
                     // If multiple ad providers are selected show N/A
-                    if (config.adProvider.length > 1) {
+                    if (!oneOrAllAdProviders(config.adProvider)) {
                         fillRate = "N/A";
                     }
 
@@ -583,7 +595,6 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         "completedCount": completedCount,
                         "averageeCPM": '$' + $filter("monetaryFormat")(averageeCPM),
                         "estimatedRevenue": '$' + $filter("monetaryFormat")(days_revenue)
-
                     } );
                     chart_data.push( {
                         "Date": chart_date_string,
@@ -687,8 +698,9 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     //1381 this depends on the date format specified in daterangepicker.js
                     start_date: extractStartDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value),
                     end_date: extractEndDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value)
-                }
+                };
         }
+
         /**
          * Begin CSV export and let the user know the export has been requested
          */
@@ -697,13 +709,11 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             if($scope.exportForm.$valid) {
                 $scope.showExportForm = false;
 
-                // Get current date values
-                var dates = getStartEndDates();
-
                 var emailAddress = $scope.email;
 
-                var filters = $scope.getExportCSVFilters(dates);
+                var filters = $scope.getExportCSVFilters(getStartEndDates());
                 filters.email = emailAddress;
+                filters.displayFillRate = oneOrAllAdProviders(_.pluck($scope.filters.ad_providers.selected, 'id'));
                 $http.post($scope.exportEndpoint, filters)
                     .success(_.bind( function() {
                         $scope.showExportComplete = true;
@@ -733,13 +743,11 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             var filters = $scope.buildFilters([],_.pluck($scope.filters.countries.selected, 'id'),
                 _.pluck($scope.filters.ad_providers.selected, 'id'));
 
-            // Set timeframe for queries.  Also converts the times to EST
-            var timeframe = {
-                start: moment(dates.start_date).utc().format(),
-                end: moment(dates.end_date).utc().add(1, 'days').format()
-            };
-
-            return { apps: apps, ad_providers_selected: ad_providers_selected, filters: filters, timeframe: timeframe, timezone: defaultTimezone };
+            return { apps: apps,
+                ad_providers_selected: ad_providers_selected,
+                filters: filters,
+                timeframe: setTimeFrame(dates),
+                timezone: defaultTimezone };
         };
 
 

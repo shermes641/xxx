@@ -7,7 +7,7 @@ object Constants {
     final val APIKey = "APIKey"
   }
 
-  final val DefaultReportingTimeoutMs = 10000
+  final val DefaultReportingTimeoutMs = 20000
   final val NoValue = "Value Missing"
 
   // Unity Ads specific constants
