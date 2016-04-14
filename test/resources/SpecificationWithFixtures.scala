@@ -11,6 +11,8 @@ import play.api.db.DB
 import play.api.test.Helpers._
 import play.api.test._
 
+import scala.io.Source
+
 
 abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
   sequential
@@ -179,6 +181,10 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     def assertUrlEquals(url: String) = {
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.url().contains(url))
     }
+  }
+
+  def readFileAsString(file: String) = {
+    Source.fromFile(file).getLines.mkString("", "", "")
   }
 
   /**

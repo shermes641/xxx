@@ -11,14 +11,10 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
 
-import scala.io._
-
 class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
-  def readFileAsString(file: String) = {
-    Source.fromFile(file).getLines.mkString("", "", "")
-  }
+  val displayFillRate = true
 
   def getAppsList(distributorID: Long) = {
     val appList = App.findAllAppsWithWaterfalls(distributorID)
@@ -43,7 +39,6 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
   )
 
   "GetDataFromKeen" should {
-
     "Returns the correct filters" in new WithDB {
       val collection_name = "test_collection"
       val property_name = "property_name"
@@ -57,7 +52,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       ((createdFilters \ "filters").as[JsArray].as[List[JsObject]].last \ "property_name").as[String] must beEqualTo("app_id")
     }
 
-    "Builds CSV correctly" in new WithDB {
+    "Builds CSV header correctly" in new WithDB {
       val email = "test@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
@@ -66,16 +61,24 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       KeenClient.initialize(client)
 
       val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
-      val keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey)).underlyingActor
+      val keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = true,
+        scopedReadKey)).underlyingActor
       setUpApp(newDistributor.id.get)
 
       val writer = keenExportActor.createCSVFile()
       keenExportActor.createCSVHeader(writer)
-      keenExportActor.getData(writer)
+      keenExportActor.requestData(writer)
       readFileAsString(keenExportActor.fileName) must beEqualTo("Date,App,DAU,Requests,Fill,Impressions,Completions,Completion Per DAU,eCPM,Estimated Revenue")
     }
 
-    "Parse Keen response and build App Row correctly" in new WithDB {
+    "Parse Keen response and build CSV Row correctly with fillRate" in new WithDB {
       val email = "test2@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
@@ -84,7 +87,15 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       KeenClient.initialize(client)
 
       val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
-      var keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = true, scopedReadKey)).underlyingActor
+      var keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = true,
+        scopedReadKey)).underlyingActor
       var writer = keenExportActor.createCSVFile()
       setUpApp(newDistributor.id.get)
 
@@ -139,7 +150,15 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
 
-      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = false,
+        scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify dividing by 0 does not cause error
@@ -157,7 +176,15 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
 
-      keenExportActor = TestActorRef(new KeenExportActor(newDistributor.id.get, email, filters, timeframe, getAppsList(newDistributor.id.get), adProvidersSelected = false, scopedReadKey)).underlyingActor
+      keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = false,
+        scopedReadKey)).underlyingActor
       writer = keenExportActor.createCSVFile()
 
       // Verify eCPM defaults to 0
@@ -165,6 +192,125 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,0.0,10.002")
+    }
+
+    "Parse Keen response and build CSV Row correctly without fillRate" in new WithDB {
+      val email = "test3@jungroup.com"
+      val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
+      val client = new JavaKeenClientBuilder().build()
+      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+      client.setDefaultProject(project)
+      KeenClient.initialize(client)
+
+      val scopedReadKey = AnalyticsController.getScopedReadKey(newDistributor.id.get)
+      var keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        !displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = true,
+        scopedReadKey)).underlyingActor
+      var writer = keenExportActor.createCSVFile()
+      setUpApp(newDistributor.id.get)
+
+      val sampleResult = new KeenResult(Json.toJson(123456), JsObject(Seq(("start", Json.toJson("2015-04-02T00:00:00.000Z")))))
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}").head must beEqualTo(sampleResult)
+
+      val requestsResponse,
+      dauResponse,
+      responsesResponse,
+      impressionsResponse,
+      adCompletedResponse,
+      rewardDeliveredResponse,
+      adCompletedEcpmResponse,
+      rewardDeliveredEcpmResponse,
+      adCompletedEarningsResponse,
+      rewardDeliveredEarningsResponse = mock[WSResponse]
+
+      def buildAppRows() = {
+        keenExportActor.buildAppRows(
+          "App Name",
+          requestsResponse,
+          dauResponse,
+          responsesResponse,
+          impressionsResponse,
+          adCompletedResponse,
+          rewardDeliveredResponse,
+          adCompletedEcpmResponse,
+          rewardDeliveredEcpmResponse,
+          adCompletedEarningsResponse,
+          rewardDeliveredEarningsResponse,
+          writer
+        )
+      }
+
+      val sampleResult2 = new KeenResult(Json.toJson(3333333), JsObject(Seq(("start", Json.toJson("2015-04-03T00:00:00.000Z")))))
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}").head must beEqualTo(sampleResult2)
+
+      // Test multiple days
+      keenExportActor.parseResponse("{\"result\": [{\"value\": 123456, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}, {\"value\": 3333333, \"timeframe\": {\"start\": \"2015-04-03T00:00:00.000Z\"}}]}") must beEqualTo(List(sampleResult, sampleResult2))
+
+      requestsResponse.body returns "{\"result\": [{\"value\": 101, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      dauResponse.body returns "{\"result\": [{\"value\": 310, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      responsesResponse.body returns "{\"result\": [{\"value\": 53, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      impressionsResponse.body returns "{\"result\": [{\"value\": 30, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      adCompletedResponse.body returns "{\"result\": [{\"value\": 3, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredResponse.body returns "{\"result\": [{\"value\": 6, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      adCompletedEcpmResponse.body returns "{\"result\": [{\"value\": 3.912, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": 17.0775, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      adCompletedEarningsResponse.body returns "{\"result\": [{\"value\": 6000, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredEarningsResponse.body returns "{\"result\": [{\"value\": 14013, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+
+      buildAppRows()
+      readFileAsString(keenExportActor.fileName) must
+        beEqualTo("2015-04-02,App Name,310,101,N/A,30,9,0.029032258,12.689,20.013")
+
+      keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        !displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = false,
+        scopedReadKey)).underlyingActor
+      writer = keenExportActor.createCSVFile()
+
+      // Verify dividing by 0 does not cause error
+      requestsResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      dauResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      responsesResponse.body returns "{\"result\": [{\"value\": 0, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      impressionsResponse.body returns "{\"result\": [{\"value\": 10, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      adCompletedResponse.body returns "{\"result\": [{\"value\": 1, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredResponse.body returns "{\"result\": [{\"value\": 3, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      adCompletedEcpmResponse.body returns "{\"result\": [{\"value\": 6.932, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": 10.00, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      adCompletedEarningsResponse.body returns "{\"result\": [{\"value\": 3000, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredEarningsResponse.body returns "{\"result\": [{\"value\": 7002, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+
+      buildAppRows()
+      readFileAsString(keenExportActor.fileName) must
+        beEqualTo("2015-04-02,App Name,0,0,N/A,10,4,0.0,9.233,10.002")
+
+      keenExportActor = TestActorRef(new KeenExportActor(
+        newDistributor.id.get,
+        !displayFillRate,
+        email,
+        filters,
+        timeframe,
+        getAppsList(newDistributor.id.get),
+        adProvidersSelected = false,
+        scopedReadKey)).underlyingActor
+      writer = keenExportActor.createCSVFile()
+
+      // Verify eCPM defaults to 0
+      adCompletedEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
+      buildAppRows()
+      readFileAsString(keenExportActor.fileName) must
+        beEqualTo("2015-04-02,App Name,0,0,N/A,10,4,0.0,0.0,10.002")
     }
   }
 }
