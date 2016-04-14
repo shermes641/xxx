@@ -239,7 +239,6 @@ object Platform {
   object Android extends Platform(AndroidPlatformID, AndroidPlatformName) {
     val hyprMarketplaceID = Play.current.configuration.getLong("hyprmarketplace.android_ad_provider_id").get
     val serverToServerDomain = Play.current.configuration.getString("android_server_to_server_callback_domain").get
-    override val allAdProviders = List(AdColony, HyprMarketplace, AppLovin, UnityAds)
   }
 
   /**
