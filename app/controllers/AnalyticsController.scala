@@ -140,10 +140,13 @@ object AnalyticsController extends Controller with Secured {
 
   /**
    * Used for mapping Export parameters
-   * @param email Maps to the email field
-   * @param filters Maps to the filters JsArray
-   * @param timeframe Maps to the timeframe as a JsObject
-   * @param apps ad_providers_selected to the apps list in the Json Array
+   * @param displayFillRate       Indicates if fill rate should be shown in the CSV.
+   *                              When True (one ad provider or "all" ad providers are selected), we display the fill rate.
+   *                              When False (more than one ad provider selected), we display "N/A" for fill rate.
+   * @param email                 Maps to the email field
+   * @param filters               Maps to the filters JsArray
+   * @param timeframe             Maps to the timeframe as a JsObject
+   * @param apps                  ad_providers_selected to the apps list in the Json Array
    * @param ad_providers_selected Maps to the ad_providers_selected Boolean
    */
   case class exportMapping(displayFillRate: Boolean, email: String, filters: JsArray, timeframe: JsObject, apps: List[String], ad_providers_selected: Boolean)
