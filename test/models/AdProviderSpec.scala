@@ -231,6 +231,49 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
   }
 
+  // TODO: Uncomment these tests once the Unity Ads documentation has been published.
+  /*
+  "Unity Ads documentation tooltips" should {
+    val unityAdsConfigurationData = List(Platform.Ios.UnityAds.configurationData, Platform.Android.UnityAds.configurationData)
+
+    "include working links to documentation for general configuration" in new WithDB {
+      unityAdsConfigurationData.foreach { adProviderConfig =>
+        val configurationData: JsValue = Json.parse(adProviderConfig)
+        val requiredParams = configurationData \ "requiredParams"
+        checkDocumentationLinks(requiredParams, "Configuring Unity Ads")
+      }
+    }
+
+    "include working links to documentation for reporting configuration" in new WithDB {
+      unityAdsConfigurationData.foreach { adProviderConfig =>
+        val configurationData: JsValue = Json.parse(adProviderConfig)
+        val reportingParams = configurationData \ "reportingParams"
+        checkDocumentationLinks(reportingParams, "Configuring Unity Ads")
+      }
+    }
+
+    "include working links to documentation for server to server callback configuration" in new WithDB {
+      unityAdsConfigurationData.foreach { adProviderConfig =>
+        val configurationData: JsValue = Json.parse(adProviderConfig)
+        val callbackParams = configurationData \ "callbackParams"
+        checkDocumentationLinks(callbackParams, "Unity Ads Server to Server Callbacks Setup")
+      }
+    }
+  }
+  */
+
+  "AdProvider.findAllByPlatform" should {
+    "return all ad providers of a specific platform ID" in new WithDB {
+      val adProviders = AdProvider.findAllByPlatform(Platform.Ios.PlatformID)
+      adProviders.map(provider => provider.platformID must beEqualTo(Platform.Ios.PlatformID))
+    }
+
+    "exclude ad providers of any other platform ID" in new WithDB {
+      val adProviders = AdProvider.findAllByPlatform(Platform.Android.PlatformID)
+      adProviders.map(provider => provider.platformID must not equalTo Platform.Ios.PlatformID)
+    }
+  }
+
   /**
     * Verifies that the documentation page exists and contains certain content.
     *
