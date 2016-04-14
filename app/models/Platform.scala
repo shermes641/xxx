@@ -180,18 +180,22 @@ abstract class Platform(id: Long, name: String) {
 
     val defaultEcpm: Option[Double] = Some(10)
 
+    val configurationDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads"
+
+    val s2sCallbackDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads+Server+to+Server+Callbacks+Setup"
+
     val configuration = {
       //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
       val appIDDescription = {
-        "Your GAME ID can be found on the Unity Ads dashboard.  For more information on configuring Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+        s"Your GAME ID can be found on the $name dashboard. For more information on configuring $name, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        "Your API Key can be found on the Unity Ads dashboard.  For more information on configuring reporting for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds' target='_blank'>documentation</a>."
+        s"Your API Key can be found on the $name dashboard. For more information on configuring reporting for $name, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
       }
 
       val callbackDescription = {
-        "Your Shared Hash Key for Secure Callbacks must be obtained from Unity Ads support via email. For more information on configuring server to server callbacks for Unity Ads, please see our <a href='https://documentation.hyprmx.com/display/ADMIN/UnityAds+Server+to+Server+Callbacks+Setup' target='_blank'>documentation</a>."
+        s"Your Shared Hash Key for Secure Callbacks must be obtained from $name support via email. For more information on configuring server to server callbacks for $name, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
       }
       s"""{ "requiredParams":[{"description": "$appIDDescription",
          |  "displayKey": "GAME ID",
