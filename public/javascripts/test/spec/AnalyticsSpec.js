@@ -278,10 +278,6 @@ describe('AnalyticsController', function () {
 
             it('should build the export CSV filters correctly', function () {
                 var filters;
-                var dates = {
-                    start_date: "Wed Feb 25 2015 16:00:00 GMT-0800 (PST)",
-                    end_date: "Tue Mar 10 2015 17:00:00 GMT-0700 (PDT)"
-                };
                 var adColony = {"name": "AdColony", "id": "AdColony"};
                 var hyprMarketplace = {"name": "HyprMarketplace", "id": "HyprMarketplace"};
                 var adProvidersFilterName = "ad_providers";
@@ -290,12 +286,11 @@ describe('AnalyticsController', function () {
                 scope.addToSelected(adProvidersFilterName, hyprMarketplace);
                 scope.addToSelected("countries", {"name": "Ireland", "id": "Ireland"});
 
-                filters = scope.getExportCSVFilters(dates);
-                console.log(filters);
+                filters = scope.getExportCSVFilters(scope.getStartEndDates());
                 expect(filters.apps[0]).toEqual("578021165");
                 expect(filters.ad_providers_selected).toEqual(true);
-                expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
-                expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
+                expect(filters.timeframe.start).toEqual(moment(scope.startOfDay).format('YYYY-MM-DDT00:00:00+00:00'));
+                expect(filters.timeframe.end).toEqual(moment(scope.startOfDay).add(1, 'day').format('YYYY-MM-DDT00:00:00+00:00'));
                 expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
                 expect(filters.filters[0].property_value[0]).toEqual("Ireland");
                 expect(filters.filters[1].property_name).toEqual("ad_provider_name");
@@ -305,12 +300,11 @@ describe('AnalyticsController', function () {
                 scope.removeFromSelected(adProvidersFilterName, adColony, 0);
                 scope.removeFromSelected(adProvidersFilterName, hyprMarketplace, 0);
 
-                filters = scope.getExportCSVFilters(dates);
-                console.log(filters);
+                filters = scope.getExportCSVFilters(scope.getStartEndDates());
                 expect(filters.apps[0]).toEqual("578021165");
                 expect(filters.ad_providers_selected).toEqual(false);
-                expect(filters.timeframe.start).toEqual("2015-02-26T00:00:00+00:00");
-                expect(filters.timeframe.end).toEqual("2015-03-12T00:00:00+00:00");
+                expect(filters.timeframe.start).toEqual(moment(scope.startOfDay).format('YYYY-MM-DDT00:00:00+00:00'));
+                expect(filters.timeframe.end).toEqual(moment(scope.startOfDay).add(1, 'day').format('YYYY-MM-DDT00:00:00+00:00'));
                 expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
                 expect(filters.filters[0].property_value[0]).toEqual("Ireland");
             });

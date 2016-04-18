@@ -35,25 +35,21 @@
      * based on https://raw.github.com/larrymyers/jasmine-reporters/master/src/jasmine.junit_reporter.js
      */
     var BlanketReporter = function(savePath, consolidate, useDotNotation) {
-        console.log("1111111")
         blanket.setupCoverage();
     };
     BlanketReporter.finished_at = null; // will be updated after all files have been written
 
 	BlanketReporter.prototype = {
 		specStarted: function(spec) {
-			console.log("222222")
 			blanket.onTestStart();
 		},
 
 		specDone: function(result) {
 			var passed = result.status === "passed" ? 1 : 0;
-			console.log("33333333333   "+passed)
 			blanket.onTestDone(1,passed);
 		},
 
 		jasmineDone: function() {
-			console.log("44444444")
 			blanket.onTestsDone();
 		},
 
