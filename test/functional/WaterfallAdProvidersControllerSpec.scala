@@ -9,14 +9,32 @@ import play.api.test._
 import resources._
 
 class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with JsonTesting with DistributorUserSetup {
-  val adProvider1Name = "test ad provider 1"
+  val adProvider1Name = "testAdProvider1"
+  val adProvider1DisplayName = "test ad provider 1"
   val adProvider1ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProvider1Name, configurationData, Platform.Ios.PlatformID, None, configurable = true, None).get
+    AdProvider.create(
+      name = adProvider1Name,
+      displayName = adProvider1DisplayName,
+      configurationData = configurationData,
+      platformID = Platform.Ios.PlatformID,
+      callbackUrlFormat = None,
+      configurable = true,
+      defaultEcpm = None
+    ).get
   }
 
-  val adProvider2Name = "test ad provider 2"
+  val adProvider2Name = "testAdProvider2"
+  val adProvider2DisplayName = "test ad provider 2"
   val adProvider2ID = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProvider2Name, configurationData, Platform.Ios.PlatformID, None, configurable = true, None).get
+    AdProvider.create(
+      name = adProvider2Name,
+      displayName = adProvider2DisplayName,
+      configurationData = configurationData,
+      platformID = Platform.Ios.PlatformID,
+      callbackUrlFormat = None,
+      configurable = true,
+      defaultEcpm = None
+    ).get
   }
 
   val (distributorUser, _) = running(FakeApplication(additionalConfiguration = testDB)) {
@@ -124,7 +142,16 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
           "], \"reportingParams\": [], \"callbackParams\": []" +
         "}"
       }
-      val hyprID = AdProvider.create("HyprMarketplace", hyprMarketplaceConfiguration, Platform.Ios.PlatformID, None, configurable = false, Some(20)).get
+      val hyprName = "HyprMarketplace"
+      val hyprID = AdProvider.create(
+        name = hyprName,
+        displayName = hyprName,
+        configurationData = hyprMarketplaceConfiguration,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None,
+        configurable = false,
+        defaultEcpm = Some(20)
+      ).get
       val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, hyprID, None, None, configurable = true).get
       logInUser()
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
@@ -178,12 +205,12 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.find(".waterfall li", withId(adProvider2Name)).findFirst(".configure").click()
+      browser.find(".waterfall li", withId(adProvider2DisplayName)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       val newWap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).head
       browser.fill("input").`with`(validEcpm, "Some key")
       browser.executeScript("var button = $(':button[name=update-ad-provider]'); button.click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2Name + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2DisplayName + " updated!")
       val updatedWap = WaterfallAdProvider.find(newWap.id).get
       updatedWap.cpm.get.toString must beEqualTo(validEcpm)
     }
@@ -242,7 +269,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.fill("input").`with`("5.0", "Some key")
       browser.executeScript("var button = $(':checkbox[id=reporting-active-switch]'); button.click();")
       browser.executeScript("$('button[name=update-ad-provider]').click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider1Name + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider1DisplayName + " updated!")
       browser.executeScript("var button = $(':button[name=cancel]'); button.click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areNotDisplayed()
       WaterfallAdProvider.find(newWap.id).get.reportingActive must beEqualTo(true)
@@ -254,11 +281,11 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.find(".waterfall li", withId(adProvider2Name)).findFirst(".configure").click()
+      browser.find(".waterfall li", withId(adProvider2DisplayName)).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", configKey)
       browser.executeScript("$('button[name=update-ad-provider]').click()")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2Name + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProvider2DisplayName + " updated!")
       val wap = WaterfallAdProvider.findAllByWaterfallID(currentWaterfall.id).head
       wap.active.get must beEqualTo(false)
       (wap.configurationData \ "requiredParams" \ configurationParams.head).as[String] must beEqualTo(configKey)
@@ -270,7 +297,15 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       val originalGeneration = generationNumber(currentApp.id)
       val defaultEcpm = Some(20.0)
       val adProviderName = "Test Ad Provider With Default eCPM"
-      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, configurationData, Platform.Ios.PlatformID, None, configurable = true, defaultEcpm).get
+      val adProviderWithDefaultEcpmID = AdProvider.create(
+        name = adProviderName,
+        displayName = adProviderName,
+        configurationData = configurationData,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None,
+        configurable = true,
+        defaultEcpm
+      ).get
 
       logInUser()
 
@@ -291,7 +326,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributorUser.distributorID.get, currentWaterfall.id).url)
-      browser.executeScript("$('.waterfall li[id=\\'" + adProvider1Name + "\\']').children().children('.wap-buttons').children('.configure').click()")
+      browser.executeScript("$('.waterfall li[id=\\'" + adProvider1DisplayName + "\\']').children().children('.wap-buttons').children('.configure').click()")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`(" ")
       browser.fill("input[name=eCPM]").`with`("5.0")
@@ -341,7 +376,15 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
         "}"
       }
       val adProviderName = "Test Ad Provider 3"
-      AdProvider.create(adProviderName, adProviderConfigData, Platform.Ios.PlatformID, None, configurable = true, None)
+      AdProvider.create(
+        name = adProviderName,
+        displayName = adProviderName,
+        configurationData = adProviderConfigData,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None,
+        configurable = true,
+        None
+      )
 
       logInUser()
 

@@ -18,15 +18,19 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
 
   // Load AdProviders required for tests
   running(FakeApplication(additionalConfiguration = testDB)) {
+    val hyprName = "hyprMX"
     AdProvider.create(
-      name = "hyprMX",
-      configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
+      name = hyprName,
+      displayName = hyprName,
+      configurationData = "{\"required_params\":[{\"description\": \"Your HyprMarketplace App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None
     )
 
+    val vungleName = "Vungle"
     AdProvider.create(
-      name = "Vungle",
+      name = vungleName,
+      displayName = vungleName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None

@@ -21,6 +21,8 @@ abstract class Platform(id: Long, name: String) {
   val AdColony = {
     val name = "AdColony"
 
+    val displayName = name
+
     val callbackURLFormat = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&" +
       "currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
 
@@ -60,11 +62,13 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val HyprMarketplace = {
     val name = "HyprMarketplace"
+
+    val displayName = name
 
     val callbackURLFormat = None
 
@@ -88,11 +92,13 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val Vungle = {
     val name = "Vungle"
+
+    val displayName = name
 
     val callbackURLFormat = Some("/v1/reward_callbacks/%s/vungle?amount=%s&uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
 
@@ -130,11 +136,13 @@ abstract class Platform(id: Long, name: String) {
         "]" +
         "}"
     }
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val AppLovin = {
     val name = "AppLovin"
+
+    val displayName = name
 
     val callbackURLFormat = Some("/v1/reward_callbacks/%s/app_lovin?idfa={IDFA}&ip={IP}&amount={AMOUNT}&currency={CURRENCY}&event_id={EVENT_ID}&user_id={USER_ID}")
 
@@ -168,11 +176,13 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val UnityAds = {
     val name = Constants.UnityAdsName
+
+    val displayName = Constants.UnityAdsDisplayName
 
     val callbackURLFormat = Some(Constants.UnityAdsCallbackUrl)
 
@@ -187,15 +197,15 @@ abstract class Platform(id: Long, name: String) {
     val configuration = {
       //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
       val appIDDescription = {
-        s"Your GAME ID can be found on the $name dashboard. For more information on configuring $name, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
+        s"Your GAME ID can be found on the $displayName dashboard. For more information on configuring $displayName, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
       }
 
       val reportingDescription = {
-        s"Your API Key can be found on the $name dashboard. For more information on configuring reporting for $name, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
+        s"Your API Key can be found on the $displayName dashboard. For more information on configuring reporting for $displayName, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
       }
 
       val callbackDescription = {
-        s"Your Shared Hash Key for Secure Callbacks must be obtained from $name support via email. For more information on configuring server to server callbacks for $name, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
+        s"Your Shared Hash Key for Secure Callbacks must be obtained from $displayName support via email. For more information on configuring server to server callbacks for $displayName, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
       }
       s"""{ "requiredParams":[{"description": "$appIDDescription",
          |  "displayKey": "GAME ID",
@@ -221,7 +231,7 @@ abstract class Platform(id: Long, name: String) {
          |  }]}""".stripMargin.replaceAll("[\r]","").replaceAll("[\n]","")
 
     }
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
   val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }

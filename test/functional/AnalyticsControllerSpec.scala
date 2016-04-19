@@ -41,7 +41,18 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "populate ad networks and verify that All ad providers is default" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
+      val adProviderDisplayName = "Unity Ads"
+      val adProviderID = {
+        val name = "UnityAds"
+        val configuration = "{\"required_params\":[{\"description\": \"Your Unity Ads GAME Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}"
+        AdProvider.create(
+          name = name,
+          displayName = adProviderDisplayName,
+          configurationData = configuration,
+          platformID = Platform.Ios.PlatformID,
+          callbackUrlFormat = None
+        )
+      }
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Ad Providers should be selected
@@ -50,8 +61,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       clickAndWaitForAngular("#ad-providers-filter .add")
       clickAndWaitForAngular("#filter-ad_providers")
 
-      // hyprMX must be part of dropdown
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText("hyprMX")
+      // Unity must be part of dropdown
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText(adProviderDisplayName)
     }
 
     "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {

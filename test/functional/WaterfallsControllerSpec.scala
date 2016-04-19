@@ -145,7 +145,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       val configKey = "some key"
       browser.fill("input").`with`("5.0", configKey)
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviders(1) + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviderDisplayNames(1) + " updated!")
       val waterfallAdProviderParams = WaterfallAdProvider.find(wap2.id).get.configurationData \ "requiredParams"
       (waterfallAdProviderParams \ configurationParams(0)).as[String] must beEqualTo(configKey)
       generationNumber(waterfall.app_id) must beEqualTo(originalGeneration + 1)
@@ -273,17 +273,17 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
 
       val topAdProviderText = browser.$(".waterfall-app-info").first().getText
-      topAdProviderText must contain(adProviders(0))
+      topAdProviderText must contain(adProviderDisplayNames(0))
       topAdProviderText must contain("$5.00")
       browser.$(".configure").first().click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("1.0", "some key")
       browser.click("button[name=update-ad-provider]")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviders(0) + " updated!")
-      browser.$(".waterfall-app-info").first().getText must contain(adProviders(1))
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviderDisplayNames(0) + " updated!")
+      browser.$(".waterfall-app-info").first().getText must contain(adProviderDisplayNames(1))
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
       val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
-      newTopAdProviderText must contain(adProviders(1))
+      newTopAdProviderText must contain(adProviderDisplayNames(1))
       newTopAdProviderText must contain("$5.00")
     }
 
@@ -298,7 +298,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
 
       val topAdProviderText = browser.$(".waterfall-app-info").first().getText
-      topAdProviderText must contain(adProviders(0))
+      topAdProviderText must contain(adProviderDisplayNames(0))
       topAdProviderText must contain("$500.00")
       topAdProviderText must not contain "This Ad Network doesn't meet the minimum eCPM requirements"
 
@@ -307,10 +307,10 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.fill("input").`with`("1.0", "some key")
       clickAndWaitForAngular("button[name=update-ad-provider]")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").isPresent
-      browser.$(".waterfall-app-info").first().getText must contain(adProviders(0))
+      browser.$(".waterfall-app-info").first().getText must contain(adProviderDisplayNames(0))
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, waterfall.id).url)
       val newTopAdProviderText = browser.$(".waterfall-app-info").first().getText
-      newTopAdProviderText must contain(adProviders(0))
+      newTopAdProviderText must contain(adProviderDisplayNames(0))
       newTopAdProviderText must contain("$1.00")
       newTopAdProviderText must contain("This Ad Network doesn't meet the minimum eCPM requirements")
 
@@ -327,13 +327,22 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
   "WaterfallsController.edit" should {
     "display default eCPM values for Ad Providers" in new WithAppBrowser(distributor.id.get) {
       val defaultEcpm = "20.00"
-      val adProviderName = "Test Ad Provider With Default eCPM"
-      val adProviderWithDefaultEcpmID = AdProvider.create(adProviderName, adProviderConfigData, Platform.Ios.PlatformID, None, true, Some(defaultEcpm.toDouble)).get
+      val adProviderName = "TestAdProviderWithDefaulteCPM"
+      val adProviderDisplayName = "Test Ad Provider With Default eCPM"
+      val adProviderWithDefaultEcpmID = AdProvider.create(
+        name = adProviderName,
+        displayName = adProviderDisplayName,
+        configurationData = adProviderConfigData,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None,
+        configurable = true,
+        defaultEcpm = Some(defaultEcpm.toDouble)
+      ).get
 
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.find(".waterfall li", withId(adProviderName)).findFirst("div", withName("cpm")).getText must contain(defaultEcpm)
+      browser.find(".waterfall li", withId(adProviderDisplayName)).findFirst("div", withName("cpm")).getText must contain(defaultEcpm)
     }
 
     "redirect the distributor user to their own Analytics page if they try to edit a Waterfall they do not own" in new WithAppBrowser(distributor.id.get) {
@@ -397,11 +406,11 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       logInUser()
 
       goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.find(".waterfall li", withId(adProviders(0))).findFirst(".configure").click()
+      browser.find(".waterfall li", withId(adProviderDisplayNames(0))).findFirst(".configure").click()
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#edit-waterfall-ad-provider").areDisplayed()
       browser.fill("input").`with`("5.0", "some key")
       browser.executeScript("$('button[name=update-ad-provider]').click();")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviders(0) + " updated!")
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText(adProviderDisplayNames(0) + " updated!")
       browser.findFirst("button[name=status]").getText must contain("Activate")
       browser.$("button[name=status]").first().click()
       browser.await().atMost(10, java.util.concurrent.TimeUnit.SECONDS).until("#waterfall-edit-message").containsText("Waterfall updated!")

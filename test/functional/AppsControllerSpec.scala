@@ -492,7 +492,15 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       "\"callbackParams\": [{\"description\": \"Your Event API Key\", \"key\": \"APIKey\", \"value\":\"\", \"dataType\": \"String\"}]}"
 
     val adProviderID = running(FakeApplication(additionalConfiguration = testDB)) {
-      AdProvider.create("test ad provider", adProviderConfig, Platform.Ios.PlatformID, None)
+      val name = "testAdProvider"
+      val displayName = "test ad provider"
+      AdProvider.create(
+        name = name,
+        displayName = displayName,
+        configurationData = adProviderConfig,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None
+      )
     }
 
     "update the app record in the database" in new WithAppBrowser(user.distributorID.get) {

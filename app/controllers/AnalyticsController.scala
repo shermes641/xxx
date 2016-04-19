@@ -98,7 +98,7 @@ object AnalyticsController extends Controller with Secured {
   implicit def adProviderWrites(provider: AdProvider): JsObject = {
     JsObject(
       Seq(
-        "name" -> JsString(provider.name),
+        "name" -> JsString(provider.displayName),
         "id" -> JsString(provider.name)
       )
     )

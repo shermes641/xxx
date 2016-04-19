@@ -27,11 +27,12 @@ trait AdProviderManagement {
         """
           UPDATE ad_providers
           SET configuration_data=CAST({configuration_data} AS json), callback_url_format={callback_url_format},
-          configurable={configurable}, default_ecpm={default_ecpm}
+          configurable={configurable}, default_ecpm={default_ecpm}, display_name={display_name}
           WHERE name={name} and platform_id={platform_id};
         """
       ).on(
         "name" -> adProvider.name,
+        "display_name" -> adProvider.displayName,
         "platform_id" -> adProvider.platformID,
         "configuration_data" -> adProvider.configurationData,
         "callback_url_format" -> adProvider.callbackURLFormat,
@@ -117,6 +118,7 @@ trait AdProviderManagement {
 
         case _ =>
           AdProvider.create(provider.name,
+            provider.displayName,
             provider.configurationData,
             platformID,
             provider.callbackURLFormat,

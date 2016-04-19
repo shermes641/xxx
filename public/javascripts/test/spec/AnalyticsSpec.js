@@ -204,14 +204,14 @@ describe('AnalyticsController', function () {
 
                 };
                 listenForKeen("");
-                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22AdColony%22%2C%22HyprMarketplace%22%5D%7D");
+                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22UnityAds%22%2C%22HyprMarketplace%22%5D%7D");
                 // Set up the mock http service responses
                 $httpBackend = _$httpBackend_;
 
                 configRequestHandler = $httpBackend.when('GET', '/distributors/undefined/analytics/info')
                     .respond({
                         "distributorID": 620798327,
-                        "adProviders": [{"name": "AdColony", "id": "AdColony"}, {
+                        "adProviders": [{"name": "Unity Ads", "id": "UnityAds"}, {
                             "name": "HyprMarketplace",
                             "id": "HyprMarketplace"
                         }, {"name": "Vungle", "id": "Vungle"}, {"name": "AppLovin", "id": "AppLovin"}],
@@ -269,7 +269,7 @@ describe('AnalyticsController', function () {
             });
 
             it('should have the fill rate set to N/A when multiple ad providers are selected', function () {
-                scope.addToSelected("ad_providers", {"name": "AdColony", "id": "AdColony"});
+                scope.addToSelected("ad_providers", {"name": "Unity Ads", "id": "UnityAds"});
                 scope.addToSelected("ad_providers", {"name": "HyprMarketplace", "id": "HyprMarketplace"});
                 scope.updateCharts();
                 expect(scope.analyticsData.fillRateMetric).toEqual("N/A");
@@ -278,11 +278,11 @@ describe('AnalyticsController', function () {
 
             it('should build the export CSV filters correctly', function () {
                 var filters;
-                var adColony = {"name": "AdColony", "id": "AdColony"};
+                var unityAds = {"name": "Unity Ads", "id": "UnityAds"};
                 var hyprMarketplace = {"name": "HyprMarketplace", "id": "HyprMarketplace"};
                 var adProvidersFilterName = "ad_providers";
 
-                scope.addToSelected(adProvidersFilterName, adColony);
+                scope.addToSelected(adProvidersFilterName, unityAds);
                 scope.addToSelected(adProvidersFilterName, hyprMarketplace);
                 scope.addToSelected("countries", {"name": "Ireland", "id": "Ireland"});
 
@@ -294,10 +294,10 @@ describe('AnalyticsController', function () {
                 expect(filters.filters[0].property_name).toEqual("ip_geo_info.country");
                 expect(filters.filters[0].property_value[0]).toEqual("Ireland");
                 expect(filters.filters[1].property_name).toEqual("ad_provider_name");
-                expect(filters.filters[1].property_value[0]).toEqual(adColony.id);
+                expect(filters.filters[1].property_value[0]).toEqual(unityAds.id);
                 expect(filters.filters[1].property_value[1]).toEqual(hyprMarketplace.id);
 
-                scope.removeFromSelected(adProvidersFilterName, adColony, 0);
+                scope.removeFromSelected(adProvidersFilterName, unityAds, 0);
                 scope.removeFromSelected(adProvidersFilterName, hyprMarketplace, 0);
 
                 filters = scope.getExportCSVFilters(scope.getStartEndDates());
@@ -527,7 +527,7 @@ describe('AnalyticsController', function () {
                 };
 
                 listenForKeen("");
-                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22AdColony%22%2C%22HyprMarketplace%22%5D%7D");
+                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22UnityAds%22%2C%22HyprMarketplace%22%5D%7D");
 
 
                 // Set up the mock http service responses
@@ -536,7 +536,7 @@ describe('AnalyticsController', function () {
                 configRequestHandler = $httpBackend.when('GET', '/distributors/undefined/analytics/info')
                     .respond({
                         "distributorID": 620798327,
-                        "adProviders": [{"name": "AdColony", "id": "AdColony"}, {
+                        "adProviders": [{"name": "Unity Ads", "id": "UnityAds"}, {
                             "name": "HyprMarketplace",
                             "id": "HyprMarketplace"
                         }, {"name": "Vungle", "id": "Vungle"}, {"name": "AppLovin", "id": "AppLovin"}],
@@ -695,14 +695,14 @@ describe('AnalyticsController', function () {
 
                 };
                 listenForKeen("");
-                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22AdColony%22%2C%22HyprMarketplace%22%5D%7D");
+                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22UnityAds%22%2C%22HyprMarketplace%22%5D%7D");
                 // Set up the mock http service responses
                 $httpBackend = _$httpBackend_;
 
                 configRequestHandler = $httpBackend.when('GET', '/distributors/undefined/analytics/info')
                     .respond({
                         "distributorID": 620798327,
-                        "adProviders": [{"name": "AdColony", "id": "AdColony"}, {
+                        "adProviders": [{"name": "Unity Ads", "id": "UnityAds"}, {
                             "name": "HyprMarketplace",
                             "id": "HyprMarketplace"
                         }, {"name": "Vungle", "id": "Vungle"}, {"name": "AppLovin", "id": "AppLovin"}],
@@ -861,14 +861,14 @@ describe('AnalyticsController', function () {
 
                 };
                 listenForKeen("");
-                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22AdColony%22%2C%22HyprMarketplace%22%5D%7D");
+                listenForKeen("%7B%22property_name%22%3A%22ad_provider_name%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B%22UnityAds%22%2C%22HyprMarketplace%22%5D%7D");
                 // Set up the mock http service responses
                 $httpBackend = _$httpBackend_;
 
                 configRequestHandler = $httpBackend.when('GET', '/distributors/undefined/analytics/info')
                     .respond({
                         "distributorID": 620798327,
-                        "adProviders": [{"name": "AdColony", "id": "AdColony"}, {
+                        "adProviders": [{"name": "Unity Ads", "id": "UnityAds"}, {
                             "name": "HyprMarketplace",
                             "id": "HyprMarketplace"
                         }, {"name": "Vungle", "id": "Vungle"}, {"name": "AppLovin", "id": "AppLovin"}],

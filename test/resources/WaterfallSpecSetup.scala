@@ -32,14 +32,33 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
     "}"
   }
 
-  val adProviders = List("test ad provider 1", "test ad provider 2")
+  val adProviderDisplayNames = List("test ad provider 1", "test ad provider 2")
+  val adProviders = List("testAdProvider1", "testAdProvider2")
 
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProviders(0), adProviderConfigData, Platform.Ios.PlatformID, None, true)
+    val name = adProviders(0)
+    val displayName = adProviderDisplayNames(0)
+    AdProvider.create(
+      name = name,
+      displayName = displayName,
+      configurationData = adProviderConfigData,
+      platformID = Platform.Ios.PlatformID,
+      callbackUrlFormat = None,
+      configurable = true
+    )
   }
 
   val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
-    AdProvider.create(adProviders(1), adProviderConfigData, Platform.Ios.PlatformID, None, true)
+    val name = adProviders(1)
+    val displayName = adProviderDisplayNames(1)
+    AdProvider.create(
+      name = name,
+      displayName = displayName,
+      configurationData = adProviderConfigData,
+      platformID = Platform.Ios.PlatformID,
+      callbackUrlFormat = None,
+      configurable = true
+    )
   }
 
   /**
