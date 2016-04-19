@@ -47,7 +47,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             return completedCount > 0 ? sumTotal/completedCount : 0;
         };
 
-        var startOfDay = moment.utc().startOf('day');
+        $scope.startOfDay = moment.utc().startOf('day');
         var startDate = $( '#start-date' );
 
         $scope.subHeader = 'assets/templates/sub_header.html';
@@ -58,8 +58,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         $scope.appID = $routeParams.app_id;
         $scope.flashMessage = flashMessage;
 
-        $scope.defaultStartDate = startOfDay.clone().subtract(13, 'days').format(dateRangeFormat);
-        $scope.defaultEndDate = startOfDay.clone().endOf('day').format(dateRangeFormat);
+        $scope.defaultStartDate = $scope.startOfDay.clone().subtract(13, 'days').format(dateRangeFormat);
+        $scope.defaultEndDate = $scope.startOfDay.clone().format(dateRangeFormat);
         startDate.val($scope.defaultStartDate + " - " + $scope.defaultEndDate);
         $scope.email = "";
         $scope.platforms = platforms.all();
@@ -363,7 +363,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          */
         $scope.updateCharts = function() {
             // Get current filter values
-            var dates = getStartEndDates();
+            var dates = $scope.getStartEndDates();
             var config = {
                 country: _.pluck($scope.filters.countries.selected, 'id'),
                 adProvider: _.pluck($scope.filters.ad_providers.selected, 'id'),
@@ -501,7 +501,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                     }
                 },
                 filters: config.filters,
-                timeframe:  setTimeFrame(getStartEndDates()), //config.timeframe,
+                timeframe:  setTimeFrame($scope.getStartEndDates()),
                 timezone: defaultTimezone
             });
 
@@ -692,14 +692,21 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
             } );
         };
 
-        function getStartEndDates() {
+        $scope.getStartEndDates = function() {
             // Get current date values
+            try {
                 return {
                     //1381 this depends on the date format specified in daterangepicker.js
                     start_date: extractStartDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value),
                     end_date: extractEndDate($scope.elements.rangeDate.daterangepicker('getStartDate')[0].value)
                 };
-        }
+            } catch (err) {
+                return {
+                    start_date: $scope.defaultStartDate,
+                    end_date: $scope.defaultEndDate
+                };
+            }
+        };
 
         /**
          * Begin CSV export and let the user know the export has been requested
@@ -711,7 +718,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
 
                 var emailAddress = $scope.email;
 
-                var filters = $scope.getExportCSVFilters(getStartEndDates());
+                var filters = $scope.getExportCSVFilters($scope.getStartEndDates());
                 filters.email = emailAddress;
                 filters.displayFillRate = oneOrAllAdProviders(_.pluck($scope.filters.ad_providers.selected, 'id'));
                 $http.post($scope.exportEndpoint, filters)
