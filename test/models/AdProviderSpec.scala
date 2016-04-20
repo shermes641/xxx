@@ -18,9 +18,33 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
 
   val androidAdProviderIDs = running(FakeApplication(additionalConfiguration = testDB)) {
     List(
-      AdProvider.create(Platform.Android.HyprMarketplace.name, Platform.Android.HyprMarketplace.configurationData, Platform.Android.PlatformID, Platform.Android.HyprMarketplace.callbackURLFormat, Platform.Android.HyprMarketplace.configurable, Platform.Android.HyprMarketplace.defaultEcpm),
-      AdProvider.create(Platform.Android.Vungle.name, Platform.Android.Vungle.configurationData, Platform.Android.PlatformID, Platform.Android.Vungle.callbackURLFormat, Platform.Android.Vungle.configurable, Platform.Android.Vungle.defaultEcpm),
-      AdProvider.create(Platform.Android.AppLovin.name, Platform.Android.AppLovin.configurationData, Platform.Android.PlatformID, Platform.Android.AppLovin.callbackURLFormat, Platform.Android.AppLovin.configurable, Platform.Android.AppLovin.defaultEcpm)
+      AdProvider.create(
+        Platform.Android.HyprMarketplace.name,
+        Platform.Android.HyprMarketplace.displayName,
+        Platform.Android.HyprMarketplace.configurationData,
+        Platform.Android.PlatformID,
+        Platform.Android.HyprMarketplace.callbackURLFormat,
+        Platform.Android.HyprMarketplace.configurable,
+        Platform.Android.HyprMarketplace.defaultEcpm
+      ),
+      AdProvider.create(
+        Platform.Android.Vungle.name,
+        Platform.Android.Vungle.displayName,
+        Platform.Android.Vungle.configurationData,
+        Platform.Android.PlatformID,
+        Platform.Android.Vungle.callbackURLFormat,
+        Platform.Android.Vungle.configurable,
+        Platform.Android.Vungle.defaultEcpm
+      ),
+      AdProvider.create(
+        Platform.Android.AppLovin.name,
+        Platform.Android.AppLovin.displayName,
+        Platform.Android.AppLovin.configurationData,
+        Platform.Android.PlatformID,
+        Platform.Android.AppLovin.callbackURLFormat,
+        Platform.Android.AppLovin.configurable,
+        Platform.Android.AppLovin.defaultEcpm
+      )
     )
   }
 
@@ -61,8 +85,11 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
   "AdProvider.create" should {
     "add a new record to the ad_providers table" in new WithDB {
       val originalCount = tableCount("ad_providers")
+      val name = "NewAdProvider"
+      val displayName = "New AdProvider"
       val newProviderID = AdProvider.create(
-        name = "New AdProvider",
+        name = name,
+        displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None
@@ -72,8 +99,11 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "set the configuration field to the same JSON passed as an argument" in new WithAppDB(distributor.id.get) {
+      val name = "NewAdProvider1"
+      val displayName = "New AdProvider 1"
       val newProviderID = AdProvider.create(
-        name = "New AdProvider 1",
+        name = name,
+        displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
@@ -85,8 +115,11 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
 
     "set a callback URL format if one is passed as an argument" in new WithAppDB(distributor.id.get) {
       val callbackUrl = Some("/v1/reward_callbacks/%s/new_ad_provider?amount=1&uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
+      val name = "NewAdProvider2"
+      val displayName = "New AdProvider 2"
       val newProviderID = AdProvider.create(
-        name = "New AdProvider 2",
+        name = name,
+        displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = callbackUrl
@@ -97,8 +130,11 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "set an AdProvider to not be configurable if the configurable argument is false" in new WithAppDB(distributor.id.get) {
+      val name = "NewAdProvider3"
+      val displayName = "New AdProvider 3"
       val newProviderID = AdProvider.create(
-        name = "New AdProvider 3",
+        name = name,
+        displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
@@ -110,8 +146,11 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
 
     "set a default eCPM if one is passed as an argument" in new WithDB {
       val defaultEcpm = Some(5.0)
+      val name = "NewAdProvider4"
+      val displayName = "New AdProvider 4"
       val newProviderID = AdProvider.create(
-        name = "New AdProvider 4",
+        name = name,
+        displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
@@ -122,8 +161,11 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
     }
 
     "set the platform ID of the AdProvider" in new WithDB {
+      val name = "NewAdProvider5"
+      val displayName = "New AdProvider 5"
       val newProviderID = AdProvider.create(
-        name = "New AdProvider 5",
+        name = name,
+        displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,

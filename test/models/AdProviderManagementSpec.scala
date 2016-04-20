@@ -51,38 +51,117 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
     }
 
     "create new ad provider" in new WithDB {
-      val androidProvider = new UpdatableAdProvider("New Ad Provider", config, Platform.AndroidPlatformID, Some(""), true, Some(10))
+      val adProviderName = "NewAdProvider"
+      val adProviderDisplayName = "New Ad Provider"
+      val androidProvider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderDisplayName,
+        configurationData = config,
+        platformID = Platform.AndroidPlatformID,
+        callbackURLFormat = Some(""),
+        configurable = true,
+        defaultEcpm = Some(10)
+      )
       createAdProvider(androidProvider.platformID, androidProvider) must beEqualTo(AdProviderResult.CREATED)
       createAdProvider(androidProvider.platformID, androidProvider) must beEqualTo(AdProviderResult.EXISTS)
 
-      val iosProvider = new UpdatableAdProvider("New Ad Provider", config, Platform.IosPlatformID, Some(""), true, Some(10))
+      val iosProvider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderName,
+        configurationData = config,
+        platformID = Platform.IosPlatformID,
+        callbackURLFormat = Some(""),
+        configurable = true,
+        defaultEcpm = Some(10)
+      )
       createAdProvider(iosProvider.platformID, iosProvider) must beEqualTo(AdProviderResult.CREATED)
       createAdProvider(iosProvider.platformID, iosProvider) must beEqualTo(AdProviderResult.EXISTS)
     }
 
+    "throw an exception if the ad provider name contains spaces or punctuation" in new WithDB {
+      val badAdProviderNames = List("New Ad Provider", "NewAdProvider!", "New-Ad-Provider")
+      badAdProviderNames.map { name =>
+        new UpdatableAdProvider(
+          name = name,
+          displayName = name,
+          configurationData = config,
+          platformID = Platform.AndroidPlatformID,
+          callbackURLFormat = Some(""),
+          configurable = true,
+          defaultEcpm = Some(10)
+        ) must throwA[IllegalArgumentException]
+      }
+    }
+
     "fail with bad platform ID" in new WithDB {
-      var provider = new UpdatableAdProvider("New Ad Provider", config, 0L, Some(""), true, Some(10))
+      val adProviderName = "NewAdProvider"
+      val adProviderDisplayName = "New Ad Provider"
+      var provider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderDisplayName,
+        configurationData = config,
+        platformID = 0L,
+        callbackURLFormat = Some(""),
+        configurable = true,
+        defaultEcpm = Some(10)
+      )
       createAdProvider(provider.platformID, provider) must beEqualTo(AdProviderResult.INVALID_PLATFORM_ID)
 
-      provider = new UpdatableAdProvider("New Ad Provider", config, 12367867823L, Some(""), true, Some(10))
+      provider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderName,
+        configurationData = config,
+        platformID = 12367867823L,
+        callbackURLFormat = Some(""),
+        configurable = true,
+        defaultEcpm = Some(10)
+      )
       createAdProvider(provider.platformID, provider) must beEqualTo(AdProviderResult.INVALID_PLATFORM_ID)
     }
   }
 
   "updateSingleAdProvider" should {
     "fail when ad provider does not exist in the DB" in new WithDB {
-      val provider = new UpdatableAdProvider("Newer Ad Provider", config, 5646388L, Some(""), true, Some(10))
+      val adProviderName = "SomeNewAdProvider"
+      val adProviderDisplayName = "Some New Ad Provider"
+      val provider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderDisplayName,
+        configurationData = config,
+        platformID = 1L,
+        callbackURLFormat = Some(""),
+        configurable = true,
+        defaultEcpm = Some(10)
+      )
       updateSingleAdProvider(provider) must beEqualTo(AdProviderResult.FAILED)
     }
 
     "succeed when ad provider exists in the DB" in new WithDB {
-      val provider = new UpdatableAdProvider("Newer Ad Provider", config, Platform.IosPlatformID, Some(""), true, Some(10))
+      val adProviderName = "SomeNewAdProvider"
+      val adProviderDisplayName = "Some New Ad Provider"
+      val provider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderDisplayName,
+        configurationData = config,
+        platformID = Platform.IosPlatformID,
+        callbackURLFormat = Some(""),
+        configurable = true,
+        defaultEcpm = Some(10)
+      )
       createAdProvider(provider.platformID, provider) must beEqualTo(AdProviderResult.CREATED)
       updateSingleAdProvider(provider) must beEqualTo(AdProviderResult.UPDATED)
 
 
       val newConfig = config.replace("""displayKey": "Unity Ads App ID""", """displayKey": "Newer Ads App ID""")
-      val newProvider = new UpdatableAdProvider("Newer Ad Provider", newConfig, Platform.IosPlatformID, Some("ABCD"), false, Some(5))
+      val newProvider = new UpdatableAdProvider(
+        name = adProviderName,
+        displayName = adProviderName,
+        configurationData = newConfig,
+        platformID = Platform.IosPlatformID,
+        callbackURLFormat = Some("ABCD"),
+        configurable = false,
+        defaultEcpm = Some(5)
+      )
       updateSingleAdProvider(newProvider) must beEqualTo(AdProviderResult.UPDATED)
 
       val adp = AdProvider.findByPlatformAndName(newProvider.platformID, newProvider.name).get
@@ -124,12 +203,13 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
       val newCallbackURLFormat = Some("some callback URL format")
       val newPlatformID = Platform.Android.PlatformID
       val updatableAdProvider = new UpdatableAdProvider(
-        adProvider.name,
-        newConfigurationData.toString(),
-        adProvider.platformID,
-        newCallbackURLFormat,
-        !adProvider.configurable,
-        newDefaultEcpm
+        name = adProvider.name,
+        displayName = adProvider.name,
+        configurationData = newConfigurationData.toString(),
+        platformID = adProvider.platformID,
+        callbackURLFormat = newCallbackURLFormat,
+        configurable = !adProvider.configurable,
+        defaultEcpm = newDefaultEcpm
       )
 
       AdProvider.updateSingleAdProvider(updatableAdProvider).toString must beEqualTo(AdProviderResult.UPDATED.toString)

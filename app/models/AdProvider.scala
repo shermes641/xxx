@@ -10,7 +10,8 @@ import scala.language.postfixOps
 /**
  * Encapsulates information for third-party SDKs to be mediated.
  * @param id id field in the ad_providers table
- * @param name name field in the ad_providers table
+ * @param name The name of the ad provider sent to the SDK (WARNING: This name must not contain spaces or punctuation).
+ * @param displayName The name of the ad provider as it appears on our dashboard.
  * @param configurationData contains default required params, reporting params, and callback params for an ad provider.
  * @param platformID Indicates the platform to which this AdProvider belongs (e.g. iOS or Android).
  * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
@@ -19,6 +20,7 @@ import scala.language.postfixOps
  */
 case class AdProvider(id: Long,
                       name: String,
+                      displayName: String,
                       configurationData: JsValue,
                       platformID: Long,
                       configurable: Boolean = true,
@@ -27,7 +29,8 @@ case class AdProvider(id: Long,
 
 /**
  * Encapsulates updatable information for Ad Providers.
- * @param name name field in the ad_providers table
+ * @param name The name of the ad provider sent to the SDK (WARNING: This name must not contain spaces or punctuation).
+ * @param displayName The name of the ad provider as it appears on our dashboard.
  * @param configurationData contains default required params, reporting params, and callback params for an ad provider.
  * @param platformID Indicates the platform to which this AdProvider belongs (e.g. iOS or Android).
  * @param callbackURLFormat The format of the callback URL for all WaterfallAdProvider instances.
@@ -35,22 +38,30 @@ case class AdProvider(id: Long,
  * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
  */
 case class UpdatableAdProvider(name: String,
+                               displayName: String,
                                configurationData: String,
                                platformID: Long,
                                callbackURLFormat: Option[String],
                                configurable: Boolean = true,
-                               defaultEcpm: Option[Double] = None)
+                               defaultEcpm: Option[Double] = None) {
+  require(
+    Constants.AdProvider.namePattern.findFirstIn(name) != None,
+    s"Ad Provider name: $name should not contain any spaces or punctuation"
+  )
+}
 
 object AdProvider extends JsonConversion with AdProviderManagement {
   // Used to convert SQL query result into instances of the AdProvider class.
   val adProviderParser: RowParser[AdProvider] = {
     get[Long]("id") ~
     get[String]("name") ~
+    get[String]("display_name") ~
     get[JsValue]("configuration_data") ~
     get[Long]("platform_id") ~
     get[Boolean]("configurable") ~
     get[Option[Double]]("default_ecpm") map {
-      case id ~ name ~ configuration_data ~ platform_id ~ configurable ~ default_ecpm => AdProvider(id, name, configuration_data, platform_id, configurable, default_ecpm)
+      case id ~ name ~ display_name ~ configuration_data ~ platform_id ~ configurable ~ default_ecpm =>
+        AdProvider(id, name, display_name, configuration_data, platform_id, configurable, default_ecpm)
     }
   }
 
@@ -109,7 +120,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, id, configuration_data, platform_id, configurable, default_ecpm
+          SELECT name, display_name, id, configuration_data, platform_id, configurable, default_ecpm
           FROM ad_providers
           WHERE platform_id = {platform_id} AND id NOT IN
           (SELECT DISTINCT ad_provider_id
@@ -123,7 +134,8 @@ object AdProvider extends JsonConversion with AdProviderManagement {
 
   /**
    * Creates a new record in the AdProvider table
-   * @param name Maps to name column in AdProvider table
+   * @param name The name of the ad provider sent to the SDK (WARNING: This name must not contain spaces or punctuation).
+   * @param displayName The name of the ad provider as it appears on our dashboard.
    * @param configurationData Json configuration data for AdProvider
    * @param platformID Indicates the platform to which this AdProvider belongs (e.g. iOS or Android).
    * @param callbackUrlFormat General format for reward callback URL
@@ -132,6 +144,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
    * @return ID of newly created record
    */
   def create(name: String,
+             displayName: String,
              configurationData: String,
              platformID: Long,
              callbackUrlFormat: Option[String],
@@ -140,11 +153,12 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          INSERT INTO ad_providers (name, configuration_data, platform_id, callback_url_format, configurable, default_ecpm)
-          VALUES ({name}, CAST({configuration_data} AS json), {platform_id}, {callback_url_format}, {configurable}, {default_ecpm});
+          INSERT INTO ad_providers (name, display_name, configuration_data, platform_id, callback_url_format, configurable, default_ecpm)
+          VALUES ({name}, {display_name}, CAST({configuration_data} AS json), {platform_id}, {callback_url_format}, {configurable}, {default_ecpm});
         """
       ).on(
           "name" -> name,
+          "display_name" -> displayName,
           "configuration_data" -> configurationData,
           "platform_id" -> platformID,
           "callback_url_format" -> callbackUrlFormat,

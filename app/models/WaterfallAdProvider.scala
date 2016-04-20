@@ -266,7 +266,7 @@ object WaterfallAdProvider extends JsonConversion {
     DB.withConnection { implicit connection =>
       val sqlStatement =
         """
-          SELECT ad_providers.name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable,
+          SELECT ad_providers.display_name, waterfall_ad_providers.id as id, cpm, active, waterfall_order, waterfall_ad_providers.configuration_data, waterfall_ad_providers.configurable,
             pending, vc.round_up, vc.exchange_rate, vc.reward_min FROM ad_providers
           JOIN waterfall_ad_providers ON waterfall_ad_providers.ad_provider_id = ad_providers.id
           INNER JOIN waterfalls w on w.id = waterfall_ad_providers.waterfall_id
@@ -305,7 +305,7 @@ object WaterfallAdProvider extends JsonConversion {
   def findConfigurationData(waterfallAdProviderID: Long)(implicit connection: Connection): Option[WaterfallAdProviderConfig] = {
     val query = SQL(
       """
-        SELECT ad_providers.name, ad_providers.platform_id, reward_min, cpm, ad_providers.configuration_data as ad_provider_configuration,
+        SELECT ad_providers.display_name as name, ad_providers.platform_id, reward_min, cpm, ad_providers.configuration_data as ad_provider_configuration,
         ad_providers.callback_url_format, wap.configuration_data as wap_configuration, wap.reporting_active, wap.pending
         FROM waterfall_ad_providers wap
         INNER JOIN ad_providers ON ad_providers.id = wap.ad_provider_id
@@ -403,7 +403,7 @@ object WaterfallAdProvider extends JsonConversion {
 
   // Used to convert result of orderedByCPM SQL query.
   val waterfallAdProviderOrderParser: RowParser[OrderedWaterfallAdProvider] = {
-    get[String]("name") ~
+      get[String]("display_name") ~
       get[Long]("id") ~
       get[Option[Double]]("cpm") ~
       get[Boolean]("active") ~
@@ -456,7 +456,7 @@ case class WaterfallAdProviderRevenueData(waterfallAdProviderID: Long, name: Str
 
 /**
  * Encapsulates WaterfallAdProvider information used to determine the waterfall order.
- * @param name name field from ad_providers table
+ * @param name The display_name from the ad_providers table.
  * @param waterfallAdProviderID id field from waterfall_ad_providers table
  * @param cpm cpm field from waterfall_ad_providers table
  * @param waterfallOrder waterfall_order field from waterfall_ad_providers table
