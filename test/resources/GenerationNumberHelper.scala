@@ -1,8 +1,9 @@
-package models
+package resources
 
 import anorm._
-import play.api.db.DB
+import models.App
 import play.api.Play.current
+import play.api.db.DB
 
 trait GenerationNumberHelper {
   /**

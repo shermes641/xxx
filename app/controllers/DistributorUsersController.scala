@@ -157,7 +157,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
           }
         }
         case error: JsError => {
-          BadRequest(Json.obj("status" -> "error", "message" -> JsString(error.get)))
+          BadRequest(Json.obj("status" -> "error", "message" -> JsString(error.getOrElse("Unkown JsError"))))
         }
       }
     }.getOrElse {

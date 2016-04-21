@@ -93,6 +93,16 @@ abstract class ReportingAPI {
   }
 
   /**
+    * Calculates the new eCPM for a WatefallAdProvider.
+    * @param revenue The revenue value retrieved from the reporting API.
+    * @param impressions The impression count retrieved from the reporting API.
+    * @return If the impression count is greater than 0, return the new eCPM value; otherwise, return 0.00.
+    */
+  def calculateEcpm(revenue: Double, impressions: Double): Double = {
+    if(impressions > 0) { (revenue/impressions) * 1000 } else { 0.00 }
+  }
+
+  /**
    * Formats message to be logged in Papertrail
    * @param message The message to be logged
    * @param waterfallAdProviderID The ID of the WaterfallAdProvider that was supposed to be updated

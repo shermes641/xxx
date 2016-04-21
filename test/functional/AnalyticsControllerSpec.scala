@@ -1,20 +1,18 @@
 package functional
 
-import collection.JavaConversions._
 import com.github.nscala_time.time.Imports._
 import controllers.routes
 import io.keen.client.java.ScopedKeys
 import models._
-import play.api.libs.json._
 import play.api.Play
-import play.api.test._
+import play.api.libs.json._
 import play.api.test.Helpers._
-import play.api.test.FakeHeaders
-import play.api.test.FakeApplication
-import resources.DistributorUserSetup
+import play.api.test.{FakeApplication, FakeHeaders, _}
+import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
+
+import scala.collection.JavaConversions._
 
 class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
-
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
     DistributorUser.findByEmail(email).get
@@ -43,7 +41,18 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     "populate ad networks and verify that All ad providers is default" in new WithAppBrowser(distributorID) {
       logInUser()
 
-      val adProviderID = AdProvider.create("hyprMX", "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}", Platform.Ios.PlatformID, None)
+      val adProviderDisplayName = "Unity Ads"
+      val adProviderID = {
+        val name = "UnityAds"
+        val configuration = "{\"required_params\":[{\"description\": \"Your Unity Ads GAME Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}"
+        AdProvider.create(
+          name = name,
+          displayName = adProviderDisplayName,
+          configurationData = configuration,
+          platformID = Platform.Ios.PlatformID,
+          callbackUrlFormat = None
+        )
+      }
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       // All Ad Providers should be selected
@@ -52,8 +61,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       clickAndWaitForAngular("#ad-providers-filter .add")
       clickAndWaitForAngular("#filter-ad_providers")
 
-      // hyprMX must be part of dropdown
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText("hyprMX")
+      // Unity must be part of dropdown
+      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#ad-providers-filter .add").containsText(adProviderDisplayName)
     }
 
     "country select box should exist and not be empty" in new WithAppBrowser(distributorID) {
@@ -81,11 +90,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)
 
       var date = new DateTime(DateTimeZone.UTC)
-      // End date must be todays date
-      browser.$("#end-date").getValue must beEqualTo(date.toString("MMM dd, yyyy"))
-
-      // Start date must be todays date minus 1 month
-      browser.$("#start-date").getValue must beEqualTo(date.minusDays(13).toString("MMM dd, yyyy"))
+      browser.$("#start-date").getValue must beEqualTo(date.minusDays(13).toString("MMM dd yyyy") + " - " + date.toString("MMM dd yyyy"))
     }
 
     "Verify Analytic items have proper labels" in new WithAppBrowser(distributorID) {
@@ -122,7 +127,7 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
 
       // Verify scopedKey
       val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, (response \ "scopedKey").as[String]).toMap.toString()
-      decrypted must contain("property_value="+distributorID.toString)
+      decrypted must contain("property_value=" + distributorID.toString)
     }
 
     "redirect the distributor user to their own Analytics page if they try to access analytics data using another distributor ID" in new WithAppBrowser(distributorUser.distributorID.get) {
@@ -265,8 +270,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
     }
 
     "Pass Jasmine tests" in new WithAppBrowser(distributorUser.distributorID.get) {
-      browser.goTo(routes.Assets.at("/javascripts/test/SpecRunner.html").url)
-      browser.await().atMost(20, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent()
+      browser.goTo(routes.Assets.at("""/javascripts/test/SpecRunner.html""").url)
+      browser.await().atMost(30, java.util.concurrent.TimeUnit.SECONDS).until(".bar.passed").isPresent
     }
   }
 

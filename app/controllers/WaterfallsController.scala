@@ -38,7 +38,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
-            new OrderedWaterfallAdProvider(name = adProvider.name, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
+            new OrderedWaterfallAdProvider(name = adProvider.displayName, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
                                           configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)
@@ -54,7 +54,7 @@ object WaterfallsController extends Controller with Secured with JsonToValueHelp
     Waterfall.find(waterfallID, distributorID) match {
       case Some(waterfall) => {
         val waterfallAdProviderList = WaterfallAdProvider.findAllOrdered(waterfallID) ++ AdProvider.findNonIntegrated(waterfallID, waterfall.platformID).map { adProvider =>
-          new OrderedWaterfallAdProvider(name = adProvider.name, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
+          new OrderedWaterfallAdProvider(name = adProvider.displayName, waterfallAdProviderID = adProvider.id, cpm = adProvider.defaultEcpm, active = false, waterfallOrder = None, unconfigured = true,
                                           configurable = adProvider.configurable, roundUp = Option(false), exchangeRate = Option(0), rewardMin = 0, pending = false, newRecord = true)
         }
         val appsWithWaterfalls = App.findAllAppsWithWaterfalls(distributorID)

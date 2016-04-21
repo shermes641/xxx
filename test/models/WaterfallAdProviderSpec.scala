@@ -8,19 +8,23 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
-import resources.JsonTesting
+import resources.{WaterfallCreationHelper, SpecificationWithFixtures, JsonTesting}
 
 @RunWith(classOf[JUnitRunner])
 class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting with WaterfallCreationHelper {
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
     DB.withConnection { implicit connection =>
-      AdProvider.create(name = "test ad provider 1", configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
+      val name = "testAdProvider1"
+      val displayName = "test ad provider 1"
+      AdProvider.create(name = name, displayName = displayName, configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
     }
   }
 
   val adProviderID2 = running(FakeApplication(additionalConfiguration = testDB)) {
     DB.withConnection { implicit connection =>
-      AdProvider.create(name = "test ad provider 2", configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
+      val name = "test ad provider 2"
+      val displayName = "testAdProvider2"
+      AdProvider.create(name = name, displayName = displayName, configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
     }
   }
 
@@ -190,7 +194,7 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
 
   "WaterfallAdProvider.findRewardInfo" should {
     "return the configuration data JSON if a record is found" in new WithDB {
-      WaterfallAdProvider.findRewardInfo(currentApp.token, "test ad provider 1").get must haveClass[WaterfallAdProvider.AdProviderRewardInfo]
+      WaterfallAdProvider.findRewardInfo(currentApp.token, "testAdProvider1").get must haveClass[WaterfallAdProvider.AdProviderRewardInfo]
     }
 
     "return None if the configuration data does not exist" in new WithDB {

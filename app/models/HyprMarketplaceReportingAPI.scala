@@ -37,16 +37,6 @@ case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) 
   }
 
   /**
-   * Calculates the new eCPM for a WatefallAdProvider.
-   * @param revenue The revenue value retrieved from the reporting API.
-   * @param impressions The impression count retrieved from the reporting API.
-   * @return If the impression count is greater than 0, return the new eCPM value; otherwise, return 0.00.
-   */
-  def calculateEcpm(revenue: Double, impressions: Double): Double = {
-    if(impressions > 0) { (revenue/impressions) * 1000 } else { 0.00 }
-  }
-
-  /**
    * Attempt to fix Player reporting. From the mediation reporting endpoint, ECPMs are inflated due to non reporting of errors, and
    * disqualification. We use keen ad_displayed events which contains ad_error events to get the impressions.
    */

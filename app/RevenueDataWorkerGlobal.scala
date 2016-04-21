@@ -2,7 +2,7 @@ import models.{RevenueDataActor, Environment}
 import play.api.Application
 import play.api.GlobalSettings
 import scala.language.postfixOps
-
+// $COVERAGE-OFF$
 object RevenueDataWorkerGlobal extends GlobalSettings {
   /**
    * Overrides application start up to include the initialization of the revenue collection background job.
@@ -14,3 +14,4 @@ object RevenueDataWorkerGlobal extends GlobalSettings {
     }
   }
 }
+// $COVERAGE-ON$

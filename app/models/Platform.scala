@@ -4,7 +4,8 @@ import play.api.Play
 
 /**
  * Base class for Android and Ios AdProvider classes.
- * @param id Maps to the id column in the platforms table.
+  *
+  * @param id Maps to the id column in the platforms table.
  * @param name Maps to the name column in the platforms table.
  */
 abstract class Platform(id: Long, name: String) {
@@ -19,6 +20,8 @@ abstract class Platform(id: Long, name: String) {
 
   val AdColony = {
     val name = "AdColony"
+
+    val displayName = name
 
     val callbackURLFormat = Some("/v1/reward_callbacks/%s/ad_colony?id=[ID]&uid=[USER_ID]&amount=[AMOUNT]&" +
       "currency=[CURRENCY]&open_udid=[OpenUDID]&udid=[UDID]&odin1=[ODIN1]&mac_sha1=[MAC_SHA1]&verifier=[VERIFIER]&custom_id=[CUSTOM_ID]")
@@ -59,11 +62,13 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val HyprMarketplace = {
     val name = "HyprMarketplace"
+
+    val displayName = name
 
     val callbackURLFormat = None
 
@@ -87,11 +92,13 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val Vungle = {
     val name = "Vungle"
+
+    val displayName = name
 
     val callbackURLFormat = Some("/v1/reward_callbacks/%s/vungle?amount=%s&uid=%%user%%&openudid=%%udid%%&mac=%%mac%%&ifa=%%ifa%%&transaction_id=%%txid%%&digest=%%digest%%")
 
@@ -129,13 +136,15 @@ abstract class Platform(id: Long, name: String) {
         "]" +
         "}"
     }
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
   val AppLovin = {
     val name = "AppLovin"
 
-    val callbackURLFormat = Some("/v1/reward_callbacks/%s/app_lovin?idfa={IDFA}&hadid={HADID}&amount={AMOUNT}&currency={CURRENCY}&event_id={EVENT_ID}&user_id={USER_ID}")
+    val displayName = name
+
+    val callbackURLFormat = Some("/v1/reward_callbacks/%s/app_lovin?idfa={IDFA}&ip={IP}&amount={AMOUNT}&currency={CURRENCY}&event_id={EVENT_ID}&user_id={USER_ID}")
 
     val configurable = true
 
@@ -167,10 +176,64 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
   }
 
-  val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin)
+  val UnityAds = {
+    val name = Constants.UnityAdsName
+
+    val displayName = Constants.UnityAdsDisplayName
+
+    val callbackURLFormat = Some(Constants.UnityAdsCallbackUrl)
+
+    val configurable = true
+
+    val defaultEcpm: Option[Double] = Some(10)
+
+    val configurationDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads"
+
+    val s2sCallbackDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads+Server+to+Server+Callbacks+Setup"
+
+    val configuration = {
+      //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
+      val appIDDescription = {
+        s"Your GAME ID can be found on the $displayName dashboard. For more information on configuring $displayName, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
+      }
+
+      val reportingDescription = {
+        s"Your API Key can be found on the $displayName dashboard. For more information on configuring reporting for $displayName, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
+      }
+
+      val callbackDescription = {
+        s"Your Shared Hash Key for Secure Callbacks must be obtained from $displayName support via email. For more information on configuring server to server callbacks for $displayName, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
+      }
+      s"""{ "requiredParams":[{"description": "$appIDDescription",
+         |  "displayKey": "GAME ID",
+         |  "key": "appID",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": true,
+         |  "minLength": 1
+         |  }],
+         |  "reportingParams": [{"description": "$reportingDescription",
+         |  "displayKey": "API Key",
+         |  "key": "APIKey",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": false
+         |  }],
+         |  "callbackParams": [{"description": "$callbackDescription",
+         |  "displayKey": "Shared Hash Key",
+         |  "key": "APIKey",
+         |  "value": "",
+         |  "dataType": "String",
+         |  "refreshOnAppRestart": false
+         |  }]}""".stripMargin.replaceAll("[\r]","").replaceAll("[\n]","")
+
+    }
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+  }
+  val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }
 
 object Platform {
@@ -186,12 +249,12 @@ object Platform {
   object Android extends Platform(AndroidPlatformID, AndroidPlatformName) {
     val hyprMarketplaceID = Play.current.configuration.getLong("hyprmarketplace.android_ad_provider_id").get
     val serverToServerDomain = Play.current.configuration.getString("android_server_to_server_callback_domain").get
-    override val allAdProviders = List(AdColony, HyprMarketplace, AppLovin)
   }
 
   /**
    * Finds the platform based on the ID
-   * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
+    *
+    * @param platformID The ID of the Platform to which the app belongs (e.g. Android or iOS)
    * @return The Android or iOS object depending on the platform ID
    */
   def find(platformID: Long): Platform = {

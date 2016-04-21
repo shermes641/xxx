@@ -260,7 +260,7 @@ object Waterfall extends JsonConversion {
 
   /**
    * Encapsulates necessary information returned from SQL query in Waterfall.order.
-   * @param providerName Maps to the name field in the ad_providers table.
+   * @param providerName Maps to the display_name field in the ad_providers table. WARNING: This name cannot contain spaces or punctuation.
    * @param providerID Maps to the id field in the ad_providers table.
    * @param platformID Indicates the platform to which the App belongs (e.g. iOS or Android)
    * @param sdkBlacklistRegex The regex to blacklist Adapter/SDK version combinations per AdProvider. This value will be used to create an NSRegularExpression in the SDK.

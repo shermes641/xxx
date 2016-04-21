@@ -1,22 +1,28 @@
 package functional
 
 import models._
-import play.api.test.Helpers._
 import play.api.test.FakeApplication
+import play.api.test.Helpers._
+import resources.SpecificationWithFixtures
 
 class KeenAnalyticsSpec extends SpecificationWithFixtures {
 
   // Load AdProviders required for tests
   running(FakeApplication(additionalConfiguration = testDB)) {
+    val unityAdsName = "UnityAds"
+    val unityAdsDisplayName = "Unity Ads"
     AdProvider.create(
-      name = "hyprMX",
-      configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
+      name = unityAdsName,
+      displayName = unityAdsDisplayName,
+      configurationData = "{\"required_params\":[{\"description\": \"Your Unity Ads GAME Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None
     )
 
+    val vungleName = "Vungle"
     AdProvider.create(
-      name = "Vungle",
+      name = vungleName,
+      displayName = vungleName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None
@@ -54,7 +60,7 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       clickAndWaitForAngular("#apps-filter .add")
       clickAndWaitForAngular("#filter-apps")
 
-      // hyprMX must be part of dropdown
+      // Unity Ads must be part of dropdown
       waitUntilContainsText("#apps-filter .add", currentApp.name)
       clickAndWaitForAngular("#apps-filter .add .dropdown-menu .active")
 
@@ -73,8 +79,8 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       clickAndWaitForAngular("#ad-providers-filter .add")
       clickAndWaitForAngular("#filter-ad_providers")
 
-      // hyprMX must be part of dropdown
-      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      // Unity Ads must be part of dropdown
+      waitUntilContainsText("#ad-providers-filter .add", "Unity Ads")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
       // Verify analytics data has been loaded
@@ -97,8 +103,8 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
       clickAndWaitForAngular("#ad-providers-filter .add")
-      fillAndWaitForAngular("#filter-ad_providers", "hyprMX")
-      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      fillAndWaitForAngular("#filter-ad_providers", "Unity")
+      waitUntilContainsText("#ad-providers-filter .add", "Unity Ads")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
       // Verify analytics data has been loaded
@@ -121,8 +127,8 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
 
       clickAndWaitForAngular("#ad-providers-filter .add")
-      fillAndWaitForAngular("#filter-ad_providers", "hyprMX")
-      waitUntilContainsText("#ad-providers-filter .add", "hyprMX")
+      fillAndWaitForAngular("#filter-ad_providers", "Unity")
+      waitUntilContainsText("#ad-providers-filter .add", "Unity Ads")
       clickAndWaitForAngular("#ad-providers-filter .add .dropdown-menu .active")
       // Verify analytics data has been loaded
       waitUntilContainsText("#analytics-loading-status", "Waiting...")

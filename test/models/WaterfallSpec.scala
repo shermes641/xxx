@@ -3,8 +3,8 @@ package models
 import play.api.db.DB
 import models.Waterfall.WaterfallCallbackInfo
 import org.junit.runner._
-import play.api.libs.json.{JsObject}
-import resources.WaterfallSpecSetup
+import play.api.libs.json.JsObject
+import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
 import org.specs2.runner._
 
 @RunWith(classOf[JUnitRunner])

@@ -1,20 +1,19 @@
 package controllers
 
-import play.api._
-import play.api.mvc._
-import play.api.Play.current
-import anorm._
-import play.api.db.DB
+import io.keen.client.java.{JavaKeenClientBuilder, KeenClient, KeenProject, ScopedKeys}
 import models._
-import play.api.libs.json._
+import play.api._
 import play.api.libs.functional.syntax._
-import io.keen.client.java.{ScopedKeys, KeenProject, JavaKeenClientBuilder, KeenClient}
-import collection.JavaConversions._
+import play.api.libs.json._
+import play.api.mvc._
+
+import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
 
 object AnalyticsController extends Controller with Secured {
   implicit val exportReads: Reads[exportMapping] = (
+      (JsPath \ "displayFillRate").read[Boolean] and
       (JsPath \ "email").read[String] and
       (JsPath \ "filters").read[JsArray] and
       (JsPath \ "timeframe").read[JsObject] and
@@ -24,7 +23,7 @@ object AnalyticsController extends Controller with Secured {
 
   def show(distributorID: Long, currentAppID: Option[Long], waterfallFound: Option[Boolean]) = withAuth(Some(distributorID)) { username => implicit request =>
     val apps = App.findAllAppsWithWaterfalls(distributorID)
-    if(apps.size == 0) {
+    if(apps.isEmpty) {
       Redirect(routes.AppsController.newApp(distributorID))
     } else {
       Ok(views.html.Analytics.show(distributorID = distributorID, appID = currentAppID, apps = apps, adProviders = AdProvider.findAll, keenProject = Play.current.configuration.getString("keen.project").get, scopedKey = getScopedReadKey(distributorID)))
@@ -34,7 +33,7 @@ object AnalyticsController extends Controller with Secured {
   def export(distributorID: Long) = withAuth(Some(distributorID)) { username => implicit request =>
     request.body.asJson.map { json =>
       json.validate[exportMapping].map { exportParameters =>
-        KeenExport().exportToCSV(distributorID, exportParameters.email, exportParameters.filters,
+        KeenExport().exportToCSV(distributorID, exportParameters.displayFillRate, exportParameters.email, exportParameters.filters,
           exportParameters.timeframe, exportParameters.apps, exportParameters.ad_providers_selected, getScopedReadKey(distributorID))
         Ok("success")
       }.recoverTotal {
@@ -99,7 +98,7 @@ object AnalyticsController extends Controller with Secured {
   implicit def adProviderWrites(provider: AdProvider): JsObject = {
     JsObject(
       Seq(
-        "name" -> JsString(provider.name),
+        "name" -> JsString(provider.displayName),
         "id" -> JsString(provider.name)
       )
     )
@@ -141,11 +140,14 @@ object AnalyticsController extends Controller with Secured {
 
   /**
    * Used for mapping Export parameters
-   * @param email Maps to the email field
-   * @param filters Maps to the filters JsArray
-   * @param timeframe Maps to the timeframe as a JsObject
-   * @param apps ad_providers_selected to the apps list in the Json Array
+   * @param displayFillRate       Indicates if fill rate should be shown in the CSV.
+   *                              When True (one ad provider or "all" ad providers are selected), we display the fill rate.
+   *                              When False (more than one ad provider selected), we display "N/A" for fill rate.
+   * @param email                 Maps to the email field
+   * @param filters               Maps to the filters JsArray
+   * @param timeframe             Maps to the timeframe as a JsObject
+   * @param apps                  ad_providers_selected to the apps list in the Json Array
    * @param ad_providers_selected Maps to the ad_providers_selected Boolean
    */
-  case class exportMapping(email: String, filters: JsArray, timeframe: JsObject, apps: List[String], ad_providers_selected: Boolean)
+  case class exportMapping(displayFillRate: Boolean, email: String, filters: JsArray, timeframe: JsObject, apps: List[String], ad_providers_selected: Boolean)
 }

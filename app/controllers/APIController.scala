@@ -1,14 +1,16 @@
 package controllers
 
 import java.util.concurrent.TimeoutException
+
+import hmac.{Constants, HmacHashData, Signer}
 import models._
-import play.api.mvc._
-import play.api.libs.json._
 import play.api.Logger
+import play.api.libs.json._
+import play.api.mvc._
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.language.implicitConversions
-import scala.language.postfixOps
+import scala.language.{implicitConversions, postfixOps}
 
 object APIController extends Controller {
   val DefaultTimeout = 5000 // The default timeout for all server to server calls (in milliseconds).
@@ -86,6 +88,34 @@ object APIController extends Controller {
   }
 
   /**
+    * Accepts server to server callback info from Unity Ads, then starts the reward completion process if the parameters are correct.
+    *
+    * @param appToken Identifies the application this callback is for
+    * @param sid      The User ID provided in the Unity Ads dialog initialization
+    * @param oid      Unique identifier. //TODO Can be used to detect duplicate reward attempts
+    * @param hmac     Signature for the sid & oid query string parameters
+    * @return         If the incoming request is valid, returns a 200; otherwise, returns 400
+    */
+  def unityAdsCompletionV1(appToken: String, sid: Option[String], oid: Option[String], hmac: Option[String]) = Action { implicit request =>
+    val callback = new UnityAdsCallback(appToken,
+      sid.getOrElse(models.Constants.NoValue),
+      oid.getOrElse(models.Constants.NoValue),
+      hmac.getOrElse(models.Constants.NoValue))
+    callback.isValid match {
+      case true =>
+        callbackResponse(callback, request)
+
+      case _ =>
+        if (request.queryString.size == callback.ValidNumberOfParams)
+          Logger.error(s"Invalid Unity Ads callback request, parameters: ${callback.params}")
+        else
+          Logger.error(s"Invalid Unity Ads callback request, wrong number of parameters, " +
+            s"count of parameters: ${request.queryString.size} paramters: ${callback.params}")
+        callback.returnFailure
+    }
+  }
+
+  /**
    * Accepts server to server callback info from Ad Colony, then starts the reward completion process.
    * @param appToken The token for the App to which the completion will belong.
    * @param transactionID A unique ID that verifies the completion.
@@ -131,27 +161,6 @@ object APIController extends Controller {
   }
 
   /**
-   * Accepts server to server callback info from Flurry, then starts the reward completion process.
-   * @param appToken The token for the App to which the completion will belong.
-   * @param idfa Advertising ID.
-   * @param sha1Mac SHA1 hash of MAC address.
-   * @param fguid A unique ID that verifies the completion.
-   * @param rewardQuantity The amount of virtual currency to be rewarded.
-   * @param fhash A hashed value to authenticate the origin of the request.
-   * @param udid A unique device ID.
-   * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
-   */
-  def flurryCompletionV1(appToken: String, idfa: Option[String], sha1Mac: Option[String], fguid: Option[String], rewardQuantity: Option[Int], fhash: Option[String], udid: Option[String]) = Action { implicit request =>
-    (fguid, rewardQuantity, fhash) match {
-      case (Some(fguidValue: String), Some(rewardQuantityValue: Int), Some(fhashValue: String)) => {
-        val callback = new FlurryCallback(appToken, fguidValue, rewardQuantityValue, fhashValue)
-        callbackResponse(callback, request)
-      }
-      case (_, _, _) => BadRequest
-    }
-  }
-
-  /**
    * Accepts server to server callback info from HyprMarketplace, then starts the reward completion process.
    * @param appToken The token for the App to which the completion will belong.
    * @param time The timestamp for the callback.
@@ -160,16 +169,23 @@ object APIController extends Controller {
    * @param offerProfit Ad spend generated.
    * @param rewardID A unique ID to identify a virtual currency.
    * @param uid A unique ID to identify a user.
-   * @param subID A unique ID to verify the transaction.
+   * @param partnerCode A unique ID to verify the transaction (corresponds to the partner_code in Player).
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
-  def hyprMarketplaceCompletionV1(appToken: String, time: Option[String], sig: Option[String], quantity: Option[Int], offerProfit: Option[Double], rewardID: Option[String], uid: Option[String], subID: Option[String]) = Action { implicit request =>
-    (uid, sig, time, subID, quantity) match {
-      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(subIDValue: String), Some(quantityValue: Int)) => {
-        val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, subIDValue, offerProfit, quantityValue)
+  def hyprMarketplaceCompletionV1(appToken: String,
+                                  time: Option[String],
+                                  sig: Option[String],
+                                  quantity: Option[Int],
+                                  offerProfit: Option[Double],
+                                  rewardID: Option[String],
+                                  uid: Option[String],
+                                  partnerCode: Option[String]) = Action { implicit request =>
+    (uid, sig, time, quantity) match {
+      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(quantityValue: Int)) => {
+        val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, offerProfit, quantityValue, partnerCode)
         callbackResponse(callback, request)
       }
-      case (_, _, _, _, _) => BadRequest
+      case (_, _, _, _) => BadRequest
     }
   }
 
@@ -192,9 +208,23 @@ object APIController extends Controller {
    */
   def callbackResponse(callback: CallbackVerificationHelper, adProviderRequest: JsValue, completion: Completion = new Completion) = {
     callback.verificationInfo.isValid match {
-      case true => {
+      case true =>
         try {
-          Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest), Duration(DefaultTimeout, "millis")) match {
+          val hmacData = Some(
+            HmacHashData(uri = callback.verificationInfo.callbackURL.getOrElse(""),
+              adProviderName = callback.adProviderName,
+              rewardQuantity = callback.currencyAmount,
+              estimatedOfferProfit = callback.payout,
+              transactionId = callback.verificationInfo.transactionID
+            ).toQueryParamMap(
+              timestamp = Some(Signer.timestamp),
+              nonce = callback.verificationInfo.transactionID,
+              hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
+            )
+          )
+          Logger.info(s"hmacData:\n$hmacData")
+          Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest, hmacData),
+            Duration(DefaultTimeout, "millis")) match {
             case true => callback.returnSuccess
             case false => {
               Logger.error("Server to server callback to Distributor's servers was unsuccessful for Ad Provider: " +
@@ -203,13 +233,12 @@ object APIController extends Controller {
             }
           }
         } catch {
-          case _: TimeoutException => {
+          case _: TimeoutException =>
             Logger.error("Server to server callback to Distributor's servers timed out for Ad Provider: " +
               callback.adProviderName + "API Token: " + callback.token + " Callback URL: " + callback.verificationInfo.callbackURL)
             callback.returnFailure
-          }
         }
-      }
+
       case false => {
         Logger.error("Invalid server to server callback verification for Ad Provider: " + callback.adProviderName + " API Token: " + callback.token)
         callback.returnFailure

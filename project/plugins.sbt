@@ -17,6 +17,10 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "1.0.0")
 
+// Teamcity CI plugin
 addSbtPlugin("com.gu" % "sbt-teamcity-test-reporting-plugin" % "1.5")
+
+// Developer code test coverage plugin
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.5")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.7.6")

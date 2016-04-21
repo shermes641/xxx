@@ -963,7 +963,6 @@ img {
 hr {
   margin-top: 20px;
   margin-bottom: 20px;
-  border: 0;
   border-top: 1px solid #eee;
 }
 .sr-only {
@@ -3145,8 +3144,6 @@ tbody.collapse.in {
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, .15);
   border-radius: 4px;
-  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
 }
 .dropdown-menu.pull-right {
   right: 0;
