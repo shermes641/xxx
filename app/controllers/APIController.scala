@@ -90,17 +90,23 @@ object APIController extends Controller {
   /**
     * Accepts server to server callback info from Unity Ads, then starts the reward completion process if the parameters are correct.
     *
-    * @param appToken Identifies the application this callback is for
-    * @param sid      The User ID provided in the Unity Ads dialog initialization
-    * @param oid      Unique identifier. //TODO Can be used to detect duplicate reward attempts
-    * @param hmac     Signature for the sid & oid query string parameters
-    * @return         If the incoming request is valid, returns a 200; otherwise, returns 400
+    * @param appToken  Identifies the application this callback is for
+    * @param sid       The User ID provided in the Unity Ads dialog initialization
+    * @param oid       Unique identifier. //TODO Can be used to detect duplicate reward attempts
+    * @param hmac      Signature for the sid & oid query string parameters
+    * @param productID The app's GAME ID
+    * @return          If the incoming request is valid, returns a 200; otherwise, returns 400
     */
-  def unityAdsCompletionV1(appToken: String, sid: Option[String], oid: Option[String], hmac: Option[String]) = Action { implicit request =>
+  def unityAdsCompletionV1(appToken: String,
+                           sid: Option[String],
+                           oid: Option[String],
+                           hmac: Option[String],
+                           productID: Option[String]) = Action { implicit request =>
     val callback = new UnityAdsCallback(appToken,
       sid.getOrElse(models.Constants.NoValue),
       oid.getOrElse(models.Constants.NoValue),
-      hmac.getOrElse(models.Constants.NoValue))
+      hmac.getOrElse(models.Constants.NoValue),
+      productID.getOrElse(models.Constants.NoValue))
     callback.isValid match {
       case true =>
         callbackResponse(callback, request)
