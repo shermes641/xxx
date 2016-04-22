@@ -75,8 +75,12 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
                   false
               }
 
+            case len if len == 1 =>
+              logResponseDebug("Not updating eCPM because no events were present for Unity Ads", wapID, response)
+              false
+
             case _ =>
-              response.body.contains("error")match {
+              response.body.contains("error") match {
                 case true =>
                   logResponseError (s"Unity Ads responded with an error: ${response.body}", waterfallAdProviderID, response)
                   false
