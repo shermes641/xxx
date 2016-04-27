@@ -176,6 +176,30 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
       val newCallback = new UnityAdsCallback(app1.token, sid, oid, invalidHmac, productID)
       newCallback.verificationInfo.isValid mustEqual false
     }
+
+    "set the ad provider name correctly" in new WithDB {
+      goodCallback.verificationInfo.adProviderName must beEqualTo(Constants.UnityAdsName)
+    }
+
+    "set the app token correctly" in new WithDB {
+      goodCallback.verificationInfo.appToken must beEqualTo(app1.token)
+    }
+
+    "set the transaction ID correctly" in new WithDB {
+      goodCallback.verificationInfo.transactionID must beEqualTo(oid)
+    }
+
+    "set the offer profit correctly" in new WithDB {
+      goodCallback.verificationInfo.offerProfit must beEqualTo(goodCallback.payout)
+    }
+
+    "set the reward quantity correctly" in new WithDB {
+      goodCallback.verificationInfo.rewardQuantity must beEqualTo(goodCallback.currencyAmount)
+    }
+
+    "set the reward info correctly" in new WithDB {
+      goodCallback.verificationInfo.adProviderRewardInfo must beEqualTo(goodCallback.adProviderRewardInfo)
+    }
   }
 
   "receivedVerification" should {

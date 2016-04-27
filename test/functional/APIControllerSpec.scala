@@ -1,5 +1,6 @@
 package functional
 
+import anorm._
 import controllers.APIController
 import hmac.{HmacHashData, Signer}
 import models._
@@ -10,7 +11,6 @@ import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
 import resources.{AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
-
 import scala.concurrent.Future
 
 class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup with Mockito {
@@ -219,7 +219,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      tableCount("completions") must beEqualTo(completionCount + 1)
+      verifyNewCompletion(completionApp.token, transactionID.get, Platform.Ios.Vungle.name, completionCount)
     }
 
     "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
@@ -227,7 +227,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.vungleCompletionV1(completionWaterfall.token, transactionID, Some("some-fake-digest"), Some(1), None).url,
+        controllers.routes.APIController.vungleCompletionV1(completionApp.token, transactionID, Some("some-fake-digest"), Some(1), None).url,
         FakeHeaders(),
         ""
       )
@@ -240,7 +240,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val completionCount = tableCount("completions")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.vungleCompletionV1(completionWaterfall.token, None, None, Some(1), None).url,
+        controllers.routes.APIController.vungleCompletionV1(completionApp.token, None, None, Some(1), None).url,
         FakeHeaders(),
         ""
       )
@@ -253,22 +253,23 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
   "APIController.appLovinCompletionV1" should {
     "respond with a 200 if all necessary params are present" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
+      val transactionID = Some("event-id")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appLovinCompletionV1(completionWaterfall.token, Some("event-id"), Some(1), None, None, None, None).url,
+        controllers.routes.APIController.appLovinCompletionV1(completionApp.token, transactionID, Some(1), None, None, None, None).url,
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      tableCount("completions") must beEqualTo(completionCount + 1)
+      verifyNewCompletion(completionApp.token, transactionID.get, Platform.Ios.AppLovin.name, completionCount)
     }
 
     "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.appLovinCompletionV1(completionWaterfall.token, None, None, None, None, None, None).url,
+        controllers.routes.APIController.appLovinCompletionV1(completionApp.token, None, None, None, None, None, None).url,
         FakeHeaders(),
         ""
       )
@@ -308,7 +309,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val Some(result) = route(request)
       status(result) must equalTo(200)
       contentAsString(result) must contain("vc_success")
-      tableCount("completions") must beEqualTo(completionCount + 1)
+      verifyNewCompletion(completionApp.token, transactionID.get, Platform.Ios.AdColony.name, completionCount)
     }
 
     "respond with a 200 if the request signature is not valid" in new WithFakeBrowser {
@@ -366,7 +367,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      tableCount("completions") must beEqualTo(completionCount + 1)
+      verifyNewCompletion(completionApp.token, nonBlankPartnerCode.get, Platform.Ios.HyprMarketplace.name, completionCount)
     }
 
     "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
@@ -380,7 +381,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      tableCount("completions") must beEqualTo(completionCount + 1)
+      verifyNewCompletion(completionApp.token, partnerCode.get, Platform.Ios.HyprMarketplace.name, completionCount)
     }
 
     "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
@@ -403,6 +404,62 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       val request = FakeRequest(
         GET,
         controllers.routes.APIController.hyprMarketplaceCompletionV1(completionApp.token, time, sig, quantity, None, None, None, partnerCode).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+  }
+
+  "APIController.unityAdsCompletionV1" should {
+    val sharedSecret = "ccfbde79b23f0fde7867cb9177b1a15"
+    val sid = Some("jcaintic@jungroup.com")
+    val oid = Some("546553466")
+    val hmac = Some("ec61dfb3f7355aea49a1a81540073f48")
+    val productID = Some("1061310")
+    val wap = running(FakeApplication(additionalConfiguration = testDB)) {
+      val id = WaterfallAdProvider.create(completionWaterfall.id, unityAdsID, None, None, configurable = true, active = true).get
+      WaterfallAdProvider.find(id).get
+    }
+    val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString(sharedSecret))),
+      "requiredParams" -> JsObject(Seq("APIKey" -> JsString(productID.get))), "reportingParams" -> JsObject(Seq())))
+
+    "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.unityAdsCompletionV1(completionApp.token, sid, oid, hmac, productID).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      contentAsString(result) must contain("1")
+      verifyNewCompletion(completionApp.token, oid.get, Constants.UnityAdsName, completionCount)
+    }
+
+    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.unityAdsCompletionV1(completionApp.token, Some("invalid-transaction-id"), oid, hmac, productID).url,
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(400)
+      tableCount("completions") must beEqualTo(completionCount)
+    }
+
+    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val request = FakeRequest(
+        GET,
+        controllers.routes.APIController.unityAdsCompletionV1(completionApp.token, sid, None, hmac, productID).url,
         FakeHeaders(),
         ""
       )
@@ -516,5 +573,27 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       completion.createWithNotification(verificationInfo, adProviderRequest, maybeHmacData) returns Future(true)
       APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
+  }
+
+  /**
+   * Helper function to check that a new completion was inserted with the proper fields
+   */
+  def verifyNewCompletion(appToken: String,
+                          transactionID: String,
+                          adProviderName: String, expectedCompletionCount: Long) = {
+    val completionID = DB.withConnection { implicit connection =>
+      SQL(
+        """
+          SELECT completions.id FROM completions
+          WHERE app_token = {app_token} AND transaction_id = {transaction_id} AND ad_provider_name = {ad_provider_name}
+          ORDER BY completions.created_at DESC
+          LIMIT 1
+        """
+      )
+        .on("app_token" -> appToken, "transaction_id" -> transactionID, "ad_provider_name" -> adProviderName)()
+        .map(row => row[Long]("id")).head
+    }
+    completionID must beGreaterThan(expectedCompletionCount)
+    tableCount("completions") must beEqualTo(expectedCompletionCount + 1)
   }
 }

@@ -26,6 +26,10 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
     WaterfallAdProvider.update(new WaterfallAdProvider(currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
   }
 
+  val goodCallback = running(FakeApplication(additionalConfiguration = testDB)) {
+    new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+  }
+
   "adProviderName" should {
     "be set when creating a new instance of the AdColonyCallback class" in new WithDB {
       val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
@@ -105,6 +109,30 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
       val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, invalidVerifier, customID)
       val verification = callback.verificationInfo
       verification.isValid must beEqualTo(false)
+    }
+
+    "set the ad provider name correctly" in new WithDB {
+      goodCallback.verificationInfo.adProviderName must beEqualTo(goodCallback.adProviderName)
+    }
+
+    "set the app token correctly" in new WithDB {
+      goodCallback.verificationInfo.appToken must beEqualTo(appToken)
+    }
+
+    "set the transaction ID correctly" in new WithDB {
+      goodCallback.verificationInfo.transactionID must beEqualTo(transactionID)
+    }
+
+    "set the offer profit correctly" in new WithDB {
+      goodCallback.verificationInfo.offerProfit must beEqualTo(goodCallback.payout)
+    }
+
+    "set the reward quantity correctly" in new WithDB {
+      goodCallback.verificationInfo.rewardQuantity must beEqualTo(goodCallback.currencyAmount)
+    }
+
+    "set the reward info correctly" in new WithDB {
+      goodCallback.verificationInfo.adProviderRewardInfo must beEqualTo(goodCallback.adProviderRewardInfo)
     }
   }
 }

@@ -36,7 +36,7 @@ case class UnityAdsCallback(appToken: String,
     isValid,
     adProviderName,
     oid,
-    sid,
+    token,
     payout,
     currencyAmount,
     adProviderRewardInfo)
