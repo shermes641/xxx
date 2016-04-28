@@ -415,56 +415,92 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
 
   "APIController.unityAdsCompletionV1" should {
     val sharedSecret = "ccfbde79b23f0fde7867cb9177b1a15"
-    val sid = Some("jcaintic@jungroup.com")
-    val oid = Some("546553466")
-    val hmac = Some("ec61dfb3f7355aea49a1a81540073f48")
-    val productID = Some("1061310")
+    val sid = "jcaintic@jungroup.com"
+    val oid = "546553466"
+    val hmac = "ec61dfb3f7355aea49a1a81540073f48"
+    val productID = "1061310"
     val wap = running(FakeApplication(additionalConfiguration = testDB)) {
       val id = WaterfallAdProvider.create(completionWaterfall.id, unityAdsID, None, None, configurable = true, active = true).get
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString(sharedSecret))),
-      "requiredParams" -> JsObject(Seq("APIKey" -> JsString(productID.get))), "reportingParams" -> JsObject(Seq())))
+      "requiredParams" -> JsObject(Seq("APIKey" -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
 
-    "respond with a 200 if all necessary params are present and the signature is valid" in new WithFakeBrowser {
+    "respond with a 200 if the request is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.unityAdsCompletionV1(completionApp.token, sid, oid, hmac, productID).url,
+        s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=$sid&oid=$oid&hmac=$hmac",
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      contentAsString(result) must contain("1")
-      verifyNewCompletion(completionApp.token, oid.get, Constants.UnityAdsName, completionCount)
+      contentAsString(result) must contain(Constants.UnityAdsSuccess)
+      verifyNewCompletion(completionApp.token, oid, Constants.UnityAdsName, completionCount)
     }
 
-    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+    "respond with a 200 when the productid param is duplicated" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.unityAdsCompletionV1(completionApp.token, Some("invalid-transaction-id"), oid, hmac, productID).url,
+        s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=$sid&oid=$oid&hmac=$hmac&productid=$productID",
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      contentAsString(result) must contain(Constants.UnityAdsSuccess)
+      verifyNewCompletion(completionApp.token, oid, Constants.UnityAdsName, completionCount)
+    }
+
+    "respond with a 200 when a param not used in the hmac signature is missing" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val sid = "testuser1"
+      val oid = "562832418"
+      val hmac = "7338989ca66614440f5a92788e15ae55"
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        s"/v1/reward_callbacks/${completionApp.token}/unity_ads?sid=$sid&oid=$oid&hmac=$hmac",
+        FakeHeaders(),
+        ""
+      )
+      val Some(result) = route(request)
+      status(result) must equalTo(200)
+      contentAsString(result) must contain(Constants.UnityAdsSuccess)
+      verifyNewCompletion(completionApp.token, oid, Constants.UnityAdsName, completionCount)
+    }
+
+    "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
+      val completionCount = tableCount("completions")
+      val invalidTransactionID = "invalid-transaction-id"
+      WaterfallAdProvider.update(new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, None, None, Some(true), None, configuration, false))
+      val request = FakeRequest(
+        GET,
+        s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=$sid&oid=$invalidTransactionID&hmac=$hmac",
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
+      contentAsString(result) must contain(Constants.UnityAdsVerifyFailure)
       tableCount("completions") must beEqualTo(completionCount)
     }
 
-    "respond with a 400 if a necessary param is missing" in new WithFakeBrowser {
+    "respond with a 400 if a param used in the hmac signature is missing" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
       val request = FakeRequest(
         GET,
-        controllers.routes.APIController.unityAdsCompletionV1(completionApp.token, sid, None, hmac, productID).url,
+        s"/v1/reward_callbacks/${completionApp.token}/unity_ads?productid=$productID&sid=&oid=$oid&hmac=$hmac",
         FakeHeaders(),
         ""
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
+      contentAsString(result) must contain(Constants.UnityAdsVerifyFailure)
       tableCount("completions") must beEqualTo(completionCount)
     }
   }
