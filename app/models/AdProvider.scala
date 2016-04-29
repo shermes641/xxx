@@ -13,6 +13,7 @@ import scala.language.postfixOps
  * @param name The name of the ad provider sent to the SDK (WARNING: This name must not contain spaces or punctuation).
  * @param displayName The name of the ad provider as it appears on our dashboard.
  * @param configurationData contains default required params, reporting params, and callback params for an ad provider.
+ * @param callbackUrlDescription The tooltip description for the Callback URL field.
  * @param platformID Indicates the platform to which this AdProvider belongs (e.g. iOS or Android).
  * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
  * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
@@ -22,6 +23,7 @@ case class AdProvider(id: Long,
                       name: String,
                       displayName: String,
                       configurationData: JsValue,
+                      callbackUrlDescription: String,
                       platformID: Long,
                       configurable: Boolean = true,
                       defaultEcpm: Option[Double] = None,
@@ -34,6 +36,7 @@ case class AdProvider(id: Long,
  * @param configurationData contains default required params, reporting params, and callback params for an ad provider.
  * @param platformID Indicates the platform to which this AdProvider belongs (e.g. iOS or Android).
  * @param callbackURLFormat The format of the callback URL for all WaterfallAdProvider instances.
+ * @param callbackURLDescription The tooltip description for the Callback URL field.
  * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
  * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
  */
@@ -42,6 +45,7 @@ case class UpdatableAdProvider(name: String,
                                configurationData: String,
                                platformID: Long,
                                callbackURLFormat: Option[String],
+                               callbackURLDescription: String,
                                configurable: Boolean = true,
                                defaultEcpm: Option[Double] = None) {
   require(
@@ -57,11 +61,12 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     get[String]("name") ~
     get[String]("display_name") ~
     get[JsValue]("configuration_data") ~
+    get[String]("callback_url_description") ~
     get[Long]("platform_id") ~
     get[Boolean]("configurable") ~
     get[Option[Double]]("default_ecpm") map {
-      case id ~ name ~ display_name ~ configuration_data ~ platform_id ~ configurable ~ default_ecpm =>
-        AdProvider(id, name, display_name, configuration_data, platform_id, configurable, default_ecpm)
+      case id ~ name ~ display_name ~ configuration_data ~ callback_url_description ~ platform_id ~ configurable ~ default_ecpm =>
+        AdProvider(id, name, display_name, configuration_data, callback_url_description, platform_id, configurable, default_ecpm)
     }
   }
 
@@ -110,6 +115,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     val res = findAllByPlatform(platformID)
     res.find {e => e.name == name}
   }
+
   /**
    * Retrieves a list of AdProviders who do not currently have an existing WaterfallAdProvider record for a given Waterfall ID.
    * @param waterfallID The Waterfall ID to which all integrated WaterfallAdProviders belong.
@@ -120,7 +126,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
     DB.withConnection { implicit connection =>
       val query = SQL(
         """
-          SELECT name, display_name, id, configuration_data, platform_id, configurable, default_ecpm
+          SELECT name, display_name, id, configuration_data, callback_url_description, platform_id, configurable, default_ecpm
           FROM ad_providers
           WHERE platform_id = {platform_id} AND id NOT IN
           (SELECT DISTINCT ad_provider_id
@@ -139,6 +145,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
    * @param configurationData Json configuration data for AdProvider
    * @param platformID Indicates the platform to which this AdProvider belongs (e.g. iOS or Android).
    * @param callbackUrlFormat General format for reward callback URL
+   * @param callbackUrlDescription The tooltip description for the Callback URL field.
    * @param configurable determines if the WaterfallAdProviders which belong to this AdProvider can have their eCPM edited.
    * @param defaultEcpm the starting cpm value for a newly created WaterfallAdProvider.
    * @return ID of newly created record
@@ -148,13 +155,14 @@ object AdProvider extends JsonConversion with AdProviderManagement {
              configurationData: String,
              platformID: Long,
              callbackUrlFormat: Option[String],
+             callbackUrlDescription: String,
              configurable: Boolean = true,
              defaultEcpm: Option[Double] = None): Option[Long] = {
     DB.withConnection { implicit connection =>
       SQL(
         """
-          INSERT INTO ad_providers (name, display_name, configuration_data, platform_id, callback_url_format, configurable, default_ecpm)
-          VALUES ({name}, {display_name}, CAST({configuration_data} AS json), {platform_id}, {callback_url_format}, {configurable}, {default_ecpm});
+          INSERT INTO ad_providers (name, display_name, configuration_data, platform_id, callback_url_format, callback_url_description, configurable, default_ecpm)
+          VALUES ({name}, {display_name}, CAST({configuration_data} AS json), {platform_id}, {callback_url_format}, {callback_url_description}, {configurable}, {default_ecpm});
         """
       ).on(
           "name" -> name,
@@ -162,6 +170,7 @@ object AdProvider extends JsonConversion with AdProviderManagement {
           "configuration_data" -> configurationData,
           "platform_id" -> platformID,
           "callback_url_format" -> callbackUrlFormat,
+          "callback_url_description" -> callbackUrlDescription,
           "configurable" -> configurable,
           "default_ecpm" -> defaultEcpm
         ).executeInsert()

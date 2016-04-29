@@ -499,7 +499,8 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
         displayName = displayName,
         configurationData = adProviderConfig,
         platformID = Platform.Ios.PlatformID,
-        callbackUrlFormat = None
+        callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
       )
     }
 

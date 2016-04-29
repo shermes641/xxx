@@ -30,6 +30,8 @@ abstract class Platform(id: Long, name: String) {
 
     val defaultEcpm: Option[Double] = Some(10)
 
+    val callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
+
     val configuration = {
       val zoneIDDetails = {
         "Add a single zone or multiple zones separated by commas. Please note, we currently only support Value Exchange Zones. " +
@@ -62,7 +64,7 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, callbackUrlDescription, configurable, defaultEcpm)
   }
 
   val HyprMarketplace = {
@@ -75,6 +77,8 @@ abstract class Platform(id: Long, name: String) {
     val configurable = false
 
     val defaultEcpm: Option[Double] = Some(20)
+
+    val callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
 
     val configuration = {
       "{" +
@@ -92,7 +96,7 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, callbackUrlDescription, configurable, defaultEcpm)
   }
 
   val Vungle = {
@@ -105,6 +109,8 @@ abstract class Platform(id: Long, name: String) {
     val configurable = true
 
     val defaultEcpm: Option[Double] = Some(10)
+
+    val callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
 
     val configuration = {
       val appIDDescription = {
@@ -136,7 +142,7 @@ abstract class Platform(id: Long, name: String) {
         "]" +
         "}"
     }
-    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, callbackUrlDescription, configurable, defaultEcpm)
   }
 
   val AppLovin = {
@@ -149,6 +155,8 @@ abstract class Platform(id: Long, name: String) {
     val configurable = true
 
     val defaultEcpm: Option[Double] = Some(10)
+
+    val callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
 
     val configuration = {
       val sdkKeyDescription = {
@@ -176,7 +184,7 @@ abstract class Platform(id: Long, name: String) {
         "}"
     }
 
-    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, callbackUrlDescription, configurable, defaultEcpm)
   }
 
   val UnityAds = {
@@ -193,6 +201,10 @@ abstract class Platform(id: Long, name: String) {
     val configurationDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads"
 
     val s2sCallbackDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads+Server+to+Server+Callbacks+Setup"
+
+    val callbackUrlDescription = {
+      s"Include this URL in your email to $displayName's support team. For more information on configuring server to server callbacks for $displayName, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
+    }
 
     val configuration = {
       //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
@@ -231,7 +243,7 @@ abstract class Platform(id: Long, name: String) {
          |  }]}""".stripMargin.replaceAll("[\r]","").replaceAll("[\n]","")
 
     }
-    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, configurable, defaultEcpm)
+    new UpdatableAdProvider(name, displayName, configuration, PlatformID, callbackURLFormat, callbackUrlDescription, configurable, defaultEcpm)
   }
   val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }

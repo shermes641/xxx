@@ -59,6 +59,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = config,
         platformID = Platform.AndroidPlatformID,
         callbackURLFormat = Some(""),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
         defaultEcpm = Some(10)
       )
@@ -71,6 +72,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = config,
         platformID = Platform.IosPlatformID,
         callbackURLFormat = Some(""),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
         defaultEcpm = Some(10)
       )
@@ -87,6 +89,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
           configurationData = config,
           platformID = Platform.AndroidPlatformID,
           callbackURLFormat = Some(""),
+          callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(name),
           configurable = true,
           defaultEcpm = Some(10)
         ) must throwA[IllegalArgumentException]
@@ -102,6 +105,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = config,
         platformID = 0L,
         callbackURLFormat = Some(""),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
         defaultEcpm = Some(10)
       )
@@ -113,6 +117,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = config,
         platformID = 12367867823L,
         callbackURLFormat = Some(""),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderName),
         configurable = true,
         defaultEcpm = Some(10)
       )
@@ -130,6 +135,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = config,
         platformID = 1L,
         callbackURLFormat = Some(""),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
         defaultEcpm = Some(10)
       )
@@ -145,6 +151,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = config,
         platformID = Platform.IosPlatformID,
         callbackURLFormat = Some(""),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
         defaultEcpm = Some(10)
       )
@@ -159,6 +166,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         configurationData = newConfig,
         platformID = Platform.IosPlatformID,
         callbackURLFormat = Some("ABCD"),
+        callbackURLDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderName),
         configurable = false,
         defaultEcpm = Some(5)
       )
@@ -202,12 +210,14 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
         .deepMerge(Json.obj("requiredParams" -> JsArray()))
       val newCallbackURLFormat = Some("some callback URL format")
       val newPlatformID = Platform.Android.PlatformID
+      val newCallbackUrlDescription = "Some new callback URL description"
       val updatableAdProvider = new UpdatableAdProvider(
         name = adProvider.name,
         displayName = adProvider.name,
         configurationData = newConfigurationData.toString(),
         platformID = adProvider.platformID,
         callbackURLFormat = newCallbackURLFormat,
+        callbackURLDescription = newCallbackUrlDescription,
         configurable = !adProvider.configurable,
         defaultEcpm = newDefaultEcpm
       )
@@ -218,6 +228,7 @@ class AdProviderManagementSpec extends SpecificationWithFixtures with AdProvider
       updatedAdProvider.configurationData must beEqualTo(newConfigurationData)
       updatedAdProvider.configurable must beEqualTo(!adProvider.configurable)
       updatedAdProvider.defaultEcpm must beEqualTo(newDefaultEcpm)
+      updatedAdProvider.callbackUrlDescription must beEqualTo(newCallbackUrlDescription)
     }
   }
 }

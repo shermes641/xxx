@@ -27,7 +27,8 @@ trait AdProviderManagement {
         """
           UPDATE ad_providers
           SET configuration_data=CAST({configuration_data} AS json), callback_url_format={callback_url_format},
-          configurable={configurable}, default_ecpm={default_ecpm}, display_name={display_name}
+          callback_url_description={callback_url_description}, configurable={configurable},
+          default_ecpm={default_ecpm}, display_name={display_name}
           WHERE name={name} and platform_id={platform_id};
         """
       ).on(
@@ -36,6 +37,7 @@ trait AdProviderManagement {
         "platform_id" -> adProvider.platformID,
         "configuration_data" -> adProvider.configurationData,
         "callback_url_format" -> adProvider.callbackURLFormat,
+        "callback_url_description" -> adProvider.callbackURLDescription,
         "configurable" -> adProvider.configurable,
         "default_ecpm" -> adProvider.defaultEcpm
       ).executeUpdate() match {
@@ -122,6 +124,7 @@ trait AdProviderManagement {
             provider.configurationData,
             platformID,
             provider.callbackURLFormat,
+            provider.callbackURLDescription,
             provider.configurable,
             provider.defaultEcpm) match {
               case Some(adsID) =>

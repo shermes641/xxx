@@ -16,7 +16,14 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     DB.withConnection { implicit connection =>
       val name = "testAdProvider1"
       val displayName = "test ad provider 1"
-      AdProvider.create(name = name, displayName = displayName, configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
+      AdProvider.create(
+        name = name,
+        displayName = displayName,
+        configurationData = configurationData,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
+      )
     }
   }
 
@@ -24,7 +31,14 @@ class WaterfallAdProviderSpec extends SpecificationWithFixtures with JsonTesting
     DB.withConnection { implicit connection =>
       val name = "test ad provider 2"
       val displayName = "testAdProvider2"
-      AdProvider.create(name = name, displayName = displayName, configurationData = configurationData, platformID = Platform.Ios.PlatformID, callbackUrlFormat = None)
+      AdProvider.create(
+        name = name,
+        displayName = displayName,
+        configurationData = configurationData,
+        platformID = Platform.Ios.PlatformID,
+        callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
+      )
     }
   }
 

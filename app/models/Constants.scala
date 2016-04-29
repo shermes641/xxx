@@ -4,6 +4,7 @@ object Constants {
   // general constants
   object AdProviderConfig {
     final val APIKey = "APIKey"
+    val CallbackUrlDescription = "Copy and paste this URL into the Callback URL field of %s's dashboard."
   }
 
   final val DefaultReportingTimeoutMs = 20000

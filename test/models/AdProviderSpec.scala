@@ -24,6 +24,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         Platform.Android.HyprMarketplace.configurationData,
         Platform.Android.PlatformID,
         Platform.Android.HyprMarketplace.callbackURLFormat,
+        Platform.Android.HyprMarketplace.callbackURLDescription.format(Platform.Android.HyprMarketplace.displayName),
         Platform.Android.HyprMarketplace.configurable,
         Platform.Android.HyprMarketplace.defaultEcpm
       ),
@@ -33,6 +34,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         Platform.Android.Vungle.configurationData,
         Platform.Android.PlatformID,
         Platform.Android.Vungle.callbackURLFormat,
+        Platform.Android.Vungle.callbackURLDescription.format(Platform.Android.Vungle.displayName),
         Platform.Android.Vungle.configurable,
         Platform.Android.Vungle.defaultEcpm
       ),
@@ -42,6 +44,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         Platform.Android.AppLovin.configurationData,
         Platform.Android.PlatformID,
         Platform.Android.AppLovin.callbackURLFormat,
+        Platform.Android.AppLovin.callbackURLDescription.format(Platform.Android.AppLovin.displayName),
         Platform.Android.AppLovin.configurable,
         Platform.Android.AppLovin.defaultEcpm
       )
@@ -92,7 +95,8 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
-        callbackUrlFormat = None
+        callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
       )
       newProviderID must haveClass[Some[Long]]
       tableCount("ad_providers") must beEqualTo(originalCount + 1)
@@ -107,7 +111,8 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
-        configurable = false
+        configurable = false,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
       ).get
       val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
       adProvider.configurationData must beEqualTo(Json.parse(adProviderConfigData))
@@ -122,7 +127,8 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         displayName = displayName,
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
-        callbackUrlFormat = callbackUrl
+        callbackUrlFormat = callbackUrl,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName)
       ).get
       val wapID = WaterfallAdProvider.create(currentWaterfall.id, newProviderID, None, None, configurable = true, active = true).get
       val config = DB.withConnection { implicit connection => WaterfallAdProvider.findConfigurationData(wapID).get }
@@ -138,6 +144,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName),
         configurable = false
       ).get
       val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
@@ -154,6 +161,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName),
         configurable = false,
         defaultEcpm = defaultEcpm).get
       val adProvider = AdProvider.findAll.filter { provider => provider.id == newProviderID }.head
@@ -169,6 +177,7 @@ class AdProviderSpec extends SpecificationWithFixtures with WaterfallSpecSetup w
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName),
         configurable = false,
         defaultEcpm = Some(10)
       ).get

@@ -89,6 +89,7 @@ object WaterfallAdProvidersController extends Controller with Secured with JsonT
           "adProviderName" -> JsString(configData.name),
           "reportingActive" -> JsBoolean(configData.reportingActive),
           "callbackUrl" -> JsString(callbackUrl.getOrElse("")),
+          "callbackUrlDescription" -> JsString(configData.callbackUrlDescription),
           "cpm" -> configData.cpm,
           "appDomain" -> JsString(appDomain)
         )
