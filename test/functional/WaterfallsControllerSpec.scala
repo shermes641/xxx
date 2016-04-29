@@ -335,6 +335,7 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderDisplayName),
         configurable = true,
         defaultEcpm = Some(defaultEcpm.toDouble)
       ).get
