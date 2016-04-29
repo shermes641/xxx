@@ -3,7 +3,6 @@ package models
 object Constants {
   // general constants
   object AdProviderConfig {
-    final val AppID = "appID"
     final val APIKey = "APIKey"
   }
 
@@ -11,15 +10,18 @@ object Constants {
   final val NoValue = "Value Missing"
 
   // Unity Ads specific constants
-  final val UnityAdsSuccess = "1"
-  final val UnityAdsVerifyFailure = "Verification failed"
-  final val UnityAdsName = "UnityAds" // This name is sent to the SDK, so the space is omitted.
-  final val UnityAdsDisplayName = "Unity Ads" // This name is rendered in the dashboard.
-  final val UnityAdsNumberOfCallbackQueryParams = 3
-  val UnityAdsCallbackUrl = "/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]"
-  val UnityAdsCallbackUrlSpec= "/v1/waterfall/%s/unity_ads_completion?sid=%%sid%%&oid=%%oid%%&hmac=%%hmac%%"
-  final val UnityAdsReportingStarted = "started"
-  final val UnityAdsReportingRevenue= "revenue"
+  object UnityAds {
+    final val GameID = "gameID"
+    final val Success = "1"
+    final val VerifyFailure = "Verification failed"
+    final val Name = "UnityAds" // This name is sent to the SDK, so the space is omitted.
+    final val DisplayName = "Unity Ads" // This name is rendered in the dashboard.
+    final val ReportingStarted = "started"
+    final val ReportingRevenue= "revenue"
+
+    val CallbackUrl = "/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]"
+    val CallbackUrlSpec= "/v1/waterfall/%s/unity_ads_completion?sid=%%sid%%&oid=%%oid%%&hmac=%%hmac%%"
+  }
 
   object AdProvider {
     final val namePattern = "^[a-zA-z0-9]+$".r // Regex used to ensure Ad Provider names do not contain spaces or punctuation.

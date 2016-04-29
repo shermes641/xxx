@@ -25,7 +25,7 @@ case class UnityAdsCallback(appToken: String,
 
   val transactionID = queryString.getOrElse(TransactionKey, Seq(Constants.NoValue)).head
 
-  override val adProviderName = Constants.UnityAdsName
+  override val adProviderName = Constants.UnityAds.Name
   override val token = appToken
   override val receivedVerification = queryString.getOrElse(HmacKey, Seq(Constants.NoValue)).head
   override val verificationInfo = new CallbackVerificationInfo(
@@ -42,7 +42,7 @@ case class UnityAdsCallback(appToken: String,
     *
     * @return A 200 response containing 1
     */
-  override def returnSuccess = Ok(Constants.UnityAdsSuccess)
+  override def returnSuccess = Ok(Constants.UnityAds.Success)
 
   /**
     * Per Unity Ad's documentation, we return 400 response to acknowledge that the reward process was unsuccessful.
@@ -51,7 +51,7 @@ case class UnityAdsCallback(appToken: String,
     */
   override def returnFailure = {
     Logger.error(s"""Unity Ads S2S callback failed for API Token: $appToken\n Query String: $queryString""")
-    BadRequest(Constants.UnityAdsVerifyFailure)
+    BadRequest(Constants.UnityAds.VerifyFailure)
   }
 
   /**

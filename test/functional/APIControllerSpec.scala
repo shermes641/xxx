@@ -424,7 +424,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       WaterfallAdProvider.find(id).get
     }
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString(sharedSecret))),
-      "requiredParams" -> JsObject(Seq("APIKey" -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
+      "requiredParams" -> JsObject(Seq(Constants.UnityAds.GameID -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
 
     "respond with a 200 if the request is valid" in new WithFakeBrowser {
       val completionCount = tableCount("completions")
@@ -437,8 +437,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      contentAsString(result) must contain(Constants.UnityAdsSuccess)
-      verifyNewCompletion(completionApp.token, oid, Constants.UnityAdsName, completionCount)
+      contentAsString(result) must contain(Constants.UnityAds.Success)
+      verifyNewCompletion(completionApp.token, oid, Constants.UnityAds.Name, completionCount)
     }
 
     "respond with a 200 when the productid param is duplicated" in new WithFakeBrowser {
@@ -452,8 +452,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      contentAsString(result) must contain(Constants.UnityAdsSuccess)
-      verifyNewCompletion(completionApp.token, oid, Constants.UnityAdsName, completionCount)
+      contentAsString(result) must contain(Constants.UnityAds.Success)
+      verifyNewCompletion(completionApp.token, oid, Constants.UnityAds.Name, completionCount)
     }
 
     "respond with a 200 when a param not used in the hmac signature is missing" in new WithFakeBrowser {
@@ -470,8 +470,8 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(200)
-      contentAsString(result) must contain(Constants.UnityAdsSuccess)
-      verifyNewCompletion(completionApp.token, oid, Constants.UnityAdsName, completionCount)
+      contentAsString(result) must contain(Constants.UnityAds.Success)
+      verifyNewCompletion(completionApp.token, oid, Constants.UnityAds.Name, completionCount)
     }
 
     "respond with a 400 if the request signature is not valid" in new WithFakeBrowser {
@@ -486,7 +486,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
-      contentAsString(result) must contain(Constants.UnityAdsVerifyFailure)
+      contentAsString(result) must contain(Constants.UnityAds.VerifyFailure)
       tableCount("completions") must beEqualTo(completionCount)
     }
 
@@ -500,7 +500,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
       )
       val Some(result) = route(request)
       status(result) must equalTo(400)
-      contentAsString(result) must contain(Constants.UnityAdsVerifyFailure)
+      contentAsString(result) must contain(Constants.UnityAds.VerifyFailure)
       tableCount("completions") must beEqualTo(completionCount)
     }
   }
