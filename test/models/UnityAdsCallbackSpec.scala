@@ -24,7 +24,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     val id = WaterfallAdProvider.create(waterfall.id, unityAdsID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString(sharedSecret))),
-      "requiredParams" -> JsObject(Seq("APIKey" -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
+      "requiredParams" -> JsObject(Seq(Constants.UnityAds.GameID -> JsString(productID))), "reportingParams" -> JsObject(Seq())))
     WaterfallAdProvider.update(new WaterfallAdProvider(
       currentWap.id, currentWap.waterfallID, currentWap.adProviderID, None, Some(eCPM), Some(true), None, configuration, false))
   }
@@ -46,8 +46,8 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
 
   // Helper class for testing successful/unsuccessful callback responses
   case class Response(code: Int, message: String)
-  val successfulResponse = Response(OK, Constants.UnityAdsSuccess)
-  val failedResponse = Response(BAD_REQUEST, Constants.UnityAdsVerifyFailure)
+  val successfulResponse = Response(OK, Constants.UnityAds.Success)
+  val failedResponse = Response(BAD_REQUEST, Constants.UnityAds.VerifyFailure)
 
   /**
    * Helper function to verify several characteristics of a successful/unsuccessful request
@@ -120,7 +120,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
 
   "adProviderName" should {
     "be set when creating a new instance of the UnityAdsCallback class" in new WithDB {
-      goodCallback.adProviderName must beEqualTo(Constants.UnityAdsName)
+      goodCallback.adProviderName must beEqualTo(Constants.UnityAds.Name)
     }
   }
 
@@ -203,7 +203,7 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     }
 
     "set the ad provider name correctly" in new WithDB {
-      goodCallback.verificationInfo.adProviderName must beEqualTo(Constants.UnityAdsName)
+      goodCallback.verificationInfo.adProviderName must beEqualTo(Constants.UnityAds.Name)
     }
 
     "set the app token correctly" in new WithDB {
