@@ -178,11 +178,11 @@ abstract class Platform(id: Long, name: String) {
   }
 
   val UnityAds = {
-    val name = Constants.UnityAdsName
+    val name = Constants.UnityAds.Name
 
-    val displayName = Constants.UnityAdsDisplayName
+    val displayName = Constants.UnityAds.DisplayName
 
-    val callbackURLFormat = Some(Constants.UnityAdsCallbackUrl)
+    val callbackURLFormat = Some(Constants.UnityAds.CallbackUrl)
 
     val configurable = true
 
@@ -206,7 +206,7 @@ abstract class Platform(id: Long, name: String) {
       }
       s"""{ "requiredParams":[{"description": "$appIDDescription",
          |  "displayKey": "GAME ID",
-         |  "key": "appID",
+         |  "key": "${Constants.UnityAds.GameID}",
          |  "value": "",
          |  "dataType": "String",
          |  "refreshOnAppRestart": true,

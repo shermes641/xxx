@@ -50,15 +50,15 @@ trait AdProviderSpecSetup extends SpecificationWithFixtures {
 
   val unityAdsID = running(FakeApplication(additionalConfiguration = testDB)) {
     val unityAdsConfig = buildAdProviderConfig(
-      Array((Constants.AdProviderConfig.AppID, None, None, Some("true"))),
+      Array((Constants.UnityAds.GameID, None, None, Some("true"))),
       Array((Constants.AdProviderConfig.APIKey, None, None, None)),
       Array((Constants.AdProviderConfig.APIKey, None, None, None)))
     AdProvider.create(
-      name = Constants.UnityAdsName,
-      displayName = Constants.UnityAdsDisplayName,
+      name = Constants.UnityAds.Name,
+      displayName = Constants.UnityAds.DisplayName,
       configurationData = unityAdsConfig,
       platformID = Platform.Ios.PlatformID,
-      callbackUrlFormat = Some(Constants.UnityAdsCallbackUrlSpec)
+      callbackUrlFormat = Some(Constants.UnityAds.CallbackUrlSpec)
     ).get
   }
 
