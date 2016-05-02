@@ -50,7 +50,8 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
           displayName = adProviderDisplayName,
           configurationData = configuration,
           platformID = Platform.Ios.PlatformID,
-          callbackUrlFormat = None
+          callbackUrlFormat = None,
+          callbackUrlDescription = Platform.Ios.UnityAds.callbackURLDescription.format(name)
         )
       }
       goToAndWaitForAngular(controllers.routes.AnalyticsController.show(distributorID, Some(currentApp.id), None).url)

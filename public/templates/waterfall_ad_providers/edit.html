@@ -76,7 +76,7 @@
                 <label id="callback-url-label">Callback URL</label>
                 <h4 ng-mouseenter="hoverCallbackURL=true" ng-mouseleave="hoverCallbackURL=false" class="tooltip">
                     ?
-                    <div class="ngtooltip" ng-show="hoverCallbackURL">Copy and paste this URL into the Callback URL field of {{wapData.adProviderName}}'s dashboard.</div>
+                    <div class="ngtooltip" ng-show="hoverCallbackURL" ng-bind-html="wapData.callbackUrlDescription | escapeHtml"></div>
                 </h4>
                 <div class="callback"><pre>{{wapData.appDomain}}{{wapData.callbackUrl}}</pre></div>
             </dd>

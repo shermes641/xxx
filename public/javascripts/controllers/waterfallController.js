@@ -355,7 +355,7 @@ mediationModule.controller( 'WaterfallController', [ '$scope', '$http', '$routeP
                     // If a WaterfallAdProvider already exists, retrieve its data from the server
                     $http.get('/distributors/' + $routeParams.distributorID + '/waterfall_ad_providers/' + adProviderConfig.waterfallAdProviderID + '/edit', {params: {app_token: $scope.appToken}}).success(function(wapData) {
                         $scope.getWaterfallData();
-                        setWAPData(wapData)
+                        setWAPData(wapData);
                     }).error(function(data) {
                         flashMessage.add(data);
                     });

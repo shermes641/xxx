@@ -1,6 +1,5 @@
 package resources
 
-import hmac.Constants
 import models._
 import play.api.libs.json.JsObject
 import play.api.test.Helpers._
@@ -12,7 +11,7 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
   }
 
   val (app1, waterfall, virtualCurrency1, _) = running(FakeApplication(additionalConfiguration = testDB)) {
-    setUpApp(distributor.id.get, callbackUrl = Some(Constants.dummyUrl))
+    setUpApp(distributor.id.get, callbackUrl = Some(hmac.Constants.dummyUrl))
   }
 
   val adProviderConfigData = {
@@ -34,6 +33,7 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
 
   val adProviderDisplayNames = List("test ad provider 1", "test ad provider 2")
   val adProviders = List("testAdProvider1", "testAdProvider2")
+  val callbackUrlDescription = "Copy and paste this URL into the Callback URL field of %s's dashboard."
 
   val adProviderID1 = running(FakeApplication(additionalConfiguration = testDB)) {
     val name = adProviders(0)
@@ -44,6 +44,7 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
       configurationData = adProviderConfigData,
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None,
+      callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName),
       configurable = true
     )
   }
@@ -57,6 +58,7 @@ trait WaterfallSpecSetup extends SpecificationWithFixtures with DistributorUserS
       configurationData = adProviderConfigData,
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None,
+      callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(displayName),
       configurable = true
     )
   }
