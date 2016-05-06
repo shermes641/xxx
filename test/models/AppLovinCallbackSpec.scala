@@ -10,6 +10,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
+  val adProviderUserID= Some("user-id")
+
   running(FakeApplication(additionalConfiguration = testDB)) {
     val id = WaterfallAdProvider.create(waterfall.id, appLovinID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
@@ -21,18 +23,24 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
   val transactionID = "some-transaction-id"
   val amount = 5.0
   val callback = running(FakeApplication(additionalConfiguration = testDB)) {
-    new AppLovinCallback(transactionID, app1.token, amount)
+    new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
+  }
+
+  val callbackNoUserID = running(FakeApplication(additionalConfiguration = testDB)) {
+    new AppLovinCallback(transactionID, app1.token, amount, None)
   }
 
   "adProviderName" should {
     "be set when creating a new instance of the AppLovinCallback class" in new WithDB {
       callback.adProviderName must beEqualTo("AppLovin")
+      callbackNoUserID.adProviderName must beEqualTo("AppLovin")
     }
   }
 
   "token" should {
     "be set when creating a new instance of the AppLovinCallback class" in new WithDB {
       callback.token must beEqualTo(app1.token)
+      callbackNoUserID.token must beEqualTo(app1.token)
     }
   }
 
@@ -40,7 +48,7 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     "ignore the reward amount passed in the server to server callback" in new WithDB {
       val callback = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount)
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
       }
       callback.currencyAmount must beEqualTo(2)
       callback.currencyAmount must not(beEqualTo(amount))
@@ -49,7 +57,7 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
       val callback = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount)
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
       }
       callback.currencyAmount must beEqualTo(5)
     }
@@ -57,7 +65,7 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
       val callback = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=5, rewardMax=None, roundUp=false))
-        new AppLovinCallback(transactionID, app1.token, amount)
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
       }
       callback.currencyAmount must beEqualTo(0)
     }
@@ -65,13 +73,13 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
       val callbackWithoutRewardMax = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount)
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
       }
       callbackWithoutRewardMax.currencyAmount must beEqualTo(12)
 
       val callbackWithRewardMax = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
-        new AppLovinCallback(transactionID, app1.token, amount)
+        new AppLovinCallback(transactionID, app1.token, amount, adProviderUserID)
       }
       callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }

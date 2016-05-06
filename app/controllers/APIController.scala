@@ -2,7 +2,7 @@ package controllers
 
 import java.util.concurrent.TimeoutException
 
-import hmac.{Constants, HmacHashData, Signer}
+import hmac.{HmacHashData, Signer}
 import models._
 import play.api.Logger
 import play.api.libs.json._
@@ -33,10 +33,10 @@ object APIController extends Controller {
    */
   def appConfigV1(appToken: String, platformName: Option[String]) = Action { implicit request =>
     AppConfig.findLatest(appToken) match {
-      case Some(response) => {
+      case Some(response) =>
         if((response.configuration \ "status").isInstanceOf[JsUndefined]) {
           (platformName, response.configuration \ "platformID") match {
-            case (Some(platformParamName), platformID: JsNumber) => {
+            case (Some(platformParamName), platformID: JsNumber) =>
               val appConfigPlatformName = Platform.find(platformID.as[Int]).PlatformName
               if(platformParamName == appConfigPlatformName) {
                 Ok(response.configuration)
@@ -48,41 +48,43 @@ object APIController extends Controller {
                   )
                 )
               }
-            }
-            case (_, _) => {
+
+            case (_, _) =>
               Ok(response.configuration)
-            }
           }
         } else {
           BadRequest(response.configuration)
         }
-      }
-      case None => {
+
+      case None =>
         NotFound(
           Json.obj(
             "status" -> "error",
             "message" -> "App Configuration not found."
           )
         )
-      }
     }
   }
 
   /**
-   * Accepts server to server callback info from Vungle, then starts the reward completion process.
-   * @param appToken The token for the App to which the completion will belong.
-   * @param amount The amount of virtual currency to be rewarded.
-   * @param uid The ID of the device on Vungle's network.
-   * @param transactionID A unique ID that verifies the completion.
-   * @param digest A hashed value to authenticate the origin of the request.
-   * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
-   */
-  def vungleCompletionV1(appToken: String, transactionID: Option[String], digest: Option[String], amount: Option[Int], uid: Option[String]) = Action { implicit request =>
+    * Accepts server to server callback info from Vungle, then starts the reward completion process.
+    * @param appToken       The token for the App to which the completion will belong.
+    * @param transactionID  A unique ID that verifies the completion.
+    * @param digest         A hashed value to authenticate the origin of the request.
+    * @param amount         The amount of virtual currency to be rewarded.
+    * @param uid            The ID of the device on Vungle's network.
+    * @return               If the incoming request is valid, returns a 200; otherwise, returns 400.
+    */
+  def vungleCompletionV1(appToken: String,
+                         transactionID: Option[String],
+                         digest: Option[String],
+                         amount: Option[Int],
+                         uid: Option[String]) = Action { implicit request =>
     (transactionID, digest, amount) match {
-      case (Some(transactionIDValue: String), Some(digestValue: String), Some(amountValue: Int)) => {
-        val callback = new VungleCallback(appToken, transactionIDValue, digestValue, amountValue)
+      case (Some(transactionIDValue: String), Some(digestValue: String), Some(amountValue: Int)) =>
+        val callback = new VungleCallback(appToken, transactionIDValue, digestValue, amountValue, uid)
         callbackResponse(callback, request)
-      }
+
       case (_, _, _) => BadRequest
     }
   }
@@ -112,12 +114,41 @@ object APIController extends Controller {
    * @param verifier A hashed value to authenticate the origin of the request.
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
-  def adColonyCompletionV1(appToken: String, transactionID: Option[String], uid: Option[String], amount: Option[Int], currency: Option[String], openUDID: Option[String], udid: Option[String], odin1: Option[String], macSha1: Option[String], verifier: Option[String], customID: Option[String]) = Action { implicit request =>
+  def adColonyCompletionV1(appToken: String,
+                           transactionID: Option[String],
+                           uid: Option[String],
+                           amount: Option[Int],
+                           currency: Option[String],
+                           openUDID: Option[String],
+                           udid: Option[String],
+                           odin1: Option[String],
+                           macSha1: Option[String],
+                           verifier: Option[String],
+                           customID: Option[String]) = Action { implicit request =>
     (transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID) match {
-      case (Some(transactionIDValue: String), Some(uidValue: String), Some(amountValue: Int), Some(currencyValue: String), Some(openUDIDValue: String), Some(udidValue: String), Some(odin1Value: String), Some(macSha1Value: String), Some(verifierValue: String), Some(customIDValue: String)) => {
-        val callback = new AdColonyCallback(appToken, transactionIDValue, uidValue, amountValue, currencyValue, openUDIDValue, udidValue, odin1Value, macSha1Value, verifierValue, customIDValue)
+      case (Some(transactionIDValue: String),
+      Some(uidValue: String),
+      Some(amountValue: Int),
+      Some(currencyValue: String),
+      Some(openUDIDValue: String),
+      Some(udidValue: String),
+      Some(odin1Value: String),
+      Some(macSha1Value: String),
+      Some(verifierValue: String),
+      Some(customIDValue: String)) =>
+        val callback = new AdColonyCallback(appToken,
+          transactionIDValue,
+          uidValue,
+          amountValue,
+          currencyValue,
+          openUDIDValue,
+          udidValue,
+          odin1Value,
+          macSha1Value,
+          verifierValue,
+          customIDValue)
         callbackResponse(callback, request)
-      }
+
       case (_, _, _, _, _, _, _, _, _, _) => AdColonyCallback.DefaultFailure
     }
   }
@@ -133,12 +164,18 @@ object APIController extends Controller {
    * @param userID A unique ID set for each user.
    * @return If the incoming request is valid, returns a 200; otherwise, returns 400.
    */
-  def appLovinCompletionV1(appToken: String, eventID: Option[String], amount: Option[Double], idfa: Option[String], hadid: Option[String], currency: Option[String], userID: Option[String]) = Action { implicit request =>
+  def appLovinCompletionV1(appToken: String,
+                           eventID: Option[String],
+                           amount: Option[Double],
+                           idfa: Option[String],
+                           hadid: Option[String],
+                           currency: Option[String],
+                           userID: Option[String]) = Action { implicit request =>
     (eventID, amount) match {
-      case (Some(eventIDValue: String), Some(amountValue: Double)) => {
-        val callback = new AppLovinCallback(eventIDValue, appToken, amountValue)
+      case (Some(eventIDValue: String), Some(amountValue: Double)) =>
+        val callback = new AppLovinCallback(eventIDValue, appToken, amountValue, userID)
         callbackResponse(callback, request)
-      }
+
       case (_, _) => BadRequest
     }
   }
@@ -164,10 +201,10 @@ object APIController extends Controller {
                                   uid: Option[String],
                                   partnerCode: Option[String]) = Action { implicit request =>
     (uid, sig, time, quantity) match {
-      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(quantityValue: Int)) => {
+      case (Some(userIDValue: String), Some(signatureValue: String), Some(timeValue: String), Some(quantityValue: Int)) =>
         val callback = new HyprMarketplaceCallback(appToken, userIDValue, signatureValue, timeValue, offerProfit, quantityValue, partnerCode)
         callbackResponse(callback, request)
-      }
+
       case (_, _, _, _) => BadRequest
     }
   }
@@ -196,6 +233,7 @@ object APIController extends Controller {
           val hmacData = Some(
             HmacHashData(uri = callback.verificationInfo.callbackURL.getOrElse(""),
               adProviderName = callback.adProviderName,
+              adProviderUserID = callback.adProviderUserID,
               rewardQuantity = callback.currencyAmount,
               estimatedOfferProfit = callback.payout,
               transactionId = callback.verificationInfo.transactionID
@@ -209,11 +247,11 @@ object APIController extends Controller {
           Await.result(completion.createWithNotification(callback.verificationInfo, adProviderRequest, hmacData),
             Duration(DefaultTimeout, "millis")) match {
             case true => callback.returnSuccess
-            case false => {
+
+            case false =>
               Logger.error("Server to server callback to Distributor's servers was unsuccessful for Ad Provider: " +
                 callback.adProviderName + "API Token: " + callback.token + " Callback URL: " + callback.verificationInfo.callbackURL)
               callback.returnFailure
-            }
           }
         } catch {
           case _: TimeoutException =>
@@ -222,10 +260,9 @@ object APIController extends Controller {
             callback.returnFailure
         }
 
-      case false => {
+      case false =>
         Logger.error("Invalid server to server callback verification for Ad Provider: " + callback.adProviderName + " API Token: " + callback.token)
         callback.returnFailure
-      }
     }
   }
 }

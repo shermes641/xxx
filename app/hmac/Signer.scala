@@ -22,6 +22,7 @@ import play.api.{Logger, Play}
   */
 case class HmacHashData(uri: String,
                         adProviderName: String = Constants.DefaultAdProviderName,
+                        adProviderUserID: String = Constants.DefaultUid,
                         rewardQuantity: Long = 0L,
                         estimatedOfferProfit: Option[Double] = None,
                         transactionId: String = Constants.DefaultTransactionId) {
@@ -29,12 +30,14 @@ case class HmacHashData(uri: String,
   val paramSeq = estimatedOfferProfit match {
     case Some(estimated) =>
       Seq("adProviderName" -> adProviderName,
+        "adProviderUserID" -> adProviderUserID,
+        "estimatedOfferProfit" -> estimatedOfferProfit.get.toString,
         "rewardQuantity" -> rewardQuantity.toString,
-        "transactionId" -> transactionId,
-        "estimatedOfferProfit" -> estimatedOfferProfit.get.toString)
+        "transactionId" -> transactionId)
 
     case _ =>
       Seq("adProviderName" -> adProviderName,
+        "adProviderUserID" -> adProviderUserID,
         "rewardQuantity" -> rewardQuantity.toString,
         "transactionId" -> transactionId)
   }

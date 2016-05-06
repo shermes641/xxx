@@ -19,7 +19,7 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
   val eCPM = 25.0
 
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, adColonyID, None, None, true, true).get
+    val id = WaterfallAdProvider.create(waterfall.id, adColonyID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))

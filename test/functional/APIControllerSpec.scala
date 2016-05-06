@@ -553,6 +553,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
     val hmacData =
       HmacHashData(uri = callback.verificationInfo.callbackURL.getOrElse(""),
         adProviderName = callback.adProviderName,
+        adProviderUserID = callback.adProviderUserID,
         rewardQuantity = callback.currencyAmount,
         estimatedOfferProfit = callback.payout,
         transactionId = callback.verificationInfo.transactionID

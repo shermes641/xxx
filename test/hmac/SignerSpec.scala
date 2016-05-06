@@ -60,10 +60,11 @@ class SignerSpec extends BaseSpec with Mockito {
     forAll {
       (uri: String,
        adProviderName: String,
-       rewardQuantity: Int,
+       adProviderUserID: String,
+       rewardQuantity: Long,
        estimatedOfferProfit: Option[Double],
        transactionId: String) =>
-        val res = HmacHashData(uri, adProviderName, rewardQuantity, estimatedOfferProfit, transactionId)
+        val res = HmacHashData(uri, adProviderName, adProviderUserID, rewardQuantity, estimatedOfferProfit, transactionId)
         res.uri should be(uri)
         res.adProviderName should be(adProviderName)
         res.rewardQuantity should be(rewardQuantity)
@@ -113,9 +114,10 @@ class SignerSpec extends BaseSpec with Mockito {
     val ts = Signer.timestamp
     forAll {
       (adProviderName: String,
+       adProviderUserID: String,
        rewardQuantity: Int,
        estimatedOfferProfit: Option[Double]) =>
-        val hd = HmacHashData("http://some uri", adProviderName, rewardQuantity, estimatedOfferProfit)
+        val hd = HmacHashData("http://some uri", adProviderName, adProviderUserID, rewardQuantity, estimatedOfferProfit)
         val hash = Signer.generate("asflaskfs43^&6ydgdf&*69tTds=", hd, Constants.DefaultNonce, ts)
         Signer.valid("asflaskfs43^&6ydgdf&*69tTds=", hd, Constants.DefaultNonce, ts, hash.get) should be(true)
     }
@@ -125,10 +127,11 @@ class SignerSpec extends BaseSpec with Mockito {
     forAll {
       (uri: String,
        adProviderName: String,
+       adProviderUserID: String,
        rewardQuantity: Int,
        estimatedOfferProfit: Option[Double]) =>
         val secret = ""
-        val hd = HmacHashData(uri, adProviderName, rewardQuantity, estimatedOfferProfit)
+        val hd = HmacHashData(uri, adProviderName, adProviderUserID,rewardQuantity, estimatedOfferProfit)
         Signer.generate(secret, hd, Constants.DefaultNonce, Signer.timestamp) should be(None)
     }
   }

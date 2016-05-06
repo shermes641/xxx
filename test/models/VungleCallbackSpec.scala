@@ -10,6 +10,8 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
+  val adProviderUserID = Some("user-id")
+
   running(FakeApplication(additionalConfiguration = testDB)) {
     val id = WaterfallAdProvider.create(waterfall.id, vungleID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
@@ -22,7 +24,7 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
   val digest = "bf80d53f84df22bb91b48acc7606bc0909876f6fe981b1610a0352433ae16a63"
   val amount = 1
   val callback = running(FakeApplication(additionalConfiguration = testDB)) {
-    new VungleCallback(app1.token, transactionID, digest, amount)
+    new VungleCallback(app1.token, transactionID, digest, amount, adProviderUserID)
   }
 
   "adProviderName" should {
@@ -41,7 +43,7 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
     "ignore the reward amount passed in the server to server callback" in new WithDB {
       val callback = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=1, rewardMax=None, roundUp=true))
-        new VungleCallback(app1.token, transactionID, digest, amount)
+        new VungleCallback(app1.token, transactionID, digest, amount, adProviderUserID)
       }
       callback.currencyAmount must beEqualTo(2)
       callback.currencyAmount must not(beEqualTo(amount))
@@ -50,7 +52,7 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
     "be set to the rewardMinimum value when roundUp is true and the calculated amount is less than rewardMinimum" in new WithDB {
       val callback = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=1, rewardMin=5, rewardMax=None, roundUp=true))
-        new VungleCallback(app1.token, transactionID, digest, amount)
+        new VungleCallback(app1.token, transactionID, digest, amount, adProviderUserID)
       }
       callback.currencyAmount must beEqualTo(5)
     }
@@ -58,7 +60,7 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
     "be set to 0 when roundUp is false and the calculated amount is less than the rewardMinimum" in new WithDB {
       val callback = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=100, rewardMin=5, rewardMax=None, roundUp=false))
-        new VungleCallback(app1.token, transactionID, digest, amount)
+        new VungleCallback(app1.token, transactionID, digest, amount, adProviderUserID)
       }
       callback.currencyAmount must beEqualTo(0)
     }
@@ -66,13 +68,13 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
     "be set to the rewardMaximum value if rewardMaximum is not empty and the calculated amount is greater than the rewardMaximum" in new WithDB {
       val callbackWithoutRewardMax = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=None, roundUp=true))
-        new VungleCallback(app1.token, transactionID, digest, amount)
+        new VungleCallback(app1.token, transactionID, digest, amount, adProviderUserID)
       }
       callbackWithoutRewardMax.currencyAmount must beEqualTo(12)
 
       val callbackWithRewardMax = {
         VirtualCurrency.update(new VirtualCurrency(virtualCurrency1.id, virtualCurrency1.appID, virtualCurrency1.name, exchangeRate=500, rewardMin=1, rewardMax=Some(2), roundUp=true))
-        new VungleCallback(app1.token, transactionID, digest, amount)
+        new VungleCallback(app1.token, transactionID, digest, amount, adProviderUserID)
       }
       callbackWithRewardMax.currencyAmount must beEqualTo(2)
     }
@@ -96,7 +98,7 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
 
     "not be valid when the generated verification does not match the received digest" in new WithDB {
       val invalidDigest = "Some fake verifier"
-      val newCallback = new VungleCallback(app1.token, transactionID, invalidDigest, amount)
+      val newCallback = new VungleCallback(app1.token, transactionID, invalidDigest, amount, adProviderUserID)
       val verification = newCallback.verificationInfo
       verification.isValid must beEqualTo(false)
     }

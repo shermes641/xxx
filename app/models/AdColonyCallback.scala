@@ -24,9 +24,20 @@ object AdColonyCallback extends Controller {
  * @param verifier A hashed value to authenticate the origin of the request.
  * @param customID A custom param used to pass user ID.
  */
-class AdColonyCallback(appToken: String, transactionID: String, uid: String, amount: Int, currency: String, openUDID: String, udid: String, odin1: String, macSha1: String, verifier: String, customID: String) extends CallbackVerificationHelper with Controller {
+class AdColonyCallback(appToken: String,
+                       transactionID: String,
+                       uid: String,
+                       amount: Int,
+                       currency: String,
+                       openUDID: String,
+                       udid: String,
+                       odin1: String,
+                       macSha1: String,
+                       verifier: String,
+                       customID: String) extends CallbackVerificationHelper with Controller {
   override val adProviderName = "AdColony"
   override val token = appToken
+  override val adProviderUserID = uid
   override val receivedVerification = verifier
   override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
 
