@@ -9,9 +9,9 @@ package models
 class AppLovinCallback(transactionID: String, appToken: String, amount: Double, userID: Option[String]) extends CallbackVerificationHelper {
   val adProviderName = "AppLovin"
   override val token = appToken
-  override val receivedVerification = ""
-  override val adProviderUserID = userID.getOrElse("")
-  override def generatedVerification: String = ""
+  override val receivedVerification = Constants.NoValue
+  override val adProviderUserID = userID.getOrElse(Constants.NoValue)
+  override def generatedVerification: String = Constants.NoValue
 
   override val verificationInfo = new CallbackVerificationInfo(true, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
 }

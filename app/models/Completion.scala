@@ -3,6 +3,7 @@ package models
 import java.net.URL
 
 import anorm._
+import hmac.{HmacConstants, HmacHashData}
 import play.api.Logger
 import play.api.Play.current
 import play.api.db.DB
@@ -10,7 +11,7 @@ import play.api.libs.json._
 import play.api.libs.ws.{WS, WSResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{TimeoutException, Future}
+import scala.concurrent.{Future, TimeoutException}
 import scala.language.{implicitConversions, postfixOps}
 import scala.util.{Failure, Success, Try}
 
@@ -50,29 +51,37 @@ class Completion extends JsonConversion {
   /**
     * Creates a new Completion record and notifies the distributor if server to server callbacks are enabled.
     *
-    * @param verificationInfo  Class containing information to verify the postback and create a new Completion.
-    * @param adProviderRequest The original postback from the ad provider
+    * @param verificationInfo   Class containing information to verify the postback and create a new Completion.
+    * @param adProviderRequest  The original postback from the ad provider
+    * @param adProviderUserID   ad provider supplied user id
+    * @param sharedSecretKey    option HMAC key to enable testing
     * @return A boolean future indicating the success of the call to the App's reward callback.
     */
   def createWithNotification(verificationInfo: CallbackVerificationInfo,
                              adProviderRequest: JsValue,
-                             hmacQueryParams: Option[Seq[(String, String)]] = None): Future[Boolean] = {
+                             adProviderUserID: String,
+                             sharedSecretKey: Option[String] = None): Future[Boolean] = {
     create(
       verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID,
       verificationInfo.offerProfit, verificationInfo.rewardQuantity, verificationInfo.generationNumber, adProviderRequest
     ) match {
       case Some(id: Long) =>
         // validate uri and do not perform POST if it's bad
-        Try(new URL(verificationInfo.callbackURL.getOrElse(""))) match {
+        Try(new URL(verificationInfo.callbackURL.getOrElse(Constants.NoValue))) match {
           case Success(uri) if verificationInfo.serverToServerEnabled =>
-              postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, hmacQueryParams)
+            sharedSecretKey match {
+              case Some(ssk: String) =>
+                postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, ssk)
+              case _ =>
+                postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, App.findHmacSecretByToken(verificationInfo.appToken).getOrElse(Constants.NoValue))
+            }
 
           case _ =>
             if (!verificationInfo.serverToServerEnabled) {
-              Logger.debug(s"""Server to Server callbacks not enabled url: '${verificationInfo.callbackURL.getOrElse("")}'""")
+              Logger.debug(s"""Server to Server callbacks not enabled url: '${verificationInfo.callbackURL.getOrElse(Constants.NoValue)}'""")
               Future(true)
             } else {
-              Logger.error(s"""Unable to validate callback URL, POST not executed url: '${verificationInfo.callbackURL.getOrElse("")}'""")
+              Logger.error(s"""Unable to validate callback URL, POST not executed url: '${verificationInfo.callbackURL.getOrElse(Constants.NoValue)}'""")
               Future(false)
             }
         }
@@ -86,40 +95,50 @@ class Completion extends JsonConversion {
   /**
     * Assembles data for JSON body and sends POST request to callback URL if one exists.
     *
-    * @param callbackURL        The target URL for the POST request.
-    * @param adProviderRequest  The original postback from the ad provider.
-    * @param verificationInfo   Class containing information to verify the postback and create a new Completion.
-    * @param hmacQueryParams    Optional sequence of query parameters if using hmac signing
+    * @param callbackURL       The target URL for the POST request.
+    * @param adProviderRequest The original postback from the ad provider.
+    * @param verificationInfo  Class containing information to verify the postback and create a new Completion.
+    * @param adProviderUserID  User ID from ad provider
+    * @param sharedSecretKey   Used to HMAC sign the request
     * @return A boolean future indicating the success of the call to the App's reward callback.
     */
   def postCallback(callbackURL: Option[String],
                    adProviderRequest: JsValue,
                    verificationInfo: CallbackVerificationInfo,
-                   hmacQueryParams: Option[Seq[(String, String)]] = None): Future[Boolean] = {
+                   adProviderUserID: String,
+                   sharedSecretKey: String): Future[Boolean] = {
 
     callbackURL match {
       case Some(url: String) =>
         Try(new URL(url)) match {
           case Success(uri) =>
-            val data = postbackData(adProviderRequest, verificationInfo)
-            sendPost(url, data, hmacQueryParams).map { response =>
+            val hmacData = HmacHashData(adProviderRequest, verificationInfo, adProviderUserID)
+
+            if (Environment.isDev || Environment.isStaging || Environment.isTest)
+              Logger.info(s"hmacData:\n'${hmacData.postBackData.toString}'")
+
+            val signature = hmacData.toHash(sharedSecretKey)
+            Logger.debug(s"signature: '$signature'   secret: '$sharedSecretKey'")
+            sendPost(url, hmacData.postBackData, signature).map { response =>
               response.status match {
-                case status: Int if status == 200 => true
+                case status: Int if status == 200 =>
+                  true
 
                 case status =>
                   Logger.error("Server to server callback to Distributor's servers returned a status code of " + status + " for URL: " +
                     url + " API Token: " + verificationInfo.appToken + " Ad Provider: " + verificationInfo.adProviderName)
                   false
-
               }
             } recover {
-              case e: TimeoutException => false
+              case e: TimeoutException =>
+                false
               case exception: Throwable =>
                 Logger.error("Server to server callback to Distributor's servers generated exception:\nURL: " + url +
                   "\nAPI Token: " + verificationInfo.appToken + "\nException: " + exception)
                 false
 
-              case _ => false
+              case _ =>
+                false
             }
 
           case Failure(ex) =>
@@ -134,35 +153,17 @@ class Completion extends JsonConversion {
   }
 
   /**
-   * Builds the JSON that we POST to the distributor's servers on a successful sever to server callback
-   *
-   * @param adProviderRequest The original postback from the ad provider.
-   * @param verificationInfo  Class containing information to verify the postback and create a new Completion.
-   * @return                  JSON containing all necessary postback params from our documentation
-   */
-  def postbackData(adProviderRequest: JsValue, verificationInfo: CallbackVerificationInfo): JsObject = {
-    Json.obj(
-      "original_postback"      -> adProviderRequest,
-      "ad_provider"            -> verificationInfo.adProviderName,
-      "reward_quantity"        -> verificationInfo.rewardQuantity,
-      "estimated_offer_profit" -> verificationInfo.offerProfit,
-      "transaction_id"         -> verificationInfo.transactionID
-    )
-  }
-
-  /**
     * Sends POST request to callback URL
     *
-    * @param url              The callback URL specified in the app
-    * @param data             The JSON to be POST'ed to the callback URL
-    * @param hmacQueryParams  Optional sequence of query parameters if using hmac signing
+    * @param url       The callback URL specified in the app
+    * @param data      The JSON to be POST'ed to the callback URL
+    * @param signature Optional sequence of query parameters if using hmac signing
     * @return A successful or unsuccessful WSResponse
     */
-  def sendPost(url: String, data: JsValue, hmacQueryParams: Option[Seq[(String, String)]] = None): Future[WSResponse] = {
-    hmacQueryParams match {
-      case Some(hmacQp: Seq[(String, String)]) =>
-        WS.url(url).withQueryString(hmacQp: _*).post(data)
-
+  def sendPost(url: String, data: JsValue, signature: Option[String]): Future[WSResponse] = {
+    signature match {
+      case Some(sig) =>
+        WS.url(url).withQueryString(Seq((HmacConstants.QsHmac, sig),(HmacConstants.QsVersionKey, HmacConstants.QsVersionValue1_0)): _*).post(data)
       case _ =>
         WS.url(url).post(data)
     }

@@ -1,7 +1,6 @@
 package models
 
 import java.security.MessageDigest
-import play.api.Play
 
 /**
  * Encapsulates callback information for HyprMarketplace.
@@ -19,8 +18,8 @@ class HyprMarketplaceCallback(appToken: String,
                               time: String,
                               offerProfit: Option[Double],
                               quantity: Int,
-                              transactionID: Option[String]) extends CallbackVerificationHelper {
-  val defaultTransactionID = ""
+                              transactionID: Option[String]) extends CallbackVerificationHelper with ConfigVars {
+  val defaultTransactionID = Constants.NoValue
   override val adProviderName = "HyprMarketplace"
   override val token = appToken
   override val adProviderUserID = userID

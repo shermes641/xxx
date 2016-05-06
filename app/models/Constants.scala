@@ -44,8 +44,6 @@ object Constants {
 
   object Hmac {
     final val SignerAlgorithm           = "signerAlgorithm"
-    final val SignerSeparator           = "signerSeparator"
-    final val SignerTolerance           = "signerTolerance"
   }
 
   object KeenConfig {
@@ -77,7 +75,7 @@ object Constants {
   }
 
   final val DefaultReportingTimeoutMs = 20000
-  final val NoValue                   = "Value Missing"
+  final val NoValue                   = ""
 
   // Unity Ads specific constants
   object UnityAds {
@@ -112,5 +110,5 @@ object Constants {
     final val UnityadsUrl         = "unityads.reporting_url"
   }
 }
-//@formatter:off
+//@formatter:on
 // $COVERAGE-ON$

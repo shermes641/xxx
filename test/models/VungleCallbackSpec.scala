@@ -1,13 +1,10 @@
 package models
 
-import play.api.libs.json.{JsString, JsObject}
-import play.api.test._
+import play.api.libs.json.{JsObject, JsString}
 import play.api.test.Helpers._
+import play.api.test._
 import resources._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
   val adProviderUserID = Some("user-id")
@@ -30,6 +27,12 @@ class VungleCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSe
   "adProviderName" should {
     "be set when creating a new instance of the VungleCallback class" in new WithDB {
       callback.adProviderName must beEqualTo("Vungle")
+    }
+  }
+
+  "adProviderUserID" should {
+    "be set when creating a new instance of the VungleCallback class" in new WithDB {
+      callback.adProviderUserID must beEqualTo(adProviderUserID.get)
     }
   }
 

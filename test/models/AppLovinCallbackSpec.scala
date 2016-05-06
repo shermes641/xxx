@@ -1,13 +1,10 @@
 package models
 
 import play.api.libs.json.JsObject
-import play.api.test._
 import play.api.test.Helpers._
+import play.api.test._
 import resources._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
   val adProviderUserID= Some("user-id")
@@ -34,6 +31,13 @@ class AppLovinCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     "be set when creating a new instance of the AppLovinCallback class" in new WithDB {
       callback.adProviderName must beEqualTo("AppLovin")
       callbackNoUserID.adProviderName must beEqualTo("AppLovin")
+    }
+  }
+
+  "adProviderUserID" should {
+    "be set when creating a new instance of the AppLovinCallback class" in new WithDB {
+      callback.adProviderUserID must beEqualTo(adProviderUserID.get)
+      callbackNoUserID.adProviderUserID must beEqualTo("")
     }
   }
 

@@ -550,48 +550,19 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
 
     val completion = mock[Completion]
     val adProviderRequest = JsObject(Seq())
-    val hmacData =
-      HmacHashData(uri = callback.verificationInfo.callbackURL.getOrElse(""),
-        adProviderName = callback.adProviderName,
-        adProviderUserID = callback.adProviderUserID,
-        rewardQuantity = callback.currencyAmount,
-        estimatedOfferProfit = callback.payout,
-        transactionId = callback.verificationInfo.transactionID
-      )
 
     "return the ad provider's default successful response if the server to server callback receives a 200 response" in new WithFakeBrowser {
-      val maybeHmacData = Some(
-        hmacData.toQueryParamMap(
-          timestamp = Some(Signer.timestamp),
-          nonce = callback.verificationInfo.transactionID,
-          hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
-        )
-      )
-      completion.createWithNotification(verificationInfo, adProviderRequest, maybeHmacData) returns Future(true)
+      completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future(true)
       APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnSuccess.header.status)
     }
 
     "return the ad provider's default failure response if the server to server callback does not respond with a 200" in new WithFakeBrowser {
-      val maybeHmacData = Some(
-        hmacData.toQueryParamMap(
-          timestamp = Some(Signer.timestamp),
-          nonce = callback.verificationInfo.transactionID,
-          hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
-        )
-      )
-      completion.createWithNotification(verificationInfo, adProviderRequest, maybeHmacData) returns Future(false)
+      completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future(false)
       APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
 
     "return the ad provider's default failure response if the server to server callback times out" in new WithFakeBrowser {
-      val maybeHmacData = Some(
-        hmacData.toQueryParamMap(
-          timestamp = Some(Signer.timestamp),
-          nonce = callback.verificationInfo.transactionID,
-          hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
-        )
-      )
-      completion.createWithNotification(verificationInfo, adProviderRequest, maybeHmacData) returns Future {
+      completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future {
         Thread.sleep(APIController.DefaultTimeout + 1000)
         true
       }
@@ -600,14 +571,7 @@ class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetu
 
     "return the ad provider's default failure response if the incoming request was not valid" in new WithFakeBrowser {
       verificationInfo.isValid returns false
-      val maybeHmacData = Some(
-        hmacData.toQueryParamMap(
-          timestamp = Some(Signer.timestamp),
-          nonce = callback.verificationInfo.transactionID,
-          hmacSecret = App.findHmacSecretByToken(callback.verificationInfo.appToken)
-        )
-      )
-      completion.createWithNotification(verificationInfo, adProviderRequest, maybeHmacData) returns Future(true)
+      completion.createWithNotification(verificationInfo, adProviderRequest, callback.adProviderUserID) returns Future(true)
       APIController.callbackResponse(callback, adProviderRequest, completion).header.status must beEqualTo(callback.returnFailure.header.status)
     }
   }

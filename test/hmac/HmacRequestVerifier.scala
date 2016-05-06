@@ -1,97 +1,77 @@
 package hmac
 
-/**
-  * Created by shermes on 1/28/16.
-  *
-  * This object's functionality is to verify a HMAC signed request
-  * We currently have no need for this functionality except in functional tests
-  * If / when we have this requirement, we will move this package into the runtime code
-  */
-
 import play.api.Logger
 import play.api.mvc.RequestHeader
 
+import scala.collection.mutable
 import scala.util.parsing.json.JSON
 import scala.util.{Failure, Success, Try}
 
 /**
   * Verifies HMAC requests
   *
-  * This is provided to test the HMAC query string we generate on server to server callbacks
-  * Distributers could use it as an example on how to validate the signed POST's we send them
-  *
+  * This object's functionality is to verify a HMAC signed request
+  * We currently have no need for this functionality except in functional tests
+  * If / when we have this requirement, we will move this package into the runtime code
   */
 object HmacRequestVerifier {
 
-  final val verifyTs = "ts"
-  final val verifyNonce = "nonce"
   final val verifyHmac = "hmac"
   final val quote = "\""
-
-  /**
-    * Parse body into the POST parameters
-    *
-    * @param body request body -- assumes it is json
-    * @return Map of POST parameters
-    */
-  def requestBodyToMap(body: Array[Byte]) = {
-    JSON.parseFull(new String(body, "UTF-8")).get.asInstanceOf[Map[String,String]]
-  }
 
   /**
     * Verify that the given request is a valid server to server request given the hmacSecret
     *
     * @param requestHeader The http/https request header
     * @param body          The http/https request body (if any)
-    * @param hostUrl       The http/https request host
     * @param hmacSecret    The shared HMAC secret
     * @return True if hash is valid
     */
   def verifyRequest(requestHeader: RequestHeader,
                     body: Array[Byte],
-                    hostUrl: String,
-                    nonce: String,
                     hmacSecret: String): Boolean = {
 
     // Get the expected HMAC query parameters
-    Try(Map(verifyTs -> requestHeader.getQueryString("timestamp").get.toString.toLong,
-      verifyNonce -> requestHeader.getQueryString(verifyNonce).get,
-      verifyHmac -> requestHeader.getQueryString(verifyHmac).get)) match {
+    Try(Map(verifyHmac -> requestHeader.getQueryString(verifyHmac).get)) match {
       case Failure(ex) =>
         // This is not a failure, it just means the sender did not HMAC sign the request,
         // or signed it incorrectly, so we are done
         // TODO If / When we care about signing we will reject the request
         Logger.warn(s"Request had a missing or invalid HMAC signature: ${ex.getLocalizedMessage}")
-        Constants.missingOrInvalidHmacSignature
+        HmacConstants.MissingOrInvalidHmacSignature
 
       case Success(res) =>
-        if (res.get(verifyTs).get.toString.toLong > (System.currentTimeMillis() / 1000 - Utils.toleranceToSecs())) {
-          Logger.warn(s"Timestamp on  HMAC signature too old")
-          Constants.timestampTooOld
-        } else {
-          val baseUri = hostUrl
-          val bodyMap = requestBodyToMap(body)
+        val bodyMap = JSON.parseFull(new String(body, "UTF-8")).get.asInstanceOf[Map[String, String]]
+        val bodyStr = new String(body)
+        val timeStamp = bodyMap.get(HmacConstants.TimeStamp).get.toString.toLong
 
-          val queryParamMap = HmacHashData(
-            uri = baseUri,
-            adProviderName = bodyMap.getOrElse(Constants.adProviderName, Constants.DefaultAdProviderName),
-            //TODO rewardQuantity json is converted as X.X, hence the need for the extra .toDouble conversion
-            rewardQuantity = bodyMap.getOrElse(Constants.rewardQuantity, Constants.DefaultRewardQuantity).toString.toDouble.toLong,
-            estimatedOfferProfit = Some(bodyMap.getOrElse(Constants.offerProfit, None).toString.toDouble),
-            transactionId = bodyMap.getOrElse(Constants.transactionID, Constants.DefaultTransactionId)
-          ).toQueryParamMap(Signer.getNewTimestamp, nonce, Some(hmacSecret)).toMap
+        // value: Map(reward_quantity -> 2.0, estimated_offer_profit -> 0.5, ad_provider -> no provider name, user_id -> user-id, transaction_id -> no trans id, original_postback -> Map())
+        //based on test data TODO hand in the values to validate
+        bodyMap.get(HmacConstants.AdProviderName).get == HmacConstants.DefaultAdProviderName &&
+          bodyMap.get(HmacConstants.AdProviderUser).get == "user-id" &&
+          bodyMap.getOrElse(HmacConstants.RewardQuantity, 0).toString.toDouble.toLong == 2.0 &&
+          bodyMap.getOrElse(HmacConstants.OfferProfit, 0.0).toString.toDouble == 0.5 &&
+          bodyMap.get(HmacConstants.TransactionID).get == HmacConstants.DefaultTransactionId &&
+          Math.abs((System.currentTimeMillis / 1000) - timeStamp) < 5000 match {
+          case false =>
+            Logger.error(s"Body parameter check failed body: $bodyStr")
+            false
 
-          queryParamMap map {
-            case (key, value) =>
-              if (requestHeader.getQueryString(key).toString != Some(value).toString)
-                s"$key does not match\n ${requestHeader.getQueryString(key)} \n ${Some(value)}\n"
-          } match {
-            case List((), (), ()) => true
-
-            case em =>
-              em.filterNot(_.toString == "()").foreach((msg: Any) => Logger.warn(msg.toString))
-              false
-          }
+          case _ =>
+            requestHeader.queryString.size match {
+              case 2 =>
+                if (requestHeader.queryString.head._1.equals("hmac")) {
+                  val sig = Signer.generate(hmacSecret, body)
+                  requestHeader.queryString.head._2 == mutable.Buffer(sig.get)
+                } else {
+                  Logger.warn(s"'hmac' missing from query string: ${requestHeader.queryString} ")
+                  false
+                }
+		
+              case _ =>
+                Logger.warn(s"Wrong number of query string params: ${requestHeader.queryString} ")
+                false
+            }
         }
     }
   }

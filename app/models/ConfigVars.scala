@@ -46,8 +46,6 @@ trait ConfigVars {
   private lazy final val ReviewErrorProjectKey   = Play.current.configuration.getString(Constants.KeenConfig.ReviewErrorProjectKey).get
 
   private lazy final val SignerAlgorithm         = Play.current.configuration.getString(Constants.Hmac.SignerAlgorithm).get
-  private lazy final val SignerSeparator         = Play.current.configuration.getString(Constants.Hmac.SignerSeparator).get
-  private lazy final val SignerTolerance         = Play.current.configuration.getString(Constants.Hmac.SignerTolerance).get.toDouble
 
   // these change for review apps
   private lazy final val AppDomain               = Play.current.configuration.getString(Constants.AppConfig.AppDomain).get
@@ -66,20 +64,14 @@ trait ConfigVars {
   //@formatter:on
 
   object ConfigVarsHmac {
-    val (algorithm: String,
-    seperator: String,
-    tolerance: Double) = {
-      (SignerAlgorithm,
-        SignerSeparator,
-        SignerTolerance)
+    val (algorithm: String) = {
+      (SignerAlgorithm)
     }
 
     override def toString = {
       s"""
          |HMAC CONFIG
          |ALGORITHM:    $algorithm
-         |SEPERATOR:    $seperator
-         |TOLERANCE:    $tolerance
        """.stripMargin
     }
   }

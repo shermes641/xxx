@@ -1,13 +1,10 @@
 package models
 
 import play.api.libs.json.JsObject
-import play.api.test._
 import play.api.test.Helpers._
+import play.api.test._
 import resources._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   running(FakeApplication(additionalConfiguration = testDB)) {
     val id = WaterfallAdProvider.create(waterfall.id, hyprMarketplaceID, waterfallOrder = None, cpm = None, configurable = true, active = true).get
@@ -32,6 +29,12 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
   "adProviderName" should {
     "be set when creating a new instance of the HyprMarketplaceCallback class" in new WithDB {
       callback.adProviderName must beEqualTo("HyprMarketplace")
+    }
+  }
+
+  "adProviderUserID" should {
+    "be set when creating a new instance of the HyprMarketplaceCallback class" in new WithDB {
+      callback.adProviderUserID must beEqualTo(userID)
     }
   }
 

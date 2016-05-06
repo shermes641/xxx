@@ -205,14 +205,6 @@ abstract class SpecificationWithFixtures extends Specification with CleanDB with
     lazy val (currentApp, currentWaterfall, currentVirtualCurrency, currentAppConfig) = setUpApp(distributorID, appName)
   }
 
-  class ApplicationFake(additionalConfig: Map[String, _ <: Any] = Map("mode" -> play.api.Mode.Test.toString))
-    extends FakeApplication(additionalConfiguration = additionalConfig) {
-    override val mode = additionalConfig.getOrElse("mode", "No Mode").toString.toLowerCase() match {
-      case "dev" => play.api.Mode.Dev
-      case "prod" => play.api.Mode.Prod
-      case _ => play.api.Mode.Test
-    }
-  }
   abstract class ProdApp extends WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Prod.toString.toLowerCase())))
   abstract class TestApp extends WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Test.toString.toLowerCase())))
   abstract class DevApp extends WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Dev.toString.toLowerCase())))
