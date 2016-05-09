@@ -13,7 +13,7 @@ trait TestAdditionalConf extends SuiteMixin { this: Suite =>
     "db.default.user" -> "postgres",
     "db.default.password" -> "postgres",
     "signerAlgorithm" -> "HmacSHA256",
-    "signerSeparator" -> "\n",
+    "signerSeparator" -> "+",
     "signerTolerance" -> 4.0)
 
   implicit lazy val app: FakeApplication = new FakeApplication(

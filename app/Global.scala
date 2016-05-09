@@ -1,16 +1,18 @@
-import models.Environment
-import play.api.mvc._
+
+import models._
 import play.api.mvc.Results._
-import play.api.Play
+import play.api.mvc._
+import play.api.{Application, Logger}
+
 import scala.concurrent.Future
 
 // Filter to secure staging server. We should remove this before Mediation goes live.
-object HTTPAuthFilter extends Filter {
+object HTTPAuthFilter extends Filter with ConfigVars {
   def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
     request.tags.get("ROUTE_CONTROLLER") match {
-      case Some(controller: String) if(controller != "controllers.APIController" && controller != "controllers.Assets" && Environment.isStaging) => {
-        val httpAuthUser = Play.current.configuration.getString("httpAuthUser").get
-        val httpAuthPassword = Play.current.configuration.getString("httpAuthPassword").get
+      case Some(controller: String) if controller != "controllers.APIController" && controller != "controllers.Assets" && Environment.isStaging =>
+        val httpAuthUser = ConfigVarsApp.httpAuthUser
+        val httpAuthPassword = ConfigVarsApp.httpAuthPw
 
         request.headers.get("Authorization").flatMap { authorization =>
           authorization.split(" ").drop(1).headOption.filter { encoded =>
@@ -22,10 +24,9 @@ object HTTPAuthFilter extends Filter {
         }.getOrElse {
           Future.successful(Unauthorized.withHeaders("WWW-Authenticate" -> """Basic realm="Secured""""))
         }
-      }
-      case _ => {
+
+      case _ =>
         next(request)
-      }
     }
   }
 }
@@ -33,7 +34,7 @@ object HTTPAuthFilter extends Filter {
 // Redirect to HTTPS in production
 object HTTPSFilter extends Filter {
   def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
-    if(Environment.isProdOrStaging && !request.headers.get("x-forwarded-proto").getOrElse("").contains("https")) {
+    if (Environment.isProdOrStaging && !request.headers.get("x-forwarded-proto").getOrElse("").contains("https")) {
       Future.successful(MovedPermanently("https://" + request.host + request.uri))
     } else {
       next(request)
@@ -41,4 +42,41 @@ object HTTPSFilter extends Filter {
   }
 }
 
-object Global extends WithFilters(HTTPSFilter, HTTPAuthFilter)
+object Global extends WithFilters(HTTPSFilter, HTTPAuthFilter) with ConfigVars {
+
+  private def systemExit(msg: String, errorCode: Int, obj: Any) = {
+    Logger.error(msg)
+    Logger.debug(obj.toString)
+    sys.exit(errorCode)
+  }
+
+  //TODO when we move to Play 2.4 we will move this code to a dependency injected class
+  override def beforeStart(app: Application) {
+    Logger.info(s"Before Application startup ... isReviewApp: ${Environment.isReviewApp} ")
+    // check for start up errors
+    if (ConfigVarsKeen.error.isDefined) {
+      systemExit(s"Keen configuration error: ${ConfigVarsKeen.error.get}", Constants.Errors.KeenConfigError, ConfigVarsKeen)
+    }
+    if (ConfigVarsAdProviders.iosID != Constants.AdProviderConfig.IosID || ConfigVarsAdProviders.androidID != Constants.AdProviderConfig.AndroidID) {
+      systemExit(s"AdProvider configuration error iosID: ${ConfigVarsAdProviders.iosID}   androidID: ${ConfigVarsAdProviders.androidID} ",
+        Constants.Errors.AdProviderError,
+        ConfigVarsAdProviders)
+    }
+  }
+
+  override def onStart(app: Application) {
+    if (Environment.isReviewApp) {
+      Logger.debug("Review App, loading Ad Providers .....")
+      // make sure all ad providers exist
+      AdProvider.loadAll()
+    }
+
+    //TODO check required environ vars
+
+    val numberOfAdProviders = AdProvider.findAll.length
+    val expectedNumberOfAdProviders = Platform.Android.allAdProviders.length + Platform.Android.allAdProviders.length
+    if (numberOfAdProviders != expectedNumberOfAdProviders) {
+      Logger.warn(s"Expected number of ad providers does not match actual number of ad providers expected: $expectedNumberOfAdProviders   actual: $numberOfAdProviders")
+    }
+  }
+}

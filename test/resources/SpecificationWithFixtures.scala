@@ -2,6 +2,7 @@ package resources
 
 import anorm._
 import com.google.common.base.Predicate
+import models.ConfigVars
 import org.openqa.selenium.chrome.ChromeDriver
 import org.specs2.mutable._
 import org.specs2.specification._
@@ -14,7 +15,7 @@ import play.api.test._
 import scala.io.Source
 
 
-abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper {
+abstract class SpecificationWithFixtures extends Specification with CleanDB with DefaultUserValues with GenerationNumberHelper with ConfigVars {
   sequential
 
   val DocumentationUsername = running(FakeApplication(additionalConfiguration = testDB)) {

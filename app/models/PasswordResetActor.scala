@@ -1,49 +1,41 @@
 package models
 
-import akka.actor.{Props, Actor}
-import play.api.db.DB
-import play.api.libs.concurrent.Akka
-import play.api.libs.json._
-import play.api.libs.ws._
-import play.api.{Logger, Play}
-import play.api.Play.current
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{TimeoutException, Future}
+import akka.actor.Actor
+
 import scala.language.postfixOps
 
-class PasswordResetActor extends Actor with Mailer {
+class PasswordResetActor extends Actor with Mailer with ConfigVars {
   def receive = {
-    case user: DistributorUser => {
+    case user: DistributorUser =>
       lazy val link: String = resetLink(user)
       val body = views.html.Mails.passwordResetEmailContent(link).toString()
       val plain: String = {
         "We received a request to change the password for your HyprMediate account.\r\n\r\n" +
-        "The link below will remain active for 1 hour.\r\n\r\n" +
-        link
+          "The link below will remain active for 1 hour.\r\n\r\n" +
+          link
       }
-      sendEmail(recipient = user.email, sender = NoReplyEmail, subject = "Reset your HyprMediate password", body = body, plainText = plain)
-    }
-    case completedEmail: String => {
-      val supportEmail = Play.current.configuration.getString("hyprmarketplace.team_email").getOrElse("")
+      sendEmail(host = ConfigVarsApp.domain, recipient = user.email, sender = NoReplyEmail, subject = "Reset your HyprMediate password", body = body, plainText = plain)
+
+    case completedEmail: String =>
+      val supportEmail = ConfigVarsApp.teamEmail
       val body = views.html.Mails.passwordChangedEmail(supportEmail).toString()
       val plain: String = {
         "Your password has been changed\r\n\r\n" +
-        "If you did not make this change and believe your HyprMediate account has been compromised, please contact support" +
-        " at " + supportEmail
+          "If you did not make this change and believe your HyprMediate account has been compromised, please contact support" +
+          " at " + supportEmail
       }
-      sendEmail(recipient = completedEmail, sender = NoReplyEmail, subject = "Your HyprMediate password has been changed", body = body, plainText = plain)
-    }
+      sendEmail(host = ConfigVarsApp.domain, recipient = completedEmail, sender = NoReplyEmail, subject = "Your HyprMediate password has been changed", body = body, plainText = plain)
   }
 
   /**
-   * Generates the link to the password reset page which is included in the email to the DistributorUser
-   * @param user The DistributorUser who initiated the password reset
-   * @return The link that will be included in the password reset email
-   */
+    * Generates the link to the password reset page which is included in the email to the DistributorUser
+    *
+    * @param user The DistributorUser who initiated the password reset
+    * @return The link that will be included in the password reset email
+    */
   def resetLink(user: DistributorUser): String = {
     val token: Option[String] = PasswordReset.create(user.id.get)
     val pathAndQueryString = controllers.routes.DistributorUsersController.resetPassword(Some(user.email), token, user.id).url
-    Play.configuration.getString("app_domain").getOrElse("") + pathAndQueryString
+    ConfigVarsApp.domain + pathAndQueryString
   }
 }

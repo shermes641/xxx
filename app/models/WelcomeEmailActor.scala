@@ -2,7 +2,6 @@ package models
 
 import akka.actor.Actor
 import scala.language.postfixOps
-import play.api.Play
 
 /**
  * @param emailAddress The Email Address of the signed up user.
@@ -11,17 +10,17 @@ import play.api.Play
  */
 case class sendUserCreationEmail(emailAddress: String, company: String, userIPAddress: String)
 
-class WelcomeEmailActor extends Actor with Mailer {
+class WelcomeEmailActor extends Actor with Mailer with ConfigVars{
   def receive = {
-    case sendUserCreationEmail(emailAddress: String, company: String, userIPAddress: String) => {
+    case sendUserCreationEmail(emailAddress: String, company: String, userIPAddress: String) =>
       sendWelcomeEmail(emailAddress)
       sendTeamNotification(emailAddress, company, userIPAddress)
-    }
   }
 
   /**
    * Sends email to new DistributorUser.  This is called on a successful sign up.
-   * @param email Email of the new DistributorUser.
+    *
+    * @param email Email of the new DistributorUser.
    */
   def sendWelcomeEmail(email: String): Unit = {
     val subject = "Welcome to HyprMediate!"
@@ -34,19 +33,20 @@ class WelcomeEmailActor extends Actor with Mailer {
       "If you have any questions, feel free to contact us by replying to this email.\r\n\r\n" +
       "We're looking forward to working with you!\r\n\r\nSincerely,\r\nYour HyprMediate\r\nPublisher Accounts Team" }
 
-    sendEmail(recipient = email, sender = PublishingEmail, subject = subject, body = body, plainText = plain)
+    sendEmail(host = ConfigVarsApp.domain, recipient = email, sender = PublishingEmail, subject = subject, body = body, plainText = plain)
   }
 
   /**
    * Sends email to Hyprmx team on successful user signup
-   * @param userEmail Email of the new DistributorUser.
+    *
+    * @param userEmail Email of the new DistributorUser.
    * @param userCompany Company of the new DistributorUser.
    * @param userIPAddress The IP Address of the new user.
    */
   def sendTeamNotification(userEmail: String, userCompany: String, userIPAddress: String): Unit = {
-    val email = Play.current.configuration.getString("hyprmarketplace.team_email").get
+    val email = ConfigVarsApp.teamEmail
     val subject = "hyprMediate user has signed up - " + userEmail
     val body = userEmail + " has signed up for hyprMediate.\r\n\r\nCompany: " + userCompany + "\r\n\r\nIP Address: " + userIPAddress
-    sendEmail(recipient = email, sender = PublishingEmail, subject = subject, body = body)
+    sendEmail(host = ConfigVarsApp.domain, recipient = email, sender = PublishingEmail, subject = subject, body = body)
   }
 }

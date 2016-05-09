@@ -6,12 +6,13 @@ import com.typesafe.config.ConfigFactory
 import controllers.AnalyticsController
 import io.keen.client.java.{JavaKeenClientBuilder, KeenClient, KeenProject}
 import org.specs2.mock.Mockito
-import play.api.Play
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixtures}
 
-class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito {
+import scala.io._
+
+class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with Mockito with ConfigVars {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
   val displayFillRate = true
@@ -56,7 +57,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
@@ -82,7 +83,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test2@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 
@@ -198,7 +199,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       val email = "test3@jungroup.com"
       val (newUser, newDistributor) = newDistributorUser(email, "password", "company")
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
 

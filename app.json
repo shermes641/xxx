@@ -1,14 +1,40 @@
 {
   "name": "Mediation-API",
-  "scripts": {},
+  "scripts": {
+  },
   "env": {
-    "AD_COLONY_REPORTING_URL": {
+    "APP_DOMAIN": "",
+    "SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+      "required": true
+    },
+    "PLAYER_CALLBACK_URL": {
       "required": true
     },
     "ANDROID_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
       "required": true
     },
-    "APP_DOMAIN": {
+    "IOS_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+      "required": true
+    },
+    "KEEN_ERROR_PROJECT": {
+      "required": true
+    },
+    "KEEN_ERROR_WRITE_KEY": {
+      "required": true
+    },
+    "KEEN_MASTER_KEY": {
+      "required": true
+    },
+    "KEEN_PROJECT": {
+      "required": true
+    },
+    "KEEN_READ_KEY": {
+      "required": true
+    },
+    "KEEN_WRITE_KEY": {
+      "required": true
+    },
+    "AD_COLONY_REPORTING_URL": {
       "required": true
     },
     "APP_LOVIN_REPORTING_URL": {
@@ -59,43 +85,13 @@
     "HYPRMEDIATE_OPS_EMAIL": {
       "required": true
     },
-    "IOS_SERVER_TO_SERVER_CALLBACK_DOMAIN": {
-      "required": true
-    },
     "JAVA_OPTS": {
-      "required": true
-    },
-    "KEEN_ERROR_PROJECT": {
-      "required": true
-    },
-    "KEEN_ERROR_WRITE_KEY": {
-      "required": true
-    },
-    "KEEN_MASTER_KEY": {
-      "required": true
-    },
-    "KEEN_PROJECT": {
-      "required": true
-    },
-    "KEEN_READ_KEY": {
-      "required": true
-    },
-    "KEEN_WRITE_KEY": {
-      "required": true
-    },
-    "LATEST_BRANCH": {
-      "required": true
-    },
-    "LATEST_SHA": {
       "required": true
     },
     "MAINTENANCE_PAGE_URL": {
       "required": true
     },
     "PATH": {
-      "required": true
-    },
-    "PLAYER_CALLBACK_URL": {
       "required": true
     },
     "PLAYER_ERROR_EMAIL": {
@@ -119,7 +115,16 @@
     "SENDGRID_USER": {
       "required": true
     },
-    "SERVER_TO_SERVER_CALLBACK_DOMAIN": {
+    "REVIEW_KEEN_ERROR_PROJECT": {
+      "required": true
+    },
+    "REVIEW_KEEN_ERROR_WRITE_KEY": {
+      "required": true
+    },
+    "KEEN_ORG_ID": {
+      "required": true
+    },
+    "KEEN_ORG_KEY": {
       "required": true
     },
     "STAGING": {

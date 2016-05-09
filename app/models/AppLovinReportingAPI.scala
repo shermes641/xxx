@@ -1,7 +1,6 @@
 package models
 
 import play.api.libs.json._
-import play.api.Play
 import scala.language.postfixOps
 
 /**
@@ -9,8 +8,8 @@ import scala.language.postfixOps
  * @param wapID The ID of the WaterfallAdProvider to be updated.
  * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
  */
-case class AppLovinReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI {
-  override val BaseURL = Play.current.configuration.getString("applovin.reporting_url").get
+case class AppLovinReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars {
+  override val BaseURL = ConfigVarsReporting.applovinUrl
   override val waterfallAdProviderID = wapID
 
   override val queryString: List[(String, String)] = {

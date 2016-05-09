@@ -6,7 +6,7 @@ import org.joda.time.format.DateTimeFormat
 import play.api.Play.current
 import play.api.libs.json._
 import play.api.libs.ws.WS
-import play.api.{Logger, Play}
+import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -18,8 +18,8 @@ import scala.language.postfixOps
   * @param wapID             The ID of the WaterfallAdProvider to be updated.
   * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
   */
-case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI {
-  val BaseURL = Play.current.configuration.getString("unityads.reporting_url").getOrElse("should never happen")
+case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars {
+  val BaseURL = ConfigVarsReporting.unityadsUrl
   val waterfallAdProviderID = wapID
 
   override val dateFormat = DateTimeFormat.forPattern("YYYY-MM-d")

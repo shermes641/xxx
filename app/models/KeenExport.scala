@@ -9,7 +9,7 @@ import play.api.Play.current
 import play.api.libs.concurrent.Akka
 import play.api.libs.json._
 import play.api.libs.ws._
-import play.api.{Logger, Play}
+import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -22,9 +22,9 @@ case class GetDataFromKeen()
 
 case class KeenResult(value: JsValue, timeframe: JsObject)
 
-class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
+class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) extends ConfigVars {
 
-  val base = KeenClient.client().getBaseUrl + "/3.0/projects/" + Play.configuration.getString("keen.project").get + "/queries/"
+  val base = KeenClient.client().getBaseUrl + "/3.0/projects/" + ConfigVarsKeen.projectID + "/queries/"
 
   def function(action: String): KeenRequest = new KeenRequest(action, post)
 
@@ -56,12 +56,11 @@ class KeenRequest(action: String = "", val post: JsObject = JsObject(Seq())) {
 
 }
 
-object KeenRequest {
+object KeenRequest extends ConfigVars {
 
   // move this to startup.
   val client = new JavaKeenClientBuilder().build()
-  val config = Play.current.configuration
-  val project = new KeenProject(config.getString("keen.project").get, config.getString("keen.writeKey").get, config.getString("keen.readKey").get)
+  val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, ConfigVarsKeen.readKey)
   client.setDefaultProject(project)
   KeenClient.initialize(client)
 
@@ -98,10 +97,7 @@ case class KeenExport() {
   }
 }
 
-object KeenExport {
-
-  val config = Play.current.configuration
-
+object KeenExport extends ConfigVars {
   /**
     * Posts requests to keen.
     *
@@ -110,8 +106,9 @@ object KeenExport {
     * @return Future[WSResponse]
     */
   def createRequest(action: String, filter: JsObject): Future[WSResponse] = {
-    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + config.getString("keen.project").get + "/queries/" + action)
-      .withRequestTimeout(300000).withQueryString("api_key" -> config.getString("keen.readKey").get).post(filter)
+    WS.url(KeenClient.client().getBaseUrl + "/3.0/projects/" + ConfigVarsKeen.projectID + "/queries/" + action)
+      .withRequestTimeout(300000)
+      .withQueryString("api_key" -> ConfigVarsKeen.readKey).post(filter)
   }
 
   /**
@@ -160,7 +157,7 @@ class KeenExportActor(distributorID: Long,
                       timeframe: JsObject,
                       selectedApps: List[String],
                       adProvidersSelected: Boolean,
-                      scopedReadKey: String) extends Actor with Mailer {
+                      scopedReadKey: String) extends Actor with Mailer with ConfigVars {
   private var counter = 0
 
   val fileName = "tmp/" + distributorID.toString + "-" + System.currentTimeMillis.toString + ".csv"
@@ -229,7 +226,7 @@ class KeenExportActor(distributorID: Long,
       */
     case GetDataFromKeen() =>
       val client = new JavaKeenClientBuilder().build()
-      val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, scopedReadKey)
+      val project = new KeenProject(ConfigVarsKeen.projectID, ConfigVarsKeen.writeKey, scopedReadKey)
       client.setDefaultProject(project)
       KeenClient.initialize(client)
       val writer = createCSVFile()
@@ -375,7 +372,7 @@ class KeenExportActor(distributorID: Long,
       futureResponse.recover {
         case e: Exception =>
           Logger.error("Error Exporting CSV for " + email + " Message: " + e.getMessage)
-          sendEmail(recipient = email, sender = PublishingEmail, subject = "Error Exporting CSV", body = "There was a problem exporting your data.  Please try again.")
+          sendEmail(host = ConfigVarsApp.domain, recipient = email, sender = PublishingEmail, subject = "Error Exporting CSV", body = "There was a problem exporting your data.  Please try again.")
       }
 
       futureResponse.onSuccess {
@@ -410,7 +407,7 @@ class KeenExportActor(distributorID: Long,
             println("Exported CSV: " + fileName)
             // Sends email after all apps have received their stats
             val content = "Attached is your requested CSV file."
-            sendEmail(recipient = email, sender = PublishingEmail, subject = "Exported CSV from HyprMediate", body = content, "", attachmentFileName = fileName)
+            sendEmail(host = ConfigVarsApp.domain, recipient = email, sender = PublishingEmail, subject = "Exported CSV from HyprMediate", body = content, "", attachmentFileName = fileName)
             writer.close()
           }
       }

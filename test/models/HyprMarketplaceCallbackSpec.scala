@@ -111,5 +111,29 @@ class HyprMarketplaceCallbackSpec extends SpecificationWithFixtures with AdProvi
       val verification = newCallback.verificationInfo
       verification.isValid must beEqualTo(false)
     }
+    
+    "set the ad provider name correctly" in new WithDB {
+      callback.verificationInfo.adProviderName must beEqualTo(callback.adProviderName)
+    }
+
+    "set the app token correctly" in new WithDB {
+      callback.verificationInfo.appToken must beEqualTo(app1.token)
+    }
+
+    "set the transaction ID correctly" in new WithDB {
+      callback.verificationInfo.transactionID must beEqualTo(partnerCode.get)
+    }
+
+    "set the offer profit correctly" in new WithDB {
+      callback.verificationInfo.offerProfit must beEqualTo(callback.payout)
+    }
+
+    "set the reward quantity correctly" in new WithDB {
+      callback.verificationInfo.rewardQuantity must beEqualTo(callback.currencyAmount)
+    }
+
+    "set the reward info correctly" in new WithDB {
+      callback.verificationInfo.adProviderRewardInfo must beEqualTo(callback.adProviderRewardInfo)
+    }
   }
 }

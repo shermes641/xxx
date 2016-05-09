@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import com.typesafe.config.ConfigFactory
 import org.specs2.mock.Mockito
-import play.api.Play
 import play.api.db.DB
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -16,7 +15,7 @@ import scala.Int._
 import scala.concurrent.Future
 import scala.util.Random
 
-class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with UpdateHyprMarketplace with Mockito {
+class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup with UpdateHyprMarketplace with Mockito with ConfigVars {
   implicit val actorSystem = ActorSystem("testActorSystem", ConfigFactory.load())
 
   val response = mock[WSResponse]
@@ -93,13 +92,13 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
   "adNetworkConfiguration" should {
     "Build the correct configuration using the created distributor user" in new WithDB {
-      val payoutUrl = Play.current.configuration.getString("jungroup.callbackurl").get.format(testApp.token)
+      val payoutUrl = ConfigVarsCallbackUrls.player.format(testApp.token)
       val config = junGroup.adNetworkConfiguration(distributorName, testApp)
       val networkJson = config \ "ad_network"
       val payoutUrlJson = config \ "payout_url"
       val platformName = Platform.find(testApp.platformID).PlatformName
       val adNetworkName = distributorName + " - " + testApp.name + " - " + platformName
-      val createdInContext = Play.current.configuration.getString("app_domain").getOrElse("") + " - " + Environment.mode
+      val createdInContext = ConfigVarsApp.domain + " - " + Environment.mode
 
       networkJson \ "name" must beEqualTo(JsString(adNetworkName))
       networkJson \ "mobile" must beEqualTo(JsBoolean(true))

@@ -6,11 +6,10 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.Play
 import play.api.Play.current
 
 /** Controller for models.DistributorUser instances. */
-object DistributorUsersController extends Controller with Secured with CustomFormValidation {
+object DistributorUsersController extends Controller with Secured with CustomFormValidation with ConfigVars {
   implicit val signupReads: Reads[Signup] = (
     (JsPath \ "company").read[String] and
     (JsPath \ "email").read[String] and
@@ -245,7 +244,7 @@ object DistributorUsersController extends Controller with Secured with CustomFor
    * @return a 400 response and render a form with errors.
    */
   def delayedResponse(errorMessage: String, fieldName: String): Result = {
-    val delayValue: Long = Play.current.configuration.getLong("authentication_failure_delay").getOrElse(1000)
+    val delayValue: Long = ConfigVarsApp.authFailureDelayMs
     Thread.sleep(delayValue)
     BadRequest(Json.obj("status" -> "error", "message" -> errorMessage, "fieldName" -> fieldName))
   }

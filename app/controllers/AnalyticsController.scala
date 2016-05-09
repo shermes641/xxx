@@ -2,7 +2,6 @@ package controllers
 
 import io.keen.client.java.{JavaKeenClientBuilder, KeenClient, KeenProject, ScopedKeys}
 import models._
-import play.api._
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc._
@@ -11,22 +10,27 @@ import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
 
-object AnalyticsController extends Controller with Secured {
+object AnalyticsController extends Controller with Secured with ConfigVars {
   implicit val exportReads: Reads[exportMapping] = (
-      (JsPath \ "displayFillRate").read[Boolean] and
+    (JsPath \ "displayFillRate").read[Boolean] and
       (JsPath \ "email").read[String] and
       (JsPath \ "filters").read[JsArray] and
       (JsPath \ "timeframe").read[JsObject] and
       (JsPath \ "apps").read[List[String]] and
       (JsPath \ "ad_providers_selected").read[Boolean]
-    )(exportMapping.apply _)
+    ) (exportMapping.apply _)
 
   def show(distributorID: Long, currentAppID: Option[Long], waterfallFound: Option[Boolean]) = withAuth(Some(distributorID)) { username => implicit request =>
     val apps = App.findAllAppsWithWaterfalls(distributorID)
-    if(apps.isEmpty) {
+    if (apps.isEmpty) {
       Redirect(routes.AppsController.newApp(distributorID))
     } else {
-      Ok(views.html.Analytics.show(distributorID = distributorID, appID = currentAppID, apps = apps, adProviders = AdProvider.findAll, keenProject = Play.current.configuration.getString("keen.project").get, scopedKey = getScopedReadKey(distributorID)))
+      Ok(views.html.Analytics.show(distributorID = distributorID,
+        appID = currentAppID,
+        apps = apps,
+        adProviders = AdProvider.findAll,
+        keenProject = ConfigVarsKeen.projectID,
+        scopedKey = getScopedReadKey(distributorID)))
     }
   }
 
@@ -49,14 +53,14 @@ object AnalyticsController extends Controller with Secured {
     // To prevent showing duplicate ad provider names in the analytics dashboard, we only select unique ad provider names.
     val adProviders = AdProvider.findAll
       .foldLeft(Set[AdProvider]())((providers, provider) =>
-        if(providers.count(e => e.name == provider.name) > 0) providers else providers + provider
+        if (providers.count(e => e.name == provider.name) > 0) providers else providers + provider
       ).toList
 
     Ok(Json.obj(
       "distributorID" -> JsNumber(distributorID),
       "adProviders" -> adProviderListJs(adProviders),
       "apps" -> appListJs(App.findAll(distributorID)),
-      "keenProject" -> Play.current.configuration.getString("keen.project").get,
+      "keenProject" -> ConfigVarsKeen.projectID,
       "scopedKey" -> getScopedReadKey(distributorID)
     ))
   }
@@ -64,7 +68,9 @@ object AnalyticsController extends Controller with Secured {
   // Uses the keen library to get a scoped read key
   def getScopedReadKey(distributorID: Long) = {
     val client = new JavaKeenClientBuilder().build()
-    val project = new KeenProject(Play.current.configuration.getString("keen.project").get, Play.current.configuration.getString("keen.writeKey").get, Play.current.configuration.getString("keen.readKey").get)
+    val project = new KeenProject(ConfigVarsKeen.projectID,
+      ConfigVarsKeen.writeKey,
+      ConfigVarsKeen.readKey)
     client.setDefaultProject(project)
     KeenClient.initialize(client)
 
@@ -85,16 +91,17 @@ object AnalyticsController extends Controller with Secured {
       "allowed_operations" -> Array("read")
     )
 
-    val scopedKey = ScopedKeys.encrypt(Play.current.configuration.getString("keen.masterKey").get,scope)
+    val scopedKey = ScopedKeys.encrypt(ConfigVarsKeen.masterKey, scope)
     scopedKey
   }
 
 
   /**
-   * Converts an instance of the AdProvider class to a JSON object.
-   * @param provider An instance of the AdProvider class.
-   * @return A JSON object.
-   */
+    * Converts an instance of the AdProvider class to a JSON object.
+    *
+    * @param provider An instance of the AdProvider class.
+    * @return A JSON object.
+    */
   implicit def adProviderWrites(provider: AdProvider): JsObject = {
     JsObject(
       Seq(
@@ -105,18 +112,21 @@ object AnalyticsController extends Controller with Secured {
   }
 
   /**
-   * Converts a list of AdProviders instances to a JsArray.
-   * @param list A list of AdProvider instances.
-   * @return A JsArray containing AdProvider objects.
-   */
+    * Converts a list of AdProviders instances to a JsArray.
+    *
+    * @param list A list of AdProvider instances.
+    * @return A JsArray containing AdProvider objects.
+    */
   def adProviderListJs(list: List[AdProvider]): JsArray = {
     list.foldLeft(JsArray(Seq()))((array, adProvider) => array ++ JsArray(Seq(adProvider)))
   }
+
   /**
-   * Converts an instance of the App class to a JSON object.
-   * @param app An instance of the App class.
-   * @return A JSON object.
-   */
+    * Converts an instance of the App class to a JSON object.
+    *
+    * @param app An instance of the App class.
+    * @return A JSON object.
+    */
   implicit def appWrites(app: App): JsObject = {
     val platformName = Platform.find(app.platformID).PlatformName
     JsObject(
@@ -130,24 +140,27 @@ object AnalyticsController extends Controller with Secured {
   }
 
   /**
-   * Converts a list of AppWithWaterfallID instances to a JsArray.
-   * @param list A list of AppWithWaterfallID instances.
-   * @return A JsArray containing AppWithWaterfallID objects.
-   */
+    * Converts a list of AppWithWaterfallID instances to a JsArray.
+    *
+    * @param list A list of AppWithWaterfallID instances.
+    * @return A JsArray containing AppWithWaterfallID objects.
+    */
   def appListJs(list: List[App]): JsArray = {
     list.foldLeft(JsArray(Seq()))((array, app) => array ++ JsArray(Seq(app)))
   }
 
   /**
-   * Used for mapping Export parameters
-   * @param displayFillRate       Indicates if fill rate should be shown in the CSV.
-   *                              When True (one ad provider or "all" ad providers are selected), we display the fill rate.
-   *                              When False (more than one ad provider selected), we display "N/A" for fill rate.
-   * @param email                 Maps to the email field
-   * @param filters               Maps to the filters JsArray
-   * @param timeframe             Maps to the timeframe as a JsObject
-   * @param apps                  ad_providers_selected to the apps list in the Json Array
-   * @param ad_providers_selected Maps to the ad_providers_selected Boolean
-   */
+    * Used for mapping Export parameters
+    *
+    * @param displayFillRate       Indicates if fill rate should be shown in the CSV.
+    *                              When True (one ad provider or "all" ad providers are selected), we display the fill rate.
+    *                              When False (more than one ad provider selected), we display "N/A" for fill rate.
+    * @param email                 Maps to the email field
+    * @param filters               Maps to the filters JsArray
+    * @param timeframe             Maps to the timeframe as a JsObject
+    * @param apps                  ad_providers_selected to the apps list in the Json Array
+    * @param ad_providers_selected Maps to the ad_providers_selected Boolean
+    */
   case class exportMapping(displayFillRate: Boolean, email: String, filters: JsArray, timeframe: JsObject, apps: List[String], ad_providers_selected: Boolean)
+
 }
