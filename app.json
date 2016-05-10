@@ -3,7 +3,9 @@
   "scripts": {
   },
   "env": {
-    "APP_DOMAIN": "",
+    "APP_DOMAIN": {
+      "required": true
+    },
     "SERVER_TO_SERVER_CALLBACK_DOMAIN": {
       "required": true
     },
