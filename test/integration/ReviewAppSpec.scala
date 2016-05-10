@@ -10,7 +10,7 @@ class ReviewAppSpec extends SpecificationWithFixtures {
     "isReviewApp true in test mode staging true" in
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
-        Constants.HerokuConfigVars.AppName -> "it-test_pr_17",
+        Constants.HerokuConfigVars.AppName -> "it-test_pr_118",
         Constants.HerokuConfigVars.ParentName -> "it-test"))) {
 
         val TestErrorProjectID          = Play.current.configuration.getString(Constants.KeenConfig.ErrorProjectID).get
@@ -42,10 +42,10 @@ class ReviewAppSpec extends SpecificationWithFixtures {
             res.get("readKey").get    == Vars.ConfigVarsKeen.readKey must_== true
             res.get("writeKey").get   == Vars.ConfigVarsKeen.writeKey must_== true
             res.get("masterKey").get  == Vars.ConfigVarsKeen.masterKey must_== true
-            ConfigVarsKeen.projectID  == Vars.ConfigVarsKeen.projectID must_== false
-            ConfigVarsKeen.readKey    == Vars.ConfigVarsKeen.readKey must_== false
-            ConfigVarsKeen.writeKey   == Vars.ConfigVarsKeen.writeKey must_== false
-            ConfigVarsKeen.masterKey  == Vars.ConfigVarsKeen.masterKey must_== false
+            ConfigVarsKeen.projectID  == Vars.ConfigVarsKeen.projectID must_== true
+            ConfigVarsKeen.readKey    == Vars.ConfigVarsKeen.readKey must_== true
+            ConfigVarsKeen.writeKey   == Vars.ConfigVarsKeen.writeKey must_== true
+            ConfigVarsKeen.masterKey  == Vars.ConfigVarsKeen.masterKey must_== true
             TestReviewErrorProjectID  == Vars.ConfigVarsKeen.errorProjectID must_== true
             TestReviewErrorProjectKey == Vars.ConfigVarsKeen.errorProjectKey must_== true
         }
