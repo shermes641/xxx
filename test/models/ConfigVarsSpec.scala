@@ -12,7 +12,7 @@ class ConfigVarsSpec extends SpecificationWithFixtures {
 
   "Environment" should {
     "Not a Review app, configuration vars set correctly in test mode staging true" in
-      new WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Test.toString, "staging" -> "true"))) {
+      new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString, Constants.AppConfig.Staging -> "true"))) {
 
         object Vars extends ConfigVars {}
 
@@ -30,7 +30,7 @@ class ConfigVarsSpec extends SpecificationWithFixtures {
     "Review app, configuration vars set correctly in test mode staging true" in
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
-        Constants.HerokuConfigVars.AppName -> "mediation-staging_pr_17",
+        Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
         object Vars extends ConfigVars
@@ -105,7 +105,7 @@ class ConfigVarsSpec extends SpecificationWithFixtures {
       }
 
     "Not a Review app, configuration vars set correctly in prod mode staging false" in
-      new WithApplication(new ApplicationFake(Map("mode" -> play.api.Mode.Prod.toString, "staging" -> "false"))) {
+      new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Prod.toString, Constants.AppConfig.Staging -> "false"))) {
 
         object Vars extends ConfigVars {}
 

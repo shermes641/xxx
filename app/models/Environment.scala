@@ -95,6 +95,6 @@ object Environment {
     val AppName     = Play.current.configuration.getString(Constants.HerokuConfigVars.AppName).get
     ParentName != "" &&
       ParentName.length < AppName.length &&
-      AppName.contains("_pr_")
+      AppName.contains("-pr-")
   }
 }

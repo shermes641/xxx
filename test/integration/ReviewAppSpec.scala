@@ -10,7 +10,7 @@ class ReviewAppSpec extends SpecificationWithFixtures {
     "Find review app Keen project isReviewApp true in test mode staging true" in
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
-        Constants.HerokuConfigVars.AppName -> "it-test_pr_118",
+        Constants.HerokuConfigVars.AppName -> "it-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "it-test"))) {
 
         val TestErrorProjectID          = Play.current.configuration.getString(Constants.KeenConfig.ErrorProjectID).get
@@ -54,7 +54,7 @@ class ReviewAppSpec extends SpecificationWithFixtures {
     "Force create review app Keen project isReviewApp true in test mode staging true" in
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
-        Constants.HerokuConfigVars.AppName -> "it-test_pr_118",
+        Constants.HerokuConfigVars.AppName -> "it-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "it-test"))) {
 
         val TestErrorProjectID          = Play.current.configuration.getString(Constants.KeenConfig.ErrorProjectID).get

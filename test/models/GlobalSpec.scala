@@ -20,7 +20,7 @@ class GlobalSpec extends Specification {
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
         Constants.KeenConfig.OrgID -> "123skjlkj56",
-        Constants.HerokuConfigVars.AppName -> "mediation-staging_pr_17",
+        Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
         Environment.isReviewApp must_== true
@@ -31,7 +31,7 @@ class GlobalSpec extends Specification {
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
         Constants.AdProviderConfig.IosAdProviderID -> 0,
-        Constants.HerokuConfigVars.AppName -> "mediation-staging_pr_17",
+        Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
         Environment.isReviewApp must_== true
@@ -42,7 +42,7 @@ class GlobalSpec extends Specification {
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
         Constants.KeenConfig.OrgKey -> "123skjlkj56",
-        Constants.HerokuConfigVars.AppName -> "mediation-staging_pr_17",
+        Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
         Environment.isReviewApp must_== true
@@ -53,7 +53,7 @@ class GlobalSpec extends Specification {
       new WithApplication(new ApplicationFake(Map(Constants.AppConfig.Mode -> play.api.Mode.Test.toString,
         Constants.AppConfig.Staging -> "true",
         Constants.AdProviderConfig.AndroidAdProviderID -> 0,
-        Constants.HerokuConfigVars.AppName -> "mediation-staging_pr_17",
+        Constants.HerokuConfigVars.AppName -> "mediation-test-pr-000",
         Constants.HerokuConfigVars.ParentName -> "mediation-staging"))) {
 
         Environment.isReviewApp must_== true
