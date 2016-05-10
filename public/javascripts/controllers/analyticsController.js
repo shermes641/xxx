@@ -24,8 +24,8 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         // Helper function for setting dates
         var setTimeFrame = function(dates) {
             return {
-                start: moment(dates.start_date, dateRangeFormat).utc().startOf('day').format(),
-                end: moment(dates.end_date, dateRangeFormat).utc().startOf('day').add(1, 'day').format()
+                start: moment.utc(dates.start_date, dateRangeFormat).startOf('day').format(),
+                end: moment.utc(dates.end_date, dateRangeFormat).startOf('day').add(1, 'day').format()
             };
         };
 
