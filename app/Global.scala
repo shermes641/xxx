@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.{Application, Logger}
 
 import scala.concurrent.Future
-
+// $COVERAGE-OFF$
 // Filter to secure staging server. We should remove this before Mediation goes live.
 object HTTPAuthFilter extends Filter with ConfigVars {
   def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
@@ -41,26 +41,32 @@ object HTTPSFilter extends Filter {
     }
   }
 }
+// $COVERAGE-ON$
 
-object Global extends WithFilters(HTTPSFilter, HTTPAuthFilter) with ConfigVars {
+object Global extends WithFilters(HTTPSFilter, HTTPAuthFilter) {
 
   private def systemExit(msg: String, errorCode: Int, obj: Any) = {
     Logger.error(msg)
     Logger.debug(obj.toString)
-    sys.exit(errorCode)
+    if (!Environment.isProd)
+      Environment.TestErrorCode = errorCode
+    else
+      sys.exit(errorCode)
   }
 
   //TODO when we move to Play 2.4 we will move this code to a dependency injected class
   override def beforeStart(app: Application) {
+    object Vars extends ConfigVars
+    Environment.TestErrorCode = 0
     Logger.info(s"Before Application startup ... isReviewApp: ${Environment.isReviewApp} ")
     // check for start up errors
-    if (ConfigVarsKeen.error.isDefined) {
-      systemExit(s"Keen configuration error: ${ConfigVarsKeen.error.get}", Constants.Errors.KeenConfigError, ConfigVarsKeen)
+    if (Vars.ConfigVarsKeen.error.isDefined) {
+      systemExit(s"Keen configuration error: ${Vars.ConfigVarsKeen.error.get}", Constants.Errors.KeenConfigError, Vars.ConfigVarsKeen)
     }
-    if (ConfigVarsAdProviders.iosID != Constants.AdProviderConfig.IosID || ConfigVarsAdProviders.androidID != Constants.AdProviderConfig.AndroidID) {
-      systemExit(s"AdProvider configuration error iosID: ${ConfigVarsAdProviders.iosID}   androidID: ${ConfigVarsAdProviders.androidID} ",
+    if (Vars.ConfigVarsAdProviders.iosID != Constants.AdProviderConfig.IosID || Vars.ConfigVarsAdProviders.androidID != Constants.AdProviderConfig.AndroidID) {
+      systemExit(s"AdProvider configuration error iosID: ${Vars.ConfigVarsAdProviders.iosID}   androidID: ${Vars.ConfigVarsAdProviders.androidID} ",
         Constants.Errors.AdProviderError,
-        ConfigVarsAdProviders)
+        Vars.ConfigVarsAdProviders)
     }
   }
 

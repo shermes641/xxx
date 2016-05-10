@@ -4,6 +4,10 @@ import play.api.Play
 
 //TODO due to using before application start, during testing we can not use "extends ConfigVars" here
 object Environment {
+
+  // used for testing Global.scala
+  var TestErrorCode = 0
+
   /**
     * Checks if the Play app is running in production mode (not necessarily in a real production environment).
     *

@@ -15,14 +15,14 @@ class ReviewApp {
   /**
     * Get data from existing Keen project
     *
-    * @param client         Http client
-    * @param url            url to GET
-    * @param reviewAppName  name of Heroku review app
-    * @param KeenOrgKey     Jun Group Keen organization key
+    * @param client        Http client
+    * @param url           url to GET
+    * @param reviewAppName name of Heroku review app
+    * @param KeenOrgKey    Jun Group Keen organization key
     * @return Map with name id and apikeys for the Keen project, or Map  with error key if project can not be found
     */
   private def getKeenProject(client: CloseableHttpClient, url: String, reviewAppName: String, KeenOrgKey: String): Map[String, String] = {
-    val getProjects  = new HttpGet(url)
+    val getProjects = new HttpGet(url)
     getProjects.addHeader("Authorization", KeenOrgKey)
     getProjects.addHeader("Content-Type", "application/json")
     val getResponse = client.execute(getProjects)
@@ -46,9 +46,9 @@ class ReviewApp {
       if (existingProjectMap.nonEmpty) {
         val apiKeys = existingProjectMap.get("apiKeys")
         Logger.debug(s"API    : $apiKeys\n\n\n\n\n\n")
-          apiKeys.get.asInstanceOf[Map[String, String]] ++ Map("name" -> existingProjectMap.getOrElse("name", "").toString, "id" -> existingProjectMap.getOrElse("id", "").toString)
+        apiKeys.get.asInstanceOf[Map[String, String]] ++ Map("name" -> existingProjectMap.getOrElse("name", "").toString, "id" -> existingProjectMap.getOrElse("id", "").toString)
       } else
-          Map("error" -> s"project not found: $reviewAppName", "response" -> content.toString)
+        Map("error" -> s"project not found: $reviewAppName", "response" -> content.toString)
     } else {
       Map("error" -> "no data returned", "response" -> content.toString)
     }
@@ -57,11 +57,11 @@ class ReviewApp {
   /**
     * Create a Keen project for a review app
     *
-    * @param client         Http client
-    * @param url            url to GET
-    * @param reviewAppName  Name of Heroku review app -- Note: it is assumed the caller provided a valid Heroku review app name
-    * @param opsEmail       Operations email
-    * @param KeenOrgKey     Jun Group Keen organization key
+    * @param client        Http client
+    * @param url           url to GET
+    * @param reviewAppName Name of Heroku review app -- Note: it is assumed the caller provided a valid Heroku review app name
+    * @param opsEmail      Operations email
+    * @param KeenOrgKey    Jun Group Keen organization key
     * @return Map with name id and apikeys for the created Keen project, or Map with error key if creation fails
     */
   private def createKeenProject(client: CloseableHttpClient, url: String, reviewAppName: String, opsEmail: String, KeenOrgKey: String): Map[String, String] = {
@@ -82,7 +82,6 @@ class ReviewApp {
     } else
       ""
 
-    client.close()
     val contentMap = JSON.parseFull(content.toString).getOrElse(Map()).asInstanceOf[Map[String, Any]]
 
     Logger.info(s"STATUS: ${response.getStatusLine}")
@@ -109,8 +108,8 @@ class ReviewApp {
           val msg = contentMap.getOrElse("message", "").toString
           if (msg.contains("Duplicate")) {
             // this ok
-            Logger.debug(s"Keen project already exists, this should never happen\nRESPONSE: ${content.toString}")
-            Map("error" -> s"Keen project exists project name: $reviewAppName")
+            Logger.warn(s"Keen project already exists\nRESPONSE: ${content.toString}")
+            getKeenProject(client, url, reviewAppName, KeenOrgKey)
           } else {
             Logger.error(s"Unknown Keen error STATUS: $status \nRESPONSE${content.toString}")
             Map("error" -> s"Bad status on Keen response STATUS: $status")
@@ -122,37 +121,48 @@ class ReviewApp {
   }
 
   /**
-    * Create a Keen project for a review app
+    * Create or find a Keen project for a review app
     *
-    * @param reviewApp  review app name
-    * @param opsEmail   email for operations
-    * @param KeenOrgId  Jun Group organization ID
-    * @param KeenOrgKey Jun Group organization KEY
+    * @param reviewApp   review app name
+    * @param opsEmail    email for operations
+    * @param KeenOrgId   Jun Group organization ID
+    * @param KeenOrgKey  Jun Group organization KEY
+    * @param forceCreate Used for test coverage
     * @return Map with name id and apikeys keys for the Keen project if created, if the project existed an existing key is included, or Map with error key if creation fails
     */
-  def createOrGetKeenProject(reviewApp: String, opsEmail: String, KeenOrgId: String, KeenOrgKey: String): Map[String, String] = {
+  def createOrGetKeenProject(reviewApp: String,
+                             opsEmail: String,
+                             KeenOrgId: String,
+                             KeenOrgKey: String,
+                             forceCreate: Boolean = false): Map[String, String] = {
     val url = s"https://api.keen.io/3.0/organizations/$KeenOrgId/projects"
     val client = HttpClientBuilder.create.build
     try {
-      // see if project exists
-      val getExistingProjectData = getKeenProject(client, url, reviewApp, KeenOrgKey)
+      forceCreate match {
+        case true =>
+          val getCreatedProjectData = createKeenProject(client, url, reviewApp, opsEmail, KeenOrgKey)
+          getCreatedProjectData
 
-      if (getExistingProjectData.getOrElse("error", None) == None) {
-        client.close()
-        Logger.debug(s"Found existing project: $getExistingProjectData")
-        // return the project name, id, and api keys
-        getExistingProjectData ++ Map("existing" -> "true")
-      } else {
-        // project does not exists, let's create one
-        val getCreatedProjectData = createKeenProject(client, url, reviewApp, opsEmail, KeenOrgKey)
-        client.close()
-        getCreatedProjectData
+        case _ =>
+          // see if project exists
+          val getExistingProjectData = getKeenProject(client, url, reviewApp, KeenOrgKey)
+
+          if (getExistingProjectData.getOrElse("error", None) == None) {
+            Logger.debug(s"Found existing project: $getExistingProjectData")
+            // return the project name, id, and api keys
+            getExistingProjectData ++ Map("existing" -> "true")
+          } else {
+            // project does not exists, let's create one
+            val getCreatedProjectData = createKeenProject(client, url, reviewApp, opsEmail, KeenOrgKey)
+            getCreatedProjectData
+          }
       }
     } catch {
       case ex: Throwable =>
-        client.close()
         Logger.error(s"Error accessing / creating Keen project \nerror: $ex")
         Map(("error", ex.getLocalizedMessage))
+    } finally {
+      client.close()
     }
   }
 }
