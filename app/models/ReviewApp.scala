@@ -55,6 +55,29 @@ class ReviewApp {
   }
 
   /**
+    * Check supposedly good Keen response
+    *
+    * @param contentMap Map of response body
+    * @return Map of Keen data, else Map with "error" key set
+    */
+  // $COVERAGE-OFF$
+  def processContentMap(contentMap: Map[String, Any]): Map[String, String] = {
+    val apiKeys = contentMap.getOrElse("apiKeys", Map()).asInstanceOf[Map[String, String]]
+    val name = contentMap.get("name")
+    val id = contentMap.get("id")
+    val writeKey = apiKeys.get("writeKey")
+    val readKey = apiKeys.get("readKey")
+    val masterKey = apiKeys.get("masterKey")
+    if (name.isEmpty || id.isEmpty || writeKey.isEmpty || readKey.isEmpty || masterKey.isEmpty) {
+      Logger.error(s"Keen project creation error one or more values are missing: name, id, writeKey, readKey, masterKey\nRESPONSE: ${contentMap.toString}")
+      Map("error" -> "Missing values on Keen response")
+    } else {
+      apiKeys ++ Map("name" -> name.get.toString, "id" -> id.get.toString)
+    }
+  }
+  // $COVERAGE-ON$
+
+  /**
     * Create a Keen project for a review app
     *
     * @param client        Http client
@@ -92,22 +115,12 @@ class ReviewApp {
 
       case status =>
         if (status.getStatusCode == 200) {
-          val apiKeys = contentMap.getOrElse("apiKeys", Map()).asInstanceOf[Map[String, String]]
-          val name = contentMap.get("name")
-          val id = contentMap.get("id")
-          val writeKey = apiKeys.get("writeKey")
-          val readKey = apiKeys.get("readKey")
-          val masterKey = apiKeys.get("masterKey")
-          if (name.isEmpty || id.isEmpty || writeKey.isEmpty || readKey.isEmpty || masterKey.isEmpty) {
-            Logger.error(s"Keen project creation error one or more values are missing: name, id, writeKey, readKey, masterKey\nRESPONSE: ${content.toString}")
-            Map("error" -> "Missing values on Keen response")
-          } else {
-            apiKeys ++ Map("name" -> name.get.toString, "id" -> id.get.toString)
-          }
+          processContentMap(contentMap)
+          // COVERAGE-ON$
         } else if (status.getStatusCode == 409) {
           val msg = contentMap.getOrElse("message", "").toString
           if (msg.contains("Duplicate")) {
-            // this ok
+            // this is ok
             Logger.warn(s"Keen project already exists\nRESPONSE: ${content.toString}")
             getKeenProject(client, url, reviewAppName, KeenOrgKey)
           } else {
@@ -138,25 +151,18 @@ class ReviewApp {
     val url = s"https://api.keen.io/3.0/organizations/$KeenOrgId/projects"
     val client = HttpClientBuilder.create.build
     try {
-      forceCreate match {
-        case true =>
+        // see if project exists
+        val getExistingProjectData = getKeenProject(client, url, reviewApp, KeenOrgKey)
+
+        if (getExistingProjectData.getOrElse("error", None) == None && !forceCreate) {
+          Logger.debug(s"Found existing project: $getExistingProjectData")
+          // return the project name, id, and api keys
+          getExistingProjectData ++ Map("existing" -> "true")
+        } else {
+          // project does not exists, let's create one
           val getCreatedProjectData = createKeenProject(client, url, reviewApp, opsEmail, KeenOrgKey)
           getCreatedProjectData
-
-        case _ =>
-          // see if project exists
-          val getExistingProjectData = getKeenProject(client, url, reviewApp, KeenOrgKey)
-
-          if (getExistingProjectData.getOrElse("error", None) == None) {
-            Logger.debug(s"Found existing project: $getExistingProjectData")
-            // return the project name, id, and api keys
-            getExistingProjectData ++ Map("existing" -> "true")
-          } else {
-            // project does not exists, let's create one
-            val getCreatedProjectData = createKeenProject(client, url, reviewApp, opsEmail, KeenOrgKey)
-            getCreatedProjectData
-          }
-      }
+        }
     } catch {
       case ex: Throwable =>
         Logger.error(s"Error accessing / creating Keen project \nerror: $ex")

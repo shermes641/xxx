@@ -19,6 +19,7 @@ trait Mailer {
    * @param body Email body
    * @param attachmentFileName Email attachment file name
    */
+  // $COVERAGE-OFF$ covered in it tests
   def sendEmail(host: String,
                 recipient: String,
                 sender: String = PublishingEmail,
@@ -44,4 +45,5 @@ trait Mailer {
       mail.send(text, template)
     }
   }
+  // $COVERAGE-ON$
 }
