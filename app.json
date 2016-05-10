@@ -114,9 +114,6 @@
     "REPO": {
       "required": true
     },
-    "SENDGRID_USER": {
-      "required": true
-    },
     "REVIEW_KEEN_ERROR_PROJECT": {
       "required": true
     },
@@ -137,7 +134,6 @@
     "newrelic",
     "papertrail",
     "heroku-postgresql",
-    "sendgrid",
-    "ssl"
+    "sendgrid"
   ]
 }
