@@ -121,6 +121,12 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
     }
   }
 
+  "adProviderUserID" should {
+    "be set when creating a new instance of the UnityAdsCallback class" in new WithDB {
+      goodCallback.adProviderUserID must beEqualTo(sid)
+    }
+  }
+
   "token" should {
     "be set when creating a new instance of the UnityAdsCallback class" in new WithDB {
       goodCallback.token must beEqualTo(app1.token)
