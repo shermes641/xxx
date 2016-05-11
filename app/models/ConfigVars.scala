@@ -75,7 +75,7 @@ trait ConfigVars {
 
     override def toString = {
       s"""
-         |CALLBACK CONFIG
+         |HMAC CONFIG
          |ALGORITHM:    $algorithm
          |SEPERATOR:    $seperator
          |TOLERANCE:    $tolerance

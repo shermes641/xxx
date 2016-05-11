@@ -52,5 +52,7 @@ GET         /v1/reward_callbacks/:app_token/app_lovin                           
 GET         /v1/reward_callbacks/:app_token/hyprmarketplace                                            controllers.APIController.hyprMarketplaceCompletionV1(app_token: String, time: Option[String], sig: Option[String], quantity: Option[Int], offer_profit: Option[Double], reward_id: Option[String], uid: Option[String], transaction_id: Option[String])
 GET         /v1/reward_callbacks/:app_token/unity_ads                                                  controllers.APIController.unityAdsCompletionV1(app_token: String, sid: Option[String], oid: Option[String], hmac: Option[String])
 
+GET         /configvars                                                                                controllers.ConfigVarsController.serveConfigVars
+
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                                              controllers.Assets.at(path="/public", file)
