@@ -4,7 +4,10 @@ package models
 //@formatter:off
 object Constants {
 
-  // these will be exit codes when we stopp the app from booting
+  final val KeenPrefix    = "keen"
+  final val JunPrefix     = "jungroup"
+
+  // these will be exit codes when we stop the app from booting
   object Errors {
     final val AdProviderError     = -200
     final val KeenConfigError     = -100
@@ -17,11 +20,11 @@ object Constants {
   }
 
   object JunGroup {
-    final val Token   = "jungroup.token"
-    final val Url     = "jungroup.url"
-    final val User    = "jungroup.user"
-    final val Pw      = "jungroup.password"
-    final val Email   = "jungroup.email"
+    final val Token   = s"$JunPrefix.token"
+    final val Url     = s"$JunPrefix.url"
+    final val User    = s"$JunPrefix.user"
+    final val Pw      = s"$JunPrefix.password"
+    final val Email   = s"$JunPrefix.email"
   }
 
   object AppConfig {
@@ -31,7 +34,7 @@ object Constants {
     final val AppDomain                 = "app_domain"
     final val S2sIosCallbackDomain      = "ios_server_to_server_callback_domain"
     final val S2sAndroidCallbackDomain  = "android_server_to_server_callback_domain"
-    final val PlayerCallbackUrl         = "jungroup.callbackurl"
+    final val PlayerCallbackUrl         = s"$JunPrefix.callbackurl"
     final val OpsEmail                  = "hyprmediate_ops_email"
     final val TeamEmail                 = "hyprmarketplace.team_email"
     final val HttpAuthUser              = "httpAuthUser"
@@ -46,19 +49,18 @@ object Constants {
   }
 
   object KeenConfig {
-    final val ProjectsUrl             = "https://api.keen.io/3.0/projects/"
-    final val prefix                  = "keen."
+    final val ProjectsUrl             = s"https://api.$KeenPrefix.io/3.0/projects/"
     final val ProjectID               = "id"
-    final val OrgID                   = "keen_org_id"
-    final val OrgKey                  = "keen_org_key"
+    final val OrgID                   = s"${KeenPrefix}_org_id"
+    final val OrgKey                  = s"${KeenPrefix}_org_key"
     final val Project                 = "project"
     final val WriteKey                = "writeKey"
     final val ReadKey                 = "readKey"
     final val MasterKey               = "masterKey"
-    final val ErrorProjectID          = "keen.errorReportingProject"
-    final val ErrorProjectKey         = "keen.errorReportingWriteKey"
-    final val ReviewErrorProjectID    = "keen_review_error_project"
-    final val ReviewErrorProjectKey   = "keen_review_error_key"
+    final val ErrorProjectID          = s"$KeenPrefix.errorReportingProject"
+    final val ErrorProjectKey         = s"$KeenPrefix.errorReportingWriteKey"
+    final val ReviewErrorProjectID    = s"${KeenPrefix}_review_error_project"
+    final val ReviewErrorProjectKey   = s"${KeenPrefix}_review_error_key"
   }
 
   object AdProviderConfig {
@@ -73,15 +75,15 @@ object Constants {
   final val DefaultReportingTimeoutMs = 20000
   final val NoValue = ""
 
-  // Unity Ads specific constants
-  final val UnityAdsSuccess = "1"
-  final val UnityAdsVerifyFailure = "Verification failed"
-  final val UnityAdsName = "UnityAds" // This name is sent to the SDK, so the space is omitted.
-  final val UnityAdsDisplayName = "Unity Ads" // This name is rendered in the dashboard.
-  val UnityAdsCallbackUrl = "/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]"
-  val UnityAdsCallbackUrlSpec= "/v1/waterfall/%s/unity_ads_completion?sid=%%sid%%&oid=%%oid%%&hmac=%%hmac%%"
-  final val UnityAdsReportingStarted = "started"
-  final val UnityAdsReportingRevenue= "revenue"
+  // Unity Ads specific constants //TODO move these into an object
+  final val UnityAdsSuccess           = "1"
+  final val UnityAdsVerifyFailure     = "Verification failed"
+  final val UnityAdsName              = "UnityAds" // This name is sent to the SDK, so the space is omitted.
+  final val UnityAdsDisplayName       = "Unity Ads" // This name is rendered in the dashboard.
+  val UnityAdsCallbackUrl             = "/v1/reward_callbacks/%s/unity_ads?sid=[SID]&oid=[OID]&hmac=[SIGNATURE]"
+  val UnityAdsCallbackUrlSpec         = "/v1/waterfall/%s/unity_ads_completion?sid=%%sid%%&oid=%%oid%%&hmac=%%hmac%%"
+  final val UnityAdsReportingStarted  = "started"
+  final val UnityAdsReportingRevenue  = "revenue"
 
   object AdProvider {
     final val namePattern = "^[a-zA-z0-9]+$".r // Regex used to ensure Ad Provider names do not contain spaces or punctuation.

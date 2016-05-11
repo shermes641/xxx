@@ -71,8 +71,8 @@ object Global extends WithFilters(HTTPSFilter, HTTPAuthFilter) {
   }
 
   override def onStart(app: Application) {
-    if (Environment.isReviewApp) {
-      Logger.debug("Review App, loading Ad Providers .....")
+    if (!Environment.isProd) {
+      Logger.debug("Loading Ad Providers .....")
       // make sure all ad providers exist
       AdProvider.loadAll()
     }

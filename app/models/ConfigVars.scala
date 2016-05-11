@@ -58,10 +58,11 @@ trait ConfigVars {
   private lazy final val IosAdProviderID         = Play.current.configuration.getLong(Constants.AdProviderConfig.IosAdProviderID).get
   private lazy final val AndroidAdProviderID     = Play.current.configuration.getLong(Constants.AdProviderConfig.AndroidAdProviderID).get
 
-  private lazy final val KeenProject             = Play.current.configuration.getString(Constants.KeenConfig.prefix + Constants.KeenConfig.Project).get
-  private lazy final val KeenWriteKey            = Play.current.configuration.getString(Constants.KeenConfig.prefix + Constants.KeenConfig.WriteKey).get
-  private lazy final val KeenReadKey             = Play.current.configuration.getString(Constants.KeenConfig.prefix + Constants.KeenConfig.ReadKey).get
-  private lazy final val KeenMasterKey           = Play.current.configuration.getString(Constants.KeenConfig.prefix + Constants.KeenConfig.MasterKey).get
+  private lazy final val KeenProject             = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.Project}").get
+  private lazy final val KeenWriteKey            = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.WriteKey}").get
+  private lazy final val KeenReadKey             = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.ReadKey}").get
+  private lazy final val KeenMasterKey           = Play.current.configuration.getString(s"${Constants.KeenPrefix}.${Constants.KeenConfig.MasterKey}").get
+
   //@formatter:on
 
   object ConfigVarsHmac {
