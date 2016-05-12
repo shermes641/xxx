@@ -8,7 +8,8 @@ import play.api.mvc._
   */
 object ConfigVarsController extends Controller with ConfigVars {
   /**
-    * Renders form to create a new DistributorUser.
+    * Review apps change configuration vars from what you would see on on the Heroku dashboard.
+    * Therefore review apps are allowed to dump the configuration vars
     *
     * @return Form for sign up
     */

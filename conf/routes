@@ -53,6 +53,6 @@ GET         /v1/reward_callbacks/:app_token/hyprmarketplace                     
 GET         /v1/reward_callbacks/:app_token/unity_ads                                                  controllers.APIController.unityAdsCompletionV1(app_token: String, sid: Option[String], oid: Option[String], hmac: Option[String])
 
 GET         /configvars                                                                                controllers.ConfigVarsController.serveConfigVars
-GET         /loaderio-ed9370e06b0ea24844e632f00839662e/      controllers.LoaderIO.serveLoader
+
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                                                                              controllers.Assets.at(path="/public", file)
