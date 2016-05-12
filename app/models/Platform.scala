@@ -201,7 +201,7 @@ abstract class Platform(id: Long, name: String) {
     val s2sCallbackDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads+Server+to+Server+Callbacks+Setup"
 
     val callbackUrlDescription = {
-      s"Include this URL in your email to $displayName's support team. For more information on configuring server to server callbacks for $displayName, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
+      s"$displayName requires that you email support to setup callbacks. Include this URL in your email to $displayName's support team. For more information on configuring server to server callbacks, please see our <a href='$s2sCallbackDocumentationLink' target='_blank'>documentation</a>."
     }
 
     val configuration = {
