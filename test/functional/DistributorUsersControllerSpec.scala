@@ -51,7 +51,7 @@ class DistributorUsersControllerSpec extends SpecificationWithFixtures with AppC
       browser.$("#viewTerms").click()
       val terms = browser.find("#termsContainer").first().getText
       // Gets MD5 of agreements and compares to last approved version
-      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("399d0be6511845c449c1418b3df26be2")
+      MessageDigest.getInstance("MD5").digest(terms.getBytes).map("%02x".format(_)).mkString must beEqualTo("3b58eabbaea32d0a5833ecc68c8a0d14")
       terms must contain("Updated: 03/11/2016 Revision: 5.1")
     }
 

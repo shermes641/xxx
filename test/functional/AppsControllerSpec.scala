@@ -180,7 +180,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val newAppName = "My new test app"
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
-      browser.$("button[id=create-app]").first.click()
+      clickAndWaitForAngular("#create-app")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(newAppName + " Waterfall"))
       val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }.head
       val currentWaterfall = Waterfall.findByAppID(currentApp.id).head
@@ -197,7 +197,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       goToAndWaitForAngular(controllers.routes.AppsController.newApp(user.distributorID.get).url)
       fillInAppValues(appName = newAppName, currencyName = "Gold", exchangeRate = "100", rewardMin = "1", rewardMax = "10")
       clickAndWaitForAngular("#android-logo")
-      browser.$("button[id=create-app]").first.click()
+      clickAndWaitForAngular("#create-app")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until(browser.pageSource.contains(newAppName + " Waterfall"))
       val currentApp = App.findAll(user.distributorID.get).filter { app => app.name == newAppName }.head
       val currentWaterfall = Waterfall.findByAppID(currentApp.id).head
