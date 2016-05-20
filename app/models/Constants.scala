@@ -70,6 +70,9 @@ object Constants {
     final val APIKey                  = "APIKey"
     final val IosAdProviderID         = "hyprmarketplace.ios_ad_provider_id"
     final val AndroidAdProviderID     = "hyprmarketplace.android_ad_provider_id"
+    final val ReportingParams         = "reportingParams"
+    final val RequiredParams          = "requiredParams"
+
     val CallbackUrlDescription        = "Copy and paste this URL into the Callback URL field of %s's dashboard."
   }
 

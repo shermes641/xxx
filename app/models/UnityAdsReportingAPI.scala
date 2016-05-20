@@ -28,12 +28,12 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
   val startDate = startDt.toString(dateFormat)
 
   override val queryString: List[(String, String)] = List(
-    "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+    "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
     "splitBy" -> "none",
     "start" -> startDate,
     "end" -> endDate,
     "scale" -> "day",
-    "sourceIds" -> (configurationData \ "requiredParams" \ "appID").as[String])
+    "sourceIds" -> (configurationData \ Constants.AdProviderConfig.RequiredParams \ Constants.UnityAds.GameID).as[String])
 
   /**
     * Update eCPM and generation number based on reporting data
@@ -45,7 +45,7 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
     */
   def unityUpdateRevenueData(url: String = BaseURL,
                              qs: List[(String, String)] = queryString,
-                            timeOut: Int = Constants.DefaultReportingTimeoutMs): Future[Boolean] = {
+                             timeOut: Int = Constants.DefaultReportingTimeoutMs): Future[Boolean] = {
     WS.url(url).withRequestTimeout(timeOut).withQueryString(qs: _*).get().map { response =>
       response.status match {
         case 200 | 304 =>
