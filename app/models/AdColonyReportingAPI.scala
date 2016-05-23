@@ -2,7 +2,6 @@ package models
 
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.json._
-import play.api.Play
 import play.api.libs.ws.WSResponse
 import scala.language.postfixOps
 
@@ -11,8 +10,8 @@ import scala.language.postfixOps
  * @param wapID The ID of the WaterfallAdProvider to be updated.
  * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
  */
-case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI {
-  override val BaseURL = Play.current.configuration.getString("adcolony.reporting_url").get
+case class AdColonyReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars {
+  override val BaseURL = ConfigVarsReporting.adcolonyUrl
   override val dateFormat = DateTimeFormat.forPattern("MMddyyyy")
   override val waterfallAdProviderID = wapID
 

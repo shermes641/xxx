@@ -5,7 +5,6 @@ import com.typesafe.plugin._
 import play.api.Logger
 import play.api.Play.current
 import java.io.File
-import play.api.Play
 
 /** Encapsulates methods which send email. */
 trait Mailer {
@@ -20,8 +19,14 @@ trait Mailer {
    * @param body Email body
    * @param attachmentFileName Email attachment file name
    */
-  def sendEmail(recipient: String, sender: String = PublishingEmail, subject: String, body: String, plainText: String = "", attachmentFileName: String = ""): Unit = {
-    val host = Play.current.configuration.getString("app_domain").get
+  // $COVERAGE-OFF$ covered in it tests
+  def sendEmail(host: String,
+                recipient: String,
+                sender: String = PublishingEmail,
+                subject: String,
+                body: String,
+                plainText: String = "",
+                attachmentFileName: String = ""): Unit = {
     if(Environment.isProdOrStaging) {
       val mail = use[MailerPlugin].email
       mail.setRecipient(recipient)
@@ -40,4 +45,5 @@ trait Mailer {
       mail.send(text, template)
     }
   }
+  // $COVERAGE-ON$
 }

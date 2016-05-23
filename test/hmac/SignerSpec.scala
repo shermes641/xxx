@@ -1,9 +1,8 @@
 package hmac
 
 import org.specs2.mock.Mockito
-import play.api.Play
 
-class SignerSpec extends BaseSpec with Mockito{
+class SignerSpec extends BaseSpec with Mockito {
 
   val validUris = Table(
     ("secret",

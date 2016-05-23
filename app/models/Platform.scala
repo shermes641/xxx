@@ -1,7 +1,5 @@
 package models
 
-import play.api.Play
-
 /**
  * Base class for Android and Ios AdProvider classes.
   *
@@ -195,7 +193,6 @@ abstract class Platform(id: Long, name: String) {
     val s2sCallbackDocumentationLink = "https://documentation.hyprmx.com/display/ADMIN/Unity+Ads+Server+to+Server+Callbacks+Setup"
 
     val configuration = {
-      //TODO add documentation https://documentation.hyprmx.com/display/ADMIN/UnityAds
       val appIDDescription = {
         s"Your GAME ID can be found on the $displayName dashboard. For more information on configuring $displayName, please see our <a href='$configurationDocumentationLink' target='_blank'>documentation</a>."
       }
@@ -236,19 +233,19 @@ abstract class Platform(id: Long, name: String) {
   val allAdProviders = List(AdColony, HyprMarketplace, Vungle, AppLovin, UnityAds)
 }
 
-object Platform {
+object Platform extends ConfigVars {
   val IosPlatformID: Long = 1
   val IosPlatformName: String = "iOS"
   object Ios extends Platform(IosPlatformID, IosPlatformName) {
-    val hyprMarketplaceID = Play.current.configuration.getLong("hyprmarketplace.ios_ad_provider_id").get
-    val serverToServerDomain = Play.current.configuration.getString("ios_server_to_server_callback_domain").get
+    val hyprMarketplaceID = ConfigVarsAdProviders.iosID
+    val serverToServerDomain = ConfigVarsCallbackUrls.ios
   }
 
   val AndroidPlatformID: Long = 2
   val AndroidPlatformName: String = "Android"
   object Android extends Platform(AndroidPlatformID, AndroidPlatformName) {
-    val hyprMarketplaceID = Play.current.configuration.getLong("hyprmarketplace.android_ad_provider_id").get
-    val serverToServerDomain = Play.current.configuration.getString("android_server_to_server_callback_domain").get
+    val hyprMarketplaceID = ConfigVarsAdProviders.androidID
+    val serverToServerDomain = ConfigVarsCallbackUrls.android
   }
 
   /**

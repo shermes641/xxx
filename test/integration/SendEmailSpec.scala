@@ -23,7 +23,8 @@ import scala.util.Random
   *         Mailbox                ID 97312
   *         website login          shermes@jungroup.com  PW  jungroup
   */
-class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup with UpdateHyprMarketplace with Mailer with Mockito {
+class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup
+  with UpdateHyprMarketplace with Mailer with Mockito with ConfigVars {
   final val MailTrapClean = "https://mailtrap.io/api/v1/inboxes/97312/clean?api_token=e4189cd37ee9cf6c15d2ce43c2838caf"
   final val MailTrapCnt = "https://mailtrap.io/api/v1/inboxes/97312?api_token=e4189cd37ee9cf6c15d2ce43c2838caf"
   final val MailTrapMsgs = "https://mailtrap.io/api/v1/inboxes/97312/messages?page=1&api_token=e4189cd37ee9cf6c15d2ce43c2838caf"
@@ -36,7 +37,8 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
         cleanMailTrapMailBox()
         val emailCnt = getMailTrapMailBoxMsgCnt
         val subject = "Email Test using mailtrap " + System.currentTimeMillis()
-        sendEmail(recipient = "steve@gmail.com",
+        sendEmail(ConfigVarsApp.domain,
+          recipient = "steve@gmail.com",
           sender = PublishingEmail,
           subject = subject,
           body = "Just a test.",
@@ -81,9 +83,9 @@ class SendEmailSpec extends SpecificationWithFixtures with WaterfallSpecSetup wi
         val wap = DB.withTransaction { implicit connection =>
           val waterfallID = Waterfall.create(appID, "12345").get
           VirtualCurrency.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
-          val adProviderID = 2 //Play.current.configuration.getLong("hyprmarketplace.ad_provider_id").get
+          val adProviderID = ConfigVarsAdProviders.iosID
         val hyprWaterfallAdProviderID = WaterfallAdProvider.createWithTransaction(waterfallID, adProviderID, Option(0), Option(20), configurable = false, active = false, pending = true).get
-          AppConfig.create(appID, appp.token, 0)
+          models.AppConfig.create(appID, appp.token, 0)
           val hyprWAP = WaterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID).get
           WaterfallAdProviderWithAppData(hyprWAP.id, waterfallID, adProviderID, hyprWAP.waterfallOrder, hyprWAP.cpm, hyprWAP.active, hyprWAP.fillRate,
             hyprWAP.configurationData, hyprWAP.reportingActive, hyprWAP.pending, appp.token, appp.name, companyName)

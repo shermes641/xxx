@@ -4,7 +4,6 @@ import com.github.nscala_time.time.Imports._
 import controllers.routes
 import io.keen.client.java.ScopedKeys
 import models._
-import play.api.Play
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test.{FakeApplication, FakeHeaders, _}
@@ -12,7 +11,7 @@ import resources.{AppCreationHelper, DistributorUserSetup, SpecificationWithFixt
 
 import scala.collection.JavaConversions._
 
-class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
+class AnalyticsControllerSpec extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper with ConfigVars {
   val distributorUser = running(FakeApplication(additionalConfiguration = testDB)) {
     DistributorUser.create(email, password, "Company Name")
     DistributorUser.findByEmail(email).get
@@ -123,10 +122,10 @@ class AnalyticsControllerSpec extends SpecificationWithFixtures with Distributor
       val response = Json.parse(contentAsString(result))
 
       (response \ "distributorID").as[Long] must beEqualTo(distributorID)
-      (response \ "keenProject").as[String] must beEqualTo(Play.current.configuration.getString("keen.project").get)
+      (response \ "keenProject").as[String] must beEqualTo(ConfigVarsKeen.projectID)
 
       // Verify scopedKey
-      val decrypted = ScopedKeys.decrypt(Play.current.configuration.getString("keen.masterKey").get, (response \ "scopedKey").as[String]).toMap.toString()
+      val decrypted = ScopedKeys.decrypt(ConfigVarsKeen.masterKey, (response \ "scopedKey").as[String]).toMap.toString()
       decrypted must contain("property_value=" + distributorID.toString)
     }
 

@@ -2,7 +2,7 @@ package models
 
 import play.api.libs.Codecs
 import play.api.libs.json._
-import play.api.{Logger, Play}
+import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
@@ -14,8 +14,8 @@ import scala.concurrent.Await
  * @param wapID The ID of the WaterfallAdProvider to be updated.
  * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
  */
-case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI {
-  override val BaseURL = Play.current.configuration.getString("hyprmarketplace.reporting_url").get
+case class HyprMarketplaceReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars {
+  override val BaseURL = ConfigVarsReporting.hyprMarketplaceUrl
   override val waterfallAdProviderID = wapID
 
   override val queryString: List[(String, String)] = {

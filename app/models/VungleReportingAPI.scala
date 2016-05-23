@@ -2,7 +2,6 @@ package models
 
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
-import play.api.Play
 import scala.language.postfixOps
 
 /**
@@ -10,10 +9,10 @@ import scala.language.postfixOps
  * @param wapID The ID of the WaterfallAdProvider to be updated.
  * @param configurationData The WaterfallAdProvider's configuration data containing required params for calling the reporting API.
  */
-case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI {
+case class VungleReportingAPI(wapID: Long, configurationData: JsValue) extends ReportingAPI with ConfigVars{
   val reportingParams = configurationData \ "reportingParams"
   val apiID = (reportingParams \ "APIID").as[String] // This value identifies the specific app for which to get eCPM data
-  override val BaseURL = Play.current.configuration.getString("vungle.reporting_url").get + "/" + apiID
+  override val BaseURL = ConfigVarsReporting.vungleUrl + "/" + apiID
   override val waterfallAdProviderID = wapID
 
   override val queryString: List[(String, String)] = {

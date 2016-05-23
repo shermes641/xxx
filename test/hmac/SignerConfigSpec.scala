@@ -1,11 +1,12 @@
 package hmac
 
+import models.ConfigVars
 import resources.SpecificationWithFixtures
 
 /**
   * Created by shermes on 3/3/16.
   */
-class SignerConfigSpec extends SpecificationWithFixtures {
+class SignerConfigSpec extends SpecificationWithFixtures with ConfigVars {
 
   "Signer" should {
     "use default config parameters" in {
@@ -16,9 +17,9 @@ class SignerConfigSpec extends SpecificationWithFixtures {
 
     "use parameters from config file" in new WithDB {
       object MySigner extends DefaultSigner
-      MySigner.algorithm must_== app.configuration.getString("signerAlgorithm").getOrElse("should never happen")
-      MySigner.separator must_== app.configuration.getString("signerSeparator").getOrElse("should never happen")
-      MySigner.tolerance must_== app.configuration.getString("signerTolerance").getOrElse("should never happen").toDouble
+      MySigner.algorithm must_== ConfigVarsHmac.algorithm
+      MySigner.separator must_== ConfigVarsHmac.seperator
+      MySigner.tolerance must_== ConfigVarsHmac.tolerance
     }
   }
 }

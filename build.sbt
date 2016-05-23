@@ -145,7 +145,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus" % "play_2.11" % "1.5.0-SNAP1",
   "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
   "io.spray" %% "spray-testkit" % "1.3.2" % "test",
-  "com.netaporter" %% "scala-uri" % "0.4.12"
+  "com.netaporter" %% "scala-uri" % "0.4.12",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.2"
 )
 
 //TODO normally you would set this for all tests

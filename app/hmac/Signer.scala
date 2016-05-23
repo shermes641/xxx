@@ -7,6 +7,7 @@ import javax.xml.bind.DatatypeConverter
 
 import com.netaporter.uri.QueryString
 import com.netaporter.uri.dsl._
+import models.ConfigVars
 import oauth.signpost.OAuth.percentEncode
 import play.api.{Logger, Play}
 
@@ -59,7 +60,7 @@ case class HmacHashData(uri: String,
   }
 }
 
-trait Signer {
+trait Signer extends ConfigVars {
   final val getNewTimestamp = None
   var algorithm = Constants.DefaultAlgorithm
   var separator = Constants.DefaultSeparator
@@ -67,9 +68,9 @@ trait Signer {
 
   Play.maybeApplication match {
     case Some(application) =>
-      algorithm = application.configuration.getString("signerAlgorithm").getOrElse(Constants.DefaultAlgorithm)
-      separator = application.configuration.getString("signerSeparator").getOrElse(Constants.DefaultSeparator)
-      tolerance = application.configuration.getString("signerTolerance").getOrElse(Constants.DefaultTolerance).toString.toDouble
+      algorithm = ConfigVarsHmac.algorithm
+      separator = ConfigVarsHmac.seperator
+      tolerance = ConfigVarsHmac.tolerance
     case _ => // defaults already set
   }
 

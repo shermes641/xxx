@@ -1,7 +1,6 @@
 package models
 
 import java.security.MessageDigest
-import play.api.Play
 
 /**
  * Encapsulates callback information for HyprMarketplace.
@@ -13,7 +12,8 @@ import play.api.Play
  * @param quantity The amount of virtual currency earned.
  * @param transactionID A unique ID to verify the completion (corresponds to the partner_code in Player).
  */
-class HyprMarketplaceCallback(appToken: String, userID: String, signature: String, time: String, offerProfit: Option[Double], quantity: Int, transactionID: Option[String]) extends CallbackVerificationHelper {
+class HyprMarketplaceCallback(appToken: String, userID: String, signature: String, time: String, offerProfit: Option[Double], quantity: Int, transactionID: Option[String])
+  extends CallbackVerificationHelper with ConfigVars {
   val defaultTransactionID = ""
   override val adProviderName = "HyprMarketplace"
   override val token = appToken
@@ -27,7 +27,7 @@ class HyprMarketplaceCallback(appToken: String, userID: String, signature: Strin
    */
   override def generatedVerification: String = {
     val md = MessageDigest.getInstance("SHA-256")
-    val transactionString = List(userID, transactionID.getOrElse(defaultTransactionID), time, Play.current.configuration.getString("jungroup.token").get).mkString("")
+    val transactionString = List(userID, transactionID.getOrElse(defaultTransactionID), time, ConfigVarsJunGroup.token).mkString("")
     md.digest(transactionString.getBytes).map("%02x".format(_)).mkString
   }
 }

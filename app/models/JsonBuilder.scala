@@ -1,39 +1,39 @@
 package models
 
 import models.Waterfall.AdProviderInfo
-import play.api._
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 import scala.language.implicitConversions
 
-object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
+object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader with ConfigVars {
   val LogFullConfig = true // This value must remain true to provide accurate analytics for ad providers
   val DefaultCanShowAdTimeout = 10 // This value represents seconds.
   val DefaultRewardTimeout = 10 // This value represents seconds.
 
   /**
-   * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
-   * @param adProviderList List of AdProviderInfo instances containing ad provider names and configuration info.
-   * @param configInfo All other configuration info not related to specific AdProviders.
-   * @return JSON object with an ordered array of ad providers and their respective configuration info.
-   */
+    * Converts a list of AdProviderInfo instances into a JSON response which is returned by the APIController.
+    *
+    * @param adProviderList List of AdProviderInfo instances containing ad provider names and configuration info.
+    * @param configInfo     All other configuration info not related to specific AdProviders.
+    * @return JSON object with an ordered array of ad providers and their respective configuration info.
+    */
   def appConfigResponseV1(adProviderList: List[AdProviderInfo], adProviderBelowRewardThresholdList: List[AdProviderInfo], configInfo: AdProviderInfo): JsValue = {
     val adProviderConfigurations = {
       JsObject(
         Seq(
           "adProviderConfigurations" -> adProviderList.foldLeft(JsArray())((array, el) =>
-              array ++ JsArray(adProviderJson(el).deepMerge(
-                el.configurationData match {
-                  case Some(data) =>
-                    data \ "requiredParams" match {
-                      case _: JsUndefined => JsObject(Seq())
-                      case json: JsValue => json.as[JsObject]
-                    }
+            array ++ JsArray(adProviderJson(el).deepMerge(
+              el.configurationData match {
+                case Some(data) =>
+                  data \ "requiredParams" match {
+                    case _: JsUndefined => JsObject(Seq())
+                    case json: JsValue => json.as[JsObject]
+                  }
 
-                  case None => JsObject(Seq())
-                }
-              ) :: Nil
+                case None => JsObject(Seq())
+              }
+            ) :: Nil
             )
           )
         )
@@ -56,10 +56,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Converts an AdProviderInfo instance into JSON
-   * @param adProvider An AdProviderInfo instance containing ad provider name and configuration info.
-   * @return JSON object containing ad provider information.
-   */
+    * Converts an AdProviderInfo instance into JSON
+    *
+    * @param adProvider An AdProviderInfo instance containing ad provider name and configuration info.
+    * @return JSON object containing ad provider information.
+    */
   def adProviderJson(adProvider: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
@@ -75,10 +76,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates a JSON object for SDK configuration info.
-   * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
-   * @return A JsObject containing SDK configuration info.
-   */
+    * Creates a JSON object for SDK configuration info.
+    *
+    * @param appConfigRefreshInterval Determines the TTL for AppConfigs used by the SDK.
+    * @return A JsObject containing SDK configuration info.
+    */
   def sdkConfiguration(appConfigRefreshInterval: Long): JsObject = {
     JsObject(
       Seq(
@@ -89,10 +91,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates a JSON object for distributor information.
-   * @param adProviderInfo An instance of the AdProviderInfo class containing distributor information.
-   * @return A JsObject containing distributorID and distributorName.
-   */
+    * Creates a JSON object for distributor information.
+    *
+    * @param adProviderInfo An instance of the AdProviderInfo class containing distributor information.
+    * @return A JsObject containing distributorID and distributorName.
+    */
   def distributorConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
@@ -103,10 +106,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates a JSON object for app information.
-   * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
-   * @return A JsObject containing app name, ID, and platform ID.
-   */
+    * Creates a JSON object for app information.
+    *
+    * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
+    * @return A JsObject containing app name, ID, and platform ID.
+    */
   def appConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
@@ -118,10 +122,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates a JSON object for virtual currency information
-   * @param adProviderInfo An instance of the AdProviderInfo class containing virtual currency information.
-   * @return A JsObject with virtual currency information.
-   */
+    * Creates a JSON object for virtual currency information
+    *
+    * @param adProviderInfo An instance of the AdProviderInfo class containing virtual currency information.
+    * @return A JsObject with virtual currency information.
+    */
   def virtualCurrencyConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
@@ -139,16 +144,17 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates JSON object containing configuration data for our analytics service (keen.io)
-   * @return JSON object to be merged into JSON API response.
-   */
+    * Creates JSON object containing configuration data for our analytics service (keen.io)
+    *
+    * @return JSON object to be merged into JSON API response.
+    */
   def analyticsConfiguration: JsObject = {
     JsObject(
       Seq(
         "analyticsConfiguration" -> JsObject(
           Seq(
-            "analyticsPostUrl" -> JsString("https://api.keen.io/3.0/projects/" + Play.current.configuration.getString("keen.project").get),
-            "analyticsWriteKey" -> JsString(Play.current.configuration.getString("keen.writeKey").get)
+            "analyticsPostUrl" -> JsString(Constants.KeenConfig.ProjectsUrl + ConfigVarsKeen.projectID),
+            "analyticsWriteKey" -> JsString(ConfigVarsKeen.writeKey)
           )
         )
       )
@@ -156,16 +162,17 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates JSON object containing configuration data for our error report to our analytics service (keen.io)
-   * @return JSON object to be merged into JSON API response.
-   */
+    * Creates JSON object containing configuration data for our error report to our analytics service (keen.io)
+    *
+    * @return JSON object to be merged into JSON API response.
+    */
   def errorReportingConfiguration: JsObject = {
     JsObject(
       Seq(
         "errorReportingConfiguration" -> JsObject(
           Seq(
-            "errorReportingPostUrl" -> JsString("https://api.keen.io/3.0/projects/" + Play.current.configuration.getString("keen.errorReportingProject").get),
-            "errorReportingWriteKey" -> JsString(Play.current.configuration.getString("keen.errorReportingWriteKey").get)
+            "errorReportingPostUrl" -> JsString(Constants.KeenConfig.ProjectsUrl + ConfigVarsKeen.errorProjectID),
+            "errorReportingWriteKey" -> JsString(ConfigVarsKeen.errorProjectKey)
           )
         )
       )
@@ -173,9 +180,10 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates JSON object containing indication whether the app is in test mode or not.
-   * @return JSON object to be merged into JSON API response.
-   */
+    * Creates JSON object containing indication whether the app is in test mode or not.
+    *
+    * @return JSON object to be merged into JSON API response.
+    */
   def testModeConfiguration: JsObject = {
     JsObject(
       Seq(
@@ -185,10 +193,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates a JSON object for paused information.
-   * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
-   * @return A JsObject containing paused status.
-   */
+    * Creates a JSON object for paused information.
+    *
+    * @param adProviderInfo An instance of the AdProviderInfo class containing app information.
+    * @return A JsObject containing paused status.
+    */
   def pausedConfiguration(adProviderInfo: AdProviderInfo): JsObject = {
     JsObject(
       Seq(
@@ -198,9 +207,10 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Creates JSON object containing the default time to wait for a "can show ad" response from each ad provider in the SDK.
-   * @return JSON object to be merged in to the JSON API response.
-   */
+    * Creates JSON object containing the default time to wait for a "can show ad" response from each ad provider in the SDK.
+    *
+    * @return JSON object to be merged in to the JSON API response.
+    */
   def timeoutConfigurations: JsObject = {
     JsObject(
       Seq(
@@ -211,16 +221,17 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * The top level keys for WaterfallAdProvider configurationData JSON.
-   */
+    * The top level keys for WaterfallAdProvider configurationData JSON.
+    */
   val waterfallAdProviderParamList = List("requiredParams", "callbackParams", "reportingParams")
 
   /**
-   * Constructs WaterfallAdProvider JSON data to either be stored in the database or displayed in the UI.
-   * @param jsonAssemblyFunction A function that determines how the JSON will be structured (for database or UI).
-   * @param config The WaterfallAdProvider configurationData either being passed in from UI or pulled from the database.
-   * @return A JSON object to be displayed in the UI or saved to the configuration_data column of the waterfall_ad_providers table.
-   */
+    * Constructs WaterfallAdProvider JSON data to either be stored in the database or displayed in the UI.
+    *
+    * @param jsonAssemblyFunction A function that determines how the JSON will be structured (for database or UI).
+    * @param config               The WaterfallAdProvider configurationData either being passed in from UI or pulled from the database.
+    * @return A JSON object to be displayed in the UI or saved to the configuration_data column of the waterfall_ad_providers table.
+    */
   def buildWAPParams(jsonAssemblyFunction: List[RequiredParam] => JsValue, config: Any): JsObject = {
     waterfallAdProviderParamList.foldLeft(JsObject(Seq()))((outputJson, params) => {
       outputJson.deepMerge(
@@ -240,19 +251,21 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Assembles WaterfallAdProvider params in a standard JSON format to be displayed in the UI.
-   * @param list The list of RequiredParams to be stored in JSON.
-   * @return A JsArray containing RequiredParam JSON objects.
-   */
+    * Assembles WaterfallAdProvider params in a standard JSON format to be displayed in the UI.
+    *
+    * @param list The list of RequiredParams to be stored in JSON.
+    * @return A JsArray containing RequiredParam JSON objects.
+    */
   def buildWAPParamsForUI(list: List[RequiredParam]): JsArray = {
     list.foldLeft(JsArray(Seq()))((array, param) => array ++ JsArray(Seq(param)))
   }
 
   /**
-   * Assembles WaterfallAdProvider params in a standard JSON format to be stored in the configuration_data field of the waterfall_ad_providers table.
-   * @param list The list of RequiredParams to be stored in JSON.
-   * @return A JsObject containing WaterfallAdProvider params.
-   */
+    * Assembles WaterfallAdProvider params in a standard JSON format to be stored in the configuration_data field of the waterfall_ad_providers table.
+    *
+    * @param list The list of RequiredParams to be stored in JSON.
+    * @return A JsObject containing WaterfallAdProvider params.
+    */
   def buildWAPParamsForDB(list: List[RequiredParam]): JsObject = {
     list.foldLeft(JsObject(Seq()))((jsonObject, param) => {
       jsonObject.deepMerge(
@@ -279,10 +292,11 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
   }
 
   /**
-   * Converts RequiredParam class to JSON object.
-   * @param param The an instance of the RequiredParam class to be converted.
-   * @return JSON object to be used in the edit action.
-   */
+    * Converts RequiredParam class to JSON object.
+    *
+    * @param param The an instance of the RequiredParam class to be converted.
+    * @return JSON object to be used in the edit action.
+    */
   implicit def requiredParamWrites(param: RequiredParam): JsObject = {
     JsObject(
       Seq(
@@ -299,12 +313,12 @@ object JsonBuilder extends ValueToJsonHelper with RequiredParamJsReader {
 }
 
 /**
- * Implicit value to convert JSON to an instance of RequiredParam.
- */
+  * Implicit value to convert JSON to an instance of RequiredParam.
+  */
 trait RequiredParamJsReader {
   /**
-   * Converts RequiredParam class instance to JSON
-   */
+    * Converts RequiredParam class instance to JSON
+    */
   implicit val requiredParamReads: Reads[RequiredParam] = (
     (JsPath \ "displayKey").readNullable[String] and
       (JsPath \ "key").readNullable[String] and
@@ -313,18 +327,19 @@ trait RequiredParamJsReader {
       (JsPath \ "value").readNullable[String] and
       (JsPath \ "refreshOnAppRestart").read[Boolean] and
       (JsPath \ "minLength").read[Long].orElse(Reads.pure(0))
-    )(RequiredParam.apply _)
+    ) (RequiredParam.apply _)
 }
 
 /**
- * Implicit functions to convert Scala values to JSON values.
- */
+  * Implicit functions to convert Scala values to JSON values.
+  */
 trait ValueToJsonHelper {
   /**
-   * Converts an optional Long value to a JsValue in virtualCurrencyConfiguration.
-   * @param param The original optional Long value found in the adProviderInfo instance.
-   * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
-   */
+    * Converts an optional Long value to a JsValue in virtualCurrencyConfiguration.
+    *
+    * @param param The original optional Long value found in the adProviderInfo instance.
+    * @return A JsNumber if a Long value is found; otherwise, returns JsNull.
+    */
   implicit def optionalLongToJsValue(param: Option[Long]): JsValue = {
     param match {
       case Some(paramValue) => JsNumber(paramValue)
@@ -333,10 +348,11 @@ trait ValueToJsonHelper {
   }
 
   /**
-   * Converts an optional String value to a JsValue.
-   * @param param The original optional String value found in the adProviderInfo instance.
-   * @return A JsString if a String value is found; otherwise, returns JsNull.
-   */
+    * Converts an optional String value to a JsValue.
+    *
+    * @param param The original optional String value found in the adProviderInfo instance.
+    * @return A JsString if a String value is found; otherwise, returns JsNull.
+    */
   implicit def optionalStringToJsValue(param: Option[String]): JsValue = {
     param match {
       case Some(paramValue) => JsString(paramValue)
@@ -346,14 +362,15 @@ trait ValueToJsonHelper {
 }
 
 /**
- * Implicit functions to convert JSON values to Scala values.
- */
+  * Implicit functions to convert JSON values to Scala values.
+  */
 trait JsonToValueHelper {
   /**
-   * Converts a JsValue to an Optional Double.
-   * @param param The value to be converted.
-   * @return A Double if a value exists; otherwise, None.
-   */
+    * Converts a JsValue to an Optional Double.
+    *
+    * @param param The value to be converted.
+    * @return A Double if a value exists; otherwise, None.
+    */
   implicit def jsValueToOptionalDouble(param: JsValue): Option[Double] = {
     param match {
       case value: JsUndefined => None
@@ -364,10 +381,11 @@ trait JsonToValueHelper {
   }
 
   /**
-   * Converts a JsValue to an Optional Long.
-   * @param param The value to be converted.
-   * @return A long if a value exists; otherwise, None.
-   */
+    * Converts a JsValue to an Optional Long.
+    *
+    * @param param The value to be converted.
+    * @return A long if a value exists; otherwise, None.
+    */
   implicit def jsValueToOptionalLong(param: JsValue): Option[Long] = {
     param match {
       case value: JsUndefined => None
