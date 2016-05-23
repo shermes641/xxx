@@ -10,6 +10,7 @@ import play.api.libs.ws.WS
 import play.api.mvc._
 import play.api.test._
 
+import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Promise}
 
 /**
@@ -197,7 +198,7 @@ class HmacRequestVerifierFunSpec extends PlaySpecification with Mockito {
     running(TestServer(testServerPort, app)) {
       await(makeRequest(app)(hostUrl))
     }
-    val (request, body) = await(promise.future)
+    val (request, body) = await(promise.future)(Duration(5000, "millis"))
     (request, body, hostUrl)
   }
 

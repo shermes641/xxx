@@ -4,7 +4,9 @@ import akka.actor.Props
 import org.specs2.mock.Mockito
 import play.api.libs.concurrent.Akka
 import play.api.Play.current
+import play.api.libs.json.{JsString, Json}
 import resources.SpecificationWithFixtures
+
 import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
 
@@ -31,10 +33,16 @@ class AppLovinReportingActorSpec extends SpecificationWithFixtures with Mockito 
 
     "process each WaterfallAdProvider API call in order" in new WithDB {
       val appLovinActor = Akka.system(current).actorOf(Props(new AppLovinReportingActor))
-      val apiCalls = List.fill(3)(mock[AppLovinReportingAPI])
+      val configurationData = Json.obj("requiredParams" -> Json.obj(), "reportingParams" -> Json.obj("APIKey" -> JsString("some API Key"), "appName" -> JsString("some App Name")))
+      val apiCalls = List.fill(3)(spy(AppLovinReportingAPI(1, configurationData)))
       var completedCalls = new ListBuffer[AppLovinReportingAPI]()
+      def fakeUpdateRevenue(apiCall: AppLovinReportingAPI) = {
+        completedCalls += apiCall
+        Thread.sleep(1000)
+        Future { Option(0L) }
+      }
       apiCalls.foreach { apiCall =>
-        apiCall.updateRevenueData returns Future { completedCalls += apiCall; Option(0L) }
+        org.mockito.Mockito.doReturn(fakeUpdateRevenue(apiCall)).when(apiCall).updateRevenueData
         appLovinActor ! apiCall
       }
       eventually {
