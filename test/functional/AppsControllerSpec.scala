@@ -404,6 +404,23 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       }, Duration(5000, "millis"))
     }
 
+    "Shared Secret URL tooltip documentation link is correct" in new WithAppBrowser(user.distributorID.get) {
+      logInUser()
+      browser.goTo(controllers.routes.WaterfallsController.edit(user.distributorID.get, currentWaterfall.id).url)
+      clickAndWaitForAngular(".left-apps-list .active .settings-icon")
+      val documentationLinkText = browser.find("#hmac-secret-documentation-link").getAttribute("ng-bind-html")
+      val urlPattern = new scala.util.matching.Regex("""https:\/\/documentation.hyprmx.com(\/|\w|\+)+""")
+      val documentationLink = urlPattern findFirstIn documentationLinkText match {
+        case Some(url) => url
+        case None => ""
+      }
+      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
+      Await.result(request.get().map { response =>
+        response.status must beEqualTo(200)
+        response.body must contain("Server to Server Callback Validation")
+      }, Duration(5000, "millis"))
+    }.pendingUntilFixed(" *** Once The documentation is published we can run this test ***")
+
     "display the API Token in the app configuration modal" in new WithAppBrowser(user.distributorID.get) {
       def checkAPIToken(testApp: App) = {
         browser.executeScript("$('.left-apps-list li[name=" + testApp.name + "] .settings-icon').click()")

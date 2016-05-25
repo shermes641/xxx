@@ -3,9 +3,6 @@ package hmac
 import models.ConfigVars
 import resources.SpecificationWithFixtures
 
-/**
-  * Created by shermes on 3/3/16.
-  */
 class SignerConfigSpec extends SpecificationWithFixtures with ConfigVars {
 
   "Signer" should {

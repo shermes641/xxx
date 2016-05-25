@@ -2,7 +2,6 @@ package functional
 
 import anorm._
 import controllers.APIController
-import hmac.{HmacHashData, Signer}
 import models._
 import org.specs2.mock.Mockito
 import play.api.Play.current
