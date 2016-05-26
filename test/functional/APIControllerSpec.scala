@@ -1,6 +1,5 @@
 package functional
 
-import anorm._
 import controllers.APIController
 import models._
 import org.specs2.mock.Mockito
@@ -9,10 +8,11 @@ import play.api.db.DB
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
-import resources.{AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
+import resources.{AdProviderRequests, AdProviderSpecSetup, SpecificationWithFixtures, WaterfallSpecSetup}
+
 import scala.concurrent.Future
 
-class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup with Mockito {
+class APIControllerSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderRequests with AdProviderSpecSetup with Mockito {
   val wap1ID = running(FakeApplication(additionalConfiguration = testDB)) {
     WaterfallAdProvider.create(waterfall.id, adProviderID1.get, None, None, configurable = true, active = true).get
   }
