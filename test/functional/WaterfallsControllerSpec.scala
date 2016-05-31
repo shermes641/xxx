@@ -467,20 +467,6 @@ class WaterfallsControllerSpec extends SpecificationWithFixtures with WaterfallS
       browser.pageSource must contain(newAppName + " Waterfall")
     }
 
-    "includes working code snippet SDK documentation link" in new WithAppBrowser(distributor.id.get) {
-      logInUser()
-
-      goToAndWaitForAngular(controllers.routes.WaterfallsController.edit(distributor.id.get, currentWaterfall.id).url)
-      browser.click("#initialize-sdk")
-      browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#sdk-documentation-link").areDisplayed()
-      val documentationLink = browser.find("#sdk-documentation-link").getAttribute("href")
-      val request = WS.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
-      Await.result(request.get().map { response =>
-        response.status must beEqualTo(200)
-        response.body must contain("Welcome to HyprMediate iOS SDK documentation")
-      }, Duration(5000, "millis"))
-    }
-
     "not display the 'below reward threshold' notification if an ad provider is not fully configured" in new WithAppBrowser(distributor.id.get) {
       val (newApp, waterfall, virtualCurrency, appConfig) = setUpApp(distributor.id.get, Some("No Notification Test"), "Coins",
         exchangeRate = 100, rewardMin = 1, rewardMax = None, roundUp = false)
