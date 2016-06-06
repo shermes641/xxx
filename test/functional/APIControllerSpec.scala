@@ -1,5 +1,6 @@
 package functional
 
+import anorm._
 import controllers.APIController
 import models._
 import org.specs2.mock.Mockito
