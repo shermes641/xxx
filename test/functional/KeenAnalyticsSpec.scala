@@ -9,14 +9,13 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
 
   // Load AdProviders required for tests
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val unityAdsName = "UnityAds"
-    val unityAdsDisplayName = "Unity Ads"
     AdProvider.create(
-      name = unityAdsName,
-      displayName = unityAdsDisplayName,
+      name = Constants.UnityAds.Name,
+      displayName = Constants.UnityAds.DisplayName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Unity Ads GAME Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
-      callbackUrlFormat = None
+      callbackUrlFormat = None,
+      callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(Constants.UnityAds.DisplayName)
     )
 
     val vungleName = "Vungle"
@@ -25,7 +24,8 @@ class KeenAnalyticsSpec extends SpecificationWithFixtures {
       displayName = vungleName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
-      callbackUrlFormat = None
+      callbackUrlFormat = None,
+      callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(vungleName)
     )
   }
 

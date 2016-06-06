@@ -37,8 +37,14 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
   val startDt = new DateTime("2016-02-16", DateTimeZone.UTC)
   val endDate = startDt.plusDays(1).toString(dateFormat)
   val startDate = startDt.toString(dateFormat)
-  val configurationData = JsObject(Seq("requiredParams" -> JsObject(Seq("appID" -> JsString("1038305"))),
-    "reportingParams" -> JsObject(Seq("APIKey" -> JsString("690f9b49b59ac4551c3d7e8b4c66a578156bb098c289a0c5652e9ade1bf99fdb")))))
+  val configurationData = Json.obj(
+    Constants.AdProviderConfig.RequiredParams -> Json.obj(
+      Constants.UnityAds.GameID -> JsString("1038305")
+    ),
+    Constants.AdProviderConfig.ReportingParams -> Json.obj(
+      Constants.AdProviderConfig.APIKey -> JsString("690f9b49b59ac4551c3d7e8b4c66a578156bb098c289a0c5652e9ade1bf99fdb")
+    )
+  )
 
   val unityAds = running(FakeApplication(additionalConfiguration = testDB)) {
     new UnityAdsReportingAPI(waterfallAdProvider1.id, configurationData)
@@ -68,7 +74,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData bad application ID, do not bump generation number or update eCPM" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -89,7 +95,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData bad URL, do not bump generation number or update eCPM" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -107,7 +113,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData wrong URL, do not bump generation number or update eCPM" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -125,7 +131,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData update changed eCPM and bump generation number 1 day of stats" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -147,7 +153,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData mock failed DB update" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -169,7 +175,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData update changed eCPM and bump generation number with 10 days of stats" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> startDt.plusDays(10).toString(dateFormat),
@@ -191,7 +197,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData not bump generation number when eCPM does not change" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -209,7 +215,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData force timeout" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDate,
         "end" -> endDate,
@@ -227,7 +233,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData no reporting data" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDt.minusDays(10).toString(dateFormat),
         "end" -> startDt.minusDays(9).toString(dateFormat),
@@ -245,7 +251,7 @@ class UnityAdsReportingAPIItSpec extends SpecificationWithFixtures with Waterfal
 
     "unityUpdateRevenueData reporting end date before start date" in new WithDB {
       val queryString = List(
-        "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+        "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
         "splitBy" -> "none",
         "start" -> startDt.minusDays(9).toString(dateFormat),
         "end" -> startDt.minusDays(10).toString(dateFormat),

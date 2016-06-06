@@ -11,6 +11,7 @@ import resources._
 class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with JsonTesting with DistributorUserSetup {
   val adProvider1Name = "testAdProvider1"
   val adProvider1DisplayName = "test ad provider 1"
+  val adProvider1CallbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProvider1DisplayName)
   val adProvider1ID = running(FakeApplication(additionalConfiguration = testDB)) {
     AdProvider.create(
       name = adProvider1Name,
@@ -18,6 +19,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       configurationData = configurationData,
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None,
+      callbackUrlDescription = adProvider1CallbackUrlDescription,
       configurable = true,
       defaultEcpm = None
     ).get
@@ -25,6 +27,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
 
   val adProvider2Name = "testAdProvider2"
   val adProvider2DisplayName = "test ad provider 2"
+  val adProvider2CallbackUrlDescription = "Some other callback URL description"
   val adProvider2ID = running(FakeApplication(additionalConfiguration = testDB)) {
     AdProvider.create(
       name = adProvider2Name,
@@ -32,6 +35,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       configurationData = configurationData,
       platformID = Platform.Ios.PlatformID,
       callbackUrlFormat = None,
+      callbackUrlDescription = adProvider2CallbackUrlDescription,
       configurable = true,
       defaultEcpm = None
     ).get
@@ -149,6 +153,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
         configurationData = hyprMarketplaceConfiguration,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(hyprName),
         configurable = false,
         defaultEcpm = Some(20)
       ).get
@@ -158,6 +163,15 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
       browser.executeScript("$('.configure').first().click();")
       browser.await().atMost(5, java.util.concurrent.TimeUnit.SECONDS).until("#modal").areDisplayed
       browser.find(".edit-waterfall-ad-provider-field").first().isDisplayed must beFalse
+    }
+
+    "contain the appropriate configurable callback URL description for the ad network" in new WithAppBrowser(distributorUser.distributorID.get) {
+      List((adProvider1ID, adProvider1CallbackUrlDescription), (adProvider2ID, adProvider2CallbackUrlDescription)).map { adProviderInfo =>
+        val waterfallAdProviderID = WaterfallAdProvider.create(currentWaterfall.id, adProviderInfo._1, None, None, configurable = true).get
+        val Some(result) = route(wapEditRequest(waterfallAdProviderID).withSession("distributorID" -> distributorUser.distributorID.get.toString, "username" -> distributorUser.email))
+        val response = contentAsJson(result)
+        (response \ "callbackUrlDescription").as[String] must beEqualTo(adProviderInfo._2)
+      }
     }
   }
 
@@ -303,6 +317,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
         configurationData = configurationData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderName),
         configurable = true,
         defaultEcpm
       ).get
@@ -382,6 +397,7 @@ class WaterfallAdProvidersControllerSpec extends SpecificationWithFixtures with 
         configurationData = adProviderConfigData,
         platformID = Platform.Ios.PlatformID,
         callbackUrlFormat = None,
+        callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(adProviderName),
         configurable = true,
         None
       )

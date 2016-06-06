@@ -24,7 +24,8 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       displayName = hyprName,
       configurationData = "{\"required_params\":[{\"description\": \"Your HyprMarketplace App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
-      callbackUrlFormat = None
+      callbackUrlFormat = None,
+      callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(hyprName)
     )
 
     val vungleName = "Vungle"
@@ -33,7 +34,8 @@ class KeenCsvFillRateSpec extends SpecificationWithFixtures {
       displayName = vungleName,
       configurationData = "{\"required_params\":[{\"description\": \"Your Vungle App Id\", \"key\": \"appID\", \"value\":\"\", \"dataType\": \"String\"}]}",
       platformID = Platform.Ios.PlatformID,
-      callbackUrlFormat = None
+      callbackUrlFormat = None,
+      callbackUrlDescription = Constants.AdProviderConfig.CallbackUrlDescription.format(vungleName)
     )
   }
 

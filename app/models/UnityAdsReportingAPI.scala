@@ -28,12 +28,12 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
   val startDate = startDt.toString(dateFormat)
 
   override val queryString: List[(String, String)] = List(
-    "apikey" -> (configurationData \ "reportingParams" \ "APIKey").as[String],
+    "apikey" -> (configurationData \ Constants.AdProviderConfig.ReportingParams \ Constants.AdProviderConfig.APIKey).as[String],
     "splitBy" -> "none",
     "start" -> startDate,
     "end" -> endDate,
     "scale" -> "day",
-    "sourceIds" -> (configurationData \ "requiredParams" \ "appID").as[String])
+    "sourceIds" -> (configurationData \ Constants.AdProviderConfig.RequiredParams \ Constants.UnityAds.GameID).as[String])
 
   /**
     * Update eCPM and generation number based on reporting data
@@ -45,8 +45,8 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
     */
   def unityUpdateRevenueData(url: String = BaseURL,
                              qs: List[(String, String)] = queryString,
-                            timeOut: Int = Constants.DefaultReportingTimeoutMs): Future[Boolean] = {
-    WS.url(url).withRequestTimeout(timeOut).withQueryString(qs: _*).get.map { response =>
+                             timeOut: Int = Constants.DefaultReportingTimeoutMs): Future[Boolean] = {
+    WS.url(url).withRequestTimeout(timeOut).withQueryString(qs: _*).get().map { response =>
       response.status match {
         case 200 | 304 =>
           val bodyArray = response.body.replaceAll("\"", "").split("\n").map(_.trim)
@@ -56,10 +56,10 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
               // Data is in csv form, first index is the header, then each index is more recent data
               // Always use the most recent day of data
               val reportingData = (bodyArray(0).split(',') zip bodyArray(len - 1).split(",")).toMap
-              reportingData.contains(Constants.UnityAdsReportingRevenue) && reportingData.contains(Constants.UnityAdsReportingStarted) match {
+              reportingData.contains(Constants.UnityAds.ReportingRevenue) && reportingData.contains(Constants.UnityAds.ReportingStarted) match {
                 case true =>
-                  val eCPM = calculateEcpm(reportingData.getOrElse(Constants.UnityAdsReportingRevenue, "0.0").toDouble,
-                    reportingData.getOrElse(Constants.UnityAdsReportingStarted, "1.0").toDouble)
+                  val eCPM = calculateEcpm(reportingData.getOrElse(Constants.UnityAds.ReportingRevenue, "0.0").toDouble,
+                    reportingData.getOrElse(Constants.UnityAds.ReportingStarted, "1.0").toDouble)
                   updateEcpm(waterfallAdProviderID, eCPM) match {
                     case Some(generationNumber) =>
                       Logger.debug(s"Unity Ads Server to server callback to Distributor's servers updated eCPM: $eCPM , generation number: $generationNumber")
@@ -75,8 +75,12 @@ case class UnityAdsReportingAPI(wapID: Long, configurationData: JsValue) extends
                   false
               }
 
+            case len if len == 1 =>
+              logResponseDebug("Not updating eCPM because no events were present for Unity Ads", wapID, response)
+              false
+
             case _ =>
-              response.body.contains("error")match {
+              response.body.contains("error") match {
                 case true =>
                   logResponseError (s"Unity Ads responded with an error: ${response.body}", waterfallAdProviderID, response)
                   false
