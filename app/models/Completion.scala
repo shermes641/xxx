@@ -54,36 +54,23 @@ class Completion extends JsonConversion {
     * @param verificationInfo   Class containing information to verify the postback and create a new Completion.
     * @param adProviderRequest  The original postback from the ad provider
     * @param adProviderUserID   ad provider supplied user id
-    * @param sharedSecretKey    option HMAC key to enable testing
     * @return A boolean future indicating the success of the call to the App's reward callback.
     */
   def createWithNotification(verificationInfo: CallbackVerificationInfo,
                              adProviderRequest: JsValue,
-                             adProviderUserID: String,
-                             sharedSecretKey: Option[String] = None): Future[Boolean] = {
+                             adProviderUserID: String): Future[Boolean] = {
     create(
       verificationInfo.appToken, verificationInfo.adProviderName, verificationInfo.transactionID,
       verificationInfo.offerProfit, verificationInfo.rewardQuantity, verificationInfo.generationNumber, adProviderRequest
     ) match {
       case Some(id: Long) =>
-        // validate uri and do not perform POST if it's bad
-        Try(new URL(verificationInfo.callbackURL.getOrElse(Constants.NoValue))) match {
-          case Success(uri) if verificationInfo.serverToServerEnabled =>
-            sharedSecretKey match {
-              case Some(ssk: String) =>
-                postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, ssk)
-              case _ =>
-                postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, App.findHmacSecretByToken(verificationInfo.appToken).getOrElse(Constants.NoValue))
-            }
+        verificationInfo.serverToServerEnabled match {
+          case true =>
+            postCallback(verificationInfo.callbackURL, adProviderRequest, verificationInfo, adProviderUserID, App.findHmacSecretByToken(verificationInfo.appToken).getOrElse(Constants.NoValue))
 
           case _ =>
-            if (!verificationInfo.serverToServerEnabled) {
-              Logger.debug(s"""Server to Server callbacks not enabled url: '${verificationInfo.callbackURL.getOrElse(Constants.NoValue)}'""")
-              Future(true)
-            } else {
-              Logger.error(s"""Unable to validate callback URL, POST not executed url: '${verificationInfo.callbackURL.getOrElse(Constants.NoValue)}'""")
-              Future(false)
-            }
+            Logger.debug(s"""Server to Server callbacks not enabled url: '${verificationInfo.callbackURL.getOrElse(Constants.NoValue)}'""")
+            Future(true)
         }
 
       case None =>
@@ -114,8 +101,7 @@ class Completion extends JsonConversion {
           case Success(uri) =>
             val hmacData = HmacHashData(adProviderRequest, verificationInfo, adProviderUserID)
 
-            if (Environment.isDev || Environment.isStaging || Environment.isTest)
-              Logger.info(s"hmacData:\n'${hmacData.postBackData.toString}'")
+            Logger.info(s"hmacData:\n'${hmacData.postBackData.toString}'")
 
             val signature = hmacData.toHash(sharedSecretKey)
             Logger.debug(s"signature: '$signature'   secret: '$sharedSecretKey'")

@@ -28,8 +28,7 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
       Await.result(
         completion.createWithNotification(callbackInfo,
           JsObject(Seq()),
-          adProviderUserID = adProviderUserID,
-          sharedSecretKey = Some(HmacConstants.DefaultSecret)),
+          adProviderUserID = adProviderUserID),
         Duration(5000, "millis")) must beEqualTo(true)
       there was two(completion).postCallback(any[Option[String]], any[JsValue], any[CallbackVerificationInfo], any[String], any[String])
       tableCount("completions") must beEqualTo(completionCount + 2)
@@ -47,22 +46,10 @@ class CompletionSpec extends SpecificationWithFixtures with Mockito with Waterfa
 
       Await.result(completion.createWithNotification(callbackInfo,
         JsObject(Seq()),
-        adProviderUserID = adProviderUserID,
-        sharedSecretKey = Some(HmacConstants.DefaultSecret)),
+        adProviderUserID = adProviderUserID),
         Duration(5000, "millis")) must beEqualTo(true)
       there was no(completion).postCallback(any[Option[String]], any[JsValue], any[CallbackVerificationInfo], any[String], any[String])
       tableCount("completions") must beEqualTo(completionCount + 2)
-    }
-
-    "create a completion and not alert the distributor if server to server calls are enabled and url is bad" in new WithDB {
-      val completionCount = tableCount("completions")
-      App.update(new UpdatableApp(app1.id, true, app1.distributorID, app1.name, None, false))
-      val completion = spy(new Completion)
-      val rewardInfo = new AdProviderRewardInfo(JsObject(Seq()), cpm = Some(20.0), exchangeRate = 100, rewardMin = 1, rewardMax = Some(10), roundUp = true, callbackURL = None, serverToServerEnabled = true, generationNumber = 1)
-      val callbackInfo = new CallbackVerificationInfo(true, "HyprMX", "Some transaction ID", app1.token, offerProfit = Some(1.0), rewardQuantity = 1, Some(rewardInfo))
-      Await.result(completion.createWithNotification(callbackInfo, JsObject(Seq()), adProviderUserID = adProviderUserID), Duration(5000, "millis")) must beEqualTo(false)
-      there was no(completion).postCallback(any[Option[String]], any[JsValue], any[CallbackVerificationInfo], any[String], any[String])
-      tableCount("completions") must beEqualTo(completionCount + 1)
     }
   }
 
