@@ -1,6 +1,6 @@
 package models
 
-import java.net.URL
+import java.net.{URL, URLEncoder}
 
 import anorm._
 import hmac.{HmacConstants, HmacHashData}
@@ -104,7 +104,7 @@ class Completion extends JsonConversion {
             Logger.info(s"hmacData:\n'${hmacData.postBackData.toString}'")
 
             val signature = hmacData.toHash(sharedSecretKey)
-            Logger.debug(s"signature: '$signature'   secret: '$sharedSecretKey'")
+            Logger.debug(s"signature: '$signature'  signature encoded: '${URLEncoder.encode(signature.getOrElse("No signature"), "UTF-8")}' secret: '$sharedSecretKey'")
             sendPost(url, hmacData.postBackData, signature).map { response =>
               response.status match {
                 case status: Int if status == 200 =>
@@ -149,7 +149,7 @@ class Completion extends JsonConversion {
   def sendPost(url: String, data: JsValue, signature: Option[String]): Future[WSResponse] = {
     signature match {
       case Some(sig) =>
-        WS.url(url).withQueryString(Seq((HmacConstants.QsHmac, sig),(HmacConstants.QsVersionKey, HmacConstants.QsVersionValue1_0)): _*).post(data)
+        WS.url(url).withQueryString(Seq((HmacConstants.QsHmac, URLEncoder.encode(sig, "UTF-8")),(HmacConstants.QsVersionKey, HmacConstants.QsVersionValue1_0)): _*).post(data)
       case _ =>
         WS.url(url).post(data)
     }
