@@ -92,7 +92,7 @@ trait UpdateHyprMarketplace extends JsonConversion {
                   if(success.as[JsBoolean] != JsBoolean(false)) {
                     DB.withTransaction { implicit connection =>
                       try {
-                        val adNetworkID: Long = (results \ "ad_network" \ "ad_network" \ "id").as[Long]
+                        val adNetworkID: Long = (results \ "ad_network" \ "id").as[Long]
                         val hyprWaterfallAdProvider = new WaterfallAdProvider(wap.id, wap.waterfallID, wap.adProviderID, wap.waterfallOrder, wap.cpm, wap.active, wap.fillRate, wap.configurationData, wap.reportingActive, wap.pending)
                         WaterfallAdProvider.updateHyprMarketplaceConfig(hyprWaterfallAdProvider, adNetworkID, wap.appToken, wap.appName)
                         AppConfig.createWithWaterfallIDInTransaction(wap.waterfallID, None)
