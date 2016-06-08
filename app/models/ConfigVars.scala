@@ -81,10 +81,10 @@ trait ConfigVars {
     android: String,
     player: String) = {
       if (Environment.isReviewApp) {
-        (s"https://$AppName.herokuapp.com/",
-          s"https://$AppName.herokuapp.com/", {
-          val url = PlayerCallbackUrl.replace("https://callback.hyprmx.com", s"https://$AppName.herokuapp.com/")
-          if (url.startsWith(s"https://$AppName.herokuapp.com/")) {
+        (s"https://$AppName.herokuapp.com",
+          s"https://$AppName.herokuapp.com", {
+          val url = PlayerCallbackUrl.replace("https://callback.hyprmx.com", s"https://$AppName.herokuapp.com")
+          if (url.startsWith(s"https://$AppName.herokuapp.com")) {
             url
           } else {
             PlayerCallbackUrl.replace(ParentName, AppName)
