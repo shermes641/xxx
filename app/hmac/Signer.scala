@@ -115,7 +115,7 @@ trait DefaultSigner extends Signer {
     if (hmacSecret.isEmpty)
       None
     else {
-      Logger.info(s"Distributor hmac POST:\n${new String(bytesToHash)}")
+      Logger.debug(s"Distributor hmac POST:\n${new String(bytesToHash)}")
 
       val mac = Mac.getInstance(algorithm)
       mac.init(new SecretKeySpec(hmacSecret.getBytes, algorithm))
