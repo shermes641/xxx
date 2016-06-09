@@ -78,7 +78,7 @@ class JunGroupAPI extends ConfigVars {
     val adNetworkName = companyName + " - " + app.name + " - " + platformName
     val createdInContext = ConfigVarsApp.domain + " - " + Environment.mode
     val payoutURLEnvironment: String = {
-      val playerURL: String = ConfigVarsCallbackUrls.player
+      val playerURL: String = ConfigVarsJunGroup.url
       if (playerURL == PlayerProdURL) {
         "production"
       } else if (playerURL == PlayerStagingURL) {
