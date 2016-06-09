@@ -32,14 +32,13 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
     "be set when creating a new instance of the AdColonyCallback class" in new WithDB {
       val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
       callback.adProviderName must beEqualTo("AdColony")
-      callback.adProviderUserID must_== uid
     }
   }
 
   "adProviderUserID" should {
     "be set when creating a new instance of the AdColonyCallback class" in new WithDB {
       val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
-      callback.adProviderUserID must_== uid
+      callback.adProviderUserID must_== customID
     }
   }
 
