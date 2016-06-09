@@ -37,7 +37,7 @@ class AdColonyCallback(appToken: String,
                        customID: String) extends CallbackVerificationHelper with Controller {
   override val adProviderName = "AdColony"
   override val token = appToken
-  override val adProviderUserID = uid
+  override val adProviderUserID = customID
   override val receivedVerification = verifier
   override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
 
