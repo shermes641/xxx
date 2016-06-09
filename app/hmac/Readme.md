@@ -15,54 +15,6 @@ The inputs to the hashing algorithm include a shared secret and the body of the 
         If the distributor wants to validate the HMAC signature, he will need this value.
         The shared secret and callback URL are exposed on the "App Configuration" dialog
 
-Here is an example HyprMarketplace Post body:
-
-    {"ad_provider":"hyprmarketplace",
-        "estimated_offer_profit":0.5,
-        "original_postback": {
-            "method":"GET",
-            "path":"/v1/reward_callbacks/1e15566a-4859-4c89-9f1d-7a9576a2e3d3/hyprmarketplace",
-            "query":{
-                "quantity":"1",
-                "offer_profit":"0.01",
-                "sig":"0b89f364ee22f8cee55e5fdc4b9951397fbc1571b20c8606d6fe6f58415f670d",
-                "reward_id":"0",
-                "sub_id":"",
-                "uid":"A1B7207D-2756-4AE8-8896-D89EB0E67D1C",
-                "time":"1427143627"
-             }
-        },
-        "reward_quantity":1,
-        "time_stamp":"1464189174",
-        "transaction_id":"AF54FBB1-299B-4ACF-AC08-7270B3DD9DD6",
-        "user_id":"steve@jungroup.com"
-    }
-
-1. The ad provider callback to the mediation server entity-body hash.
-
-   Example body parameters: (only a common subset of parameters common amongst all ad providers are used)
-
-        {"original_postback":{"method":"GET","path":"/v1/reward_callbacks/47bc1b3b-9d85-4cbe-9bfd-c8edb31f415e/hyprmarketplace","query":{
-            "quantity":"1",
-            "offer_profit":"0.01",
-            "sig":"e4cd4703e0de9e987980a3ea18677844c5dda9ebacdf776b8af7e7a53f546f59",
-            "reward_id":"0",
-            "sub_id":"9C8360C2AEAE-498A-9A87-9673F568A394",
-            "uid":"iOS_mb_release",
-            "time":"1460487629"
-          }},
-          "ad_provider":"HyprMarketplace",
-          "reward_quantity":2,
-          "estimated_offer_profit":0.01,
-          "transaction_id":"9C8360C2-AEAE-498A-9A87-9673F568A394"
-         }
-
-2. The HTTP request method in upper case: POST
-
-3.  The encoded callback URL from the application configuration
-
-4. The request port, 80 for http, 443 for https
-
 #### HMAC Signature Example
 
 **Application callback URL**
@@ -72,42 +24,18 @@ Here is an example HyprMarketplace Post body:
 **With the following parameters:**
 
         Shared Secret:  83205a39-839f-48e9-9ad9-e5ef99956bb1
-        Timestamp:      146048762
-        Nonce:          9C8360C2-AEAE-498A-9A87-9673F568A394
-
-**The pre-hashed string would look like the following:**
-
-    146048762+9C8360C2-AEAE-498A-9A87-9673F568A394+adProviderName=HyprMarketplace+estimatedOfferProfit=0.01+rewardQuantity=2+transactionId=9C8360C2-AEAE-498A-9A87-9673F568A394+POST+http%3A%2F%2Frequestb.in%2F1fkadcg1%3Finspect+80
-
-**Breakdown of pre-hashed string** (on multiple lines for clarity)
-
-    146048762+                                             QUERYSTRING section timestamp
-    9C8360C2-AEAE-498A-9A87-9673F568A394+                  QUERYSTRING section nonce
-    adProviderName=HyprMarketplace+                        RAW BODY section    ad_provider
-    estimatedOfferProfit=0.01+                             RAW BODY section    estimated_offer_profit
-    rewardQuantity=2+                                      RAW BODY section    reward_quantity
-    transactionId=9C8360C2-AEAE-498A-9A87-9673F568A394+    RAW BODY section    transaction_id
-    POST+                                                  request method
-    http%3A%2F%2Frequestb.in%2F1fkadcg1%3Finspect+         Encoded callback url
-    80                                                     http port
 
 After calculating the HMAC signature, it is base64 encoded.
 
         digest = HMAC-SHA256 ( Shared Secret, prehashed_string )
         hmac = base64 ( digest )
 
-This request would generate the following query string values. (spaces added between parameters for readability)
-
-       ?timestamp="146048762"& nonce="9C8360C2-AEAE-498A-9A87-9673F568A394"& hmac="teYfbAhDjhIdYu+0I8qtdp+2/KiYKfnrmr/gwXYgOio="
-
 ### Testing
 
-Get the App's shared secret:
-
-83205a39-839f-48e9-9ad9-e5ef99956bb1   (for our example it is **some secret only for testing**)
+1. Get the App's shared secret from the App Configuration dialog.
 
 
-Find your request at   http://requestb.in/1fkadcg1?inspect (you must set up your own request bin, just go to **http://requestb.in/** the **1fkadcg1** will change)
+2. Find your request at   http://requestb.in/1fkadcg1?inspect (you must set up your own request bin, just go to **http://requestb.in/** the **1fkadcg1** will change)
 
        FORM/POST PARAMETERS
        None
