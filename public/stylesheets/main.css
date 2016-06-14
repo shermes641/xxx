@@ -2094,30 +2094,6 @@ button.inactive {
   float: left;
 }
 
-#initialize-sdk {
-  background: #dce3fa;
-  border: 2px solid #b9c7f5;
-  color: #3c7cea;
-  font-family: "Helvetica Neue", Helvetica, sans-serif;
-  margin-top: 20px;
-  font-size: 14px;
-  padding: 22px;
-  position: relative;
-  text-align: center;
-  cursor: pointer;
-  animation: splash 500ms normal forwards ease-in-out;
-}
-
-#initialize-sdk .code-block {
-  -moz-transition: all 600ms ease;
-  -ms-transition: all 600ms ease;
-  -o-transition: all 600ms ease;
-  -webkit-transition: all 600ms ease;
-  height: 0;
-  overflow: hidden;
-  transition: all 600ms ease;
-}
-
 #arrow-dropdown {
   -moz-transform: rotate(0deg);
   -moz-transition: all 200ms ease;
@@ -2137,18 +2113,6 @@ button.inactive {
   transform: rotate(0deg);
   transition: all 200ms ease;
   width: 17px;
-}
-
-#initialize-sdk.open #arrow-dropdown {
-  -moz-transform: rotate(90deg);
-  -ms-transform: rotate(90deg);
-  -o-transform: rotate(90deg);
-  -webkit-transform: rotate(90deg);
-  transform: rotate(90deg);
-}
-
-#initialize-sdk.open .code-block {
-  height: 110px;
 }
 
 #edit-top {
@@ -2175,14 +2139,6 @@ button.inactive {
   color: #222;
   margin: 10px auto 0;
   max-width: 800px;
-}
-
-#initialize-sdk .copy-paste-code {
-  margin-top: 10px;
-  text-align: left;
-  width: 96%;
-  padding: 6px 27px;
-  cursor: text;
 }
 
 .copy-paste-code {
