@@ -359,6 +359,9 @@ describe('AnalyticsController', function () {
                 expect(scope.calculateDayRevenue(10000, 12000, 20)).toEqual(240);
                 expect(scope.calculateDayRevenue(100, 500, 50)).toEqual(25);
                 expect(scope.calculateDayRevenue(10, 100, 50)).toEqual(5);
+                expect(scope.calculateDayRevenue(0, 0, 10)).toEqual(0);
+                expect(scope.calculateDayRevenue(10, 0, 10)).toEqual(0);
+                expect(scope.calculateDayRevenue(0, 10, 10)).toEqual(0);
             });
 
             describe('weightedAverageEcpm', function () {

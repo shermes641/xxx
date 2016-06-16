@@ -308,9 +308,13 @@ class KeenExportActor(distributorID: Long,
         * the eCPM sum from our completion events along with the completion rate to calculate total revenue based on impressions.
         */
       val earnings = {
-        val completionRate: Double = completions.toDouble / impressions.toDouble
-        val eCPMSum: Double = eCPM * completions
-        (eCPMSum / completionRate).toFloat / 1000
+        if(impressions > 0 && completions > 0) {
+          val completionRate: Double = completions.toDouble / impressions.toDouble
+          val eCPMSum: Double = eCPM * completions
+          (eCPMSum / completionRate).toFloat / 1000
+        } else {
+          0.0
+        }
       }
 
       // The fill rate based on the number of responses divided by requests

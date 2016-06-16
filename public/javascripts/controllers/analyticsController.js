@@ -464,9 +464,13 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
          * the eCPM sum from our completion events along with the completion rate to calculate total revenue based on impressions.
          */
         $scope.calculateDayRevenue = function(completedCount, impressionCount, averageeCPM) {
-            var completionRate = completedCount / impressionCount;
-            var eCPMSum = averageeCPM * completedCount;
-            return ((eCPMSum/completionRate)/1000);
+            if(impressionCount > 0 && completedCount > 0) {
+                var completionRate = completedCount / impressionCount;
+                var eCPMSum = averageeCPM * completedCount;
+                return ((eCPMSum/completionRate)/1000);
+            } else {
+                return 0;
+            }
         };
 
         /**
