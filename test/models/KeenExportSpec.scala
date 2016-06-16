@@ -149,7 +149,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       rewardDeliveredEarningsResponse.body returns "{\"result\": [{\"value\": 14013, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
 
       buildAppRows()
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,20.013")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,310,101,0.5247525,30,9,0.029032258,12.689,0.38067")
 
       keenExportActor = TestActorRef(new KeenExportActor(
         newDistributor.id.get,
@@ -175,7 +175,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       rewardDeliveredEarningsResponse.body returns "{\"result\": [{\"value\": 7002, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
 
       buildAppRows()
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,10.002")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,9.233,0.09233")
 
       keenExportActor = TestActorRef(new KeenExportActor(
         newDistributor.id.get,
@@ -192,7 +192,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       adCompletedEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       buildAppRows()
-      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,0.0,10.002")
+      readFileAsString(keenExportActor.fileName) must beEqualTo("2015-04-02,App Name,0,0,0.0,10,4,0.0,0.0,0.0")
     }
 
     "Parse Keen response and build CSV Row correctly without fillRate" in new WithDB {
@@ -266,7 +266,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must
-        beEqualTo("2015-04-02,App Name,310,101,N/A,30,9,0.029032258,12.689,20.013")
+        beEqualTo("2015-04-02,App Name,310,101,N/A,30,9,0.029032258,12.689,0.38067")
 
       keenExportActor = TestActorRef(new KeenExportActor(
         newDistributor.id.get,
@@ -293,7 +293,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
 
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must
-        beEqualTo("2015-04-02,App Name,0,0,N/A,10,4,0.0,9.233,10.002")
+        beEqualTo("2015-04-02,App Name,0,0,N/A,10,4,0.0,9.233,0.09233")
 
       keenExportActor = TestActorRef(new KeenExportActor(
         newDistributor.id.get,
@@ -311,7 +311,7 @@ class KeenExportSpec extends SpecificationWithFixtures with DistributorUserSetup
       rewardDeliveredEcpmResponse.body returns "{\"result\": [{\"value\": null, \"timeframe\": {\"start\": \"2015-04-02T00:00:00.000Z\"}}]}"
       buildAppRows()
       readFileAsString(keenExportActor.fileName) must
-        beEqualTo("2015-04-02,App Name,0,0,N/A,10,4,0.0,0.0,10.002")
+        beEqualTo("2015-04-02,App Name,0,0,N/A,10,4,0.0,0.0,0.0")
     }
   }
 }

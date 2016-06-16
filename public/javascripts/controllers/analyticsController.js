@@ -459,10 +459,14 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
         };
 
         /**
-         * Calculate day revenue from completed count and the average eCPM
+         * Calculates revenue based on impression data, not completions.
+         * Since we only log eCPM to Keen for ad_completed/reward_delivered events, we need to use
+         * the eCPM sum from our completion events along with the completion rate to calculate total revenue based on impressions.
          */
-        $scope.calculateDayRevenue = function(completedCount, averageeCPM) {
-            return (completedCount * averageeCPM/1000);
+        $scope.calculateDayRevenue = function(completedCount, impressionCount, averageeCPM) {
+            var completionRate = completedCount / impressionCount;
+            var eCPMSum = averageeCPM * completedCount;
+            return ((eCPMSum/completionRate)/1000);
         };
 
         /**
@@ -584,7 +588,7 @@ mediationModule.controller('AnalyticsController', ['$scope', '$window', '$http',
                         fillRate = "N/A";
                     }
 
-                    var days_revenue = $scope.calculateDayRevenue(completedCount, averageeCPM);
+                    var days_revenue = $scope.calculateDayRevenue(completedCount, impressionCount[i].value, averageeCPM);
                     var table_date_string = moment(day.timeframe.start).utc().format("MMM DD, YYYY");
                     var chart_date_string = moment(day.timeframe.start).utc().format("MMM DD");
                     table_data.push( {

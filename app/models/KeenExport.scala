@@ -292,7 +292,6 @@ class KeenExportActor(distributorID: Long,
       val adCompletedCount: Long = adCompletedList(i).value.as[Long]
       val rewardDeliveredCount: Long = rewardDeliveredList(i).value.as[Long]
       val completions: Long = adCompletedCount + rewardDeliveredCount
-      val earnings: Double = adCompletedEarningsList(i).value.as[Double] + rewardDeliveredEarningsList(i).value.as[Double]
       val adCompletedAverageEcpm: Double = adCompletedEcpmList(i).value.asOpt[Double].getOrElse(0)
       val rewardDeliveredAverageEcpm: Double = rewardDeliveredEcpmList(i).value.asOpt[Double].getOrElse(0)
       val eCPM: Double = {
@@ -302,6 +301,16 @@ class KeenExportActor(distributorID: Long,
         } else {
           0.0
         }
+      }
+
+      /**
+        * Since we only log eCPM to Keen for ad_completed/reward_delivered events, we need to use
+        * the eCPM sum from our completion events along with the completion rate to calculate total revenue based on impressions.
+        */
+      val earnings = {
+        val completionRate: Double = completions.toDouble / impressions.toDouble
+        val eCPMSum: Double = eCPM * completions
+        (eCPMSum / completionRate).toFloat / 1000
       }
 
       // The fill rate based on the number of responses divided by requests
@@ -331,7 +340,7 @@ class KeenExportActor(distributorID: Long,
         completions,
         completionsPerDau,
         eCPM,
-        earnings.toFloat / 1000
+        earnings
       )
 
       println(appRow)
