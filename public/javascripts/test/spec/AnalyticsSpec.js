@@ -4,7 +4,7 @@ describe('AnalyticsController', function () {
     beforeEach(module('MediationModule'));
 
     describe('AnalyticsController', function () {
-        var scope, testCont, $window, $httpBackend, configRequestHandler, server;
+        var scope, testCont, $window, $httpBackend, configRequestHandler, server, filter;
         server = sinon.fakeServer.create();
         server.respondImmediately = true;
         sinon.format = function (object) {
@@ -352,13 +352,16 @@ describe('AnalyticsController', function () {
             });
 
             it('should calculate revenue per day correctly', function () {
-                expect(scope.calculateDayRevenue(1000, 1)).toEqual(1);
-                expect(scope.calculateDayRevenue(500, 1)).toEqual(0.5);
-                expect(scope.calculateDayRevenue(2000, 1)).toEqual(2);
-                expect(scope.calculateDayRevenue(1000, 0.5)).toEqual(0.5);
-                expect(scope.calculateDayRevenue(10000, 0.1)).toEqual(1);
-                expect(scope.calculateDayRevenue(100, 50)).toEqual(5);
-                expect(scope.calculateDayRevenue(10, 50)).toEqual(0.5);
+                expect(scope.calculateDayRevenue(1000, 1000, 1)).toEqual(1);
+                expect(scope.calculateDayRevenue(500, 500, 1)).toEqual(0.5);
+                expect(scope.calculateDayRevenue(2000, 2000, 1)).toEqual(2);
+                expect(scope.calculateDayRevenue(1000, 2000, 0.5)).toEqual(1);
+                expect(scope.calculateDayRevenue(10000, 12000, 20)).toEqual(240);
+                expect(scope.calculateDayRevenue(100, 500, 50)).toEqual(25);
+                expect(scope.calculateDayRevenue(10, 100, 50)).toEqual(5);
+                expect(scope.calculateDayRevenue(0, 0, 10)).toEqual(0);
+                expect(scope.calculateDayRevenue(10, 0, 10)).toEqual(0);
+                expect(scope.calculateDayRevenue(0, 10, 10)).toEqual(0);
             });
 
             describe('weightedAverageEcpm', function () {
@@ -418,7 +421,7 @@ describe('AnalyticsController', function () {
         });
 
         describe('completion calculations using ad_completed collection', function () {
-            beforeEach(inject(function ($rootScope, $controller, _$window_, _$httpBackend_) {
+            beforeEach(inject(function ($rootScope, $controller, _$window_, _$httpBackend_, $filter) {
                 server = sinon.fakeServer.create();
                 server.respondImmediately = true;
                 sinon.format = function (object) {
@@ -543,6 +546,7 @@ describe('AnalyticsController', function () {
 
                 scope = $rootScope.$new();
                 $window = _$window_;
+                filter = $filter;
                 scope.debounceWait = 0;
                 angular.element(document.body).append('<input id="start-date" />');
                 scope.defaultStartDate = new Date(moment.utc("2015-04-03T00:00:00.000Z").format());
@@ -571,23 +575,27 @@ describe('AnalyticsController', function () {
             });
 
             it('should have the correct table data', function () {
+                var completions = 40;
+                var impressions = 203;
+                var averageEcpm = 5.47;
+                var estimatedRevenue = scope.calculateDayRevenue(completions, impressions, averageEcpm);
                 expect(scope.analyticsData.revenueTable.length).toEqual(2);
-                expect(scope.analyticsData.revenueTable[0].averageeCPM).toEqual("$5.47");
+                expect(scope.analyticsData.revenueTable[0].averageeCPM).toEqual("$" + averageEcpm.toString());
                 expect(scope.analyticsData.revenueTable[0].date).toEqual("Apr 11, 2015");
-                expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(40);
-                expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$0.21");
+                expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(completions);
+                expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$" + filter("monetaryFormat")(estimatedRevenue));
                 expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("29%");
-                expect(scope.analyticsData.revenueTable[0].impressions).toEqual(203);
+                expect(scope.analyticsData.revenueTable[0].impressions).toEqual(impressions);
                 expect(scope.analyticsData.revenueTable[0].requests).toEqual(597);
             });
 
             it('should have the revenueByDayMetric correct', function () {
-                expect(scope.analyticsData.revenueByDayMetric).toEqual("<sup>$</sup>0<sup>.22</sup>");
+                expect(scope.analyticsData.revenueByDayMetric).toEqual("<sup>$</sup>0<sup>.89</sup>");
             });
         });
 
         describe('completion calculations using reward_delivered collection', function () {
-            beforeEach(inject(function ($rootScope, $controller, _$window_, _$httpBackend_) {
+            beforeEach(inject(function ($rootScope, $controller, _$window_, _$httpBackend_, $filter) {
                 server = sinon.fakeServer.create();
                 server.respondImmediately = true;
                 sinon.format = function (object) {
@@ -708,6 +716,7 @@ describe('AnalyticsController', function () {
                     });
 
                 scope = $rootScope.$new();
+                filter = $filter;
                 $window = _$window_;
                 scope.debounceWait = 0;
                 scope.defaultStartDate = new Date(moment.utc("2015-04-03T00:00:00.000Z").format());
@@ -737,18 +746,22 @@ describe('AnalyticsController', function () {
             });
 
             it('should have the correct table data', function () {
+                var completions = 20;
+                var impressions = 203;
+                var averageEcpm = 6.99;
+                var estimatedRevenue = scope.calculateDayRevenue(completions, impressions, averageEcpm);
                 expect(scope.analyticsData.revenueTable.length).toEqual(2);
-                expect(scope.analyticsData.revenueTable[0].averageeCPM).toEqual("$6.99");
+                expect(scope.analyticsData.revenueTable[0].averageeCPM).toEqual("$" + averageEcpm.toString());
                 expect(scope.analyticsData.revenueTable[0].date).toEqual("Apr 11, 2015");
-                expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(20);
-                expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$0.13");
+                expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(completions);
+                expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$" + filter("monetaryFormat")(estimatedRevenue));
                 expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("29%");
-                expect(scope.analyticsData.revenueTable[0].impressions).toEqual(203);
+                expect(scope.analyticsData.revenueTable[0].impressions).toEqual(impressions);
                 expect(scope.analyticsData.revenueTable[0].requests).toEqual(597);
             });
 
             it('should have the revenueByDayMetric correct', function () {
-                expect(scope.analyticsData.revenueByDayMetric).toEqual("<sup>$</sup>0<sup>.17</sup>");
+                expect(scope.analyticsData.revenueByDayMetric).toEqual("<sup>$</sup>1<sup>.63</sup>");
             });
         });
 
@@ -903,18 +916,22 @@ describe('AnalyticsController', function () {
             });
 
             it('should have the correct table data', function () {
+                var completions = 48;
+                var impressions = 203;
+                var averageEcpm = 6.44;
+                var estimatedRevenue = scope.calculateDayRevenue(completions, impressions, averageEcpm);
                 expect(scope.analyticsData.revenueTable.length).toEqual(2);
-                expect(scope.analyticsData.revenueTable[0].averageeCPM).toEqual("$6.44");
+                expect(scope.analyticsData.revenueTable[0].averageeCPM).toEqual("$" + averageEcpm.toString());
                 expect(scope.analyticsData.revenueTable[0].date).toEqual("Apr 11, 2015");
-                expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(48);
-                expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$0.30");
+                expect(scope.analyticsData.revenueTable[0].completedCount).toEqual(completions);
+                expect(scope.analyticsData.revenueTable[0].estimatedRevenue).toEqual("$" + filter("monetaryFormat")(estimatedRevenue));
                 expect(scope.analyticsData.revenueTable[0].fillRate).toEqual("29%");
-                expect(scope.analyticsData.revenueTable[0].impressions).toEqual(203);
+                expect(scope.analyticsData.revenueTable[0].impressions).toEqual(impressions);
                 expect(scope.analyticsData.revenueTable[0].requests).toEqual(597);
             });
 
             it('should have the revenueByDayMetric correct', function () {
-                expect(scope.analyticsData.revenueByDayMetric).toEqual("<sup>$</sup>0<sup>.20</sup>");
+                expect(scope.analyticsData.revenueByDayMetric).toEqual("<sup>$</sup>1<sup>.31</sup>");
             });
         });
     });

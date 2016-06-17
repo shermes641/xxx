@@ -60,7 +60,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
       val adNetwork = junGroup.adNetworkConfiguration(wap.companyName, newApp)
       val response = mock[WSResponse]
       val playerSuccessBody = JsObject(Seq("success" -> JsBoolean(true),
-        "ad_network" -> JsObject(Seq("ad_network" -> JsObject(Seq("id" -> JsNumber(adProviderID))))))).toString
+        "ad_network" -> JsObject(Seq("id" -> JsNumber(adProviderID))))).toString
       response.body returns playerSuccessBody.toString
       response.status returns 200
       junGroup.createRequest(adNetwork) returns Future(response)
@@ -82,7 +82,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
 
       // fail with good status but bad json
       val playerFailureBody = JsObject(Seq("success" -> JsBoolean(false),
-        "ad_network" -> JsObject(Seq("ad_network" -> JsObject(Seq("id" -> JsNumber(adProviderID))))))).toString
+        "ad_network" -> JsObject(Seq("id" -> JsNumber(adProviderID))))).toString
       response.body returns playerFailureBody.toString
       updateHyprMarketplaceDistributorID(wap, Some(junGroup))
       successfulWaterfallAdProviderIDs.length must_== 2
@@ -152,7 +152,7 @@ class JunGroupAPISpec extends SpecificationWithFixtures with WaterfallSpecSetup 
     "set lastFailure properly when the response code is 200 but the request was not successful" in new WithDB {
       val playerError = "Some player server error"
       val playerErrorBody = JsObject(Seq("error" -> JsString(playerError), "success" -> JsBoolean(false),
-        "ad_network" -> JsObject(Seq("ad_network" -> JsObject(Seq("id" -> JsNumber(1))))))).toString
+        "ad_network" -> JsObject(Seq("id" -> JsNumber(1))))).toString
       playerResponse.body returns playerErrorBody
       playerResponse.status returns 200
       junActor.receive(CreateAdNetwork(user))
