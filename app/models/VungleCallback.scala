@@ -9,11 +9,18 @@ import java.security.MessageDigest
  * @param digest A hashed value to authenticate the origin of the request.
  * @param amount The amount of virtual currency to be rewarded based on the callback URL. We do not use this value.
  */
-class VungleCallback(appToken: String, transactionID: String, digest: String, amount: Int) extends CallbackVerificationHelper {
+class VungleCallback(appToken: String, transactionID: String, digest: String, amount: Int, userID: Option[String]) extends CallbackVerificationHelper {
   override val adProviderName = "Vungle"
   override val token = appToken
+  override val adProviderUserID = userID.getOrElse(Constants.NoValue)
   override val receivedVerification = digest
-  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
+  override val verificationInfo = new CallbackVerificationInfo(isValid,
+    adProviderName,
+    transactionID,
+    appToken,
+    payout,
+    currencyAmount,
+    adProviderRewardInfo)
 
   /**
    * Generates a security digest using the steps provided in Vungle's documentation.

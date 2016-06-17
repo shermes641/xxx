@@ -19,14 +19,17 @@ case class UnityAdsCallback(appToken: String,
                             queryString: Map[String, Seq[String]]) extends CallbackVerificationHelper with Controller {
 
   final val algo = "HmacMD5"
-  final val BadSigningResult = ""
+  final val BadSigningResult = Constants.NoValue
   final val HmacKey = "hmac"
   final val TransactionKey = "oid"
+  final val AdProviderUserIDKey = "sid"
 
   val transactionID = queryString.getOrElse(TransactionKey, Seq(Constants.NoValue)).head
 
   override val adProviderName = Constants.UnityAds.Name
   override val token = appToken
+  override val adProviderUserID = queryString.getOrElse(AdProviderUserIDKey, Seq(Constants.NoValue)).head
+ 
   override val receivedVerification = queryString.getOrElse(HmacKey, Seq(Constants.NoValue)).head
   override val verificationInfo = new CallbackVerificationInfo(
     isValid,

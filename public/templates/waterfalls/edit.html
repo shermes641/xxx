@@ -64,19 +64,6 @@
                 </div>
             </div>
 
-            <div id="initialize-sdk" ng-click="toggleCodeBlock()" ng-class="{open: showCodeBlock}" ng-show="waterfallData.waterfall.testMode">
-                <div id="arrow-dropdown"></div>
-                Initialize hyprMediate in your SDK
-                <div class="code-block">
-                    <div class="waterfall-edit-description" ng-click="$event.stopPropagation()">
-                        Copy and paste this following code, wherever you plan on initializing HyprMediate.  For a step by step integration guide and suggestions on generating a user ID, please see our <a id="sdk-documentation-link" target="_blank" href="https://documentation.hyprmx.com/display/{{platform.documentationPath}}">documentation</a>.
-                    </div>
-                    <code class="waterfall-edit-description copy-paste-code" ng-click="$event.stopPropagation()">
-                        <div ng-include="codeSnippet"/>
-                    </code>
-                </div>
-            </div>
-
             <div class="waterfall ul">
                 <ul ui-sortable="sortableOptions" ng-model="waterfallData.waterfallAdProviderList" id="waterfall-list" class="waterfall-sort">
                     <li ng-repeat="adProviderConfig in waterfallData.waterfallAdProviderList" id="{{adProviderConfig.name}}" ng-class="{waterfall: adProviderConfig.active, inactive: '', 'below-reward-threshold': !adProviderConfig.meetsRewardThreshold && !adProviderConfig.pending && !adProviderConfig.unconfigured}">

@@ -6,6 +6,16 @@ scalaVersion := "2.11.1"
 
 scalacOptions ++= Seq("-feature") // show feature warnings in console
 
+lazy val gatling = project.in(file("gatling"))
+  .enablePlugins(GatlingPlugin)
+  .configs(LoadTest).settings(inConfig(Gatling)(Defaults.testTasks): _*)
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.0" % "test",
+      "io.gatling" % "gatling-test-framework" % "2.2.0" % "test"
+    )
+  )
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .configs(TaskTest).settings(inConfig(TaskTest)(Defaults.testTasks): _*)
@@ -25,6 +35,7 @@ lazy val KeenTest = config("keen") extend Test
 lazy val HmacTest = config("hmac") extend Test
 lazy val UnitTest = config("unit") extend Test
 lazy val NoKeenTest = config("nokeen") extend Test
+lazy val LoadTest = config("load") extend Gatling
 
 def hmacTestFilter(name: String): Boolean = {
   if (name startsWith "hmac.") {
@@ -145,7 +156,6 @@ libraryDependencies ++= Seq(
   "org.scalatestplus" % "play_2.11" % "1.5.0-SNAP1",
   "org.scalacheck" %% "scalacheck" % "1.12.5" % "test",
   "io.spray" %% "spray-testkit" % "1.3.2" % "test",
-  "com.netaporter" %% "scala-uri" % "0.4.12",
   "org.apache.httpcomponents" % "httpclient" % "4.5.2"
 )
 

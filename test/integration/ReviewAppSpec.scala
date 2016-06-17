@@ -3,7 +3,7 @@ package integration
 import models.{ConfigVars, Constants, Environment, ReviewApp}
 import play.api.Play
 import play.api.test.WithApplication
-import resources.SpecificationWithFixtures
+import resources.{ApplicationFake, SpecificationWithFixtures}
 
 class ReviewAppSpec extends SpecificationWithFixtures {
   "ReviewApp" should {
