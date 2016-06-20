@@ -1,25 +1,23 @@
 package models
 
-import play.api.libs.json.{JsString, JsObject}
-import play.api.test._
+import play.api.libs.json.{JsObject, JsString}
 import play.api.test.Helpers._
+import play.api.test._
 import resources._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecSetup with AdProviderSpecSetup {
   val amount = 1
   val currency = "Credits"
-  val macSha1, odin1, openUDID, udid, uid = ""
-  val verifier = "6c9186f082be09baef312da505114fa2"
+  val macSha1, odin1, openUDID, udid = ""
+  val uid = "adprovider-user-id"
+  val verifier = "1f8f4612c0892e486e26cf90e555c022"
   val transactionID = "0123456789"
   val appToken = app1.token
   val customID = "testuser"
   val eCPM = 25.0
 
   running(FakeApplication(additionalConfiguration = testDB)) {
-    val id = WaterfallAdProvider.create(waterfall.id, adColonyID, None, None, true, true).get
+    val id = WaterfallAdProvider.create(waterfall.id, adColonyID, None, None, configurable = true, active = true).get
     val currentWap = WaterfallAdProvider.find(id).get
     val configuration = JsObject(Seq("callbackParams" -> JsObject(Seq("APIKey" -> JsString("abcdefg"))),
       "requiredParams" -> JsObject(Seq()), "reportingParams" -> JsObject(Seq())))
@@ -34,6 +32,13 @@ class AdColonyCallbackSpec extends SpecificationWithFixtures with WaterfallSpecS
     "be set when creating a new instance of the AdColonyCallback class" in new WithDB {
       val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
       callback.adProviderName must beEqualTo("AdColony")
+    }
+  }
+
+  "adProviderUserID" should {
+    "be set when creating a new instance of the AdColonyCallback class" in new WithDB {
+      val callback = new AdColonyCallback(appToken, transactionID, uid, amount, currency, openUDID, udid, odin1, macSha1, verifier, customID)
+      callback.adProviderUserID must_== customID
     }
   }
 

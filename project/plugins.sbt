@@ -24,3 +24,5 @@ addSbtPlugin("com.gu" % "sbt-teamcity-test-reporting-plugin" % "1.5")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.5")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.7.6")
+
+addSbtPlugin("io.gatling" % "gatling-sbt" % "2.2.0")

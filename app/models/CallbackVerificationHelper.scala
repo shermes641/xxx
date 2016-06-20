@@ -8,6 +8,7 @@ trait CallbackVerificationHelper extends Controller {
   val receivedVerification: String
   val adProviderName: String
   val token: String
+  val adProviderUserID: String
   val verificationInfo: CallbackVerificationInfo
 
   // Retrieve ad provider's eCPM and configuration data, virtual currency settings, and callback URL info.

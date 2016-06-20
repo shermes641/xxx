@@ -1,7 +1,5 @@
 package models
 
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import play.api.libs.json.{JsObject, JsString}
 import play.api.mvc.Result
 import play.api.test.Helpers._
@@ -9,7 +7,6 @@ import play.api.test._
 import resources._
 import scala.concurrent.Future
 
-@RunWith(classOf[JUnitRunner])
 class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpecSetup with WaterfallSpecSetup {
   val eCPM = 25.0
   val amount = 1
@@ -121,6 +118,12 @@ class UnityAdsCallbackSpec extends SpecificationWithFixtures with AdProviderSpec
   "adProviderName" should {
     "be set when creating a new instance of the UnityAdsCallback class" in new WithDB {
       goodCallback.adProviderName must beEqualTo(Constants.UnityAds.Name)
+    }
+  }
+
+  "adProviderUserID" should {
+    "be set when creating a new instance of the UnityAdsCallback class" in new WithDB {
+      goodCallback.adProviderUserID must beEqualTo(sid)
     }
   }
 

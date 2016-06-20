@@ -12,14 +12,26 @@ import java.security.MessageDigest
  * @param quantity The amount of virtual currency earned.
  * @param transactionID A unique ID to verify the completion (corresponds to the partner_code in Player).
  */
-class HyprMarketplaceCallback(appToken: String, userID: String, signature: String, time: String, offerProfit: Option[Double], quantity: Int, transactionID: Option[String])
-  extends CallbackVerificationHelper with ConfigVars {
-  val defaultTransactionID = ""
+class HyprMarketplaceCallback(appToken: String,
+                              userID: String,
+                              signature: String,
+                              time: String,
+                              offerProfit: Option[Double],
+                              quantity: Int,
+                              transactionID: Option[String]) extends CallbackVerificationHelper with ConfigVars {
+  val defaultTransactionID = Constants.NoValue
   override val adProviderName = "HyprMarketplace"
   override val token = appToken
+  override val adProviderUserID = userID
   override val receivedVerification = signature
   override def payout = offerProfit
-  override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID.getOrElse(defaultTransactionID), appToken, payout, currencyAmount, adProviderRewardInfo)
+  override val verificationInfo = new CallbackVerificationInfo(isValid,
+    adProviderName,
+    transactionID.getOrElse(defaultTransactionID),
+    appToken,
+    payout,
+    currencyAmount,
+    adProviderRewardInfo)
 
   /**
    * Generates a security digest using the steps provided in HyprMarketplace's documentation.

@@ -2,7 +2,7 @@ package models
 
 import play.Logger
 import play.api.test.WithApplication
-import resources.SpecificationWithFixtures
+import resources.{ApplicationFake, SpecificationWithFixtures}
 
 class ConfigVarsSpec extends SpecificationWithFixtures {
 

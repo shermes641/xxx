@@ -24,9 +24,20 @@ object AdColonyCallback extends Controller {
  * @param verifier A hashed value to authenticate the origin of the request.
  * @param customID A custom param used to pass user ID.
  */
-class AdColonyCallback(appToken: String, transactionID: String, uid: String, amount: Int, currency: String, openUDID: String, udid: String, odin1: String, macSha1: String, verifier: String, customID: String) extends CallbackVerificationHelper with Controller {
+class AdColonyCallback(appToken: String,
+                       transactionID: String,
+                       uid: String,
+                       amount: Int,
+                       currency: String,
+                       openUDID: String,
+                       udid: String,
+                       odin1: String,
+                       macSha1: String,
+                       verifier: String,
+                       customID: String) extends CallbackVerificationHelper with Controller {
   override val adProviderName = "AdColony"
   override val token = appToken
+  override val adProviderUserID = customID
   override val receivedVerification = verifier
   override val verificationInfo = new CallbackVerificationInfo(isValid, adProviderName, transactionID, appToken, payout, currencyAmount, adProviderRewardInfo)
 
@@ -47,7 +58,7 @@ class AdColonyCallback(appToken: String, transactionID: String, uid: String, amo
    * @return If a transaction ID is present, return a hashed String; otherwise, returns None.
    */
   override def generatedVerification: String = {
-    val verifierString = List(transactionID, uid, amount, currency, secretKey("APIKey"), openUDID, udid, odin1, macSha1, customID).mkString("")
+    val verifierString = List(transactionID, uid, amount, currency, secretKey("APIKey"), openUDID, udid, odin1, macSha1, customID).mkString(Constants.NoValue)
     MessageDigest.getInstance("MD5").digest(verifierString.getBytes).map("%02x".format(_)).mkString
   }
 }

@@ -1,7 +1,7 @@
 package models
 
 import play.api.test.WithApplication
-import resources.SpecificationWithFixtures
+import resources.{ApplicationFake, SpecificationWithFixtures}
 
 class EnvironmentSpec extends SpecificationWithFixtures {
   "Environment" should {

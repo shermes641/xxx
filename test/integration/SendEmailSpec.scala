@@ -10,7 +10,7 @@ import play.api.Logger
 import play.api.db.DB
 import play.api.libs.concurrent.Akka
 import play.api.test.WithApplication
-import resources.{SpecificationWithFixtures, WaterfallSpecSetup}
+import resources.{ApplicationFake, SpecificationWithFixtures, WaterfallSpecSetup}
 
 import scala.util.Random
 
