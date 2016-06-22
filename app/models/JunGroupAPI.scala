@@ -109,7 +109,7 @@ class JunGroupAPI(models: ModelService,
     val adNetworkName = companyName + " - " + app.name + " - " + platformName
     val createdInContext = configVars.ConfigVarsApp.domain + " - " + appEnvironment.mode
     val payoutURLEnvironment: String = {
-      val playerURL: String = configVars.ConfigVarsCallbackUrls.player
+      val playerURL: String = configVars.ConfigVarsJunGroup.url
       if(playerURL == PlayerProdURL) {
         "production"
       } else if (playerURL == PlayerStagingURL) {
