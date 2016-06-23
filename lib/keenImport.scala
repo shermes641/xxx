@@ -1,15 +1,11 @@
+// $COVERAGE-OFF$
 import com.github.nscala_time.time.Imports._
-import io.keen.client.scala.Client
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+import io.keen.client.scala.{Client, HttpAdapterDispatch, Writer}
 import models._
 import org.joda.time.format.DateTimeFormat
-import play.api._
-import play.api.db.DB
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import play.api.Play._
-import scala.util.Random
-// $COVERAGE-OFF$
-// The "correct" way to start the app
-import models._
 import play.api.Logger
 import play.api._
 import play.api.ApplicationLoader.Context
@@ -19,9 +15,9 @@ import play.api.libs.mailer._
 import play.api.libs.ws.ning.NingWSClient
 import play.api.mvc._
 import play.api.mvc.Results._
-import router.Routes
-import scala.concurrent.Future
 import Play.current
+import scala.concurrent.Future
+import scala.util.Random
 
 // The "correct" way to start the app
 val env = Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Prod)
@@ -37,33 +33,49 @@ val virtualCurrencyService = components.virtualCurrencyService
 val waterfallAdProviderService = components.waterfallAdProviderService
 val appConfigService = components.appConfigService
 val thisPlatform = components.platform
+val appEnvironment = components.appEnvironment
+val adProviderService = components.adProviderService
+val distributorUserService = components.distributorUserService
+val configVars = components.configVars
 
-if(Environment.isProd) {
+if(appEnvironment.isProd) {
   Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
 } else {
-  val client = new Client(
-    projectId = environmentConfig.getString("keen.project").get,
-    masterKey = environmentConfig.getString("keen.masterKey"),
-    writeKey = environmentConfig.getString("keen.writeKey"),
-    readKey = environmentConfig.getString("keen.readKey")
-  )
+  val client = {
+    val keenConfig = ConfigFactory.load()
+      .withValue("keen.project-id", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.projectID))
+      .withValue("keen.optional.read-key", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.readKey))
+      .withValue("keen.optional.write-key", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.writeKey))
+      .withValue("keen.optional.master-key", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.masterKey))
+    new Client(keenConfig) with Writer
+  }
 
   val randomCharacters = Random.alphanumeric.take(5).mkString
   val companyName = "Test Company-" + randomCharacters
   val email = "mediation-testing-" + randomCharacters + "@jungroup.com"
   val password = "testtest"
 
-  val adProviders = AdProvider.findAll
+  val adProviders = adProviderService.findAll
 
-  val distributorID = DistributorUser.create(email, password, companyName).get
+  val distributorID = distributorUserService.create(email, password, companyName).get
 
   object AppHelper extends UpdateHyprMarketplace {
+    val akkaActorSystem = components.actorSystem
+    val appConfigService = components.appConfigService
+    val appEnv = components.appEnvironment
+    val appService = components.appService
+    val config = components.configVars
+    val database = components.database
+    val modelService = components.modelService
+    val waterfallAdProviderService = components.waterfallAdProviderService
+    val ws = components.wsClient
+
     def createApp(appName: String, platform: PlatformService) = {
       val appID = appService.create(distributorID, appName, platform.PlatformID).get
       val app = appService.find(appID).get
 
       val wap = database.withTransaction { implicit connection =>
-        val waterfallID = Waterfall.create(appID, appName).get
+        val waterfallID = waterfallService.create(appID, appName).get
         virtualCurrencyService.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
         val adProviderID = platform.hyprMarketplaceID
         val hyprWaterfallAdProviderID = waterfallAdProviderService.createWithTransaction(
@@ -76,7 +88,7 @@ if(Environment.isProd) {
           pending = true
         ).get
         appConfigService.create(appID, app.token, 0)
-        val hyprWAP = waterfallAdProvider.findWithTransaction(hyprWaterfallAdProviderID).get
+        val hyprWAP = waterfallAdProviderService.findWithTransaction(hyprWaterfallAdProviderID).get
         WaterfallAdProviderWithAppData(
           id = hyprWAP.id,
           waterfallID = waterfallID,
