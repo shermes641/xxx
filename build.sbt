@@ -139,7 +139,6 @@ libraryDependencies ++= Seq(
   jdbc,
   "ch.qos.logback" % "logback-classic" % "1.1.2",
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
-  "io.keen" %% "keenclient-scala" % "0.7.0",
   "com.newrelic.agent.java" % "newrelic-agent" % "3.14.0",
   "com.newrelic.agent.java" % "newrelic-api" % "3.14.0",
   "com.github.nscala-time" %% "nscala-time" % "1.8.0",
@@ -160,6 +159,8 @@ libraryDependencies ++= Seq(
   "org.scalacheck" %% "scalacheck" % "1.13.1" % "test",
   "org.scalatest" %% "scalatest" % "3.0.0-M16-SNAP6" % "test",
   "org.seleniumhq.selenium" % "selenium-java" % "2.48.2" % "test",
+  "io.spray" %% "spray-can" % "1.3.2",
+  "io.spray" %% "spray-routing" % "1.3.2",
   specs2 % Test
 )
 

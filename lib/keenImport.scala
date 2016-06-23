@@ -1,11 +1,20 @@
 // $COVERAGE-OFF$
 import com.github.nscala_time.time.Imports._
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import io.keen.client.scala.{Client, HttpAdapterDispatch, Writer}
-import models._
+
+import io.keen.client.scala.Client
+import models.{AdProviderService, _}
 import org.joda.time.format.DateTimeFormat
+import play.api._
+import play.api.db.DB
 import play.api.libs.json.{JsValue, Json}
 import play.api.Play._
+
+import scala.collection.JavaConversions._
+import com.typesafe.config.{Config, ConfigFactory}
+
+import scala.util.Random
+
+import models._
 import play.api.Logger
 import play.api._
 import play.api.ApplicationLoader.Context
@@ -15,16 +24,17 @@ import play.api.libs.mailer._
 import play.api.libs.ws.ning.NingWSClient
 import play.api.mvc._
 import play.api.mvc.Results._
-import Play.current
+import router.Routes
 import scala.concurrent.Future
-import scala.util.Random
+import Play.current
 
 // The "correct" way to start the app
-val env = Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Prod)
+val env = new Environment(new java.io.File("."), this.getClass.getClassLoader, Mode.Prod)
 val context = ApplicationLoader.createContext(env)
 val loader = ApplicationLoader(context)
 
 val components = new MainComponents(context)
+val configVars = components.configVars
 val environmentConfig = components.environmentConfig
 val appService = components.appService
 val database = components.database
@@ -38,44 +48,48 @@ val adProviderService = components.adProviderService
 val distributorUserService = components.distributorUserService
 val configVars = components.configVars
 
-if(appEnvironment.isProd) {
-  Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
+if(components.appEnvironment.isProd  == true) {
+    Logger.warn("YOU ARE CURRENTLY IN A PRODUCTION ENVIRONMENT - DO NOT RUN THIS SCRIPT")
 } else {
-  val client = {
-    val keenConfig = ConfigFactory.load()
-      .withValue("keen.project-id", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.projectID))
-      .withValue("keen.optional.read-key", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.readKey))
-      .withValue("keen.optional.write-key", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.writeKey))
-      .withValue("keen.optional.master-key", ConfigValueFactory.fromAnyRef(configVars.ConfigVarsKeen.masterKey))
-    new Client(keenConfig) with Writer
-  }
+  val project = configVars.ConfigVarsKeen.projectID
+  val readKey = configVars.ConfigVarsKeen.readKey
+
+  val client = new Client(
+    projectId = project,
+    masterKey = Some(configVars.ConfigVarsKeen.masterKey),
+    writeKey = Some(configVars.ConfigVarsKeen.writeKey),
+    readKey = Some(readKey)
+  )
+
 
   val randomCharacters = Random.alphanumeric.take(5).mkString
   val companyName = "Test Company-" + randomCharacters
   val email = "mediation-testing-" + randomCharacters + "@jungroup.com"
   val password = "testtest"
 
-  val adProviders = adProviderService.findAll
+  val adProviders = components.adProviderService.findAll
 
-  val distributorID = distributorUserService.create(email, password, companyName).get
+  val distributorID = components.distributorUserService.create(email, password, companyName).get
 
   object AppHelper extends UpdateHyprMarketplace {
+
+
     val akkaActorSystem = components.actorSystem
-    val appConfigService = components.appConfigService
-    val appEnv = components.appEnvironment
-    val appService = components.appService
-    val config = components.configVars
-    val database = components.database
-    val modelService = components.modelService
-    val waterfallAdProviderService = components.waterfallAdProviderService
     val ws = components.wsClient
+    val modelService = components.modelService
+    val database = components.database
+    val appService = components.appService
+    val waterfallAdProviderService = components.waterfallAdProviderService
+    val appConfigService = components.appConfigService
+    val config = components.configVars
+    val appEnv = components.appEnvironment
 
     def createApp(appName: String, platform: PlatformService) = {
-      val appID = appService.create(distributorID, appName, platform.PlatformID).get
-      val app = appService.find(appID).get
+      val appID = components.appService.create(distributorID, appName, platform.PlatformID).get
+      val app = components.appService.find(appID).get
 
       val wap = database.withTransaction { implicit connection =>
-        val waterfallID = waterfallService.create(appID, appName).get
+        val waterfallID = components.waterfallService.create(appID, appName).get
         virtualCurrencyService.createWithTransaction(appID, "Gold", 1, 10, None, Some(true))
         val adProviderID = platform.hyprMarketplaceID
         val hyprWaterfallAdProviderID = waterfallAdProviderService.createWithTransaction(
@@ -87,8 +101,8 @@ if(appEnvironment.isProd) {
           active = false,
           pending = true
         ).get
-        appConfigService.create(appID, app.token, 0)
-        val hyprWAP = waterfallAdProviderService.findWithTransaction(hyprWaterfallAdProviderID).get
+        components.appConfigService.create(appID, app.token, 0)
+        val hyprWAP = components.waterfallAdProviderService.findWithTransaction(hyprWaterfallAdProviderID).get
         WaterfallAdProviderWithAppData(
           id = hyprWAP.id,
           waterfallID = waterfallID,
@@ -120,7 +134,7 @@ if(appEnvironment.isProd) {
     val inventoryRequestMin = 30
     lazy val inventoryRequestCount = Random.nextInt(60) + inventoryRequestMin
     lazy val inventoryRequests = Array.fill(inventoryRequestCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_id" -> distributorID,
         "distributor_name" -> companyName,
@@ -141,7 +155,7 @@ if(appEnvironment.isProd) {
 
     lazy val inventoryAvailableCount = Random.nextInt(inventoryRequestCount - (inventoryRequestMin - 20))
     lazy val inventoryAvailable = Array.fill(inventoryAvailableCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_name" -> companyName,
         "distributor_id" -> distributorID,
@@ -163,7 +177,7 @@ if(appEnvironment.isProd) {
     val mediationRequestsMin = 50
     lazy val mediationRequestsCount = Random.nextInt(100) + mediationRequestsMin
     lazy val mediationInventoryRequests = Array.fill(mediationRequestsCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_id" -> distributorID,
         "distributor_name" -> companyName,
@@ -182,7 +196,7 @@ if(appEnvironment.isProd) {
 
     lazy val mediationAvailableCount = Random.nextInt(mediationRequestsCount - (mediationRequestsMin - 40))
     lazy val mediationInventoryAvailable = Array.fill(mediationAvailableCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_id" -> distributorID,
         "app_name" -> appName,
@@ -203,7 +217,7 @@ if(appEnvironment.isProd) {
     val adDisplayedMin = 15
     lazy val adDisplayedCount = Random.nextInt(25) + adDisplayedMin
     lazy val adDisplayed = Array.fill(adDisplayedCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_name" -> companyName,
         "distributor_id" -> distributorID,
@@ -224,7 +238,7 @@ if(appEnvironment.isProd) {
 
     lazy val adStartedCount = adDisplayedCount
     lazy val adStarted = Array.fill(adDisplayedCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_name" -> companyName,
         "distributor_id" -> distributorID,
@@ -245,7 +259,7 @@ if(appEnvironment.isProd) {
 
     lazy val adFinishedCount = Random.nextInt(adDisplayedMin) + adDisplayedCount
     lazy val adFinished = Array.fill(adFinishedCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_name" -> companyName,
         "distributor_id" -> distributorID,
@@ -268,7 +282,7 @@ if(appEnvironment.isProd) {
     var eCPMSum = 0
     lazy val eCPMValue = Random.nextInt(10) + 10
     lazy val rewardDelivered = Array.fill(rewardDeliveredCount) {
-      date = date - 1.minute
+      date = date.minusMinutes(1)
       Json.obj(
         "distributor_id" -> distributorID,
         "distributor_name" -> companyName,
@@ -318,9 +332,10 @@ if(appEnvironment.isProd) {
     )
 
     def publishToKeen() = {
-      client.addEvents(Json.stringify(Json.toJson(batch_request)))
-      client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
-      client.addEvents(Json.stringify(Json.toJson(batch_request_ads)))
+
+     client.addEvents(Json.stringify(Json.toJson(batch_request)))
+     client.addEvents(Json.stringify(Json.toJson(batch_request_mediation)))
+     client.addEvents(Json.stringify(Json.toJson(batch_request_ads)))
 
       println("==================")
       println("Date:                      " + date.toString(DateTimeFormat.forPattern("MM-dd-yyyy")))
@@ -345,8 +360,8 @@ if(appEnvironment.isProd) {
     AppHelper.createApp("Fourth App", thisPlatform.Android)
   )
 
-  val keenCountURLRoot = "https://api.keen.io/3.0/projects/" + environmentConfig.getString("keen.project").get + "/queries/count?api_key=" + environmentConfig.getString("keen.readKey").get + "&filters=%5B%7B%22property_name%22%3A%22distributor_id%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B" + distributorID.toString + "%5D%7D%5D"
-  val keenAverageURLRoot = "https://api.keen.io/3.0/projects/" + environmentConfig.getString("keen.project").get + "/queries/average?api_key=" + environmentConfig.getString("keen.readKey").get + "&filters=%5B%7B%22property_name%22%3A%22distributor_id%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B" + distributorID.toString + "%5D%7D%5D"
+  val keenCountURLRoot = "https://api.keen.io/3.0/projects/" + project + "/queries/count?api_key=" + readKey + "&filters=%5B%7B%22property_name%22%3A%22distributor_id%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B" + distributorID.toString + "%5D%7D%5D"
+  val keenAverageURLRoot = "https://api.keen.io/3.0/projects/" + project + "/queries/average?api_key=" + readKey + "&filters=%5B%7B%22property_name%22%3A%22distributor_id%22%2C%22operator%22%3A%22in%22%2C%22property_value%22%3A%5B" + distributorID.toString + "%5D%7D%5D"
 
   println("TESTING URLS")
   println("============")
@@ -395,7 +410,7 @@ if(appEnvironment.isProd) {
   apps.foreach { app =>
     val (appID, appName, platformID) = app
 
-    adProviderService.findAllByPlatform(platformID).foreach { adProvider =>
+    components.adProviderService.findAllByPlatform(platformID).foreach { adProvider =>
       println("")
       println("App Name:          " + appName.toUpperCase)
       println("Ad Provider:       " + adProvider.name.toUpperCase)
@@ -406,8 +421,8 @@ if(appEnvironment.isProd) {
 
       var events = List(
         new DailyEvent(appName, appID, adProvider, DateTime.now),
-        new DailyEvent(appName, appID, adProvider, DateTime.now - 1.day),
-        new DailyEvent(appName, appID, adProvider, DateTime.now - 2.day)
+        new DailyEvent(appName, appID, adProvider, DateTime.now.minusDays(1)),
+        new DailyEvent(appName, appID, adProvider, DateTime.now.minusDays(2))
       )
 
       events.map(event => event.publishToKeen())
