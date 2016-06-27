@@ -20,6 +20,21 @@ This product includes 'Apache Commons CLI', which is released under the followin
 
 ----------------------------------------------------------------
 
+This product includes 'Apache Commons Codec', which is released under the following license(s):
+    Apache License 2.0 <http://www.apache.org/licenses/LICENSE-2.0>
+
+----------------------------------------------------------------
+
+This product includes 'Apache Commons Logging', which is released under the following license(s):
+    Apache License 2.0 <http://www.apache.org/licenses/LICENSE-2.0>
+
+----------------------------------------------------------------
+
+This product includes 'GSON', which is released under the following license(s):
+    Apache License 2.0 <http://www.apache.org/licenses/LICENSE-2.0>
+
+----------------------------------------------------------------
+
 This product includes 'Guava', which is released under the following license(s):
     Apache License 2.0 <http://www.apache.org/licenses/LICENSE-2.0>
 
@@ -40,8 +55,18 @@ This product includes 'Jackson', which is released under the following license(s
 
 ----------------------------------------------------------------
 
+This product includes 'Javassist', which is released under the following license(s):
+    Apache License 2.0 <http://www.apache.org/licenses/LICENSE-2.0>
+
+----------------------------------------------------------------
+
 This product includes 'LogBack', which is released under the following license(s):
     Eclipse Public License 1.0 <http://www.eclipse.org/legal/epl-v10.html>
+
+----------------------------------------------------------------
+
+This product includes 'Reflections', which is released under the following license(s):
+    Do What The Fuck You Want To Public License (WTFPL) <http://www.wtfpl.net>
 
 ----------------------------------------------------------------
 
@@ -55,7 +80,7 @@ This product includes 'SnakeYAML', which is released under the following license
 
 ----------------------------------------------------------------
 
-All other components of this product are: Copyright (c) 2010-2015 New Relic, Inc. All rights reserved.
+All other components of this product are: Copyright (c) 2010-2016 New Relic, Inc. All rights reserved.
 
 Certain inventions disclosed in this file may be claimed within patents owned or patent applications
 filed by New Relic, Inc. or third parties. Subject to the terms of this notice, New Relic grants you

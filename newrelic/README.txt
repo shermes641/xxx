@@ -90,7 +90,7 @@ dependency to newrelic-api in your favorite build tool.
 
 Note to Java SE 5 Users
 -----------------------
-This version of the agent works with Java SE 6 and 7. At signup or in your
+This version of the agent works with Java SE 6, 7 and 8. At signup or in your
 Account Settings page, you have the option to download a version of the
 agent that works with Java SE 5.
 

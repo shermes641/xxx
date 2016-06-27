@@ -207,7 +207,7 @@ common: &default_settings
     enabled: true
 
     # Events are collected up to the configured amount. Afterwards, events are sampled to
-    # maintain an even distribution across the harvest cycle. Largest value accepted is 10000.
+    # maintain an even distribution across the harvest cycle.
     # Default is 2000.  Setting to 0 will disable.
     max_samples_stored: 2000
 
@@ -247,6 +247,17 @@ common: &default_settings
     # HttpServletRequest.getUserPrincipal() when servlets and filters are invoked.
     com.newrelic.instrumentation.servlet-user:
       enabled: false
+
+    com.newrelic.instrumentation.spring-aop-2:
+      enabled: false
+
+  # User-configurable custom labels for this agent.  Labels are name-value pairs.
+  # There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters.
+  # Names and values may not contain colons (:) or semicolons (;).
+  labels:
+
+    # An example label
+    #label_name: label_value
 
 
 # Application Environments
