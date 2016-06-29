@@ -161,7 +161,8 @@ class SecurityRoleService @Inject() (db: Database) {
           SELECT distributor_users.id as distributor_user_id, distributor_users.email, roles.name, roles.id as role_id, distributor_users_roles.id
           FROM distributor_users
           LEFT OUTER JOIN distributor_users_roles on distributor_users_roles.distributor_user_id = distributor_users.id
-          LEFT OUTER JOIN roles on roles.id = distributor_users_roles.role_id;
+          LEFT OUTER JOIN roles on roles.id = distributor_users_roles.role_id
+          WHERE LOWER(distributor_users.email) LIKE LOWER('%@hyprmx.com%') OR LOWER(distributor_users.email) LIKE LOWER('%@jungroup.com%');
         """
       ).as(userRoleParser*)
     }
