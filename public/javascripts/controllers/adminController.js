@@ -1,5 +1,6 @@
-mediationModule.controller( 'AdminController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs', 'filterFilter', '$window',
-        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs, filterFilter, $window ) {
+mediationModule.controller( 'AdminController', [ '$scope', '$http', '$routeParams', '$filter', '$timeout', '$location', 'flashMessage', 'sharedIDs', 'filterFilter', '$window', 'platforms',
+        function( $scope, $http, $routeParams, $filter, $timeout, $location, flashMessage, sharedIDs, filterFilter, $window, platforms ) {
+            $scope.platforms = platforms.all();
             $scope.apps = [];
             $scope.distributor = {};
             $scope.flashMessage = flashMessage;

@@ -272,7 +272,7 @@ class AppService @Inject() (appConfigService: AppConfigService, db: Database) ex
         FROM apps
         ORDER BY created_at DESC;
         """
-      ).as(AppParser*).toList
+      ).as(AppParser*)
     }
   }
 

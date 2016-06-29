@@ -60,6 +60,7 @@ class AdminController @Inject() (modelService: ModelService,
       "token" -> JsString(app.token),
       "distributor_id" -> JsNumber(app.distributorID),
       "id" -> JsNumber(app.id),
+      "platform_id" -> JsNumber(app.platformID),
       "app_config_refresh_interval" -> JsNumber(app.appConfigRefreshInterval)
     )
   }

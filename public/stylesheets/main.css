@@ -2524,4 +2524,9 @@ button.confirm-button {
   text-align: left;
 }
 
+.admin-platform-logo {
+  height: 25px;
+  position: relative;
+}
+
 /*# sourceMappingURL=main.css.map */
