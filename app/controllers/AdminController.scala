@@ -24,6 +24,7 @@ class AdminController @Inject() (modelService: ModelService,
                                  adminService: AdminService,
                                  securityRoleService: SecurityRoleService,
                                  deadbolt: DeadboltActions) extends Controller {
+
   val distributorService = modelService.distributorService
   val distributorUserService = modelService.distributorUserService
   val appService = modelService.appService
@@ -35,8 +36,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Converts the Distributor class into JSON
-    *
-    * @param distributor An instance of the Distributor class
+   *
+   * @param distributor An instance of the Distributor class
    * @return            A JSON blob containing Distributor info
    */
   implicit def DistributorWrites(distributor: Distributor): JsObject = {
@@ -48,8 +49,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Converts the App class into JSON
-    *
-    * @param app An instance of the App class
+   *
+   * @param app An instance of the App class
    * @return    A JSON blob containing App info
    */
   implicit def AppWrites(app: App): JsObject = {
@@ -64,8 +65,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Converts the SecurityRole class into JSON
-    *
-    * @param role An instance of the SecurityRole class
+   *
+   * @param role An instance of the SecurityRole class
    * @return     A JSON blob containing SecurityRole info
    */
   implicit def SecurityRoleWrites(role: SecurityRole): JsObject = {
@@ -77,8 +78,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Converts the UserWithRoles class into JSON
-    *
-    * @param userRole An instance of the UserWithRole class
+   *
+   * @param userRole An instance of the UserWithRole class
    * @return         A JSON blob containing UserWithRole info
    */
   implicit def UserWithRolesWrites(userRole: UserWithRole): JsObject = {
@@ -93,8 +94,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Finds all Distributors and converts them into a JSON array
-    *
-    * @return A JsArray containing all Distributor info
+   *
+   * @return A JsArray containing all Distributor info
    */
   def distributors: JsArray = {
     distributorService.findAll().foldLeft(JsArray(Seq()))((array, distributor) => array ++ JsArray(Seq(distributor)))
@@ -123,8 +124,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Updates the appConfigRefreshInterval for an app
-    *
-    * @return If the app is not in test mode, return a message stating the update was successful.
+   *
+   * @return If the app is not in test mode, return a message stating the update was successful.
    *         Otherwise, return a bad request.
    */
   def updateApp() = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
@@ -151,9 +152,9 @@ class AdminController @Inject() (modelService: ModelService,
   }
 
   /**
-    * Finds all Distributors and Apps for the main admin page
-    *
-    * @return A JSON list of Distributors and Apps
+   * Finds all Distributors and Apps for the main admin page
+   *
+   * @return A JSON list of Distributors and Apps
    */
   def distributorInfo = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
     Future {
@@ -164,8 +165,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Finds all DistributorUsers and Roles
-    *
-    * @return A JSON list of DistributorUsers and existing or potential roles for each user
+   *
+   * @return A JSON list of DistributorUsers and existing or potential roles for each user
    */
   def roleInfo = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
     Future {
@@ -177,8 +178,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Assigns a particular role to a DistributorUser
-    *
-    * @return A JSON blob containing role info if the assignment is successful.
+   *
+   * @return A JSON blob containing role info if the assignment is successful.
    *         Otherwise, roll back the transaction and return a bad request.
    */
   def addRole() = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
@@ -217,8 +218,8 @@ class AdminController @Inject() (modelService: ModelService,
 
   /**
    * Removes the role assignment for a DistributorUser
-    *
-    * @return A JSON success message if the role was removed successfully.
+   *
+   * @return A JSON success message if the role was removed successfully.
    *         Otherwise, roll back the transaction and return a bad request.
    */
   def removeRole() = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
@@ -254,42 +255,12 @@ class AdminController @Inject() (modelService: ModelService,
     }
   }
 
-  def username(request: RequestHeader): Option[String] = {
-    request.session.get(Security.username)
-  }
-
-  def onUnauthorized(request: RequestHeader): Result = {
-    Results.Redirect(routes.DistributorUsersController.login(None))
-  }
-
-  def withAdmin(controllerDistributorID: Option[Long])(controllerAction: => String => Request[AnyContent] => Result): EssentialAction = {
-    Security.Authenticated(username, onUnauthorized) { user =>
-      Action(request => {
-        (controllerDistributorID, username(request)) match {
-          case (Some(ctrlDistID), Some(email)) =>
-            adminService.find(email, ctrlDistID) match {
-              case Some(admin) =>
-                request.session.get("distributorID") match {
-                  // Check if Distributor ID from session matches the ID passed from the controller
-                  case Some(sessionDistID) if sessionDistID == admin.distributorID.toString =>
-                    controllerAction(user)(request)
-                  case _ => Results.Redirect(routes.DistributorUsersController.login(None))
-                }
-              case _ => Results.Redirect(routes.DistributorUsersController.login(None))
-            }
-
-          case _ => Results.Redirect(routes.DistributorUsersController.login(None))
-        }
-      })
-    }
-  }
-
   /**
    * Logs in an admin DistributorUser as the Distributor whose ID is passed as an argument
-    *
-    * @param distributorID The ID of the Distributor that will be logged in
-   * @return If the user was an admin, redirect and start a new session as the specified Distributor.
-   *         Otherwise, return the appropriate error JSON.
+   *
+   * @param distributorID The ID of the Distributor that will be logged in
+   * @return              If the user was an admin, redirect and start a new session as the specified Distributor.
+   *                      Otherwise, return the appropriate error JSON.
    */
   def morph(distributorID: Option[Long]) = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
     Future {
