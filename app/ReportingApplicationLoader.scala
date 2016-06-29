@@ -108,7 +108,7 @@ class ReportingComponents(context: Context) extends BuiltInComponentsFromContext
   lazy val applicationController = new controllers.Application(distributorUserService)
   lazy val configVarsController = new controllers.ConfigVarsController(configVars, appEnvironment)
 
-  lazy val adminController = new controllers.AdminController(modelService, adminService, securityRoleService, deadboltActions)
+  lazy val adminController = new controllers.AdminController(modelService, database, adminService, securityRoleService, deadboltActions)
 
   // Assets
   lazy val assets = new controllers.Assets(httpErrorHandler)

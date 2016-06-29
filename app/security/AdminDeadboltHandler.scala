@@ -1,12 +1,10 @@
 package security
 
-import javax.inject.Inject
-
 import admin.AdminService
 import be.objectify.deadbolt.scala.cache.HandlerCache
 import be.objectify.deadbolt.scala.{AuthenticatedRequest, DeadboltHandler, DynamicResourceHandler, HandlerKey}
+import javax.inject.Inject
 import play.api.mvc.{Request, Result, Results}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

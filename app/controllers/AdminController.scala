@@ -4,10 +4,9 @@ import admin._
 import be.objectify.deadbolt.scala.DeadboltActions
 import javax.inject.Inject
 import models._
-import play.api.db.DB
+import play.api.db.Database
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.Play.current
 import security.AdminDeadboltHandler
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -16,11 +15,13 @@ import scala.language.implicitConversions
 /**
   * Controller for all Admin-related actions
   * @param modelService        Encapsulates all common models
+  * @param db                  Shared instance of the database
   * @param adminService        Encapsulates Admin functions
   * @param securityRoleService Encapsulates SecurityRole functions
   * @param deadbolt            Deadbolt API actions
   */
 class AdminController @Inject() (modelService: ModelService,
+                                 db: Database,
                                  adminService: AdminService,
                                  securityRoleService: SecurityRoleService,
                                  deadbolt: DeadboltActions) extends Controller {
@@ -116,13 +117,6 @@ class AdminController @Inject() (modelService: ModelService,
   }
 
   /**
-   * Renders the completion search page if the DistributorUser has admin access
-   */
-  def completions = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
-    Future { Ok(views.html.Admin.completions(0)(authRequest.flash, authRequest.session)) }
-  }
-
-  /**
    * Updates the appConfigRefreshInterval for an app
    *
    * @return If the app is not in test mode, return a message stating the update was successful.
@@ -185,7 +179,7 @@ class AdminController @Inject() (modelService: ModelService,
   def addRole() = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
     Future {
       authRequest.body.asInstanceOf[AnyContentAsJson].asJson.map { json =>
-        DB.withTransaction { implicit connection =>
+        db.withTransaction { implicit connection =>
           try {
             val distributorUserID = (json \ "distributor_user_id").as[Long]
             val roleID = (json \ "role_id").as[Int]
@@ -225,7 +219,7 @@ class AdminController @Inject() (modelService: ModelService,
   def removeRole() = deadbolt.SubjectPresent(new AdminDeadboltHandler(adminService))() { authRequest =>
     Future {
       authRequest.body.asInstanceOf[AnyContentAsJson].asJson.map { json =>
-        DB.withTransaction { implicit connection =>
+        db.withTransaction { implicit connection =>
           try {
             val userRoleID = (json \ "distributor_users_role_id").as[Int]
             securityRoleService.deleteUserRole(userRoleID) match {
