@@ -436,7 +436,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
         response.status must beEqualTo(200)
         response.body must contain("Validating HyprMediate's Server to Server Call")
       }, Duration(5000, "millis"))
-    }.pendingUntilFixed(" *** Once The documentation is published we can run this test ***")
+    }
 
     "display the API Token in the app configuration modal" in new WithAppBrowser(user.distributorID.get) {
       def checkAPIToken(testApp: App) = {
