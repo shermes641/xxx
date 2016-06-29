@@ -53,7 +53,7 @@
                         <div class="app-table-header-metric platform-metric">
                             <img alt="" ng-src="{{platforms.logoSource(platforms[app.platform_id].name, true)}}" class="admin-platform-logo"><img>
                         </div>
-                        <div class="app-table-header-metric admin-api-token-field">{{app.token}}</div>
+                        <div class="app-table-header-metric admin-api-token-field"><a target="_blank" href="/v1/app_configs/{{app.token}}">{{app.token}}</a></div>
                         <div class="app-table-header-metric refresh-interval-metric">
                             <input type="number" class="app-config-refresh-field" ng-model="app.app_config_refresh_interval"/>
                         </div>
