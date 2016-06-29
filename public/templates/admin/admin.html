@@ -38,10 +38,9 @@
                     <tr>
                         <th>
                             <div class="app-table-header-metric">App Name</div>
-                            <div class="app-table-header-metric">Platform</div>
-                            <div class="app-table-header-metric">API Token</div>
-                            <div class="app-table-header-metric">App Config Refresh Interval (seconds)</div>
-                            <div class="app-table-header-metric">Update</div>
+                            <div class="app-table-header-metric platform-metric">Platform</div>
+                            <div class="app-table-header-metric admin-api-token-field">API Token</div>
+                            <div class="app-table-header-metric refresh-interval-metric">App Config Refresh Interval (seconds)</div>
                         </th>
                     </tr>
                 </thead>
@@ -51,11 +50,11 @@
                         <div class="app-table-header-metric">
                             {{app.name}}
                         </div>
-                        <div class="app-table-header-metric">
+                        <div class="app-table-header-metric platform-metric">
                             <img alt="" ng-src="{{platforms.logoSource(platforms[app.platform_id].name, true)}}" class="admin-platform-logo"><img>
                         </div>
                         <div class="app-table-header-metric admin-api-token-field">{{app.token}}</div>
-                        <div class="app-table-header-metric">
+                        <div class="app-table-header-metric refresh-interval-metric">
                             <input type="number" class="app-config-refresh-field" ng-model="app.app_config_refresh_interval"/>
                         </div>
                         <div class="app-table-header-metric admin-update-container">

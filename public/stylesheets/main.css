@@ -2442,6 +2442,7 @@ button.confirm-button {
 
 .admin-api-token-field {
   padding-right: 20px;
+  width: 300px;
 }
 
 .company-name {
@@ -2527,6 +2528,15 @@ button.confirm-button {
 .admin-platform-logo {
   height: 25px;
   position: relative;
+}
+
+.platform-metric {
+  width: 50px;
+  margin-right: 15px;
+}
+
+.refresh-interval-metric {
+  width: 100px;
 }
 
 /*# sourceMappingURL=main.css.map */
