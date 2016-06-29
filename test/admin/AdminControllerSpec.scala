@@ -123,4 +123,31 @@ class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUse
       status(result) must equalTo(404)
     }
   }
+
+  "AdminController.manage" should {
+    "render the role management page if the user is an admin" in new WithFakeBrowser {
+      logInUser(admin.email)
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AdminController.manage().url,
+        FakeHeaders(Seq("Content-type" -> "application/json")),
+        Json.obj()
+      )
+      val Some(result) = route(request.withSession("distributorID" -> admin.distributorID.get.toString, "username" -> admin.email))
+      status(result) must equalTo(200)
+    }
+
+    "return a 404 if the user is not an admin" in new WithFakeBrowser {
+      val nonAdminUser = users.head
+      logInUser(nonAdminUser.email)
+      val request = FakeRequest(
+        POST,
+        controllers.routes.AdminController.manage().url,
+        FakeHeaders(Seq("Content-type" -> "application/json")),
+        Json.obj()
+      )
+      val Some(result) = route(request.withSession("distributorID" -> nonAdminUser.distributorID.get.toString, "username" -> nonAdminUser.email))
+      status(result) must equalTo(404)
+    }
+  }
 }
