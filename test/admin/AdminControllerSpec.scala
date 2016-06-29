@@ -8,13 +8,13 @@ import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
   val users: List[DistributorUser] = running(testApplication) {
-    val usersAndDistributors = (1 to 3).map(index => newDistributorUser(email = "newUser" + index + "@gmail.com", password = password, companyName = "company" + index))
+    val usersAndDistributors = (1 to 3).map(index => newDistributorUser(email = "newUser" + index + "@jungroup.com", password = password, companyName = "company" + index))
     usersAndDistributors.map((userInfo) => setUpApp(distributorID = userInfo._2.id.get, appName = Some(userInfo._2.name + " App")))
     usersAndDistributors.map(_._1).toList
   }
 
   val (admin, adminRole) = running(testApplication) {
-    val user = newDistributorUser(email = "newAdminUser@gmail.com")._1
+    val user = newDistributorUser(email = "newAdminUser@jungroup.com")._1
     val role = Admin(user.email, user.id.get, securityRoleService)
     database.withTransaction { implicit connection =>
       securityRoleService.addUserRole(user.id.get, role.RoleID)

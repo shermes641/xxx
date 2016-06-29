@@ -8,7 +8,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
   "securityRoleService.availableRoles" should {
     "return an empty list if no roles exist for a DistributorUser" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail1@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail1@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       securityRoleService.availableRoles(user.email, user.distributorID.get) must beEqualTo(List())
@@ -16,7 +16,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
 
     "return all existing roles for a DistributorUser" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail2@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail2@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
@@ -31,7 +31,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
   "securityRoleService.addUserRole" should {
     "add to the existing roles for a DistributorUser" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail3@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail3@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
@@ -48,7 +48,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
 
     "return an instance of the UserWithRole class" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail4@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail4@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
@@ -61,7 +61,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
   "securityRoleService.deleteUserRole" should {
     "remove the record in the distributor_users_roles table" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail5@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail5@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
@@ -76,7 +76,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
   "securityRoleService.findAllUsersWithRoles" should {
     "include users who do not have roles assigned to them" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail7@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail7@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       securityRoleService.findAllUsersWithRoles.count(userRole => userRole.distributorUserID == user.id.get) must beEqualTo(1)
@@ -84,7 +84,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
 
     "include the role_id for users with roles assigned" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail8@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail8@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
@@ -107,7 +107,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
   "securityRoleService.exists" should {
     "return true if the role exists for a user" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail9@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail9@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
@@ -119,7 +119,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
 
     "return false if the role does not exist for a user" in new WithDB {
       val user = {
-        val id = distributorUserService.create("newemail10@gmail.com", password, companyName).get
+        val id = distributorUserService.create("newemail10@jungroup.com", password, companyName).get
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
