@@ -182,17 +182,21 @@ class AdminController @Inject() (modelService: ModelService,
       authRequest.body.asInstanceOf[AnyContentAsJson].asJson.map { json =>
         db.withTransaction { implicit connection =>
           try {
+            val badRoleMessage = errorJson ++ Json.obj("message" -> "Could not add role.")
             val distributorUserID = (json \ "distributor_user_id").as[Long]
-            val roleID = (json \ "role_id").as[Int]
-            securityRoleService.addUserRole(distributorUserID, roleID) match {
-              case Some(userRole: UserWithRole) => {
-                Created(Json.obj("status" -> "success", "message" -> "Role added!", "user_role" -> UserWithRolesWrites(userRole)))
-              }
-              case None => {
-                BadRequest(
-                  errorJson ++ Json.obj("message" -> "Could not add role.")
-                )
-              }
+            distributorUserService.find(distributorUserID) match {
+              case Some(distUser) if Constants.Admin.validEmail.findFirstIn(distUser.email).isDefined =>
+                val roleID = (json \ "role_id").as[Int]
+                securityRoleService.addUserRole(distributorUserID, roleID) match {
+                  case Some(userRole: UserWithRole) => {
+                    Created(Json.obj("status" -> "success", "message" -> "Role added!", "user_role" -> UserWithRolesWrites(userRole)))
+                  }
+                  case None => {
+                    BadRequest(badRoleMessage)
+                  }
+                }
+              case _ =>
+                BadRequest(badRoleMessage)
             }
           } catch {
             case error: org.postgresql.util.PSQLException => {

@@ -109,6 +109,10 @@ object Constants {
     final val VungleUrl           = "vungle.reporting_url"
     final val UnityadsUrl         = "unityads.reporting_url"
   }
+
+  object Admin {
+    final val validEmail = "(?i)@(jungroup|hyprmx).com".r
+  }
 }
 //@formatter:on
 // $COVERAGE-ON$

@@ -2406,7 +2406,7 @@ button.confirm-button {
 .distributor-search-container {
   width: 400px;
   margin-left: 300px;
-  margin-top: -100px;
+  margin-top: -50px;
   padding-bottom: 50px;
 }
 
@@ -2455,7 +2455,7 @@ button.confirm-button {
 
 #admin-edit-message {
   margin-left: -220px;
-  margin-top: -165px;
+  margin-top: -100px;
 }
 
 .distributors-dropdown .typeahead-group-header {
