@@ -3,7 +3,7 @@ package admin
 import models._
 import play.api.libs.json.{JsValue, JsArray, Json}
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest, FakeApplication}
+import play.api.test.{FakeHeaders, FakeRequest}
 import resources.{SpecificationWithFixtures, DistributorUserSetup}
 
 class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUserSetup with AppCreationHelper {
@@ -50,7 +50,7 @@ class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUse
         GET,
         controllers.routes.AdminController.distributorInfo().url,
         FakeHeaders(Seq("Content-type" -> "application/json")),
-        ""
+        Json.obj()
       )
       val Some(result) = route(request.withSession("distributorID" -> admin.distributorID.get.toString, "username" -> admin.email))
       status(result) must equalTo(200)
@@ -67,7 +67,7 @@ class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUse
         GET,
         controllers.routes.AdminController.roleInfo().url,
         FakeHeaders(Seq("Content-type" -> "application/json")),
-        ""
+        Json.obj()
       )
       val Some(result) = route(request.withSession("distributorID" -> admin.distributorID.get.toString, "username" -> admin.email))
       status(result) must equalTo(200)
