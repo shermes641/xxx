@@ -29,8 +29,8 @@ class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUse
       logInUser(user.email)
       browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
       goToAndWaitForAngular(controllers.routes.AdminController.morph(Some(users(1).distributorID.get)).url)
-      // Redirect back to the current user's analytics page
-      browser.url() must beEqualTo(controllers.routes.AnalyticsController.show(user.distributorID.get, None, None).url)
+      // Return a 404
+      browser.url() must beEqualTo(controllers.routes.Application.notFound().url)
     }
 
     "log in the admin as the user they are morphing into" in new WithFakeBrowser {
@@ -94,6 +94,33 @@ class AdminControllerSpec  extends SpecificationWithFixtures with DistributorUse
       val Some(result) = route(request.withSession("distributorID" -> admin.distributorID.get.toString, "username" -> admin.email))
       status(result) must equalTo(201)
       securityRoleService.exists(Admin(nonAdminUser.email, nonAdminUser.id.get, securityRoleService)) must beTrue
+    }
+  }
+
+  "AdminController.edit" should {
+    "render the main admin page if the user is an admin" in new WithFakeBrowser {
+      logInUser(admin.email)
+      val request = FakeRequest(
+        GET,
+        controllers.routes.AdminController.edit().url,
+        FakeHeaders(Seq("Content-type" -> "application/json")),
+        Json.obj()
+      )
+      val Some(result) = route(request.withSession("distributorID" -> admin.distributorID.get.toString, "username" -> admin.email))
+      status(result) must equalTo(200)
+    }
+
+    "return a 404 if the user is not an admin" in new WithFakeBrowser {
+      val nonAdminUser = users.head
+      logInUser(nonAdminUser.email)
+      val request = FakeRequest(
+        POST,
+        controllers.routes.AdminController.edit().url,
+        FakeHeaders(Seq("Content-type" -> "application/json")),
+        Json.obj()
+      )
+      val Some(result) = route(request.withSession("distributorID" -> nonAdminUser.distributorID.get.toString, "username" -> nonAdminUser.email))
+      status(result) must equalTo(404)
     }
   }
 }

@@ -23,7 +23,7 @@ class AdminDeadboltHandler(adminService: AdminService,
     }
 
   override def onAuthFailure[A](request: AuthenticatedRequest[A]): Future[Result] = {
-    Future { Results.Redirect(controllers.routes.DistributorUsersController.login(None)) }
+    Future { Results.Redirect(controllers.routes.Application.notFound()) }
   }
 }
 
