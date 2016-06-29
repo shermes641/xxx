@@ -1,6 +1,17 @@
 {
   "name": "Mediation-API",
   "scripts": {
+    "postdeploy": "lib/bootstrap.sh"
+  },
+  "formation": {
+    "web": {
+      "quantity": 2,
+      "size": "STANDARD-2X"
+    },
+    "worker": {
+      "quantity": 1,
+      "size": "STANDARD-2X"
+    }
   },
   "env": {
     "APP_DOMAIN": {
@@ -81,9 +92,7 @@
     "HYPR_MARKETPLACE_REPORTING_URL": {
       "required": true
     },
-    "HYPR_MARKETPLACE_TEAM_EMAIL": {
-      "required": true
-    },
+    "HYPR_MARKETPLACE_TEAM_EMAIL": "noreply@hyprmx.com",
     "HYPRMEDIATE_OPS_EMAIL": {
       "required": true
     },
@@ -105,9 +114,7 @@
     "PLAYER_MEDIATION_USER": {
       "required": true
     },
-    "PLAYER_TOKEN": {
-      "required": true
-    },
+    "PLAYER_TOKEN": "TOKENPLACEHOLDER",
     "PLAYER_URL": {
       "required": true
     },
@@ -126,14 +133,15 @@
     "KEEN_ORG_KEY": {
       "required": true
     },
-    "STAGING": {
-      "required": true
-    }
+    "STAGING": "true"
   },
   "addons": [
-    "newrelic",
-    "papertrail",
-    "heroku-postgresql",
-    "sendgrid"
+    "adept-scale:corvette",
+    "deployhooks:email",
+    "heroku-postgresql:standard-2",
+    "newrelic:wayne",
+    "papertrail:forsta",
+    "sendgrid:bronze",
+    "ssl:endpoint"
   ]
 }
