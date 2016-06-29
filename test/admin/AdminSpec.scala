@@ -1,7 +1,5 @@
 package admin
 
-import models.DistributorUser
-import play.api.db.DB
 import resources.SpecificationWithFixtures
 
 class AdminSpec extends SpecificationWithFixtures {
@@ -20,7 +18,7 @@ class AdminSpec extends SpecificationWithFixtures {
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         securityRoleService.addUserRole(user.id.get, adminUser.RoleID)
       }
       val adminRole = adminService.find(user.email, user.distributorID.get).get

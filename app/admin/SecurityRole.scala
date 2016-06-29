@@ -152,6 +152,7 @@ class SecurityRoleService @Inject() (db: Database) {
   /**
    * Finds all users with or without roles. If a user has multiple roles, these will be included in the list.
    * If a user has no roles, the user will be included with a blank role_id field.
+   * NOTE: This only finds users with a Jun Group or HyprMX email address
    * @return A list of DistributorUsers with roles
    */
   def findAllUsersWithRoles: List[UserWithRole] = {

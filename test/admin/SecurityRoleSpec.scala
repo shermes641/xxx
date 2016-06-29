@@ -20,7 +20,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         securityRoleService.addUserRole(user.id.get, adminUser.RoleID)
       }
       val roles = securityRoleService.availableRoles(user.email, user.distributorID.get)
@@ -38,7 +38,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
 
       securityRoleService.availableRoles(user.email, user.distributorID.get) must beEqualTo(List())
 
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         securityRoleService.addUserRole(user.id.get, adminUser.RoleID)
       }
       val roles = securityRoleService.availableRoles(user.email, user.distributorID.get)
@@ -52,7 +52,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         securityRoleService.addUserRole(user.id.get, adminUser.RoleID).get must haveClass[UserWithRole]
       }
     }
@@ -65,7 +65,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         val role = securityRoleService.addUserRole(user.id.get, adminUser.RoleID).get
         securityRoleService.deleteUserRole(role.distributorUserRoleID.get) must beEqualTo(1)
       }
@@ -88,11 +88,28 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         securityRoleService.addUserRole(user.id.get, adminUser.RoleID).get
       }
       val userRole = securityRoleService.findAllUsersWithRoles.filter(userRole => userRole.distributorUserID == user.id.get)(0)
       userRole.roleID.get must beEqualTo(adminUser.RoleID)
+    }
+
+    "only include users with a Jun Group or HyprMX email address" in new WithDB {
+      val nonEligibleEmails = {
+        val emails = List("someuser@gmail.com", "someuser@jun.com", "fakehyprmxuser@hypr.com", "user@jungroup.co")
+        emails.map(distributorUserService.create(_, password, companyName).get)
+        emails
+      }
+      val eligibleEmails = {
+        val emails = List("user@jungroup.com", "user@hyprmx.com", "user2@JunGroup.com", "user2@hyprMX.com")
+        emails.map(distributorUserService.create(_, password, companyName).get)
+        emails
+      }
+      val allRoles = securityRoleService.findAllUsersWithRoles.map(_.email)
+
+      allRoles.count(nonEligibleEmails.contains(_)) must beEqualTo(0)
+      allRoles.count(eligibleEmails.contains(_)) must beEqualTo(eligibleEmails.length)
     }
   }
 
@@ -111,7 +128,7 @@ class SecurityRoleSpec extends SpecificationWithFixtures {
         distributorUserService.find(id).get
       }
       val adminUser = Admin(user.email, user.id.get, securityRoleService)
-      DB.withTransaction { implicit connection =>
+      db.withTransaction { implicit connection =>
         securityRoleService.addUserRole(user.id.get, adminUser.RoleID).get
       }
       securityRoleService.exists(adminUser) must beTrue
