@@ -29,14 +29,14 @@ case class Admin(email: String, id: Long, securityRoleService: SecurityRoleServi
   val userEmail: String = email
   val distributorID: Long = id
 
-  def securityRoles: List[SecurityRole] = securityRoleService.availableRoles(email, distributorID)
-
   /**
    * Must be implemented for Deadbolt
    * @return A list of SecurityRoles for a DistributorUser's email
    */
   def getRoles: java.util.List[SecurityRole] = {
-    Scala.asJava(securityRoles)
+    Scala.asJava(
+      securityRoleService.availableRoles(email, distributorID)
+    )
   }
 
   /**
