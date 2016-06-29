@@ -434,7 +434,7 @@ class AppsControllerSpec extends SpecificationWithFixtures with DistributorUserS
       val request = ws.url(documentationLink).withAuth(DocumentationUsername, DocumentationPassword, WSAuthScheme.BASIC)
       Await.result(request.get().map { response =>
         response.status must beEqualTo(200)
-        response.body must contain("Server to Server Callback Validation")
+        response.body must contain("Validating HyprMediate's Server to Server Call")
       }, Duration(5000, "millis"))
     }.pendingUntilFixed(" *** Once The documentation is published we can run this test ***")
 
