@@ -1,3 +1,4 @@
+import admin.{AdminService, SecurityRoleService}
 import be.objectify.deadbolt.scala.DeadboltComponents
 import be.objectify.deadbolt.scala.cache.{DefaultPatternCache, HandlerCache, PatternCache}
 import models._
@@ -9,6 +10,7 @@ import play.api.db.{DBComponents, Database, HikariCPComponents}
 import play.api.libs.mailer._
 import play.api.libs.ws.ning.NingWSClient
 import security.AdminHandlerCache
+import tasks.ReviewAppSeedService
 
 import scala.language.postfixOps
 
@@ -22,7 +24,7 @@ class ReviewAppSeedLoader extends ApplicationLoader {
     val application = appConfigComponents.application
     Startup.beforeStart(appConfigComponents.configVars, appConfigComponents.appEnvironment)
     Startup.onStart(appConfigComponents.modelService, appConfigComponents.appEnvironment)
-    appConfigComponents.regenerateAppConfigsService.run()
+    appConfigComponents.reviewappseedService.run()
     application
   }
 }
@@ -66,7 +68,7 @@ class ReviewAppSeedComponents(context: Context) extends BuiltInComponentsFromCon
   override lazy val patternCache: PatternCache = new DefaultPatternCache(defaultCacheApi)
   override lazy val handlers: HandlerCache = new AdminHandlerCache(adminService)
 
-  lazy val regenerateAppConfigsService = new RegenerateAppConfigsService(database,
+  lazy val reviewappseedService = new ReviewAppSeedService(database,
     waterfallAdProviderService,
     appConfigService,
     adProviderService,
